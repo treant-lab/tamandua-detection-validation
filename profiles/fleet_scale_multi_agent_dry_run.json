@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "profile_id": "fleet-scale-multi-agent-dry-run",
+  "name": "Fleet Scale Multi Agent Dry Run",
+  "description": "Report-only Roadmap S profile for fleet scale and multi-agent benchmark planning. It does not start simultaneous workloads or require WIN-TEMPLATE.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "fleet-scale",
+  "quality_bar": {
+    "purpose": "fleet_scale_multi_agent_dry_run",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "fleet_contract": {
+    "evidence_scope": [
+      "agent identity uniqueness and duplicate hostname handling",
+      "per-agent event isolation and tenant routing",
+      "offline/reconnect state and heartbeat transitions",
+      "simultaneous benign and deterministic workload plan with latency/loss metrics"
+    ],
+    "promotion_requires": [
+      "at least three enrolled agents across documented hosts or platforms",
+      "simultaneous workload artifact with per-agent event counts and alert counts",
+      "no cross-agent evidence contamination",
+      "ingest latency, queue depth, event loss, alert latency, and UI/API query metrics"
+    ]
+  },
+  "claim_boundary": "Dry-run fleet scale contract only. It makes Roadmap S scorecard-mappable without claiming multi-agent execution, scale, latency, or isolation readiness.",
+  "tests": [
+    {
+      "id": "fleet-agent-identity-contract-report-only",
+      "name": "Agent Identity Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='agent_identity'; RequiredFields=@('tenant_id','agent_id','host_id','hostname','platform','enrollment_id','last_seen_at'); DuplicateHostnamePolicy='stable_agent_id_wins'; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:S", "fleet", "agent-identity", "report-only", "multi-agent"],
+      "risk": "low"
+    },
+    {
+      "id": "fleet-cross-agent-isolation-contract-report-only",
+      "name": "Cross Agent Isolation Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='event_isolation'; RequiredChecks=@('agent_a_events_not_on_agent_b','tenant_scope_enforced','alert_agent_id_matches_event_agent_id','query_filters_required'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:S", "fleet", "isolation", "tenant-routing", "report-only", "multi-agent"],
+      "risk": "low"
+    },
+    {
+      "id": "fleet-offline-reconnect-contract-report-only",
+      "name": "Offline Reconnect Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='offline_reconnect'; RequiredStates=@('online','offline','reconnecting','caught_up'); RequiredMetrics=@('heartbeat_gap_seconds','queued_events','dropped_events','catchup_seconds'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:S", "fleet", "offline", "reconnect", "report-only", "multi-agent"],
+      "risk": "low"
+    },
+    {
+      "id": "fleet-simultaneous-workload-plan-report-only",
+      "name": "Simultaneous Workload Plan Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='simultaneous_workloads'; PlannedWorkloads=@('benign_browser','benign_admin','deterministic_process','deterministic_network'); RequiredMetrics=@('ingest_latency_ms','alert_latency_ms','queue_depth','event_loss_count','api_query_latency_ms'); Apply='planned_not_executed'; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:S", "fleet", "load", "metrics", "planned-not-executed", "report-only", "multi-agent"],
+      "risk": "low"
+    }
+  ]
+}

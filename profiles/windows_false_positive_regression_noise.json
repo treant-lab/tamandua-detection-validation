@@ -1,0 +1,150 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-false-positive-regression-noise",
+  "name": "Windows False Positive Regression Noise",
+  "description": "Benign Windows workloads that previously produced noisy high/critical alerts. This profile gates alert severity calibration, not attack coverage.",
+  "platform": "windows",
+  "default_observation_seconds": 90,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "false_positive_regression_noise",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "requires_driver_health": false,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Benign/noise regression only. Passing this profile supports severity calibration claims, not detection coverage claims.",
+  "tests": [
+    {
+      "id": "fp-edgeupdate-scheduled-updater",
+      "name": "Microsoft Edge scheduled updater should not remain high/critical",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand JABwAGEAdABoAHMAIAA9ACAAQAAoAAoAIAAnAEMAOgBcAFAAcgBvAGcAcgBhAG0AIABGAGkAbABlAHMAIAAoAHgAOAA2ACkAXABNAGkAYwByAG8AcwBvAGYAdABcAEUAZABnAGUAVQBwAGQAYQB0AGUAXABNAGkAYwByAG8AcwBvAGYAdABFAGQAZwBlAFUAcABkAGEAdABlAC4AZQB4AGUAJwAsAAoAIAAnAEQAOgBcAFAAcgBvAGcAcgBhAG0AIABGAGkAbABlAHMAIAAoAHgAOAA2ACkAXABNAGkAYwByAG8AcwBvAGYAdABcAEUAZABnAGUAVQBwAGQAYQB0AGUAXABNAGkAYwByAG8AcwBvAGYAdABFAGQAZwBlAFUAcABkAGEAdABlAC4AZQB4AGUAJwAKACkACgAkAHAAIAA9ACAAJABwAGEAdABoAHMAIAB8ACAAVwBoAGUAcgBlAC0ATwBiAGoAZQBjAHQAIAB7ACAAVABlAHMAdAAtAFAAYQB0AGgAIAAkAF8AIAB9ACAAfAAgAFMAZQBsAGUAYwB0AC0ATwBiAGoAZQBjAHQAIAAtAEYAaQByAHMAdAAgADEACgBpAGYAIAAoACQAcAApACAAewAgACYAIAAkAHAAIAAvAHUAYQAgAC8AaQBuAHMAdABhAGwAbABzAG8AdQByAGMAZQAgAHMAYwBoAGUAZAB1AGwAZQByACAAfQAgAGUAbABzAGUAIAB7ACAAJwBlAGQAZwBlAHUAcABkAGEAdABlAC0AbgBvAHQALQBpAG4AcwB0AGEAbABsAGUAZAAnACAAfQA=",
+      "validation_category": "benign-noise",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "network_connect",
+        "dns_query",
+        "file_create",
+        "file_modify"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "tags": [
+        "benign",
+        "noise-regression",
+        "edgeupdate",
+        "etw",
+        "mitre:T1562.006"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "fp-systemdrive-system32-processes",
+      "name": "Legitimate System32 processes under the active system drive should not masquerade",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand RwBlAHQALQBQAHIAbwBjAGUAcwBzACAALQBOAGEAbQBlACAAcwB2AGMAaABvAHMAdAAsAHMAZQByAHYAaQBjAGUAcwAgAC0ARQByAHIAbwByAEEAYwB0AGkAbwBuACAAUwBpAGwAZQBuAHQAbAB5AEMAbwBuAHQAaQBuAHUAZQAgAHwAIABTAGUAbABlAGMAdAAtAE8AYgBqAGUAYwB0ACAALQBGAGkAcgBzAHQAIAAyACAALQBFAHgAcABhAG4AZABQAHIAbwBwAGUAcgB0AHkAIABQAHIAbwBjAGUAcwBzAE4AYQBtAGUACgAkAHcAaABvAGEAbQBpACAAPQAgACcARAA6AFwAVwBpAG4AZABvAHcAcwBcAFMAeQBzAHQAZQBtADMAMgBcAHcAaABvAGEAbQBpAC4AZQB4AGUAJwAKAGkAZgAgACgAIQAoAFQAZQBzAHQALQBQAGEAdABoACAAJAB3AGgAbwBhAG0AaQApACkAIAB7ACAAJAB3AGgAbwBhAG0AaQAgAD0AIAAnAEMAOgBcAFcAaQBuAGQAbwB3AHMAXABTAHkAcwB0AGUAbQAzADIAXAB3AGgAbwBhAG0AaQAuAGUAeABlACcAIAB9AAoAJgAgACQAdwBoAG8AYQBtAGkA",
+      "validation_category": "benign-noise",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "tags": [
+        "benign",
+        "noise-regression",
+        "masquerading",
+        "system32",
+        "mitre:T1036.005"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "fp-powershell-admin-metadata",
+      "name": "Administrative PowerShell metadata query should not become critical without malicious context",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand JABQAFMAVgBlAHIAcwBpAG8AbgBUAGEAYgBsAGUALgBQAFMAVgBlAHIAcwBpAG8AbgAuAFQAbwBTAHQAcgBpAG4AZwAoACkACgBHAGUAdAAtAFAAcgBvAGMAZQBzAHMAIAAtAEkAZAAgACQAUABJAEQAIAB8ACAAUwBlAGwAZQBjAHQALQBPAGIAagBlAGMAdAAgAC0ARQB4AHAAYQBuAGQAUAByAG8AcABlAHIAdAB5ACAAUAByAG8AYwBlAHMAcwBOAGEAbQBlAA==",
+      "validation_category": "benign-noise",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "tags": [
+        "benign",
+        "noise-regression",
+        "powershell",
+        "execution-policy-bypass"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "fp-browser-launch-ntdll-contextless",
+      "name": "Browser launch should not create critical ntdll write alerts without target context",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand JABwAGEAdABoAHMAIAA9ACAAQAAoAAoAIAAnAEMAOgBcAFAAcgBvAGcAcgBhAG0AIABGAGkAbABlAHMAXABHAG8AbwBnAGwAZQBcAEMAaAByAG8AbQBlAFwAQQBwAHAAbABpAGMAYQB0AGkAbwBuAFwAYwBoAHIAbwBtAGUALgBlAHgAZQAnACwACgAgACcARAA6AFwAUAByAG8AZwByAGEAbQAgAEYAaQBsAGUAcwBcAEcAbwBvAGcAbABlAFwAQwBoAHIAbwBtAGUAXABBAHAAcABsAGkAYQB0AGkAbwBuAFwAYwBoAHIAbwBtAGUALgBlAHgAZQAnACwACgAgACcAQwA6AFwAUAByAG8AZwByAGEAbQAgAEYAaQBsAGUAcwAgACgAeAA4ADYAKQBcAE0AaQBjAHIAbwBzAG8AZgB0AFwARQBkAGcAZQBcAEEAcABwAGwAaQBjAGEAdABpAG8AbgBcAG0AcwBlAGQAZwBlAC4AZQB4AGUAJwAsAAoAIAAnAEQAOgBcAFAAcgBvAGcAcgBhAG0AIABGAGkAbABlAHMAIAAoAHgAOAA2ACkAXABNAGkAYwByAG8AcwBvAGYAdABcAEUAZABnAGUAXABBAHAAcABsAGkAYQB0AGkAbwBuAFwAbQBzAGUAZABnAGUALgBlAHgAZQAnACwACgAgACcAQwA6AFwAUAByAG8AZwByAGEAbQAgAEYAaQBsAGUAcwBcAE0AaQBjAHIAbwBzAG8AZgB0AFwARQBkAGcAZQBcAEEAcABwAGwAaQBjAGEAdABpAG8AbgBcAG0AcwBlAGQAZwBlAC4AZQB4AGUAJwAsAAoAIAAnAEQAOgBcAFAAcgBvAGcAcgBhAG0AIABGAGkAbABlAHMAXABNAGkAYwByAG8AcwBvAGYAdABcAEUAZABnAGUAXABBAHAAcABsAGkAYQB0AGkAbwBuAFwAbQBzAGUAZABnAGUALgBlAHgAZQAnAAoAKQAKACQAcAAgAD0AIAAkAHAAYQB0AGgAcwAgAHwAIABXAGgAZQByAGUALQBPAGIAagBlAGMAdAAgAHsAIABUAGUAcwB0AC0AUABhAHQAaAAgACQAXwAgAH0AIAB8ACAAUwBlAGwAZQBjAHQALQBPAGIAagBlAGMAdAAgAC0ARgBpAHIAcwB0ACAAMQAKAGkAZgAgACgAJABwACkAIAB7AAoAIAAkAHAAcgBvAGMAIAA9ACAAUwB0AGEAcgB0AC0AUAByAG8AYwBlAHMAcwAgAC0ARgBpAGwAZQBQAGEAdABoACAAJABwACAALQBBAHIAZwB1AG0AZQBuAHQATABpAHMAdAAgAEAAKAAnAC0ALQBoAGUAYQBkAGwAZQBzAHMAPQBuAGUAdwAnACwAJwAtAC0AZABpAHMAYQBiAGwAZQAtAGcAcAB1ACcALAAnAC0ALQBkAGkAcwBhAGIAbABlAC0AYgBhAGMAawBnAHIAbwB1AG4AZAAtAG4AZQB0AHcAbwByAGsAaQBuAGcAJwAsACcALQAtAGQAdQBtAHAALQBkAG8AbQAnACwAJwBhAGIAbwB1AHQAOgBiAGwAYQBuAGsAJwApACAALQBQAGEAcwBzAFQAaAByAHUAIAAtAFcAaQBuAGQAbwB3AFMAdAB5AGwAZQAgAEgAaQBkAGQAZQBuAAoAIABpAGYAIAAoAC0AbgBvAHQAIAAkAHAAcgBvAGMALgBXAGEAaQB0AEYAbwByAEUAeABpAHQAKAAyADAAMAAwADAAKQApACAAewAgACQAcAByAG8AYwAuAEsAaQBsAGwAKAApADsAIAAnAGIAcgBvAHcAcwBlAHIALQB0AGkAbQBlAG8AdQB0AC0AawBpAGwAbABlAGQAJwAgAH0AIABlAGwAcwBlACAAewAgACcAYgByAG8AdwBzAGUAcgAtAGUAeABpAHQAZQBkACcAIAB9AAoAfQAgAGUAbABzAGUAIAB7ACAAJwBiAHIAbwB3AHMAZQByAC0AbgBvAHQALQBpAG4AcwB0AGEAbABsAGUAZAAnACAAfQA=",
+      "validation_category": "benign-noise",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "network_connect",
+        "dns_query",
+        "file_create",
+        "file_modify"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "tags": [
+        "benign",
+        "noise-regression",
+        "browser",
+        "ntdll-write",
+        "mitre:T1562.006"
+      ],
+      "risk": "low"
+    }
+  ]
+}

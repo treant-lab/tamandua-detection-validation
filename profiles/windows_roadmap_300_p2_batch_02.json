@@ -1,0 +1,1795 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-roadmap-300-p2-batch-02",
+  "name": "Windows Roadmap 300 P2 Batch 02",
+  "description": "Executable batch generated directly from the Windows 300-scenario roadmap.",
+  "platform": "windows",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "windows_roadmap_300_p2_batch_02",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "requires_driver_health": true,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/windows_detection_roadmap_300.json",
+    "selected_scenarios": 25,
+    "generated_tests": 25,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-win-discovery-018-t1069-001",
+      "name": "Local Groups: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1069.001",
+        "technique_name": "Local Groups",
+        "tactic": "discovery",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-018",
+        "tactic:discovery",
+        "mitre:T1069.001",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-019-t1124",
+      "name": "System Time Discovery: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1124",
+        "technique_name": "System Time Discovery",
+        "tactic": "discovery",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-019",
+        "tactic:discovery",
+        "mitre:T1124",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-020-t1518-001",
+      "name": "Security Software Discovery: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1518.001",
+        "technique_name": "Security Software Discovery",
+        "tactic": "discovery",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-020",
+        "tactic:discovery",
+        "mitre:T1518.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-021-t1082",
+      "name": "System Information Discovery: alert quality",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1082",
+        "technique_name": "System Information Discovery",
+        "tactic": "discovery",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-021",
+        "tactic:discovery",
+        "mitre:T1082",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-022-t1057",
+      "name": "Process Discovery: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1057",
+        "technique_name": "Process Discovery",
+        "tactic": "discovery",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-022",
+        "tactic:discovery",
+        "mitre:T1057",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-023-t1016",
+      "name": "System Network Configuration Discovery: response readiness",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1016",
+        "technique_name": "System Network Configuration Discovery",
+        "tactic": "discovery",
+        "category": "response",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "response",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-023",
+        "tactic:discovery",
+        "mitre:T1016",
+        "category:response",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-024-t1049",
+      "name": "System Network Connections Discovery: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1049",
+        "technique_name": "System Network Connections Discovery",
+        "tactic": "discovery",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-024",
+        "tactic:discovery",
+        "mitre:T1049",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-025-t1033",
+      "name": "System Owner/User Discovery: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1033",
+        "technique_name": "System Owner/User Discovery",
+        "tactic": "discovery",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-safe-contract-v1"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-025",
+        "tactic:discovery",
+        "mitre:T1033",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-026-t1083",
+      "name": "File and Directory Discovery: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1083",
+        "technique_name": "File and Directory Discovery",
+        "tactic": "discovery",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-026",
+        "tactic:discovery",
+        "mitre:T1083",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-027-t1135",
+      "name": "Network Share Discovery: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1135",
+        "technique_name": "Network Share Discovery",
+        "tactic": "discovery",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-027",
+        "tactic:discovery",
+        "mitre:T1135",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-028-t1069-001",
+      "name": "Local Groups: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1069.001",
+        "technique_name": "Local Groups",
+        "tactic": "discovery",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-028",
+        "tactic:discovery",
+        "mitre:T1069.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-029-t1124",
+      "name": "System Time Discovery: alert quality",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1124",
+        "technique_name": "System Time Discovery",
+        "tactic": "discovery",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-029",
+        "tactic:discovery",
+        "mitre:T1124",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-discovery-030-t1518-001",
+      "name": "Security Software Discovery: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1518.001",
+        "technique_name": "Security Software Discovery",
+        "tactic": "discovery",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-030",
+        "tactic:discovery",
+        "mitre:T1518.001",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-lateralmovement-025-t1021-002",
+      "name": "SMB/Windows Admin Shares: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"net view \\\\localhost 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1021.002",
+        "technique_name": "SMB/Windows Admin Shares",
+        "tactic": "lateral-movement",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-025",
+        "tactic:lateral-movement",
+        "mitre:T1021.002",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-collection-013-t1005",
+      "name": "Data from Local System: alert quality",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"mkdir %TEMP%\\tamandua-collection 2>nul & echo sample>%TEMP%\\tamandua-collection\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-collection.zip -C %TEMP%\\tamandua-collection sample.txt & del /f /q %TEMP%\\tamandua-collection.zip & rmdir /s /q %TEMP%\\tamandua-collection\"",
+      "roadmap_traceability": {
+        "technique": "T1005",
+        "technique_name": "Data from Local System",
+        "tactic": "collection",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract",
+          "windows-safe-contract-v1"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-collection-013",
+        "tactic:collection",
+        "mitre:T1005",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-collection-014-t1115",
+      "name": "Clipboard Data: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"mkdir %TEMP%\\tamandua-collection 2>nul & echo sample>%TEMP%\\tamandua-collection\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-collection.zip -C %TEMP%\\tamandua-collection sample.txt & del /f /q %TEMP%\\tamandua-collection.zip & rmdir /s /q %TEMP%\\tamandua-collection\"",
+      "roadmap_traceability": {
+        "technique": "T1115",
+        "technique_name": "Clipboard Data",
+        "tactic": "collection",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-extended-safe",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-collection-014",
+        "tactic:collection",
+        "mitre:T1115",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-collection-015-t1560-001",
+      "name": "Archive via Utility: response readiness",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"mkdir %TEMP%\\tamandua-collection 2>nul & echo sample>%TEMP%\\tamandua-collection\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-collection.zip -C %TEMP%\\tamandua-collection sample.txt & del /f /q %TEMP%\\tamandua-collection.zip & rmdir /s /q %TEMP%\\tamandua-collection\"",
+      "roadmap_traceability": {
+        "technique": "T1560.001",
+        "technique_name": "Archive via Utility",
+        "tactic": "collection",
+        "category": "response",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe"
+        ]
+      },
+      "validation_category": "response",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-collection-015",
+        "tactic:collection",
+        "mitre:T1560.001",
+        "category:response",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-collection-016-t1113",
+      "name": "Screen Capture: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"mkdir %TEMP%\\tamandua-collection 2>nul & echo sample>%TEMP%\\tamandua-collection\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-collection.zip -C %TEMP%\\tamandua-collection sample.txt & del /f /q %TEMP%\\tamandua-collection.zip & rmdir /s /q %TEMP%\\tamandua-collection\"",
+      "roadmap_traceability": {
+        "technique": "T1113",
+        "technique_name": "Screen Capture",
+        "tactic": "collection",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-collection-016",
+        "tactic:collection",
+        "mitre:T1113",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-collection-017-t1056-001",
+      "name": "Keylogging: telemetry contract",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"Get-Process | Where-Object {$_.MainWindowTitle} | Select-Object -First 1 | Out-Null\"",
+      "roadmap_traceability": {
+        "technique": "T1056.001",
+        "technique_name": "Keylogging",
+        "tactic": "collection",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-collection-017",
+        "tactic:collection",
+        "mitre:T1056.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-collection-018-t1213",
+      "name": "Data from Information Repositories: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"mkdir %TEMP%\\tamandua-collection 2>nul & echo sample>%TEMP%\\tamandua-collection\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-collection.zip -C %TEMP%\\tamandua-collection sample.txt & del /f /q %TEMP%\\tamandua-collection.zip & rmdir /s /q %TEMP%\\tamandua-collection\"",
+      "roadmap_traceability": {
+        "technique": "T1213",
+        "technique_name": "Data from Information Repositories",
+        "tactic": "collection",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-collection-018",
+        "tactic:collection",
+        "mitre:T1213",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-collection-019-t1005",
+      "name": "Data from Local System: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"mkdir %TEMP%\\tamandua-collection 2>nul & echo sample>%TEMP%\\tamandua-collection\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-collection.zip -C %TEMP%\\tamandua-collection sample.txt & del /f /q %TEMP%\\tamandua-collection.zip & rmdir /s /q %TEMP%\\tamandua-collection\"",
+      "roadmap_traceability": {
+        "technique": "T1005",
+        "technique_name": "Data from Local System",
+        "tactic": "collection",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract",
+          "windows-safe-contract-v1"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-collection-019",
+        "tactic:collection",
+        "mitre:T1005",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-collection-020-t1115",
+      "name": "Clipboard Data: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"mkdir %TEMP%\\tamandua-collection 2>nul & echo sample>%TEMP%\\tamandua-collection\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-collection.zip -C %TEMP%\\tamandua-collection sample.txt & del /f /q %TEMP%\\tamandua-collection.zip & rmdir /s /q %TEMP%\\tamandua-collection\"",
+      "roadmap_traceability": {
+        "technique": "T1115",
+        "technique_name": "Clipboard Data",
+        "tactic": "collection",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-extended-safe",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-collection-020",
+        "tactic:collection",
+        "mitre:T1115",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-commandandcontrol-025-t1071-001",
+      "name": "Web Protocols: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"nslookup example.com & curl.exe -I https://example.com/\"",
+      "roadmap_traceability": {
+        "technique": "T1071.001",
+        "technique_name": "Web Protocols",
+        "tactic": "command-and-control",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-safe-contract-v1"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-commandandcontrol-025",
+        "tactic:command-and-control",
+        "mitre:T1071.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-impact-019-t1486",
+      "name": "Data Encrypted for Impact: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo before>%TEMP%\\tamandua-impact.txt & echo after>>%TEMP%\\tamandua-impact.txt & del /f /q %TEMP%\\tamandua-impact.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1486",
+        "technique_name": "Data Encrypted for Impact",
+        "tactic": "impact",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-019",
+        "tactic:impact",
+        "mitre:T1486",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-impact-020-t1490",
+      "name": "Inhibit System Recovery: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo before>%TEMP%\\tamandua-impact.txt & echo after>>%TEMP%\\tamandua-impact.txt & del /f /q %TEMP%\\tamandua-impact.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1490",
+        "technique_name": "Inhibit System Recovery",
+        "tactic": "impact",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-driver-contract"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-020",
+        "tactic:impact",
+        "mitre:T1490",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    }
+  ]
+}

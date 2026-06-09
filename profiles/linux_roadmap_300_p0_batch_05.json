@@ -1,0 +1,623 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-roadmap-300-p0-batch-05",
+  "name": "Linux Roadmap 300 P0 Batch 05",
+  "description": "Executable batch generated directly from the Linux 300-scenario roadmap.",
+  "platform": "linux",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "linux_roadmap_300_p0_batch_05",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/linux_detection_roadmap_300.json",
+    "selected_scenarios": 12,
+    "generated_tests": 12,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-lin-credentialaccess-004-t1056-001",
+      "name": "Keylogging: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1056.001",
+        "technique_name": "Keylogging",
+        "tactic": "credential-access",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-004",
+        "tactic:credential-access",
+        "mitre:T1056.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-005-t1555",
+      "name": "Credentials from Password Stores: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1555",
+        "technique_name": "Credentials from Password Stores",
+        "tactic": "credential-access",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-005",
+        "tactic:credential-access",
+        "mitre:T1555",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-006-t1110-001",
+      "name": "Password Guessing: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1110.001",
+        "technique_name": "Password Guessing",
+        "tactic": "credential-access",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-006",
+        "tactic:credential-access",
+        "mitre:T1110.001",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-007-t1003-008",
+      "name": "/etc/passwd and /etc/shadow: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1003.008",
+        "technique_name": "/etc/passwd and /etc/shadow",
+        "tactic": "credential-access",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-007",
+        "tactic:credential-access",
+        "mitre:T1003.008",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-008-t1552-004",
+      "name": "Private Keys: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1552.004",
+        "technique_name": "Private Keys",
+        "tactic": "credential-access",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-008",
+        "tactic:credential-access",
+        "mitre:T1552.004",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-009-t1552-001",
+      "name": "Credentials In Files: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "tactic": "credential-access",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-009",
+        "tactic:credential-access",
+        "mitre:T1552.001",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-010-t1056-001",
+      "name": "Keylogging: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1056.001",
+        "technique_name": "Keylogging",
+        "tactic": "credential-access",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-010",
+        "tactic:credential-access",
+        "mitre:T1056.001",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-011-t1555",
+      "name": "Credentials from Password Stores: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1555",
+        "technique_name": "Credentials from Password Stores",
+        "tactic": "credential-access",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-011",
+        "tactic:credential-access",
+        "mitre:T1555",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-012-t1110-001",
+      "name": "Password Guessing: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1110.001",
+        "technique_name": "Password Guessing",
+        "tactic": "credential-access",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-012",
+        "tactic:credential-access",
+        "mitre:T1110.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-discovery-001-t1082",
+      "name": "System Information Discovery: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'whoami; hostname; uname -a; ps -eo pid,comm | head'",
+      "roadmap_traceability": {
+        "technique": "T1082",
+        "technique_name": "System Information Discovery",
+        "tactic": "discovery",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-discovery-001",
+        "tactic:discovery",
+        "mitre:T1082",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-discovery-002-t1057",
+      "name": "Process Discovery: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'whoami; hostname; uname -a; ps -eo pid,comm | head'",
+      "roadmap_traceability": {
+        "technique": "T1057",
+        "technique_name": "Process Discovery",
+        "tactic": "discovery",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-discovery-002",
+        "tactic:discovery",
+        "mitre:T1057",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-discovery-003-t1016",
+      "name": "System Network Configuration Discovery: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'whoami; hostname; uname -a; ps -eo pid,comm | head'",
+      "roadmap_traceability": {
+        "technique": "T1016",
+        "technique_name": "System Network Configuration Discovery",
+        "tactic": "discovery",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-discovery-003",
+        "tactic:discovery",
+        "mitre:T1016",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    }
+  ]
+}

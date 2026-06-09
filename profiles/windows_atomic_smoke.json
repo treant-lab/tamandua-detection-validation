@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-atomic-smoke",
+  "name": "Windows Atomic Smoke",
+  "description": "Low-risk Windows validation profile for Tamandua endpoint telemetry and detection regression.",
+  "platform": "windows",
+  "default_observation_seconds": 45,
+  "tests": [
+    {
+      "id": "T1033",
+      "name": "System Owner/User Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1033",
+        "test_numbers": [1]
+      },
+      "fallback_command": "whoami",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "risk": "low"
+    },
+    {
+      "id": "T1082",
+      "name": "System Information Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1082",
+        "test_numbers": [1]
+      },
+      "fallback_command": "systeminfo",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "risk": "low"
+    },
+    {
+      "id": "T1016",
+      "name": "System Network Configuration Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1016",
+        "test_numbers": [1]
+      },
+      "fallback_command": "ipconfig /all",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "risk": "low"
+    },
+    {
+      "id": "T1059.001",
+      "name": "PowerShell Command Execution",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1059.001",
+        "test_numbers": [1]
+      },
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command 'Write-Output $PSVersionTable.PSVersion; whoami'",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "risk": "low"
+    },
+    {
+      "id": "T1105-benign",
+      "name": "Ingress Tool Transfer Benign Variant",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '$p=Join-Path $env:TEMP \"tamandua-bench-download.txt\"; Invoke-WebRequest -Uri \"https://example.com/\" -OutFile $p; Remove-Item $p -Force -ErrorAction SilentlyContinue'",
+      "expected_telemetry": ["process_create", "network_connect", "file_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "remote_ip"],
+      "risk": "low"
+    }
+  ]
+}

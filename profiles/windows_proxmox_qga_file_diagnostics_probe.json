@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-proxmox-qga-file-diagnostics-probe",
+  "name": "Windows Proxmox QGA File Diagnostics Probe",
+  "description": "Lane 0 read-only probe for verifying whether WIN-TEMPLATE can expose QGA guest-file commands through the Proxmox API for agent config/log diagnostics.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\windows_proxmox_qga_file_diagnostics_probe.py",
+    "timeout_seconds": 90,
+    "runtime_effect": "read_only_qga_file_endpoint_discovery_no_guest_exec_no_secret_capture",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "windows_proxmox_qga_file_diagnostics",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Proxmox/QGA file diagnostics evidence only. Passing this profile allows QGA file endpoints to be considered as a read-only diagnostic transport; it does not prove detection coverage and does not capture Tamandua secrets.",
+  "tests": [
+    {
+      "id": "proxmox-api-authenticated",
+      "name": "Proxmox API accepts configured credentials",
+      "executor": "windows_proxmox_qga_file_diagnostics_probe",
+      "expected_telemetry": ["proxmox_api_auth"],
+      "expected_fields": ["status", "authenticated"]
+    },
+    {
+      "id": "qga-file-commands-advertised",
+      "name": "QGA advertises guest-file commands",
+      "executor": "windows_proxmox_qga_file_diagnostics_probe",
+      "expected_telemetry": ["qga_info"],
+      "expected_fields": ["guest_file_open", "guest_file_read", "guest_file_close"]
+    },
+    {
+      "id": "proxmox-agent-file-open-exposed",
+      "name": "Proxmox API exposes QGA file-open endpoint",
+      "executor": "windows_proxmox_qga_file_diagnostics_probe",
+      "expected_telemetry": ["qga_file_open"],
+      "expected_fields": ["status"]
+    }
+  ]
+}

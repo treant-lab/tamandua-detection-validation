@@ -1,0 +1,623 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-roadmap-300-p2-batch-02",
+  "name": "Linux Roadmap 300 P2 Batch 02",
+  "description": "Executable batch generated directly from the Linux 300-scenario roadmap.",
+  "platform": "linux",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "linux_roadmap_300_p2_batch_02",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/linux_detection_roadmap_300.json",
+    "selected_scenarios": 12,
+    "generated_tests": 12,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-lin-persistence-022-t1053-003",
+      "name": "Cron: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1053.003",
+        "technique_name": "Cron",
+        "tactic": "persistence",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-022",
+        "tactic:persistence",
+        "mitre:T1053.003",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-persistence-023-t1543-002",
+      "name": "Systemd Service: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.002",
+        "technique_name": "Systemd Service",
+        "tactic": "persistence",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-023",
+        "tactic:persistence",
+        "mitre:T1543.002",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-persistence-024-t1546-004",
+      "name": "Unix Shell Configuration Modification: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1546.004",
+        "technique_name": "Unix Shell Configuration Modification",
+        "tactic": "persistence",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-024",
+        "tactic:persistence",
+        "mitre:T1546.004",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-persistence-025-t1098-004",
+      "name": "SSH Authorized Keys: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1098.004",
+        "technique_name": "SSH Authorized Keys",
+        "tactic": "persistence",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-025",
+        "tactic:persistence",
+        "mitre:T1098.004",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-persistence-026-t1574-006",
+      "name": "Dynamic Linker Hijacking: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "persistence",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-026",
+        "tactic:persistence",
+        "mitre:T1574.006",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-persistence-027-t1505-003",
+      "name": "Web Shell: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1505.003",
+        "technique_name": "Web Shell",
+        "tactic": "persistence",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-027",
+        "tactic:persistence",
+        "mitre:T1505.003",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-persistence-028-t1037-004",
+      "name": "RC Scripts: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1037.004",
+        "technique_name": "RC Scripts",
+        "tactic": "persistence",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-028",
+        "tactic:persistence",
+        "mitre:T1037.004",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-persistence-029-t1053-003",
+      "name": "Cron: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1053.003",
+        "technique_name": "Cron",
+        "tactic": "persistence",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-029",
+        "tactic:persistence",
+        "mitre:T1053.003",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-persistence-030-t1543-002",
+      "name": "Systemd Service: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.002",
+        "technique_name": "Systemd Service",
+        "tactic": "persistence",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-030",
+        "tactic:persistence",
+        "mitre:T1543.002",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-privilegeescalation-019-t1548-003",
+      "name": "Sudo and Sudo Caching: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami'",
+      "roadmap_traceability": {
+        "technique": "T1548.003",
+        "technique_name": "Sudo and Sudo Caching",
+        "tactic": "privilege-escalation",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-privilegeescalation-019",
+        "tactic:privilege-escalation",
+        "mitre:T1548.003",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-privilegeescalation-020-t1068",
+      "name": "Exploitation for Privilege Escalation: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami'",
+      "roadmap_traceability": {
+        "technique": "T1068",
+        "technique_name": "Exploitation for Privilege Escalation",
+        "tactic": "privilege-escalation",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-privilegeescalation-020",
+        "tactic:privilege-escalation",
+        "mitre:T1068",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-privilegeescalation-021-t1574-006",
+      "name": "Dynamic Linker Hijacking: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "privilege-escalation",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-privilegeescalation-021",
+        "tactic:privilege-escalation",
+        "mitre:T1574.006",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "integrations": [
+    {
+      "id": "atomic-red-team",
+      "name": "Atomic Red Team",
+      "category": "atomic_tests",
+      "execution_model": "guest_command",
+      "status": "supported_when_installed",
+      "tamandua_role": "low-level technique execution mapped to MITRE ATT&CK",
+      "evidence_owner": "tamandua",
+      "notes": "The runner detects Invoke-AtomicTest on Windows guests and falls back to safe commands when it is absent."
+    },
+    {
+      "id": "caldera",
+      "name": "MITRE Caldera",
+      "category": "adversary_emulation",
+      "execution_model": "api_or_agent",
+      "status": "adapter_design_documented",
+      "tamandua_role": "multi-step operation execution; Tamandua scores telemetry, alerts, and timeline evidence",
+      "evidence_owner": "tamandua",
+      "notes": "Use Caldera for multi-step operations. The Tamandua adapter should create an operation, record operation/adversary/ability ids, poll completion, then score Tamandua evidence by ability timestamp."
+    },
+    {
+      "id": "prelude-operator",
+      "name": "Prelude Operator",
+      "category": "adversary_emulation",
+      "execution_model": "api_or_cli",
+      "status": "planned_adapter",
+      "tamandua_role": "operator-style endpoint test campaigns with Tamandua detection scoring",
+      "evidence_owner": "tamandua",
+      "notes": "Keep as optional wrapper; do not couple Tamandua evidence schema to Prelude output."
+    },
+    {
+      "id": "custom-command",
+      "name": "Custom Commands",
+      "category": "lab_smoke",
+      "execution_model": "guest_command",
+      "status": "supported",
+      "tamandua_role": "safe deterministic smoke/regression tests for core telemetry",
+      "evidence_owner": "tamandua",
+      "notes": "Used for driver core, endpoint health, NDR smoke, and deterministic non-destructive checks."
+    },
+    {
+      "id": "pcap-log-replay",
+      "name": "PCAP and Log Replay",
+      "category": "fixture_replay",
+      "execution_model": "offline_fixture",
+      "status": "planned_adapter",
+      "tamandua_role": "repeatable NDR/DNS/SIEM parser validation without live attack execution",
+      "evidence_owner": "tamandua",
+      "notes": "Useful for NDR and cloud/Kubernetes sensors where live execution is expensive or noisy."
+    }
+  ]
+}

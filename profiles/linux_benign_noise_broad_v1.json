@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-benign-noise-broad-v1",
+  "name": "Linux Benign Noise Broad v1",
+  "description": "Broader benign workload regression pack for Linux package metadata, web transfer, administrative discovery, service inventory, developer-tool, and user cache false-positive controls.",
+  "platform": "linux",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "linux_benign_noise_broad",
+    "requires_persisted_events": true,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Benign/noise regression only. Passing this profile supports Linux false-positive calibration claims, not attack detection coverage claims.",
+  "tests": [
+    {
+      "id": "benign-linux-curl-head-example",
+      "name": "Benign Curl HEAD Example",
+      "executor": "command",
+      "fallback_command": "sh -lc 'curl -I https://example.com/ >/dev/null 2>&1 || true'",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "network_connect"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["benign", "noise", "curl", "network", "linux", "mitre:T1071.001"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-linux-curl-download-example",
+      "name": "Benign Curl Download Example",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-benign-download.XXXXXX); curl -L https://example.com/ -o \"$p\" >/dev/null 2>&1 || printf benign > \"$p\"; rm -f \"$p\"'",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "network_connect", "file_create", "file_delete"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["benign", "noise", "curl", "download", "linux", "mitre:T1105"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-linux-service-inventory",
+      "name": "Benign Service Inventory",
+      "executor": "command",
+      "fallback_command": "sh -lc 'systemctl list-units --type=service --no-pager 2>/dev/null | head -n 20 || service --status-all 2>/dev/null | head -n 20 || true'",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["benign", "noise", "service-inventory", "linux", "mitre:T1007"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-linux-package-metadata",
+      "name": "Benign Package Metadata Query",
+      "executor": "command",
+      "fallback_command": "sh -lc 'dpkg-query -W 2>/dev/null | head -n 20 || rpm -qa 2>/dev/null | head -n 20 || true'",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["benign", "noise", "package-inventory", "linux"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-linux-dev-tools-discovery",
+      "name": "Benign Developer Tools Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'git --version >/dev/null 2>&1 || true; python3 --version >/dev/null 2>&1 || true; cc --version >/dev/null 2>&1 || true'",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["benign", "noise", "developer-tools", "linux", "mitre:T1082"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-linux-user-cache-touch",
+      "name": "Benign User Cache Touch",
+      "executor": "command",
+      "fallback_command": "sh -lc 'd=${XDG_CACHE_HOME:-$HOME/.cache}/tamandua-benign; mkdir -p \"$d\"; printf benign > \"$d/noise.txt\"; ls \"$d\" >/dev/null; rm -f \"$d/noise.txt\"; rmdir \"$d\" 2>/dev/null || true'",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["file_create", "file_delete"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["benign", "noise", "cache", "linux"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-linux-admin-discovery",
+      "name": "Benign Administrative Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; hostname; uname -a; ps -eo pid,comm | head -n 10' >/dev/null 2>&1 || true",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["benign", "noise", "admin-discovery", "linux", "mitre:T1033", "mitre:T1082"],
+      "risk": "low"
+    }
+  ]
+}

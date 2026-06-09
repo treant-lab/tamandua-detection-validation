@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-response-validation-safe-v1",
+  "name": "Linux Response Validation Safe v1",
+  "description": "Safe response-validation lane for Linux analyst-facing outcomes, live-response audit context, and non-destructive inventory/artifact workflows.",
+  "platform": "linux",
+  "default_observation_seconds": 90,
+  "benchmark_lane": "enterprise-eval",
+  "claim_boundary": "Selected non-destructive Linux response/audit validation only. This does not prove containment, kill-process, deletion, isolation, or broad response parity until destructive actions have separate approval and rollback evidence.",
+  "expected_gap_categories": [
+    "collector",
+    "normalization",
+    "detector",
+    "alert-quality",
+    "response-audit",
+    "runner",
+    "infrastructure",
+    "noise",
+    "claim-boundary"
+  ],
+  "quality_bar": {
+    "purpose": "linux_response_validation_safe",
+    "requires_persisted_events": true,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "response_contract": {
+    "minimum_alert_context": [
+      "event_ids",
+      "contributing_events",
+      "mitre_tactics",
+      "mitre_techniques"
+    ],
+    "required_response_questions": [
+      "what executed",
+      "who executed it",
+      "where it executed",
+      "why it alerted",
+      "which evidence supports the alert"
+    ],
+    "write_scope": [
+      "/tmp/tamandua-response-*"
+    ]
+  },
+  "tests": [
+    {
+      "id": "response-linux-shell-audit",
+      "name": "Response Shell Audit",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-response-shell; id; pwd'",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "command", "session_id"],
+      "tags": ["response-validation", "linux", "tactic:execution", "mitre:T1059.004"],
+      "risk": "low",
+      "optional_telemetry": ["process_create"],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive Linux response/audit context only"
+    },
+    {
+      "id": "response-linux-service-inventory",
+      "name": "Response Service Inventory",
+      "executor": "command",
+      "fallback_command": "sh -lc 'systemctl list-units --type=service --no-pager 2>/dev/null | head -n 20 || service --status-all 2>/dev/null | head -n 20 || true'",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "command", "session_id"],
+      "tags": ["response-validation", "linux", "tactic:persistence", "mitre:T1543.002"],
+      "risk": "low",
+      "optional_telemetry": ["process_create"],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive Linux response/audit context only"
+    },
+    {
+      "id": "response-linux-network-inventory",
+      "name": "Response Network Inventory",
+      "executor": "command",
+      "fallback_command": "sh -lc 'ss -tunap 2>/dev/null | head -n 25 || netstat -tunap 2>/dev/null | head -n 25 || true'",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "command", "session_id"],
+      "tags": ["response-validation", "linux", "tactic:discovery", "mitre:T1049"],
+      "risk": "low",
+      "optional_telemetry": ["process_create", "network_connect"],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive Linux response/audit context only"
+    },
+    {
+      "id": "response-linux-process-context",
+      "name": "Response Process Context",
+      "executor": "command",
+      "fallback_command": "sh -lc 'ps -eo pid,ppid,user,comm,args | head -n 20'",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "command", "session_id"],
+      "tags": ["response-validation", "linux", "tactic:discovery", "mitre:T1057"],
+      "risk": "low",
+      "optional_telemetry": ["process_create"],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive Linux response/audit context only"
+    },
+    {
+      "id": "response-linux-artifact-collection-safe",
+      "name": "Response Artifact Collection Safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'd=$(mktemp -d /tmp/tamandua-response.XXXXXX); printf artifact > \"$d/artifact.txt\"; sha256sum \"$d/artifact.txt\"; rm -rf \"$d\"'",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "command", "session_id"],
+      "tags": ["response-validation", "linux", "dfir", "artifact", "mitre:T1005"],
+      "risk": "low",
+      "optional_telemetry": ["process_create", "file_create", "file_delete"],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive Linux response/audit context only"
+    }
+  ]
+}

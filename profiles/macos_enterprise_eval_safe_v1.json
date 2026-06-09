@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-enterprise-eval-safe-v1",
+  "name": "macOS Enterprise Evaluation Safe v1",
+  "description": "Safe macOS enterprise-style endpoint evaluation profile: broad tactic coverage, deterministic fallback commands, low-noise guardrails, and clear boundaries around EndpointSecurity/server-backed proof.",
+  "platform": "macos",
+  "default_observation_seconds": 90,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "macos_enterprise_eval_safe",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "requires_endpoint_security_health": true
+  },
+  "coverage_model": {
+    "visibility": "Expected telemetry must be persisted with source attribution.",
+    "analytics": "Expected detections/alerts are required only where behavior is unambiguously suspicious.",
+    "storyline": "Process, parent, command line, file, DNS, network, launchd and TCC/XPC fields are required when relevant.",
+    "noise": "Low-risk tests must not emit unexpected high/critical events."
+  },
+  "claim_boundary": "macOS deterministic enterprise evaluation only. Promotion requires server-backed agent evidence, EndpointSecurity entitlement proof, and backend ingestion.",
+  "tests": [
+    {
+      "id": "eval-macos-T1033-user-discovery",
+      "name": "User Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'whoami; id; groups'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1033"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-macos-T1082-system-info",
+      "name": "System Information Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'sw_vers 2>/dev/null || uname -a; sysctl kern.ostype kern.osrelease hw.model 2>/dev/null || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1082"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-macos-T1057-process-discovery",
+      "name": "Process Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'ps -axo pid,ppid,user,comm | head -n 25'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1057"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-macos-T1016-network-config",
+      "name": "Network Configuration Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'ifconfig -a; scutil --dns 2>/dev/null | head -n 40 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1016"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "dns_query",
+        "network_connect"
+      ]
+    },
+    {
+      "id": "eval-macos-T1049-network-connections",
+      "name": "Network Connections Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'lsof -n -P -iTCP -iUDP 2>/dev/null | head -n 25 || netstat -an | head -n 25'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1049"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "network_connect"
+      ]
+    },
+    {
+      "id": "eval-macos-T1083-file-directory-discovery",
+      "name": "File and Directory Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'find /Applications /Library/LaunchAgents /Library/LaunchDaemons -maxdepth 1 2>/dev/null | head -n 30'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1083"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-macos-T1543-launchdaemon-discovery",
+      "name": "LaunchDaemon Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'launchctl list 2>/dev/null | head -n 25; ls /Library/LaunchDaemons 2>/dev/null | head -n 20'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:persistence",
+        "mitre:T1543.004"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-macos-T1547-plist-safe",
+      "name": "Temporary Plist Creation Safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'd=$(mktemp -d /tmp/tamandua-plist.XXXXXX); printf \"<?xml version=\\\"1.0\\\"?><plist version=\\\"1.0\\\"><dict><key>Label</key><string>com.tamandua.safe</string></dict></plist>\" > \"$d/com.tamandua.safe.plist\"; plutil -lint \"$d/com.tamandua.safe.plist\" >/dev/null 2>&1 || true; rm -rf \"$d\"'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:persistence",
+        "mitre:T1547.011"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "file_create",
+        "file_delete"
+      ]
+    },
+    {
+      "id": "eval-macos-T1036-masquerade-safe",
+      "name": "Masquerade Copy Safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'd=$(mktemp -d /tmp/tamandua-masq.XXXXXX); cp /bin/echo \"$d/com.apple.safeupdate\"; \"$d/com.apple.safeupdate\" tamandua >/dev/null; rm -rf \"$d\"'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [
+        "masquerade"
+      ],
+      "expected_alerts": [
+        "masquerade"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:defense-evasion",
+        "mitre:T1036"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "file_create",
+        "file_delete"
+      ]
+    },
+    {
+      "id": "eval-macos-T1564-hidden-file-safe",
+      "name": "Hidden File Safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-visible.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; ls -la \"$(dirname \"$p\")/.tamandua-hidden\" >/dev/null; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:defense-evasion",
+        "mitre:T1564.001"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "file_create",
+        "file_delete"
+      ]
+    },
+    {
+      "id": "eval-macos-T1552-private-key-discovery-safe",
+      "name": "Private Key Discovery Safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'find \"$HOME\" -maxdepth 3 \\( -name \"*.pem\" -o -name \"id_rsa\" -o -name \"id_ed25519\" \\) 2>/dev/null | head -n 5 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:credential-access",
+        "mitre:T1552.004"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-macos-T1071-web-protocols",
+      "name": "Web Protocols",
+      "executor": "command",
+      "fallback_command": "sh -lc 'curl -I https://example.com/ >/dev/null 2>&1 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:command-and-control",
+        "mitre:T1071.001"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "dns_query",
+        "network_connect"
+      ]
+    },
+    {
+      "id": "eval-macos-T1560-archive-safe",
+      "name": "Archive via Utility Safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'd=$(mktemp -d /tmp/tamandua-archive.XXXXXX); echo sample > \"$d/sample.txt\"; tar -cf \"$d/sample.tar\" -C \"$d\" sample.txt; rm -rf \"$d\"'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:collection",
+        "mitre:T1560.001"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "file_create",
+        "file_delete"
+      ]
+    },
+    {
+      "id": "eval-macos-T1486-ransomware-canary-safe",
+      "name": "Ransomware Canary Safe Write Pattern",
+      "executor": "command",
+      "fallback_command": "sh -lc 'd=$(mktemp -d /tmp/tamandua-impact.XXXXXX); for i in 1 2 3; do echo before > \"$d/file$i.txt\"; echo after >> \"$d/file$i.txt\"; done; rm -rf \"$d\"'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:impact",
+        "mitre:T1486"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete"
+      ]
+    }
+  ]
+}

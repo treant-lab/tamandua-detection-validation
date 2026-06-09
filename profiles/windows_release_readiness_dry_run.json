@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-release-readiness-dry-run",
+  "name": "Windows Release Readiness Dry Run",
+  "description": "Small report-only release/readiness lane for artifact metadata, service and driver status, and rollback/uninstall planning. Commands are non-destructive inspections and do not install, upgrade, rollback, uninstall, stop, or restart host components.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "release-readiness",
+  "quality_bar": {
+    "purpose": "release_readiness_dry_run",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "release_contract": {
+    "evidence_scope": [
+      "agent service status report-only",
+      "driver status report-only",
+      "binary path, version, signature, and hash metadata when installed artifacts are present",
+      "release manifest, SBOM, and compatibility matrix presence reported without reading private package contents",
+      "rollback and uninstall command surfaces recorded as planned/not executed"
+    ],
+    "promotion_requires": [
+      "signed release artifact evidence",
+      "generated SBOM attached to the release pack",
+      "successful install/update/rollback/uninstall execution on a clean Windows template",
+      "explicit separation from lab-only or unsigned builds"
+    ]
+  },
+  "claim_boundary": "Dry-run release/readiness contract only. Passing this profile proves that the validation runner can plan safe release evidence checks; it does not prove production signing, installer success, update success, rollback success, clean uninstall, endpoint detection coverage, P1/P2 roadmap coverage, or CALDERA parity.",
+  "tests": [
+    {
+      "id": "release-agent-service-status-report-only",
+      "name": "Agent Service Status Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$services = Get-Service -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'tamandua' -or $_.DisplayName -match 'tamandua' } | Select-Object Name,DisplayName,Status,StartType; if ($services) { $services | ConvertTo-Json -Compress } else { '{\\\"status\\\":\\\"not_found\\\",\\\"scope\\\":\\\"tamandua_service_report_only\\\"}' }\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-readiness", "service-status", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "release-driver-status-report-only",
+      "name": "Driver Status Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$drivers = @(& sc.exe query type= driver state= all 2>$null | Select-String -Pattern 'tamandua|tamd' -CaseSensitive:$false | ForEach-Object { $_.Line }); if ($drivers.Count -gt 0) { [pscustomobject]@{ DriverLines=$drivers; Scope='driver_status_report_only' } | ConvertTo-Json -Compress } else { '{\\\"status\\\":\\\"not_found\\\",\\\"scope\\\":\\\"driver_status_report_only\\\"}' }\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-readiness", "driver-status", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "release-binary-hash-metadata-report-only",
+      "name": "Binary Hash Metadata Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$roots = @((Join-Path $env:ProgramFiles 'Tamandua'), (Join-Path ${env:ProgramFiles(x86)} 'Tamandua'), (Join-Path $env:ProgramData 'Tamandua'), (Join-Path $env:WINDIR 'System32\\drivers')) | Where-Object { $_ -and (Test-Path $_) }; $files = foreach ($root in $roots) { Get-ChildItem -LiteralPath $root -ErrorAction SilentlyContinue -File -Recurse -Include 'tamandua*.exe','tamandua*.dll','tamandua*.sys','tamd*.sys' | Select-Object -First 20 }; $files = @($files | Select-Object -Unique FullName); if ($files.Count -eq 0) { '{\\\"status\\\":\\\"not_found\\\",\\\"scope\\\":\\\"binary_hash_metadata_report_only\\\"}' } else { $files | ForEach-Object { $sig = Get-AuthenticodeSignature -FilePath $_.FullName -ErrorAction SilentlyContinue; $hash = Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName -ErrorAction SilentlyContinue; [pscustomobject]@{ Path=$_.FullName; Length=$_.Length; Version=$_.VersionInfo.FileVersion; SignatureStatus=$sig.Status; Sha256=$hash.Hash } } | ConvertTo-Json -Compress }\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-readiness", "binary-metadata", "hash", "signature", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "release-manifest-sbom-compatibility-report-only",
+      "name": "Release Manifest SBOM Compatibility Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$manifest = $env:TAMANDUA_RELEASE_MANIFEST; $sbom = $env:TAMANDUA_RELEASE_SBOM; $compat = $env:TAMANDUA_RELEASE_COMPATIBILITY_MATRIX; [pscustomobject]@{ ManifestPath=$manifest; ManifestPresent=[bool]($manifest -and (Test-Path -LiteralPath $manifest)); SbomPath=$sbom; SbomPresent=[bool]($sbom -and (Test-Path -LiteralPath $sbom)); CompatibilityMatrixPath=$compat; CompatibilityMatrixPresent=[bool]($compat -and (Test-Path -LiteralPath $compat)); RequiredOs=@('Windows 10','Windows 11','Windows Server'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-readiness", "manifest", "sbom", "compatibility", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "release-rollback-uninstall-plan-not-executed",
+      "name": "Rollback Uninstall Plan Not Executed",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Rollback='planned_not_executed'; Uninstall='planned_not_executed'; Reason='release_readiness_dry_run_report_only'; UnsafeActionsBlocked=@('msiexec_uninstall','service_stop','driver_unload','rollback_execute') } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-readiness", "rollback", "uninstall", "planned-not-executed", "report-only", "windows"],
+      "risk": "low"
+    }
+  ]
+}

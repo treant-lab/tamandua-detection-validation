@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-proxmox-qga-readiness-probe",
+  "name": "Windows Proxmox QGA Readiness Probe",
+  "description": "Lane 0 probe for verifying whether WIN-TEMPLATE can execute bounded benign commands through the Proxmox QEMU Guest Agent API.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\windows_proxmox_qga_readiness_probe.py",
+    "timeout_seconds": 90,
+    "runtime_effect": "bounded_qga_echo_only_with_permission_and_payload_variant_diagnostics",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "windows_proxmox_qga_readiness",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Proxmox/QGA readiness evidence only. Passing this profile allows bounded QGA-based lab commands to be considered as an execution transport; it does not prove detection coverage. QGA API calls use bounded retry plus safe payload variants to distinguish transient connection closes, permission gaps, schema mismatch, and persistent guest-exec failure.",
+  "tests": [
+    {
+      "id": "proxmox-api-authenticated",
+      "name": "Proxmox API accepts configured credentials",
+      "executor": "windows_proxmox_qga_readiness_probe",
+      "expected_telemetry": ["proxmox_api_auth"],
+      "expected_fields": ["status", "authenticated"]
+    },
+    {
+      "id": "proxmox-api-vm-monitor-permission",
+      "name": "Configured Proxmox user has VM.Monitor permission for agent commands",
+      "executor": "windows_proxmox_qga_readiness_probe",
+      "expected_telemetry": ["proxmox_api_permissions"],
+      "expected_fields": ["VM.Monitor", "paths_checked"]
+    },
+    {
+      "id": "proxmox-vm-running",
+      "name": "WIN-TEMPLATE VM is running and has QGA enabled",
+      "executor": "windows_proxmox_qga_readiness_probe",
+      "expected_telemetry": ["proxmox_vm_status"],
+      "expected_fields": ["status", "agent"]
+    },
+    {
+      "id": "proxmox-qga-ping",
+      "name": "QEMU Guest Agent ping succeeds",
+      "executor": "windows_proxmox_qga_readiness_probe",
+      "expected_telemetry": ["qga_ping"],
+      "expected_fields": ["status"]
+    },
+    {
+      "id": "proxmox-qga-readonly-hostname",
+      "name": "QEMU Guest Agent can answer a read-only hostname query",
+      "executor": "windows_proxmox_qga_readiness_probe",
+      "expected_telemetry": ["qga_hostname"],
+      "expected_fields": ["hostname", "status"]
+    },
+    {
+      "id": "proxmox-qga-guest-exec-supported",
+      "name": "QEMU Guest Agent reports guest-exec support",
+      "executor": "windows_proxmox_qga_readiness_probe",
+      "expected_telemetry": ["qga_info"],
+      "expected_fields": ["guest_exec_supported"]
+    },
+    {
+      "id": "proxmox-qga-bounded-guest-exec",
+      "name": "QGA can execute a bounded benign command",
+      "executor": "windows_proxmox_qga_readiness_probe",
+      "expected_telemetry": ["qga_guest_exec_echo"],
+      "expected_fields": ["exitcode"]
+    }
+  ]
+}

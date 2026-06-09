@@ -1,0 +1,462 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-roadmap-p0-existing-driver-contract",
+  "name": "Windows Roadmap P0 Existing Driver Contract",
+  "description": "Focused batch that promotes Windows P0 scenarios already mapped to existing profiles into fresh evidence.",
+  "platform": "windows",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "windows_p0_existing_driver_contract",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "requires_driver_health": true,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/windows_detection_roadmap_300.json",
+    "selected_scenarios": 8,
+    "generated_tests": 8,
+    "limit": 12
+  },
+  "tests": [
+    {
+      "id": "roadmap-win-execution-008-t1569-002",
+      "name": "Service Execution: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ver\"",
+      "roadmap_traceability": {
+        "technique": "T1569.002",
+        "technique_name": "Service Execution",
+        "tactic": "execution",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-execution-008",
+        "tactic:execution",
+        "mitre:T1569.002",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-persistence-008-t1547-001",
+      "name": "Registry Run Keys / Startup Folder: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /t REG_SZ /d tamandua-bench-run /f & reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun & reg delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /f\"",
+      "roadmap_traceability": {
+        "technique": "T1547.001",
+        "technique_name": "Registry Run Keys / Startup Folder",
+        "tactic": "persistence",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create",
+        "registry_set_value"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-persistence-008",
+        "tactic:persistence",
+        "mitre:T1547.001",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-defenseevasion-008-t1140",
+      "name": "Deobfuscate/Decode Files: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua>%TEMP%\\tamandua-evasion.txt & attrib +h %TEMP%\\tamandua-evasion.txt & attrib -h %TEMP%\\tamandua-evasion.txt & del /f /q %TEMP%\\tamandua-evasion.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1140",
+        "technique_name": "Deobfuscate/Decode Files",
+        "tactic": "defense-evasion",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-defenseevasion-008",
+        "tactic:defense-evasion",
+        "mitre:T1140",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-008-t1003-001",
+      "name": "LSASS Memory: driver backed",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"Get-Process lsass | Select-Object -First 1 -Property Id,ProcessName | Out-Null\"",
+      "roadmap_traceability": {
+        "technique": "T1003.001",
+        "technique_name": "LSASS Memory",
+        "tactic": "credential-access",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-008",
+        "tactic:credential-access",
+        "mitre:T1003.001",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-lateralmovement-008-t1021-006",
+      "name": "Windows Remote Management: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"net view \\\\localhost 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1021.006",
+        "technique_name": "Windows Remote Management",
+        "tactic": "lateral-movement",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-008",
+        "tactic:lateral-movement",
+        "mitre:T1021.006",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-commandandcontrol-008-t1105",
+      "name": "Ingress Tool Transfer: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"nslookup example.com & curl.exe -I https://example.com/\"",
+      "roadmap_traceability": {
+        "technique": "T1105",
+        "technique_name": "Ingress Tool Transfer",
+        "tactic": "command-and-control",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-driver-contract"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-commandandcontrol-008",
+        "tactic:command-and-control",
+        "mitre:T1105",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-exfiltration-008-t1567-002",
+      "name": "Exfiltration to Cloud Storage: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"curl.exe -I https://example.com/upload 2>nul || ver & ping -n 5 127.0.0.1 > nul\"",
+      "roadmap_traceability": {
+        "technique": "T1567.002",
+        "technique_name": "Exfiltration to Cloud Storage",
+        "tactic": "exfiltration",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-exfiltration-008",
+        "tactic:exfiltration",
+        "mitre:T1567.002",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-impact-008-t1490",
+      "name": "Inhibit System Recovery: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo before>%TEMP%\\tamandua-impact.txt & echo after>>%TEMP%\\tamandua-impact.txt & del /f /q %TEMP%\\tamandua-impact.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1490",
+        "technique_name": "Inhibit System Recovery",
+        "tactic": "impact",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-driver-contract"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-008",
+        "tactic:impact",
+        "mitre:T1490",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    }
+  ]
+}

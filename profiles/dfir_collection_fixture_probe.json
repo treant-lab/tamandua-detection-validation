@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "profile_id": "dfir-collection-fixture-probe",
+  "name": "DFIR Collection Fixture Probe",
+  "description": "Local Roadmap T fixture for DFIR artifact catalog, per-agent collection status, export manifest hashes, redaction policy, analyst review, and chain-of-custody semantics.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "dfir-hunting",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\dfir_collection_fixture_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "dfir_collection_fixture",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local DFIR collection fixture only. Does not prove live endpoint artifact collection, live export, real analyst search, or Velociraptor-class coverage.",
+  "tests": [
+    {
+      "id": "dfir-artifact-catalog-fixture",
+      "name": "DFIR fixture includes the first Windows artifact catalog without collection errors",
+      "executor": "dfir_collection_fixture_probe",
+      "expected_telemetry": ["dfir_collection_fixture"],
+      "expected_fields": ["required_types", "present_types", "missing_types"]
+    },
+    {
+      "id": "dfir-collection-status-fixture",
+      "name": "DFIR fixture records per-agent status, duration, bytes, errors, and artifact hashes",
+      "executor": "dfir_collection_fixture_probe",
+      "expected_telemetry": ["dfir_collection_fixture"],
+      "expected_fields": ["collection"]
+    },
+    {
+      "id": "dfir-export-manifest-fixture",
+      "name": "DFIR fixture exports a package manifest with per-artifact hashes and package hash",
+      "executor": "dfir_collection_fixture_probe",
+      "expected_telemetry": ["dfir_collection_fixture"],
+      "expected_fields": ["manifest"]
+    },
+    {
+      "id": "dfir-redaction-policy-fixture",
+      "name": "DFIR fixture enforces metadata-first redaction for sensitive artifact families",
+      "executor": "dfir_collection_fixture_probe",
+      "expected_telemetry": ["dfir_collection_fixture"],
+      "expected_fields": ["redaction_policy"]
+    },
+    {
+      "id": "dfir-analyst-review-fixture",
+      "name": "DFIR fixture links hunt output to searchable analyst review and alert context",
+      "executor": "dfir_collection_fixture_probe",
+      "expected_telemetry": ["dfir_collection_fixture"],
+      "expected_fields": ["review"]
+    },
+    {
+      "id": "dfir-chain-of-custody-fixture",
+      "name": "DFIR fixture records ordered append-only chain-of-custody actions",
+      "executor": "dfir_collection_fixture_probe",
+      "expected_telemetry": ["dfir_collection_fixture"],
+      "expected_fields": ["custody"]
+    }
+  ]
+}

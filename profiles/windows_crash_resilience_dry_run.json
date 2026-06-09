@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-crash-resilience-dry-run",
+  "name": "Windows Crash Resilience Dry Run",
+  "description": "Report-only crash-proof agent resilience lane for driver signing/Secure Boot status, safe-boot recovery contract, response guardrail contract, offline/backpressure budget, and transactional update planning. Commands do not load/unload drivers, alter boot state, execute response actions, or apply updates.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "release-readiness",
+  "quality_bar": {
+    "purpose": "crash_resilience_dry_run",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "resilience_contract": {
+    "evidence_scope": [
+      "driver signing and Secure Boot status reported without changing driver state",
+      "safe-boot recovery markers declared as planned/not executed",
+      "offline queue and backpressure budget declared as report-only release blockers",
+      "response safety rails declared for protected OS and Tamandua processes",
+      "transactional OTA stages declared as planned/not executed"
+    ],
+    "promotion_requires": [
+      "driver signing state distinguishes unsigned, lab-signed, test-signed, attestation-signed, and WHQL/HLK-signed builds",
+      "stale boot/crash marker simulation enters degraded mode without repeatedly loading risky driver paths",
+      "offline queue exposes bytes, oldest event age, dropped count, upload rate, and priority drops",
+      "agent-side response guardrails deny protected OS, Tamandua, and control-plane-breaking actions locally",
+      "transactional update verifies staged signature/hash and rolls back to previous known-good after failed health window"
+    ]
+  },
+  "claim_boundary": "Dry-run crash resilience contract only. Passing this profile proves that safe report-only probes and release blockers are represented; it does not prove Secure Boot production driver loading, degraded boot recovery, offline replay, response containment safety, or transactional OTA rollback.",
+  "tests": [
+    {
+      "id": "resilience-driver-signing-secure-boot-report-only",
+      "name": "Driver Signing Secure Boot Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"$secureBoot = try { Confirm-SecureBootUEFI -ErrorAction Stop } catch { 'unknown_or_unsupported' }; $drivers = @(& sc.exe query type= driver state= all 2>$null | Select-String -Pattern 'tamandua|tamd' -CaseSensitive:$false | ForEach-Object { $_.Line }); [pscustomobject]@{ SecureBoot=$secureBoot; DriverSigningState='not_classified_without_release_manifest'; DriverLines=$drivers; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["crash-resilience", "driver-signing", "secure-boot", "report-only", "roadmap:V", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "resilience-safe-boot-recovery-plan-not-executed",
+      "name": "Safe Boot Recovery Plan Not Executed",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"[pscustomobject]@{ BootMarkers=@('boot_started','boot_healthy','crash_suspected','safe_mode_entered','driver_disabled'); Simulation='planned_not_executed'; UnsafeActionsBlocked=@('create_boot_marker','force_crash','disable_driver','reboot'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["crash-resilience", "safe-boot", "degraded-mode", "planned-not-executed", "roadmap:V", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "resilience-offline-backpressure-budget-report-only",
+      "name": "Offline Backpressure Budget Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"[pscustomobject]@{ RequiredMetrics=@('queue_bytes','oldest_event_age_seconds','dropped_count','upload_rate_per_second','priority_drops','backpressure_state'); CurrentProbe='contract_only'; QueueMutation='not_executed'; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["crash-resilience", "offline", "backpressure", "budget", "report-only", "roadmap:V", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "resilience-response-guardrails-plan-not-executed",
+      "name": "Response Guardrails Plan Not Executed",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"[pscustomobject]@{ ProtectedProcesses=@('csrss.exe','lsass.exe','wininit.exe','services.exe','tamandua-agent.exe','tamandua-updater.exe'); ProtectedConnectivity='tamandua_control_plane'; GuardrailDecision='planned_not_executed'; UnsafeActionsBlocked=@('kill_process','quarantine_file','network_isolate'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["crash-resilience", "response-guardrails", "planned-not-executed", "roadmap:V", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "resilience-transactional-update-plan-not-executed",
+      "name": "Transactional Update Plan Not Executed",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"[pscustomobject]@{ UpdateStages=@('stage_download','verify_signature','verify_hash','atomic_swap','health_window','previous_known_good_rollback'); Apply='planned_not_executed'; UnsafeActionsBlocked=@('download_update','replace_binary','restart_service','rollback_execute'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["crash-resilience", "transactional-update", "ota", "planned-not-executed", "roadmap:V", "windows"],
+      "risk": "low"
+    }
+  ]
+}

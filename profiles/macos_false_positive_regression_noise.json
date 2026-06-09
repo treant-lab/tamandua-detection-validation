@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-false-positive-regression-noise",
+  "name": "macOS False Positive Regression Noise",
+  "description": "Benign macOS operational workloads that can look noisy during LaunchDaemon repair, network collection, DNS inspection, and plist validation. This gates severity calibration, not attack coverage.",
+  "platform": "macos",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "false_positive_regression_noise",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "requires_driver_health": false
+  },
+  "claim_boundary": "Benign/noise regression only. Passing this profile supports false-positive calibration claims, not detection coverage claims.",
+  "tests": [
+    {
+      "id": "fp-macos-launchctl-tamandua-repair",
+      "name": "Tamandua LaunchDaemon repair commands should not remain high/critical",
+      "executor": "command",
+      "fallback_command": "sh -lc 'launchctl print system/com.tamandua.tamanduaagent >/dev/null 2>&1 || true'",
+      "validation_category": "benign-noise",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise-regression",
+        "launchd",
+        "tamandua",
+        "mitre:T1569.001"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "fp-macos-lsof-network-inventory",
+      "name": "lsof network inventory should not remain high/critical",
+      "executor": "command",
+      "fallback_command": "sh -lc 'lsof -nP -iTCP -sTCP:ESTABLISHED >/dev/null 2>&1 || true'",
+      "validation_category": "benign-noise",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "network_connect"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise-regression",
+        "network-inventory",
+        "lsof",
+        "mitre:T1049"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "fp-macos-netstat-network-inventory",
+      "name": "netstat network inventory should not remain high/critical",
+      "executor": "command",
+      "fallback_command": "sh -lc 'netstat -anv >/dev/null 2>&1 || true'",
+      "validation_category": "benign-noise",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "network_connect"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise-regression",
+        "network-inventory",
+        "netstat",
+        "mitre:T1049"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "fp-macos-scutil-dns-inventory",
+      "name": "scutil DNS inventory should not remain high/critical",
+      "executor": "command",
+      "fallback_command": "sh -lc 'scutil --dns >/dev/null 2>&1 || true'",
+      "validation_category": "benign-noise",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "dns_query"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise-regression",
+        "dns-inventory",
+        "scutil",
+        "mitre:T1016"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "fp-macos-plutil-plist-validation",
+      "name": "plist validation should not remain high/critical",
+      "executor": "command",
+      "fallback_command": "sh -lc 'plutil -lint deploy/installers/macos/com.tamandua.agent.plist >/dev/null'",
+      "validation_category": "benign-noise",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise-regression",
+        "plist-validation",
+        "plutil",
+        "mitre:T1543.001"
+      ],
+      "risk": "low"
+    }
+  ]
+}

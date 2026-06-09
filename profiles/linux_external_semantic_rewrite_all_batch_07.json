@@ -1,0 +1,4589 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-external-semantic-rewrite-all-batch-07",
+  "name": "Linux External Semantic Rewrite All Batch 07",
+  "description": "Safe batch profile for external-rule-inspired Tamandua semantic rewrite execution prep across all mapped candidates.",
+  "platform": "linux",
+  "default_observation_seconds": 60,
+  "benchmark_lane": "external-semantic-rewrite-execution",
+  "quality_bar": {
+    "purpose": "linux_external_semantic_rewrite_all_batch_07",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "report_only": true
+  },
+  "semantic_rewrite_selection": {
+    "source": "tools/detection_validation/roadmaps/external_rule_semantic_rewrite_candidates.json",
+    "priority": "all",
+    "batch_size": 50,
+    "batch_index": 7,
+    "candidate_count": 29,
+    "generated_from": {
+      "sources": [
+        {
+          "source": "elastic/detection-rules",
+          "commit": "unknown",
+          "license": "Elastic License v2"
+        },
+        {
+          "source": "SigmaHQ/sigma",
+          "commit": "unknown",
+          "license": "Detection Rule License 1.1"
+        },
+        {
+          "source": "wazuh/wazuh-ruleset",
+          "commit": "unknown",
+          "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+        },
+        {
+          "source": "LOLBAS-Project/LOLBAS",
+          "commit": "unknown",
+          "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+        },
+        {
+          "source": "GTFOBins/GTFOBins.github.io",
+          "commit": "unknown",
+          "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+        },
+        {
+          "source": "splunk/security_content",
+          "commit": "unknown",
+          "license": "Apache-2.0"
+        },
+        {
+          "source": "Azure/Azure-Sentinel",
+          "commit": "unknown",
+          "license": "MIT"
+        }
+      ],
+      "local_clone_required": false
+    },
+    "clean_room_boundary": "execution probes are Tamandua-authored and carry provenance without copying external detection logic"
+  },
+  "tests": [
+    {
+      "id": "semantic-exec-linux-t1556-004",
+      "name": "External semantic rewrite execution prep: linux T1556.004",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1556-004; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1556-004"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1556-004"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1556-004",
+        "priority": "p3-backlog",
+        "technique_id": "T1556.004",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:8f2c4e9a-5d3b-4c7e-9a1f-6e8d5b2c3a9f"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Cisco ASA Logs"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1556-004",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1556.004",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1558-003",
+      "name": "External semantic rewrite execution prep: linux T1558.003",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1558-003; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1558-003"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1558-003"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1558-003",
+        "priority": "p3-backlog",
+        "technique_id": "T1558.003",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:adbff89c-c1f2-4a2e-88a4-b5e645856510"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Windows Event Log Security 4688",
+          "Sysmon EventID 1",
+          "CrowdStrike ProcessRollup2"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1558-003",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1558.003",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1558-004",
+      "name": "External semantic rewrite execution prep: linux T1558.004",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1558-004; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1558-004"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1558-004"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1558-004",
+        "priority": "p3-backlog",
+        "technique_id": "T1558.004",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:adbff89c-c1f2-4a2e-88a4-b5e645856510"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Windows Event Log Security 4688",
+          "Sysmon EventID 1",
+          "CrowdStrike ProcessRollup2"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1558-004",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1558.004",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1560-002",
+      "name": "External semantic rewrite execution prep: linux T1560.002",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1560-002; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1560-002"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1560-002"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1560-002",
+        "priority": "p3-backlog",
+        "technique_id": "T1560.002",
+        "source_rule_count": 1,
+        "source_mix": {
+          "elastic_detection_rules": 1
+        },
+        "source_reference_ids": [
+          "elastic_detection_rules:c3d4e5f6-a7b8-9012-cdef-123456789abc"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "collection",
+          "defense-evasion",
+          "exfiltration"
+        ],
+        "dominant_data_sources": [
+          "Elastic Defend",
+          "Microsoft Defender XDR",
+          "SentinelOne",
+          "Sysmon"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1560-002",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1560.002",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1561-001",
+      "name": "External semantic rewrite execution prep: linux T1561.001",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1561-001; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1561-001"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1561-001"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1561-001",
+        "priority": "p3-backlog",
+        "technique_id": "T1561.001",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:c3f48aa9-878e-443f-8889-e42a11a9bea9"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Azure Monitor Activity"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1561-001",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1561.001",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1562-010",
+      "name": "External semantic rewrite execution prep: linux T1562.010",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1562-010; systemctl status auditd >/dev/null 2>&1 || true; ps -eo comm | grep -Ei \"audit|falco|osquery\" >/dev/null 2>&1 || true; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "service_modify",
+        "registry_modify",
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1562-010"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1562-010"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1562-010",
+        "priority": "p3-backlog",
+        "technique_id": "T1562.010",
+        "source_rule_count": 1,
+        "source_mix": {
+          "elastic_detection_rules": 1
+        },
+        "source_reference_ids": [
+          "elastic_detection_rules:9797d2c8-8ec9-48e6-a022-350cdfbf2d5e"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "defense-evasion"
+        ],
+        "dominant_data_sources": [
+          "Apache",
+          "Apache Tomcat",
+          "Nginx",
+          "Traefik"
+        ],
+        "execution_command_coverage": "technique-family",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "service_modify",
+            "registry_modify",
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "security_product",
+            "service_name",
+            "policy_key",
+            "actor_process",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1562-010",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1562.010",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1564-006",
+      "name": "External semantic rewrite execution prep: linux T1564.006",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1564-006; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1564-006"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1564-006"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1564-006",
+        "priority": "p3-backlog",
+        "technique_id": "T1564.006",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:c4c0a2d4-0675-4fde-97b7-115145ba257c"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Sysmon EventID 1"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1564-006",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1564.006",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1564-008",
+      "name": "External semantic rewrite execution prep: linux T1564.008",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1564-008; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1564-008"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1564-008"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1564-008",
+        "priority": "p3-backlog",
+        "technique_id": "T1564.008",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:11ebb7c2-46bd-41c9-81e1-d0b4b34583a2"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Office 365 Universal Audit Log"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1564-008",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1564.008",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1565-001",
+      "name": "External semantic rewrite execution prep: linux T1565.001",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1565-001; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1565-001"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1565-001"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1565-001",
+        "priority": "p3-backlog",
+        "technique_id": "T1565.001",
+        "source_rule_count": 1,
+        "source_mix": {
+          "elastic_detection_rules": 1
+        },
+        "source_reference_ids": [
+          "elastic_detection_rules:9c260313-c811-4ec8-ab89-8f6530e0246c"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "impact"
+        ],
+        "dominant_data_sources": [
+          "Elastic Defend"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1565-001",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1565.001",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1565-002",
+      "name": "External semantic rewrite execution prep: linux T1565.002",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1565-002; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1565-002"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1565-002"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1565-002",
+        "priority": "p3-backlog",
+        "technique_id": "T1565.002",
+        "source_rule_count": 1,
+        "source_mix": {
+          "elastic_detection_rules": 1
+        },
+        "source_reference_ids": [
+          "elastic_detection_rules:493834ca-f861-414c-8602-150d5505b777"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "defense-evasion",
+          "impact"
+        ],
+        "dominant_data_sources": [
+          "endpoint telemetry"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1565-002",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1565.002",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1569",
+      "name": "External semantic rewrite execution prep: linux T1569",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1569; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1569"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1569"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1569",
+        "priority": "p3-backlog",
+        "technique_id": "T1569",
+        "source_rule_count": 1,
+        "source_mix": {
+          "elastic_detection_rules": 1
+        },
+        "source_reference_ids": [
+          "elastic_detection_rules:b605f262-f7dc-41b5-9ebc-06bafe7a83b6"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "execution",
+          "persistence",
+          "privilege-escalation"
+        ],
+        "dominant_data_sources": [
+          "Elastic Defend"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1569",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1569",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1583-006",
+      "name": "External semantic rewrite execution prep: linux T1583.006",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1583-006; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1583-006"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1583-006"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1583-006",
+        "priority": "p3-backlog",
+        "technique_id": "T1583.006",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:e20313d2-7d63-4fcf-b2d9-d6e12c6c7bd7"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Cisco Secure Firewall Threat Defense Intrusion Event",
+          "Cisco Secure Firewall Threat Defense Analytics",
+          "T1598",
+          "T1583.006",
+          "Splunk Enterprise",
+          "Splunk Cloud",
+          "Splunk Enterprise Security"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1583-006",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1583.006",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1586",
+      "name": "External semantic rewrite execution prep: linux T1586",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1586; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1586"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1586"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1586",
+        "priority": "p3-backlog",
+        "technique_id": "T1586",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:395e50e1-2b87-4fa3-8632-0dfbdcbcd2cb"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "AWS CloudTrail ConsoleLogin",
+          "field: user",
+          "field: src",
+          "Suspicious AWS Login Activities",
+          "C"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1586",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1586",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1587",
+      "name": "External semantic rewrite execution prep: linux T1587",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1587; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1587"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1587"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1587",
+        "priority": "p3-backlog",
+        "technique_id": "T1587",
+        "source_rule_count": 1,
+        "source_mix": {
+          "elastic_detection_rules": 1
+        },
+        "source_reference_ids": [
+          "elastic_detection_rules:b2c3d4e5-f6a7-8901-bcde-f123456789ab"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "defense-evasion",
+          "resource-development"
+        ],
+        "dominant_data_sources": [
+          "Auditd Manager",
+          "Elastic Defend",
+          "Microsoft Defender XDR",
+          "SentinelOne",
+          "Sysmon"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1587",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1587",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1587-002",
+      "name": "External semantic rewrite execution prep: linux T1587.002",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1587-002; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1587-002"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1587-002"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1587-002",
+        "priority": "p3-backlog",
+        "technique_id": "T1587.002",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:c43f7b49-2dab-4e76-892e-7f971c2f20f1"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Cisco Secure Firewall Threat Defense Connection Event"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1587-002",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1587.002",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1588-002",
+      "name": "External semantic rewrite execution prep: linux T1588.002",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1588-002; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1588-002"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1588-002"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1588-002",
+        "priority": "p3-backlog",
+        "technique_id": "T1588.002",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:f7e5e792-d907-46c1-a58e-4ff974dc462a"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Cisco Secure Firewall Threat Defense Connection Event"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1588-002",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1588.002",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1588-004",
+      "name": "External semantic rewrite execution prep: linux T1588.004",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1588-004; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1588-004"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1588-004"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1588-004",
+        "priority": "p3-backlog",
+        "technique_id": "T1588.004",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:c43f7b49-2dab-4e76-892e-7f971c2f20f1"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Cisco Secure Firewall Threat Defense Connection Event"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1588-004",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1588.004",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1589-001",
+      "name": "External semantic rewrite execution prep: linux T1589.001",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1589-001; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1589-001"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1589-001"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1589-001",
+        "priority": "p3-backlog",
+        "technique_id": "T1589.001",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:7add8520-71d5-43aa-b262-ee082b1f0238"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Sysmon for Linux EventID 11"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1589-001",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1589.001",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1590",
+      "name": "External semantic rewrite execution prep: linux T1590",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1590; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1590"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1590"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1590",
+        "priority": "p3-backlog",
+        "technique_id": "T1590",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:5cb208df-e1aa-478d-ab2f-8270ff9999b9"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Powershell Script Block Logging 4104"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1590",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1590",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1590-001",
+      "name": "External semantic rewrite execution prep: linux T1590.001",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1590-001; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1590-001"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1590-001"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1590-001",
+        "priority": "p3-backlog",
+        "technique_id": "T1590.001",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:6e9d4f7a-3c8b-4a9e-8d2f-7b5c9e1a6f3d"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Cisco ASA Logs"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1590-001",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1590.001",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1590-005",
+      "name": "External semantic rewrite execution prep: linux T1590.005",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1590-005; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1590-005"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1590-005"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1590-005",
+        "priority": "p3-backlog",
+        "technique_id": "T1590.005",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:6e9d4f7a-3c8b-4a9e-8d2f-7b5c9e1a6f3d"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Cisco ASA Logs"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1590-005",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1590.005",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1592-002",
+      "name": "External semantic rewrite execution prep: linux T1592.002",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1592-002; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1592-002"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1592-002"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1592-002",
+        "priority": "p3-backlog",
+        "technique_id": "T1592.002",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:5cb208df-e1aa-478d-ab2f-8270ff9999b9"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Powershell Script Block Logging 4104"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1592-002",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1592.002",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1592-004",
+      "name": "External semantic rewrite execution prep: linux T1592.004",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1592-004; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1592-004"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1592-004"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1592-004",
+        "priority": "p3-backlog",
+        "technique_id": "T1592.004",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:5cb208df-e1aa-478d-ab2f-8270ff9999b9"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Powershell Script Block Logging 4104"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1592-004",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1592.004",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1595-001",
+      "name": "External semantic rewrite execution prep: linux T1595.001",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1595-001; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1595-001"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1595-001"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1595-001",
+        "priority": "p3-backlog",
+        "technique_id": "T1595.001",
+        "source_rule_count": 1,
+        "source_mix": {
+          "elastic_detection_rules": 1
+        },
+        "source_reference_ids": [
+          "elastic_detection_rules:a1b7ffa4-bf80-4bf1-86ad-c3f4dc718b35"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "credential-access",
+          "reconnaissance"
+        ],
+        "dominant_data_sources": [
+          "Apache",
+          "Apache Tomcat",
+          "IIS",
+          "Nginx",
+          "Traefik"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1595-001",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1595.001",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1598",
+      "name": "External semantic rewrite execution prep: linux T1598",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1598; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1598"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1598"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1598",
+        "priority": "p3-backlog",
+        "technique_id": "T1598",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:e20313d2-7d63-4fcf-b2d9-d6e12c6c7bd7"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Cisco Secure Firewall Threat Defense Intrusion Event",
+          "Cisco Secure Firewall Threat Defense Analytics",
+          "T1598",
+          "T1583.006",
+          "Splunk Enterprise",
+          "Splunk Cloud",
+          "Splunk Enterprise Security"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1598",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1598",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1601",
+      "name": "External semantic rewrite execution prep: linux T1601",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1601; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1601"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1601"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1601",
+        "priority": "p3-backlog",
+        "technique_id": "T1601",
+        "source_rule_count": 1,
+        "source_mix": {
+          "elastic_detection_rules": 1
+        },
+        "source_reference_ids": [
+          "elastic_detection_rules:4d4c35f4-414e-4d0c-bb7e-6db7c80a6957"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "defense-evasion",
+          "persistence",
+          "privilege-escalation"
+        ],
+        "dominant_data_sources": [
+          "Auditd Manager",
+          "Crowdstrike",
+          "Elastic Defend",
+          "Elastic Endgame",
+          "SentinelOne"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1601",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1601",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1615",
+      "name": "External semantic rewrite execution prep: linux T1615",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1615; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1615"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1615"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1615",
+        "priority": "p3-backlog",
+        "technique_id": "T1615",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:5cb208df-e1aa-478d-ab2f-8270ff9999b9"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Powershell Script Block Logging 4104"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1615",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1615",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1685-001",
+      "name": "External semantic rewrite execution prep: linux T1685.001",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1685-001; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1685-001"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1685-001"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1685-001",
+        "priority": "p3-backlog",
+        "technique_id": "T1685.001",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:4e6c9d2a-8f3b-4c7e-9a5f-2d8b6e1c4a9f"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Cisco ASA Logs"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1685-001",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1685.001",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "semantic-exec-linux-t1685-005",
+      "name": "External semantic rewrite execution prep: linux T1685.005",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-semantic-rewrite-semantic-exec-linux-t1685-005; id; hostname; uname -a; sleep 75'",
+      "validation_category": "external-rule-semantic-rewrite-execution-smoke",
+      "source_executor": "external_rule_semantic_rewrite",
+      "source_benchmark_lane": "external-semantic-rewrite-execution",
+      "claim_boundary": "safe execution prep for Tamandua-authored semantic rewrite; validates runner, process telemetry, and candidate traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "auth_event"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "user"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "process_create": {
+          "command_line": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1685-005"
+          ]
+        },
+        "live_response_command_completed": {
+          "command": [
+            "tamandua-semantic-rewrite-semantic-exec-linux-t1685-005"
+          ]
+        }
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation for semantic rewrite promotion",
+        "process_create command_line must include the probe marker before a candidate is counted as traceable endpoint telemetry",
+        "linux/macos probes keep the shell process alive briefly so polling-based process collectors can observe them until auditd/eBPF/EndpointSecurity event-driven collection is production-wired",
+        "live_response_command_completed is accepted only as bounded tamandua-ctl/live-response audit evidence for execution-prep smoke runs",
+        "planned event contracts remain report-only until collector/schema evidence exists"
+      ],
+      "semantic_rewrite_candidate": {
+        "id": "semantic-rewrite-linux-t1685-005",
+        "priority": "p3-backlog",
+        "technique_id": "T1685.005",
+        "source_rule_count": 1,
+        "source_mix": {
+          "splunk_security_content": 1
+        },
+        "source_reference_ids": [
+          "splunk_security_content:2827c0fd-e1be-4868-ae25-59d28e0f9d4f"
+        ],
+        "license_review": "required before direct textual or logic reuse",
+        "generated_from": {
+          "sources": [
+            {
+              "source": "elastic/detection-rules",
+              "commit": "unknown",
+              "license": "Elastic License v2"
+            },
+            {
+              "source": "SigmaHQ/sigma",
+              "commit": "unknown",
+              "license": "Detection Rule License 1.1"
+            },
+            {
+              "source": "wazuh/wazuh-ruleset",
+              "commit": "unknown",
+              "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "LOLBAS-Project/LOLBAS",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "GTFOBins/GTFOBins.github.io",
+              "commit": "unknown",
+              "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+            },
+            {
+              "source": "splunk/security_content",
+              "commit": "unknown",
+              "license": "Apache-2.0"
+            },
+            {
+              "source": "Azure/Azure-Sentinel",
+              "commit": "unknown",
+              "license": "MIT"
+            }
+          ],
+          "local_clone_required": false
+        },
+        "clean_room_boundary": "metadata and behavior-intent only; no copied external rule body, query, XML, condition tree, prose, or investigation guide",
+        "dominant_tactics": [
+          "unknown"
+        ],
+        "dominant_data_sources": [
+          "Sysmon EventID 1",
+          "Windows Event Log Security 4688",
+          "CrowdStrike ProcessRollup2"
+        ],
+        "execution_command_coverage": "platform-generic",
+        "process_observation_dwell_seconds": 75,
+        "collector_contract": {
+          "required_events": [
+            "process_create",
+            "file_create",
+            "file_modify",
+            "auth_event"
+          ],
+          "required_fields": [
+            "agent_id",
+            "hostname",
+            "timestamp",
+            "event_type",
+            "pid",
+            "uid"
+          ],
+          "normalization_target": "tamandua.events.v1"
+        },
+        "validation_plan": {
+          "first_benchmark": "external-linux-t1685-005",
+          "needs_live_fixture": true,
+          "assertions": [
+            "required telemetry exists with normalized fields",
+            "benign contrast does not fire high-severity detection",
+            "suspicious fixture produces explainable rule evidence",
+            "provenance records external sources without copied rule body"
+          ]
+        }
+      },
+      "tags": [
+        "linux-external-semantic-rewrite",
+        "priority:p3-backlog",
+        "mitre:T1685.005",
+        "source:external-rule-semantic-rewrite",
+        "lane:external-semantic-rewrite-execution"
+      ],
+      "risk": "low"
+    }
+  ]
+}

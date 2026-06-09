@@ -1,0 +1,1314 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-external-rule-coverage-map",
+  "name": "Macos External Rule Coverage Map",
+  "description": "Report-only benchmark profile mapping high-signal external detection-rule coverage into Tamandua-authored validation backlog.",
+  "platform": "macos",
+  "default_observation_seconds": 45,
+  "benchmark_lane": "external-coverage-report-only",
+  "quality_bar": {
+    "purpose": "macos_external_rule_coverage_map",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "report_only": true
+  },
+  "external_rule_mapping": {
+    "sources": [
+      {
+        "source": "elastic/detection-rules",
+        "commit": "unknown",
+        "license": "Elastic License v2"
+      },
+      {
+        "source": "SigmaHQ/sigma",
+        "commit": "unknown",
+        "license": "Detection Rule License 1.1"
+      },
+      {
+        "source": "wazuh/wazuh-ruleset",
+        "commit": "unknown",
+        "license": "Wazuh ruleset upstream license; metadata-only use, verify before direct reuse"
+      },
+      {
+        "source": "LOLBAS-Project/LOLBAS",
+        "commit": "unknown",
+        "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+      },
+      {
+        "source": "GTFOBins/GTFOBins.github.io",
+        "commit": "unknown",
+        "license": "GPL-3.0; metadata-only use, verify before direct reuse"
+      },
+      {
+        "source": "splunk/security_content",
+        "commit": "unknown",
+        "license": "Apache-2.0"
+      },
+      {
+        "source": "Azure/Azure-Sentinel",
+        "commit": "unknown",
+        "license": "MIT"
+      }
+    ],
+    "guardrail": {
+      "mode": "metadata-only coverage mapping",
+      "do_not_copy": [
+        "query",
+        "eql",
+        "kql",
+        "sigma rule body",
+        "wazuh xml rule body",
+        "rule logic",
+        "investigation guide text",
+        "setup text"
+      ],
+      "allowed_use": [
+        "ATT&CK coverage gap analysis",
+        "platform/data-source prioritization",
+        "Tamandua-authored benchmark intent",
+        "Tamandua-authored rule candidates"
+      ]
+    }
+  },
+  "tests": [
+    {
+      "id": "external-macos-t1190",
+      "name": "External rule coverage mapping: T1190",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1190'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1190",
+        "source_rule_count": 85,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:90e4ceab-79a5-4f8e-879b-513cac7fcad9",
+          "elastic_detection_rules:45d099b4-a12e-4913-951c-0129f73efb41",
+          "elastic_detection_rules:23c53c4c-aa8b-4b07-85c0-fe46a9c8acaf",
+          "elastic_detection_rules:c3f5e1d8-910e-43b4-8d44-d748e498ca86",
+          "elastic_detection_rules:ae3e9625-89ad-4fc3-a7bf-fced5e64f01b"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1190",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1059",
+      "name": "External rule coverage mapping: T1059",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1059'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1059",
+        "source_rule_count": 68,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:05f2b649-dc03-4e9a-8c4e-6762469e8249",
+          "elastic_detection_rules:abc7a2be-479e-428b-b0b3-1d22bda46dd9",
+          "elastic_detection_rules:54214c47-be7c-4f6b-8ef2-78832f9f8f42",
+          "elastic_detection_rules:aba3bc11-e02f-4a03-8889-d86ea1a44f76",
+          "elastic_detection_rules:bba8c7d1-172b-435d-9034-02ed9289c628"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1059",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1078",
+      "name": "External rule coverage mapping: T1078",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1078'",
+      "validation_category": "external-rule-roadmap-overlap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1078",
+        "source_rule_count": 58,
+        "tamandua_roadmap_matches": 3,
+        "tamandua_scenario_ids": [
+          "mac-initialaccess-005",
+          "mac-initialaccess-010",
+          "mac-initialaccess-015"
+        ],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:41b638a1-8ab6-4f8e-86d9-466317ef2db5",
+          "elastic_detection_rules:cc2fd2d0-ba3a-4939-b87f-2901764ed036",
+          "elastic_detection_rules:827f8d8f-4117-4ae4-b551-f56d54b9da6b",
+          "elastic_detection_rules:f0eb70e9-71e9-40cd-813f-bf8e8c812cb1",
+          "elastic_detection_rules:565c2b44-7a21-4818-955f-8d4737967d2e"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1078",
+        "category:external-rule-roadmap-overlap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1110",
+      "name": "External rule coverage mapping: T1110",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1110'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1110",
+        "source_rule_count": 43,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:ace1e989-a541-44df-93a8-a8b0591b63c0",
+          "elastic_detection_rules:a1b7ffa4-bf80-4bf1-86ad-c3f4dc718b35",
+          "splunk_security_content:b1a82fc8-8a9f-4344-9ec2-bde5c5331b57",
+          "splunk_security_content:0ae94cdd-021a-4a62-a96d-9cec90b61530",
+          "splunk_security_content:97e2fe57-3740-402c-988a-76b64ce04b8d"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1110",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1098",
+      "name": "External rule coverage mapping: T1098",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1098'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1098",
+        "source_rule_count": 35,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:565c2b44-7a21-4818-955f-8d4737967d2e",
+          "elastic_detection_rules:04e65517-16e9-4fc4-b7f1-94dc21ecea0d",
+          "elastic_detection_rules:2215b8bd-1759-4ffa-8ab8-55c8e6b32e7f",
+          "splunk_security_content:bb27cbce-d4de-432c-932f-2e206e9130fb",
+          "splunk_security_content:15b0694e-caa2-4009-8d83-a1f98b86d086"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1098",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1204",
+      "name": "External rule coverage mapping: T1204",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1204'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1204",
+        "source_rule_count": 34,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:36755b43-a1f9-4f2c-9b61-6b240dd0e164",
+          "elastic_detection_rules:8154d01d-04d1-4695-bcbb-95a1bb606355",
+          "elastic_detection_rules:66da12b1-ac83-40eb-814c-07ed1d82b7b9",
+          "elastic_detection_rules:d7b57cbd-de03-4c3b-8278-daa1ee4a6772",
+          "elastic_detection_rules:f5fb4598-4f10-11ed-bdc3-0242ac120002"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1204",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1105",
+      "name": "External rule coverage mapping: T1105",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1105'",
+      "validation_category": "external-rule-roadmap-overlap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1105",
+        "source_rule_count": 33,
+        "tamandua_roadmap_matches": 4,
+        "tamandua_scenario_ids": [
+          "mac-commandandcontrol-002",
+          "mac-commandandcontrol-008",
+          "mac-commandandcontrol-014",
+          "mac-commandandcontrol-020"
+        ],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:36755b43-a1f9-4f2c-9b61-6b240dd0e164",
+          "elastic_detection_rules:6da6f80f-fe41-4814-8010-453e6164bd40",
+          "elastic_detection_rules:6b82a0ce-10ac-4cb7-8a66-0ba4d24540cf",
+          "elastic_detection_rules:080bc66a-5d56-4d1f-8071-817671716db9",
+          "elastic_detection_rules:99239e7d-b0d4-46e3-8609-acafcf99f68c"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1105",
+        "category:external-rule-roadmap-overlap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1586-003",
+      "name": "External rule coverage mapping: T1586.003",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1586-003'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1586.003",
+        "source_rule_count": 33,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "splunk_security_content:e2b99e7d-d956-411a-a120-2b14adfdde93",
+          "splunk_security_content:98f6ad4f-4325-4096-9d69-45dc8e638e82",
+          "splunk_security_content:a3d1df37-c2a9-41d0-aa8f-59f82d6192a8",
+          "splunk_security_content:d15e9bd9-ef64-4d84-bc04-f62955a9fee8",
+          "splunk_security_content:4d2df5e0-1092-4817-88a8-79c7fa054668"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1586.003",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1556",
+      "name": "External rule coverage mapping: T1556",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1556'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1556",
+        "source_rule_count": 29,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:e6c98d38-633d-4b3e-9387-42112cd5ac10",
+          "elastic_detection_rules:590fc62d-7386-4c75-92b0-af4517018da1",
+          "splunk_security_content:b38932ad-e663-4e90-bfdf-8446ee5b3f34",
+          "splunk_security_content:1bf631d1-44a0-472b-98c4-2975b8b281df",
+          "splunk_security_content:c4824cc6-d644-458e-a39a-67cd67da75e3"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1556",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1059-004",
+      "name": "External rule coverage mapping: T1059.004",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1059-004'",
+      "validation_category": "external-rule-roadmap-overlap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1059.004",
+        "source_rule_count": 28,
+        "tamandua_roadmap_matches": 5,
+        "tamandua_scenario_ids": [
+          "mac-execution-001",
+          "mac-execution-008",
+          "mac-execution-015",
+          "mac-execution-022",
+          "mac-execution-029"
+        ],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:bba8c7d1-172b-435d-9034-02ed9289c628",
+          "elastic_detection_rules:080bc66a-5d56-4d1f-8071-817671716db9",
+          "elastic_detection_rules:99239e7d-b0d4-46e3-8609-acafcf99f68c",
+          "elastic_detection_rules:92a36c98-b24a-4bf7-aac7-1eac71fa39cf",
+          "elastic_detection_rules:d461fac0-43e8-49e2-85ea-3a58fe120b4f"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1059.004",
+        "category:external-rule-roadmap-overlap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1078-004",
+      "name": "External rule coverage mapping: T1078.004",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1078-004'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1078.004",
+        "source_rule_count": 28,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "splunk_security_content:e2b99e7d-d956-411a-a120-2b14adfdde93",
+          "splunk_security_content:98f6ad4f-4325-4096-9d69-45dc8e638e82",
+          "splunk_security_content:140504ae-5fe2-4d65-b2bc-a211813fbca6",
+          "splunk_security_content:22cc7a62-3884-48c4-82da-592b8199b72f",
+          "splunk_security_content:2a9b80d3-6340-4345-b5ad-212bf3d0dac4"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1078.004",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1195",
+      "name": "External rule coverage mapping: T1195",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1195'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1195",
+        "source_rule_count": 27,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:54214c47-be7c-4f6b-8ef2-78832f9f8f42",
+          "elastic_detection_rules:0871a5d8-6b5f-4a12-a568-fd7bc05bd8db",
+          "elastic_detection_rules:57e118c1-19eb-4c20-93a6-8a6c30a5b48b",
+          "elastic_detection_rules:a640ef5b-e1da-4b17-8391-468fdbd1b517",
+          "elastic_detection_rules:df0553c8-2296-45ef-b4dc-3b88c4c130a7"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1195",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1133",
+      "name": "External rule coverage mapping: T1133",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1133'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1133",
+        "source_rule_count": 26,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:ace1e989-a541-44df-93a8-a8b0591b63c0",
+          "elastic_detection_rules:5ae4e6f8-d1bf-40fa-96ba-e29645e1e4dc",
+          "elastic_detection_rules:15dacaa0-5b90-466b-acab-63435a59701a",
+          "elastic_detection_rules:d8f2a1b3-c4e5-6789-abcd-ef0123456789",
+          "elastic_detection_rules:58ac2aa5-6718-427c-a845-5f3ac5af00ba"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1133",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1059-006",
+      "name": "External rule coverage mapping: T1059.006",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1059-006'",
+      "validation_category": "external-rule-roadmap-overlap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1059.006",
+        "source_rule_count": 23,
+        "tamandua_roadmap_matches": 5,
+        "tamandua_scenario_ids": [
+          "mac-execution-002",
+          "mac-execution-009",
+          "mac-execution-016",
+          "mac-execution-023",
+          "mac-execution-030"
+        ],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:05f2b649-dc03-4e9a-8c4e-6762469e8249",
+          "elastic_detection_rules:abc7a2be-479e-428b-b0b3-1d22bda46dd9",
+          "elastic_detection_rules:aba3bc11-e02f-4a03-8889-d86ea1a44f76",
+          "elastic_detection_rules:bba8c7d1-172b-435d-9034-02ed9289c628",
+          "elastic_detection_rules:aa1e007a-2997-4247-b048-dd9344742560"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1059.006",
+        "category:external-rule-roadmap-overlap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1071",
+      "name": "External rule coverage mapping: T1071",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1071'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1071",
+        "source_rule_count": 22,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:aba3bc11-e02f-4a03-8889-d86ea1a44f76",
+          "elastic_detection_rules:6da6f80f-fe41-4814-8010-453e6164bd40",
+          "elastic_detection_rules:6b82a0ce-10ac-4cb7-8a66-0ba4d24540cf",
+          "elastic_detection_rules:ffa676dc-09b0-11f0-94ba-b66272739ecb",
+          "elastic_detection_rules:b07f0fba-0a78-11f0-8311-b66272739ecb"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1071",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1071-001",
+      "name": "External rule coverage mapping: T1071.001",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1071-001'",
+      "validation_category": "external-rule-roadmap-overlap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1071.001",
+        "source_rule_count": 21,
+        "tamandua_roadmap_matches": 5,
+        "tamandua_scenario_ids": [
+          "mac-commandandcontrol-001",
+          "mac-commandandcontrol-007",
+          "mac-commandandcontrol-013",
+          "mac-commandandcontrol-019",
+          "mac-commandandcontrol-025"
+        ],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:aba3bc11-e02f-4a03-8889-d86ea1a44f76",
+          "elastic_detection_rules:6da6f80f-fe41-4814-8010-453e6164bd40",
+          "elastic_detection_rules:6b82a0ce-10ac-4cb7-8a66-0ba4d24540cf",
+          "elastic_detection_rules:ffa676dc-09b0-11f0-94ba-b66272739ecb",
+          "elastic_detection_rules:b07f0fba-0a78-11f0-8311-b66272739ecb"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1071.001",
+        "category:external-rule-roadmap-overlap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1562-001",
+      "name": "External rule coverage mapping: T1562.001",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1562-001'",
+      "validation_category": "external-rule-roadmap-overlap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1562.001",
+        "source_rule_count": 19,
+        "tamandua_roadmap_matches": 5,
+        "tamandua_scenario_ids": [
+          "mac-defenseevasion-002",
+          "mac-defenseevasion-011",
+          "mac-defenseevasion-020",
+          "mac-defenseevasion-029",
+          "mac-defenseevasion-038"
+        ],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:f683dcdf-a018-4801-b066-193d4ae6c8e5",
+          "elastic_detection_rules:f0b48bbc-549e-4bcf-8ee0-a7a72586c6a7",
+          "elastic_detection_rules:8154d01d-04d1-4695-bcbb-95a1bb606355",
+          "elastic_detection_rules:eea82229-b002-470e-a9e1-00be38b14d32",
+          "elastic_detection_rules:6482255d-f468-45ea-a5b3-d3a7de1331ae"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1562.001",
+        "category:external-rule-roadmap-overlap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1621",
+      "name": "External rule coverage mapping: T1621",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1621'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1621",
+        "source_rule_count": 19,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "splunk_security_content:e2b99e7d-d956-411a-a120-2b14adfdde93",
+          "splunk_security_content:97e2fe57-3740-402c-988a-76b64ce04b8d",
+          "splunk_security_content:8085b79b-9b85-4e67-ad63-351c9e9a5e9a",
+          "splunk_security_content:826dbaae-a1e6-4c8c-b384-d16898956e73",
+          "splunk_security_content:98f6ad4f-4325-4096-9d69-45dc8e638e82"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1621",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1562",
+      "name": "External rule coverage mapping: T1562",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1562'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1562",
+        "source_rule_count": 18,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:f683dcdf-a018-4801-b066-193d4ae6c8e5",
+          "elastic_detection_rules:f0b48bbc-549e-4bcf-8ee0-a7a72586c6a7",
+          "elastic_detection_rules:8154d01d-04d1-4695-bcbb-95a1bb606355",
+          "elastic_detection_rules:eea82229-b002-470e-a9e1-00be38b14d32",
+          "elastic_detection_rules:6482255d-f468-45ea-a5b3-d3a7de1331ae"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1562",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1685",
+      "name": "External rule coverage mapping: T1685",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1685'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1685",
+        "source_rule_count": 18,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "splunk_security_content:e5c7b380-19da-42e9-9e53-0af4cd27aee3",
+          "splunk_security_content:cc26aba8-7f4a-4078-b91a-052d6a53cb13",
+          "splunk_security_content:c0ee37bb-ed43-4632-8e38-060fba80b0b2",
+          "splunk_security_content:b05a4f25-e07d-436f-ab03-f954afa922c0",
+          "splunk_security_content:e26bc52d-9cbc-4743-9745-e8781d935042"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1685",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1059-002",
+      "name": "External rule coverage mapping: T1059.002",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1059-002'",
+      "validation_category": "external-rule-roadmap-overlap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1059.002",
+        "source_rule_count": 17,
+        "tamandua_roadmap_matches": 4,
+        "tamandua_scenario_ids": [
+          "mac-execution-007",
+          "mac-execution-014",
+          "mac-execution-021",
+          "mac-execution-028"
+        ],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:05f2b649-dc03-4e9a-8c4e-6762469e8249",
+          "elastic_detection_rules:abc7a2be-479e-428b-b0b3-1d22bda46dd9",
+          "elastic_detection_rules:bba8c7d1-172b-435d-9034-02ed9289c628",
+          "elastic_detection_rules:38948d29-3d5d-42e3-8aec-be832aaaf8eb",
+          "elastic_detection_rules:080bc66a-5d56-4d1f-8071-817671716db9"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1059.002",
+        "category:external-rule-roadmap-overlap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1098-003",
+      "name": "External rule coverage mapping: T1098.003",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1098-003'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1098.003",
+        "source_rule_count": 17,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "splunk_security_content:9d4fea43-9182-4c5a-ada8-13701fd5615d",
+          "splunk_security_content:eac4de87-7a56-4538-a21b-277897af6d8d",
+          "splunk_security_content:fcd6dfeb-191c-46a0-a29c-c306382145ab",
+          "splunk_security_content:a7da845d-6fae-41cf-b823-6c0b8c55814a",
+          "splunk_security_content:5521f8c5-1aa3-473c-9eb7-853701924a06"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1098.003",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1059-007",
+      "name": "External rule coverage mapping: T1059.007",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1059-007'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1059.007",
+        "source_rule_count": 16,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:05f2b649-dc03-4e9a-8c4e-6762469e8249",
+          "elastic_detection_rules:abc7a2be-479e-428b-b0b3-1d22bda46dd9",
+          "elastic_detection_rules:bba8c7d1-172b-435d-9034-02ed9289c628",
+          "elastic_detection_rules:aa1e007a-2997-4247-b048-dd9344742560",
+          "elastic_detection_rules:35330ba2-c859-4c98-8b7f-c19159ea0e58"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1059.007",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "external-macos-t1552",
+      "name": "External rule coverage mapping: T1552",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-external-coverage-external-macos-t1552'",
+      "validation_category": "external-rule-coverage-gap",
+      "source_executor": "external_rule_metadata",
+      "source_benchmark_lane": "external-coverage-report-only",
+      "claim_boundary": "metadata-only external rule coverage mapping; validates Tamandua telemetry and backlog traceability, not external source rule behavior",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line"
+      ],
+      "external_rule_mapping": {
+        "source": "mixed external rule metadata",
+        "source_license": "mixed external metadata sources; see generated map",
+        "license_guardrail": "Do not copy external query, EQL/KQL, Sigma body, Wazuh XML body, notes, setup, or rule logic.",
+        "technique_id": "T1552",
+        "source_rule_count": 16,
+        "tamandua_roadmap_matches": 0,
+        "tamandua_scenario_ids": [],
+        "representative_source_rule_ids": [
+          "elastic_detection_rules:03b150d9-9280-4eb8-9906-38cfb6184666",
+          "elastic_detection_rules:16904215-2c95-4ac8-bf5c-12354e047192",
+          "elastic_detection_rules:c0136397-f82a-45e5-9b9f-a3651d77e21a",
+          "elastic_detection_rules:f92171ed-a4d3-4baa-98f9-4df1652cb11b",
+          "elastic_detection_rules:b8e4c2a1-7f3d-4e9b-8c5a-1d0e6f2a4b8c"
+        ]
+      },
+      "tags": [
+        "macos-external-rule-coverage",
+        "source:external-rule-metadata",
+        "license:metadata-only",
+        "mitre:T1552",
+        "category:external-rule-coverage-gap",
+        "lane:external-coverage-report-only"
+      ],
+      "risk": "low"
+    }
+  ]
+}

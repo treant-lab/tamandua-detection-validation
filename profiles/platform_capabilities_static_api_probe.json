@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "profile_id": "platform-capabilities-static-api-probe",
+  "name": "Platform Capabilities Static/API Probe",
+  "description": "Executed non-destructive Roadmap K probe for source/API readiness across FIM, inventory, compliance, and SIEM/export. This is stronger than the report-only contract, but does not claim live endpoint baselines, inventory freshness, compliance posture, or SIEM delivery acknowledgement.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "platform-capability",
+  "quality_bar": {
+    "purpose": "platform_capabilities_static_api_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Static source/API readiness proof only. Full Roadmap K still requires executed endpoint FIM baseline/change proof, normalized inventory freshness, compliance control evidence, and SIEM delivery acknowledgement.",
+  "tests": [
+    {
+      "id": "platform-fim-agent-collector-contract",
+      "name": "Agent FIM collector exposes baseline, hash, permission, owner, and compliance fields",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-fim-server-persistence-contract",
+      "name": "Server FIM persistence stores baselines, history, changes, whitelist, and review state",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-fim-backend-manager-contract",
+      "name": "FIM backend can store baselines, record changes, whitelist, and report stats",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-fim-ui-route-contract",
+      "name": "Operational UI exposes FIM view",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-inventory-asset-schema-contract",
+      "name": "Inventory asset schema carries host, hardware, software, network, risk, and vulnerability data",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-inventory-agent-software-collector",
+      "name": "Agent has software inventory collector for endpoint package/application metadata",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-compliance-framework-pack-contract",
+      "name": "Compliance framework pack exists for common audit frameworks",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["files"]
+    },
+    {
+      "id": "platform-compliance-evidence-contract",
+      "name": "Compliance evidence collector hashes evidence and supports export",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-compliance-api-route-contract",
+      "name": "Compliance API exposes overview, framework, controls, assessment, and evidence routes",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-siem-router-contract",
+      "name": "SIEM router supports immediate/batch dispatch, enabled connectors, and stats",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-siem-api-route-contract",
+      "name": "Integration API exposes SIEM test, forward, and stats routes",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "platform-siem-forwarder-contract",
+      "name": "Audit forwarders provide SIEM/syslog delivery surfaces",
+      "executor": "platform_capabilities_probe",
+      "expected_telemetry": ["platform_capability_source_probe"],
+      "expected_fields": ["files"]
+    },
+    {
+      "id": "platform-unauth-deny-api-v1-compliance-overview",
+      "name": "Unauthenticated request denied: /api/v1/compliance/overview",
+      "executor": "platform_capabilities_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "platform-unauth-deny-api-v1-compliance-frameworks",
+      "name": "Unauthenticated request denied: /api/v1/compliance/frameworks",
+      "executor": "platform_capabilities_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "platform-unauth-deny-api-v1-integrations",
+      "name": "Unauthenticated request denied: /api/v1/integrations",
+      "executor": "platform_capabilities_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "platform-unauth-deny-api-v1-integrations-siem-stats",
+      "name": "Unauthenticated request denied: /api/v1/integrations/siem/stats",
+      "executor": "platform_capabilities_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    }
+  ]
+}

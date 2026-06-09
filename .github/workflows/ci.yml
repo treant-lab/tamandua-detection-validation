@@ -1,0 +1,53 @@
+name: CI
+
+# Standalone CI for the tamandua-detection-validation mirror. The probes are
+# standalone Python scripts depending only on `requests` and `PyYAML` plus the
+# standard library. Paths are relative to the repo root (no working-directory).
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-smoke:
+    name: Lint & Probe Smoke (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pyyaml ruff
+
+      - name: Ruff lint
+        run: ruff check . --output-format=github
+        continue-on-error: true
+
+      - name: Byte-compile all probes
+        run: python -m compileall -q .
+
+      - name: Probe --help smoke (representative subset)
+        run: |
+          for probe in linux_ebpf_readiness_probe.py attack_coverage_matrix.py; do
+            if [ -f "$probe" ]; then
+              echo "== $probe --help =="
+              python "$probe" --help
+            fi
+          done

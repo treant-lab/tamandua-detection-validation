@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-benign-baseline",
+  "name": "Windows Benign Baseline",
+  "description": "Benign workload lane for false-positive and source-health calibration. These tests should produce useful telemetry but no unexpected high/critical events or alerts.",
+  "platform": "windows",
+  "default_observation_seconds": 75,
+  "quality_bar": {
+    "purpose": "benign_baseline",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "tests": [
+    {
+      "id": "benign-shell-builtins",
+      "name": "Benign Shell Builtins",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"ver & whoami & hostname & echo tamandua-benign\"",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["benign", "baseline", "tactic:benign"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-powershell-admin-info",
+      "name": "Benign PowerShell Administrative Info",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"$PSVersionTable.PSVersion.ToString(); Get-Process -Id $PID | Select-Object -ExpandProperty ProcessName; Start-Sleep -Seconds 10\"",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["benign", "baseline", "powershell", "tactic:benign"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-windows-update-query",
+      "name": "Benign Windows Update Service Query",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"sc.exe query wuauserv & sc.exe query bits\"",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["benign", "baseline", "services", "tactic:benign"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-temp-file-lifecycle",
+      "name": "Benign Temp File Lifecycle",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua-benign>%TEMP%\\tamandua-benign-file.txt & type %TEMP%\\tamandua-benign-file.txt > nul & del /f /q %TEMP%\\tamandua-benign-file.txt\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["file_create", "file_modify", "file_delete"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "path"],
+      "tags": ["benign", "baseline", "file", "tactic:benign"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-registry-read",
+      "name": "Benign Registry Read",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"reg.exe query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["registry_query"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "registry_key"],
+      "tags": ["benign", "baseline", "registry", "tactic:benign"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-network-head",
+      "name": "Benign Web HEAD Request",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"curl.exe -I https://example.com/\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "network_connect"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "domain", "remote_ip"],
+      "tags": ["benign", "baseline", "network", "tactic:benign"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-archive-temp",
+      "name": "Benign Archive Temp File",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"rmdir /s /q %TEMP%\\tamandua-benign-archive 2>nul & mkdir %TEMP%\\tamandua-benign-archive & echo tamandua>%TEMP%\\tamandua-benign-archive\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-benign-archive\\sample.zip -C %TEMP%\\tamandua-benign-archive sample.txt & rmdir /s /q %TEMP%\\tamandua-benign-archive\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["file_create", "file_modify", "file_delete"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "path"],
+      "tags": ["benign", "baseline", "archive", "tactic:benign"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-scheduled-task-query",
+      "name": "Benign Scheduled Task Query",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"schtasks.exe /Query /FO LIST | more\"",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["benign", "baseline", "scheduled-task", "tactic:benign"],
+      "risk": "low"
+    }
+  ]
+}

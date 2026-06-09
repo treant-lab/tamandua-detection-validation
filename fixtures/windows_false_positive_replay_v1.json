@@ -1,0 +1,1083 @@
+{
+  "schema_version": 1,
+  "fixture_id": "windows-false-positive-replay-v1",
+  "description": "Sanitized replay fixtures for Windows false-positive and severity-calibration regressions.",
+  "claim_boundary": "Offline replay contract only. These fixtures validate normalization and expected severity policy shape; they do not prove endpoint collection or live detection coverage.",
+  "fixtures": [
+    {
+      "id": "ntdll-write-contextless-browser",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1562.006"
+          },
+          "process": {
+            "name": "chrome.exe",
+            "pid": 9911,
+            "path": "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "ntdll_write_missing_target_context"
+      }
+    },
+    {
+      "id": "ntdll-write-lsass-target-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1055"
+          },
+          "process": {
+            "name": "unknown.exe",
+            "pid": 777
+          }
+        },
+        "raw_event": {
+          "source_pid": 777,
+          "target_pid": 500,
+          "target_process": "lsass.exe",
+          "write_size": 4096
+        }
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "edgeupdate-scheduler-etw",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: etw_12345678",
+        "evidence": {
+          "detection": {
+            "rule_name": "etw_12345678",
+            "mitre_technique": "T1562.006"
+          },
+          "process": {
+            "name": "MicrosoftEdgeUpdate.exe",
+            "parent_name": "svchost.exe",
+            "path": "C:\\Program Files (x86)\\Microsoft\\EdgeUpdate\\MicrosoftEdgeUpdate.exe",
+            "command_line": "MicrosoftEdgeUpdate.exe /ua /installsource scheduler"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "edge_update_etw_patch_without_actionable_context"
+      }
+    },
+    {
+      "id": "etw-tamper-contextless",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: etw_aabbccdd",
+        "evidence": {
+          "detection": {
+            "rule_name": "etw_aabbccdd",
+            "mitre_technique": "T1562.006"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "etw_tamper_missing_actionable_context"
+      }
+    },
+    {
+      "id": "etw-tamper-with-target-session-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: etw_aabbccdd",
+        "evidence": {
+          "detection": {
+            "rule_name": "etw_aabbccdd",
+            "mitre_technique": "T1562.006"
+          }
+        },
+        "raw_event": {
+          "process_name": "powershell.exe",
+          "target_session": "EventLog-Application",
+          "operation": "disable_provider"
+        }
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "systemdrive-system32-lsass-legitimate",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: behavioral_lsass_access",
+        "evidence": {
+          "process": {
+            "name": "lsass.exe",
+            "parent_name": "wininit.exe",
+            "path": "D:\\Windows\\System32\\lsass.exe"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "info",
+        "severity_adjusted": true,
+        "fp_reason": "lsass_self_process_event_structured"
+      }
+    },
+    {
+      "id": "ntdll-write-cross-process-signed-text-downgrades",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1055"
+          },
+          "process": {
+            "name": "x64dbg.exe",
+            "pid": 4321,
+            "path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 4321,
+          "source_process": "x64dbg.exe",
+          "source_path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe",
+          "source_is_signed": true,
+          "source_signer": "Example Debugger Corp",
+          "target_pid": 8888,
+          "target_process": "explorer.exe",
+          "cross_process": true,
+          "region_class": "text",
+          "target_function": "ntdll.dll!.text",
+          "old_protection": "PAGE_EXECUTE_READ",
+          "new_protection": "PAGE_EXECUTE_READ"
+        }
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "cross_process_ntdll_write_legitimate_signed_source"
+      }
+    },
+    {
+      "id": "ntdll-write-cross-process-allowlisted-path-no-signature-verdict",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_ntwritevirtualmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_ntwritevirtualmemory",
+            "mitre_technique": "T1055"
+          },
+          "process": {
+            "name": "dbghost.exe",
+            "pid": 5510,
+            "path": "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\dbghost.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 5510,
+          "source_process": "dbghost.exe",
+          "source_path": "C:\\Program Files (x86)\\Windows Kits\\10\\Debuggers\\x64\\dbghost.exe",
+          "target_pid": 7001,
+          "target_process": "notepad.exe",
+          "cross_process": true,
+          "region_class": "text"
+        }
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "cross_process_ntdll_write_legitimate_known_tool"
+      }
+    },
+    {
+      "id": "ntdll-write-cross-process-rwx-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1055"
+          },
+          "process": {
+            "name": "x64dbg.exe",
+            "pid": 4321,
+            "path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 4321,
+          "source_process": "x64dbg.exe",
+          "source_path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe",
+          "source_is_signed": true,
+          "target_pid": 8888,
+          "target_process": "explorer.exe",
+          "cross_process": true,
+          "region_class": "rwx",
+          "new_protection": "PAGE_EXECUTE_READWRITE"
+        }
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "ntdll-write-cross-process-signed-credential-target-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1003"
+          },
+          "process": {
+            "name": "x64dbg.exe",
+            "pid": 4321,
+            "path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 4321,
+          "source_process": "x64dbg.exe",
+          "source_path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe",
+          "source_is_signed": true,
+          "target_pid": 500,
+          "target_process": "lsass.exe",
+          "cross_process": true,
+          "region_class": "text"
+        }
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "ntdll-write-cross-process-unsigned-unknown-source-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1055"
+          },
+          "process": {
+            "name": "updater_svc.exe",
+            "pid": 6644,
+            "path": "C:\\Users\\victim\\AppData\\Local\\Temp\\updater_svc.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 6644,
+          "source_process": "updater_svc.exe",
+          "source_path": "C:\\Users\\victim\\AppData\\Local\\Temp\\updater_svc.exe",
+          "source_is_signed": false,
+          "target_pid": 8888,
+          "target_process": "explorer.exe",
+          "cross_process": true,
+          "region_class": "text"
+        }
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "ntdll-write-cross-process-signed-export-table-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1055"
+          },
+          "process": {
+            "name": "x64dbg.exe",
+            "pid": 4321,
+            "path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 4321,
+          "source_process": "x64dbg.exe",
+          "source_path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe",
+          "source_is_signed": true,
+          "target_pid": 8888,
+          "target_process": "explorer.exe",
+          "cross_process": true,
+          "region_class": "export_table",
+          "target_function": "ntdll.dll!export_table"
+        }
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "ntdll-write-cross-process-signed-unbacked-thread-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1055"
+          },
+          "process": {
+            "name": "x64dbg.exe",
+            "pid": 4321,
+            "path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 4321,
+          "source_process": "x64dbg.exe",
+          "source_path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe",
+          "source_is_signed": true,
+          "target_pid": 8888,
+          "target_process": "explorer.exe",
+          "cross_process": true,
+          "region_class": "text",
+          "thread_from_unbacked": true,
+          "thread_start_address": "0x7ff9c2340000"
+        }
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "ntdll-write-cross-process-signed-rwx-protection-fallback-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1055"
+          },
+          "process": {
+            "name": "x64dbg.exe",
+            "pid": 4321,
+            "path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 4321,
+          "source_process": "x64dbg.exe",
+          "source_path": "C:\\Tools\\x64dbg\\release\\x64\\x64dbg.exe",
+          "source_is_signed": true,
+          "target_pid": 8888,
+          "target_process": "explorer.exe",
+          "cross_process": true,
+          "new_protection": "PAGE_EXECUTE_READWRITE"
+        }
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "ntdll-self-write-text-no-permission-transition",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1562.006"
+          },
+          "process": {
+            "name": "msedgewebview2.exe",
+            "pid": 6120,
+            "path": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\msedgewebview2.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 6120,
+          "target_pid": 6120,
+          "mem_type_str": "MEM_IMAGE",
+          "target_function": "ntdll.dll!.text",
+          "old_protection_str": "PAGE_EXECUTE_READ",
+          "new_protection_str": "PAGE_EXECUTE_READ"
+        }
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "ntdll_self_write_no_permission_transition_structured"
+      }
+    },
+    {
+      "id": "ntdll-self-write-rwx-transition-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_writeprocessmemory",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_writeprocessmemory",
+            "mitre_technique": "T1055"
+          },
+          "process": {
+            "name": "suspicious_host.exe",
+            "pid": 6120,
+            "path": "C:\\Users\\victim\\AppData\\Local\\Temp\\suspicious_host.exe"
+          }
+        },
+        "raw_event": {
+          "source_pid": 6120,
+          "target_pid": 6120,
+          "mem_type_str": "MEM_IMAGE",
+          "target_function": "ntdll.dll!.text",
+          "old_protection_str": "PAGE_EXECUTE_READ",
+          "new_protection_str": "PAGE_EXECUTE_READWRITE"
+        }
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "behavioral-score-unusual-time-only-factor",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: behavioral_high_risk_score",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_high_risk_score"
+          },
+          "process": {
+            "name": "node.exe",
+            "pid": 7720,
+            "path": "C:\\Program Files\\nodejs\\node.exe"
+          }
+        },
+        "raw_event": {
+          "factors": [
+            { "name": "unusual_time" }
+          ]
+        }
+      },
+      "expected": {
+        "alert_severity": "low",
+        "severity_adjusted": true,
+        "fp_reason": "behavioral_score_only_unusual_time_structured"
+      }
+    },
+    {
+      "id": "behavioral-score-multi-factor-retains-high",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: behavioral_high_risk_score",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_high_risk_score"
+          },
+          "process": {
+            "name": "node.exe",
+            "pid": 7720,
+            "path": "C:\\Program Files\\nodejs\\node.exe"
+          }
+        },
+        "raw_event": {
+          "factors": [
+            { "name": "unusual_time" },
+            { "name": "lsass_handle_access" }
+          ]
+        }
+      },
+      "expected": {
+        "alert_severity": "high",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "behavioral-score-operational-tool-context-pwsh",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: behavioral_high_risk_score",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_high_risk_score"
+          },
+          "process": {
+            "name": "pwsh.exe",
+            "pid": 8801,
+            "path": "C:\\Users\\analyst\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe",
+            "parent_name": "codex.exe",
+            "parent_path": "C:\\Users\\analyst\\AppData\\Local\\@openai\\codex\\codex.exe",
+            "command_line": "pwsh.exe -NoProfile -Command Get-CimInstance Win32_Process"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "behavioral_score_only_operational_tool_context"
+      }
+    },
+    {
+      "id": "behavioral-score-operational-untrusted-parent-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: behavioral_high_risk_score",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_high_risk_score"
+          },
+          "process": {
+            "name": "pwsh.exe",
+            "pid": 8802,
+            "path": "C:\\Users\\analyst\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe",
+            "parent_name": "winword.exe",
+            "parent_path": "C:\\Program Files\\Microsoft Office\\root\\Office16\\winword.exe",
+            "command_line": "pwsh.exe -NoProfile -EncodedCommand SQBFAFgA"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "behavioral-unusual-execution-time-benign-process",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: behavioral_unusual_execution_time",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_unusual_execution_time"
+          },
+          "process": {
+            "name": "searchprotocolhost.exe",
+            "pid": 4410,
+            "path": "C:\\Windows\\System32\\SearchProtocolHost.exe"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "info",
+        "severity_adjusted": true,
+        "fp_reason": "benign_unusual_execution_time_structured"
+      }
+    },
+    {
+      "id": "behavioral-unusual-execution-time-unknown-process-retains-high",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: behavioral_unusual_execution_time",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_unusual_execution_time"
+          },
+          "process": {
+            "name": "rundll32_dropper.exe",
+            "pid": 4411,
+            "path": "C:\\Users\\victim\\AppData\\Local\\Temp\\rundll32_dropper.exe"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "high",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "benign-benchmark-run-key-persistence-marker",
+      "event_type": "registry_set",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: registry_persistence",
+        "evidence": {
+          "detection": {
+            "rule_name": "registry_persistence"
+          },
+          "registry": {
+            "key": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "value": "TamanduaBenchRun",
+            "data": "C:\\tamandua-bench\\tamandua-bench-run.cmd"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "info",
+        "severity_adjusted": true,
+        "fp_reason": "benign_benchmark_persistence_setup_structured"
+      }
+    },
+    {
+      "id": "benign-benchmark-run-key-unmarked-retains-high",
+      "event_type": "registry_set",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: registry_persistence",
+        "evidence": {
+          "detection": {
+            "rule_name": "registry_persistence"
+          },
+          "registry": {
+            "key": "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run",
+            "value": "UpdaterSvc",
+            "data": "C:\\Users\\victim\\AppData\\Local\\Temp\\updater_svc.exe"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "high",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "benign-dotnet-ngen-runtime-maintenance",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_ntmapviewofsection",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_ntmapviewofsection"
+          },
+          "process": {
+            "name": "ngentask.exe",
+            "pid": 5230,
+            "parent_name": "taskhostw.exe",
+            "path": "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\ngentask.exe",
+            "command_line": "C:\\Windows\\Microsoft.NET\\Framework\\v4.0.30319\\ngentask.exe /runtimewide"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "info",
+        "severity_adjusted": true,
+        "fp_reason": "benign_dotnet_ngen_runtime_maintenance_structured"
+      }
+    },
+    {
+      "id": "benign-dotnet-ngen-masquerade-retains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: ntdll_write_ntmapviewofsection",
+        "evidence": {
+          "detection": {
+            "rule_name": "ntdll_write_ntmapviewofsection"
+          },
+          "process": {
+            "name": "ngentask.exe",
+            "pid": 5231,
+            "parent_name": "taskhostw.exe",
+            "path": "C:\\Users\\victim\\AppData\\Local\\Temp\\ngentask.exe",
+            "command_line": "ngentask.exe /runtimewide"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "benign-edge-webview-runonce-cleanup",
+      "event_type": "registry_set",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: registry_t1547_001",
+        "evidence": {
+          "detection": {
+            "rule_name": "registry_t1547_001"
+          },
+          "registry": {
+            "key": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "value": "msedgewebview",
+            "data": "C:\\Program Files (x86)\\Microsoft\\EdgeWebView\\Application\\setup.exe --msedgewebview --delete-old-versions"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "info",
+        "severity_adjusted": true,
+        "fp_reason": "benign_edge_webview_runonce_cleanup_structured"
+      }
+    },
+    {
+      "id": "edge-webview-runonce-unrelated-payload-retains-high",
+      "event_type": "registry_set",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: registry_t1547_001",
+        "evidence": {
+          "detection": {
+            "rule_name": "registry_t1547_001"
+          },
+          "registry": {
+            "key": "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\RunOnce",
+            "value": "Cleanup",
+            "data": "C:\\Users\\victim\\AppData\\Local\\Temp\\payload.exe --silent"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "high",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "benign-nvidia-rundll32-rxdiag",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: behavioral_rundll32_network",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_rundll32_network"
+          },
+          "process": {
+            "name": "rundll32.exe",
+            "pid": 9120,
+            "parent_name": "nvcontainer.exe",
+            "parent_path": "C:\\Program Files\\NVIDIA Corporation\\NvContainer\\nvcontainer.exe",
+            "parent_signer": "NVIDIA Corporation",
+            "command_line": "rundll32.exe C:\\Windows\\System32\\RXDiag.dll,RXEntry"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "low",
+        "severity_adjusted": true,
+        "fp_reason": "benign_nvidia_rundll32_rxdiag_structured"
+      }
+    },
+    {
+      "id": "nvidia-rundll32-untrusted-parent-retains-high",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: behavioral_rundll32_network",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_rundll32_network"
+          },
+          "process": {
+            "name": "rundll32.exe",
+            "pid": 9121,
+            "parent_name": "nvcontainer.exe",
+            "parent_path": "C:\\Users\\victim\\AppData\\Local\\Temp\\nvcontainer.exe",
+            "command_line": "rundll32.exe C:\\Users\\victim\\AppData\\Local\\Temp\\RXDiag.dll,RXEntry"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "high",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "benign-rapid-internal-connection-synergy",
+      "event_type": "network_connect",
+      "input": {
+        "severity": "medium",
+        "title": "NDR: Rapid Internal Connections",
+        "evidence": {
+          "detection": {
+            "rule_name": "ndr_rapid_internal_connections"
+          },
+          "process": {
+            "name": "synergy-core",
+            "pid": 3320,
+            "path": "C:\\Program Files\\Synergy\\synergy-core.exe",
+            "signer": "Synergy Inc"
+          },
+          "network": {
+            "remote_ip": "192.168.10.20"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "low",
+        "severity_adjusted": true,
+        "fp_reason": "benign_rapid_internal_connection_structured"
+      }
+    },
+    {
+      "id": "rapid-internal-connection-public-ip-retains-medium",
+      "event_type": "network_connect",
+      "input": {
+        "severity": "medium",
+        "title": "NDR: Rapid Internal Connections",
+        "evidence": {
+          "detection": {
+            "rule_name": "ndr_rapid_internal_connections"
+          },
+          "process": {
+            "name": "synergy-core",
+            "pid": 3321,
+            "path": "C:\\Program Files\\Synergy\\synergy-core.exe",
+            "signer": "Synergy Inc"
+          },
+          "network": {
+            "remote_ip": "203.0.113.10"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "invalid-ioc-0-0-0-0-suppressed",
+      "event_type": "ioc_match",
+      "input": {
+        "severity": "high",
+        "title": "Retroactive IOC Match: IP 0.0.0.0",
+        "evidence": {
+          "detection": {
+            "rule_name": "retroactive_ioc_match"
+          },
+          "network": {
+            "value": "0.0.0.0"
+          }
+        },
+        "raw_event": {
+          "remote_ip": "0.0.0.0"
+        }
+      },
+      "expected": {
+        "alert_severity": null,
+        "severity_adjusted": false,
+        "fp_reason": "invalid_ioc_0_0_0_0",
+        "suppressed": true
+      }
+    },
+    {
+      "id": "kernel-memory-detection-without-process-context",
+      "event_type": "kernel_event",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: kernel_poolparty_apc_injection",
+        "evidence": {
+          "detection": {
+            "rule_name": "kernel_poolparty_apc_injection"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "kernel_memory_detection_without_process_context"
+      }
+    },
+    {
+      "id": "kernel-memory-detection-with-process-context-retains-high",
+      "event_type": "kernel_event",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: kernel_poolparty_apc_injection",
+        "evidence": {
+          "detection": {
+            "rule_name": "kernel_poolparty_apc_injection"
+          },
+          "process": {
+            "name": "injector.exe",
+            "pid": 6655
+          }
+        },
+        "raw_event": {
+          "source_pid": 6655,
+          "target_pid": 7788
+        }
+      },
+      "expected": {
+        "alert_severity": "high",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "service-registry-change-missing-process-context",
+      "event_type": "registry_set",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: registry_t1543_003",
+        "evidence": {
+          "detection": {
+            "rule_name": "registry_t1543_003"
+          },
+          "registry": {
+            "key": "HKLM\\System\\CurrentControlSet\\Services\\ExampleSvc\\ImagePath"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "service_registry_change_missing_process_context"
+      }
+    },
+    {
+      "id": "service-registry-change-with-process-context-retains-high",
+      "event_type": "registry_set",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: registry_t1543_003",
+        "evidence": {
+          "detection": {
+            "rule_name": "registry_t1543_003"
+          },
+          "registry": {
+            "key": "HKLM\\System\\CurrentControlSet\\Services\\ExampleSvc\\ImagePath"
+          },
+          "process": {
+            "name": "sc.exe",
+            "pid": 4120,
+            "path": "C:\\Windows\\System32\\sc.exe"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "high",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    },
+    {
+      "id": "windows-core-service-process-chain-services-exe",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: system file execution location anomaly",
+        "evidence": {
+          "detection": {
+            "rule_name": "system file execution location anomaly"
+          },
+          "process": {
+            "name": "services.exe",
+            "pid": 712,
+            "parent_name": "wininit.exe",
+            "path": "C:\\Windows\\System32\\lsass.exe",
+            "command_line": "C:\\Windows\\System32\\services.exe"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "info",
+        "severity_adjusted": true,
+        "fp_reason": "windows_core_service_process_chain_structured"
+      }
+    },
+    {
+      "id": "windows-core-service-chain-powershell-cmdline-retains-high",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: system file execution location anomaly",
+        "evidence": {
+          "detection": {
+            "rule_name": "system file execution location anomaly"
+          },
+          "process": {
+            "name": "services.exe",
+            "pid": 713,
+            "parent_name": "wininit.exe",
+            "path": "C:\\Windows\\System32\\lsass.exe",
+            "command_line": "powershell -enc SQBFAFgA & C:\\Windows\\System32\\services.exe"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "high",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    }
+  ]
+}

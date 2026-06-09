@@ -1,0 +1,623 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-roadmap-300-p2-batch-04",
+  "name": "Linux Roadmap 300 P2 Batch 04",
+  "description": "Executable batch generated directly from the Linux 300-scenario roadmap.",
+  "platform": "linux",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "linux_roadmap_300_p2_batch_04",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/linux_detection_roadmap_300.json",
+    "selected_scenarios": 12,
+    "generated_tests": 12,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-lin-defenseevasion-033-t1222-002",
+      "name": "Linux and Mac File and Directory Permissions Modification: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1222.002",
+        "technique_name": "Linux and Mac File and Directory Permissions Modification",
+        "tactic": "defense-evasion",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-033",
+        "tactic:defense-evasion",
+        "mitre:T1222.002",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-defenseevasion-034-t1564-001",
+      "name": "Hidden Files and Directories: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1564.001",
+        "technique_name": "Hidden Files and Directories",
+        "tactic": "defense-evasion",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-034",
+        "tactic:defense-evasion",
+        "mitre:T1564.001",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-defenseevasion-035-t1497",
+      "name": "Virtualization/Sandbox Evasion: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1497",
+        "technique_name": "Virtualization/Sandbox Evasion",
+        "tactic": "defense-evasion",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-035",
+        "tactic:defense-evasion",
+        "mitre:T1497",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-defenseevasion-036-t1140",
+      "name": "Deobfuscate/Decode Files: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1140",
+        "technique_name": "Deobfuscate/Decode Files",
+        "tactic": "defense-evasion",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-036",
+        "tactic:defense-evasion",
+        "mitre:T1140",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-defenseevasion-037-t1027",
+      "name": "Obfuscated Files or Information: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1027",
+        "technique_name": "Obfuscated Files or Information",
+        "tactic": "defense-evasion",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-037",
+        "tactic:defense-evasion",
+        "mitre:T1027",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-defenseevasion-038-t1562-001",
+      "name": "Disable or Modify Tools: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1562.001",
+        "technique_name": "Disable or Modify Tools",
+        "tactic": "defense-evasion",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-038",
+        "tactic:defense-evasion",
+        "mitre:T1562.001",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-defenseevasion-039-t1070-002",
+      "name": "Clear Linux or Mac System Logs: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1070.002",
+        "technique_name": "Clear Linux or Mac System Logs",
+        "tactic": "defense-evasion",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-039",
+        "tactic:defense-evasion",
+        "mitre:T1070.002",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-defenseevasion-040-t1070-004",
+      "name": "File Deletion: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1070.004",
+        "technique_name": "File Deletion",
+        "tactic": "defense-evasion",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-040",
+        "tactic:defense-evasion",
+        "mitre:T1070.004",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-025-t1003-008",
+      "name": "/etc/passwd and /etc/shadow: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1003.008",
+        "technique_name": "/etc/passwd and /etc/shadow",
+        "tactic": "credential-access",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-025",
+        "tactic:credential-access",
+        "mitre:T1003.008",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-026-t1552-004",
+      "name": "Private Keys: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1552.004",
+        "technique_name": "Private Keys",
+        "tactic": "credential-access",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-026",
+        "tactic:credential-access",
+        "mitre:T1552.004",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-027-t1552-001",
+      "name": "Credentials In Files: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "tactic": "credential-access",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-027",
+        "tactic:credential-access",
+        "mitre:T1552.001",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-028-t1056-001",
+      "name": "Keylogging: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1056.001",
+        "technique_name": "Keylogging",
+        "tactic": "credential-access",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-028",
+        "tactic:credential-access",
+        "mitre:T1056.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    }
+  ]
+}

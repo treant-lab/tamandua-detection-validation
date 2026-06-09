@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "profile_id": "crash-resilience-fixture-probe",
+  "name": "Crash Resilience Fixture Probe",
+  "description": "Local Roadmap V fixture for driver signing state, safe-boot marker flow, offline queue/backpressure, response guardrails, and transactional OTA rollback semantics.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "release-readiness",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\crash_resilience_fixture_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "crash_resilience_fixture",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local crash-resilience fixture only. Does not prove Secure Boot production driver loading, reboot recovery, real queue drain, endpoint-side guardrail enforcement, or update rollback on a VM.",
+  "tests": [
+    {
+      "id": "crash-resilience-signing-state-fixture",
+      "name": "Fixture distinguishes driver signing states and production blockers",
+      "executor": "crash_resilience_fixture_probe",
+      "expected_telemetry": ["crash_resilience_fixture"],
+      "expected_fields": ["states", "secure_boot_load_status", "commercial_blockers"]
+    },
+    {
+      "id": "crash-resilience-safe-boot-marker-fixture",
+      "name": "Fixture validates safe-boot and degraded-mode marker semantics",
+      "executor": "crash_resilience_fixture_probe",
+      "expected_telemetry": ["crash_resilience_fixture"],
+      "expected_fields": ["marker_flow", "stale_marker_flow", "degraded_mode_keeps"]
+    },
+    {
+      "id": "crash-resilience-offline-queue-fixture",
+      "name": "Fixture validates bounded offline queue and backpressure semantics",
+      "executor": "crash_resilience_fixture_probe",
+      "expected_telemetry": ["crash_resilience_fixture"],
+      "expected_fields": ["bounded", "metrics", "drop_order", "reconnect_policy"]
+    },
+    {
+      "id": "crash-resilience-response-guardrails-fixture",
+      "name": "Fixture validates local destructive-response guardrail semantics",
+      "executor": "crash_resilience_fixture_probe",
+      "expected_telemetry": ["crash_resilience_fixture"],
+      "expected_fields": ["protected_processes", "deny_actions", "network_isolation_requires"]
+    },
+    {
+      "id": "crash-resilience-transactional-ota-fixture",
+      "name": "Fixture validates transactional OTA stage and rollback semantics",
+      "executor": "crash_resilience_fixture_probe",
+      "expected_telemetry": ["crash_resilience_fixture"],
+      "expected_fields": ["stages", "rollback_target", "audit_events"]
+    }
+  ]
+}

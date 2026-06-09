@@ -1,0 +1,739 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-caldera-enterprise-safe",
+  "name": "Windows CALDERA Enterprise Safe",
+  "description": "Broad CALDERA-backed enterprise benchmark profile for safe adversary emulation. This profile intentionally raises the bar beyond telemetry coverage: suspicious chains require detections, actionable alerts, investigation fields, and timeline correlations. Abilities must be safe: no credential dumping, destructive encryption, firewall isolation, real data exfiltration, or irreversible persistence.",
+  "platform": "windows",
+  "default_observation_seconds": 150,
+  "adapter_status": "experimental",
+  "benchmark_lane": "caldera-upstream",
+  "quality_bar": {
+    "purpose": "caldera_enterprise_safe",
+    "requires_driver_health": true,
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "coverage_model": {
+    "visibility": "Every operation must produce persisted process telemetry with source attribution.",
+    "analytics": "Suspicious operations require expected_detections and expected_alerts; low-risk discovery can remain telemetry-only.",
+    "storyline": "Process, parent, command line, file, registry, DNS, and network evidence must be present when relevant.",
+    "noise": "Safe discovery and setup activity must not emit unexpected high/critical events.",
+    "response": "This profile validates detection readiness. Response actions are covered by windows_response_validation_safe_v1."
+  },
+  "tests": [
+    {
+      "id": "caldera-enterprise-credential-access-safe",
+      "name": "Credential Access Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-credential-access-safe",
+        "adversary_id": "tamandua-windows-enterprise-credential-access-safe-v1",
+        "abilities": [
+          {
+            "mitre": "T1003.001",
+            "name": "LSASS Access Simulation Without Dump",
+            "ability_id": "44444444-1003-4001-8000-000000000001"
+          },
+          {
+            "mitre": "T1552.001",
+            "name": "Unsecured Credentials File Discovery Safe",
+            "ability_id": "44444444-1552-4001-8000-000000000001"
+          },
+          {
+            "mitre": "T1555.003",
+            "name": "Browser Credential Store Discovery Safe",
+            "ability_id": "44444444-1555-4001-8000-000000000001"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_read"
+      ],
+      "expected_detections": [
+        "credential",
+        "lsass"
+      ],
+      "expected_alerts": [
+        "credential"
+      ],
+      "expected_correlations": [
+        "credential_access_probe",
+        "process_file_sequence"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "credential-access",
+        "tactic:credential-access",
+        "mitre:T1003.001",
+        "mitre:T1552.001",
+        "mitre:T1555.003"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name",
+          "path",
+          "user"
+        ]
+      }
+    },
+    {
+      "id": "caldera-enterprise-lateral-movement-safe",
+      "name": "Lateral Movement Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-lateral-movement-safe",
+        "adversary_id": "tamandua-windows-enterprise-lateral-movement-safe-v1",
+        "abilities": [
+          {
+            "mitre": "T1021.002",
+            "name": "SMB Admin Share Discovery Safe",
+            "ability_id": "44444444-1021-4001-8000-000000000002"
+          },
+          {
+            "mitre": "T1021.006",
+            "name": "WinRM/PSRemoting Discovery Safe",
+            "ability_id": "44444444-1021-4001-8000-000000000006"
+          },
+          {
+            "mitre": "T1047",
+            "name": "WMI Remote Execution Discovery Safe",
+            "ability_id": "44444444-1047-4001-8000-000000000001"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_detections": [
+        "lateral",
+        "wmi",
+        "winrm"
+      ],
+      "expected_alerts": [
+        "lateral"
+      ],
+      "expected_correlations": [
+        "remote_admin_tool_sequence",
+        "network_process_sequence"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "lateral-movement",
+        "wmi",
+        "winrm",
+        "psremoting",
+        "tactic:lateral-movement",
+        "mitre:T1021.002",
+        "mitre:T1021.006",
+        "mitre:T1047"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "network_connect": [
+          "remote_ip"
+        ],
+        "dns_query": [
+          "domain"
+        ]
+      }
+    },
+    {
+      "id": "caldera-enterprise-privilege-escalation-safe",
+      "name": "Privilege Escalation Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-privilege-escalation-safe",
+        "adversary_id": "tamandua-windows-enterprise-privilege-escalation-safe-v1",
+        "abilities": [
+          {
+            "mitre": "T1548.002",
+            "name": "UAC Configuration Discovery Safe",
+            "ability_id": "44444444-1548-4001-8000-000000000002"
+          },
+          {
+            "mitre": "T1053.005",
+            "name": "Scheduled Task SYSTEM Context With Cleanup",
+            "ability_id": "44444444-1053-4001-8000-000000000005"
+          },
+          {
+            "mitre": "T1543.003",
+            "name": "Service Create/Delete Safe",
+            "ability_id": "44444444-1543-4001-8000-000000000003"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "registry_set_value",
+        "file_create",
+        "file_delete"
+      ],
+      "expected_driver_raw_event_types": [
+        "registry_set_value"
+      ],
+      "expected_detections": [
+        "privilege",
+        "service",
+        "scheduled"
+      ],
+      "expected_alerts": [
+        "privilege",
+        "service"
+      ],
+      "expected_correlations": [
+        "privilege_escalation_attempt",
+        "service_or_task_sequence"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "privilege-escalation",
+        "service-creation",
+        "tactic:privilege-escalation",
+        "tactic:persistence",
+        "mitre:T1548.002",
+        "mitre:T1053.005",
+        "mitre:T1543.003"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name",
+          "user"
+        ],
+        "registry_set_value": [
+          "registry_key"
+        ]
+      }
+    },
+    {
+      "id": "caldera-enterprise-c2-beacon-safe",
+      "name": "C2 Beacon Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-c2-beacon-safe",
+        "adversary_id": "tamandua-windows-enterprise-c2-beacon-safe-v1",
+        "abilities": [
+          {
+            "mitre": "T1071.001",
+            "name": "HTTP Beacon Simulation Safe",
+            "ability_id": "44444444-1071-4001-8000-000000000001"
+          },
+          {
+            "mitre": "T1105",
+            "name": "Ingress Tool Transfer Benign Payload",
+            "ability_id": "44444444-1105-4001-8000-000000000001"
+          },
+          {
+            "mitre": "T1095",
+            "name": "Non-Application Layer Protocol Probe Safe",
+            "ability_id": "44444444-1095-4001-8000-000000000001"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "dns_query",
+        "network_connect",
+        "file_create",
+        "file_delete"
+      ],
+      "expected_detections": [
+        "c2",
+        "beacon",
+        "download"
+      ],
+      "expected_alerts": [
+        "c2",
+        "beacon"
+      ],
+      "expected_correlations": [
+        "network_beacon_sequence",
+        "download_execution_sequence"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "c2",
+        "beacon",
+        "command-and-control",
+        "tactic:command-and-control",
+        "mitre:T1071.001",
+        "mitre:T1105",
+        "mitre:T1095"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "path"
+        ],
+        "network_connect": [
+          "remote_ip"
+        ],
+        "dns_query": [
+          "domain"
+        ]
+      }
+    },
+    {
+      "id": "caldera-enterprise-exfiltration-safe",
+      "name": "Exfiltration Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-exfiltration-safe",
+        "adversary_id": "tamandua-windows-enterprise-exfiltration-safe-v1",
+        "abilities": [
+          {
+            "mitre": "T1005",
+            "name": "Local Data Staging Safe",
+            "ability_id": "44444444-1005-4001-8000-000000000001"
+          },
+          {
+            "mitre": "T1560.001",
+            "name": "Archive Staged Data Safe",
+            "ability_id": "44444444-1560-4001-8000-000000000001"
+          },
+          {
+            "mitre": "T1041",
+            "name": "Exfiltration Over C2 Channel Simulation",
+            "ability_id": "44444444-1041-4001-8000-000000000001"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "dns_query",
+        "network_connect"
+      ],
+      "expected_detections": [
+        "exfil",
+        "archive",
+        "staging"
+      ],
+      "expected_alerts": [
+        "exfil"
+      ],
+      "expected_correlations": [
+        "file_staging_to_network_sequence",
+        "archive_then_transfer_sequence"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "exfiltration",
+        "collection",
+        "tactic:collection",
+        "tactic:exfiltration",
+        "mitre:T1005",
+        "mitre:T1560.001",
+        "mitre:T1041"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "path"
+        ],
+        "network_connect": [
+          "remote_ip"
+        ],
+        "dns_query": [
+          "domain"
+        ]
+      }
+    },
+    {
+      "id": "caldera-enterprise-wmi-winrm-psremoting",
+      "name": "WMI WinRM PSRemoting Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-wmi-winrm-psremoting",
+        "adversary_id": "tamandua-windows-enterprise-wmi-winrm-psremoting-v1",
+        "abilities": [
+          {
+            "mitre": "T1047",
+            "name": "WMI Process Query",
+            "ability_id": "44444444-1047-4001-8000-000000000002"
+          },
+          {
+            "mitre": "T1021.006",
+            "name": "WinRM Service Probe",
+            "ability_id": "44444444-1021-4001-8000-000000000106"
+          },
+          {
+            "mitre": "T1059.001",
+            "name": "PowerShell Remoting Safe Probe",
+            "ability_id": "44444444-1059-4001-8000-000000000101"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_detections": [
+        "wmi",
+        "winrm",
+        "powershell"
+      ],
+      "expected_alerts": [
+        "wmi",
+        "winrm"
+      ],
+      "expected_correlations": [
+        "remote_management_tool_sequence",
+        "powershell_remote_admin_sequence"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "wmi",
+        "winrm",
+        "psremoting",
+        "tactic:execution",
+        "tactic:lateral-movement",
+        "mitre:T1047",
+        "mitre:T1021.006",
+        "mitre:T1059.001"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "network_connect": [
+          "remote_ip"
+        ]
+      }
+    },
+    {
+      "id": "caldera-enterprise-service-creation-abuse",
+      "name": "Service Creation Abuse Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-service-creation-abuse",
+        "adversary_id": "tamandua-windows-enterprise-service-creation-abuse-v1",
+        "abilities": [
+          {
+            "mitre": "T1543.003",
+            "name": "Windows Service Create Delete Safe",
+            "ability_id": "44444444-1543-4001-8000-000000000103"
+          },
+          {
+            "mitre": "T1569.002",
+            "name": "Service Execution Safe",
+            "ability_id": "44444444-1569-4001-8000-000000000002"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "registry_set_value",
+        "file_create",
+        "file_delete"
+      ],
+      "expected_driver_raw_event_types": [
+        "registry_set_value"
+      ],
+      "expected_detections": [
+        "service"
+      ],
+      "expected_alerts": [
+        "service"
+      ],
+      "expected_correlations": [
+        "service_create_execute_delete_sequence"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "service-creation",
+        "tactic:persistence",
+        "tactic:execution",
+        "mitre:T1543.003",
+        "mitre:T1569.002"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "registry_set_value": [
+          "registry_key"
+        ]
+      }
+    },
+    {
+      "id": "caldera-enterprise-dll-search-order-hijack-safe",
+      "name": "DLL Search Order Hijack Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-dll-search-order-hijack-safe",
+        "adversary_id": "tamandua-windows-enterprise-dll-search-order-hijack-safe-v1",
+        "abilities": [
+          {
+            "mitre": "T1574.001",
+            "name": "DLL Search Order Hijacking Canary",
+            "ability_id": "44444444-1574-4001-8000-000000000001"
+          },
+          {
+            "mitre": "T1574.002",
+            "name": "DLL Side-Loading Canary",
+            "ability_id": "44444444-1574-4001-8000-000000000002"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "module_load"
+      ],
+      "expected_detections": [
+        "dll",
+        "hijack",
+        "sideload"
+      ],
+      "expected_alerts": [
+        "dll"
+      ],
+      "expected_correlations": [
+        "dll_canary_write_then_module_load"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "dll-hijack",
+        "tactic:persistence",
+        "tactic:privilege-escalation",
+        "tactic:defense-evasion",
+        "mitre:T1574.001",
+        "mitre:T1574.002"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "path"
+        ],
+        "module_load": [
+          "module_path"
+        ]
+      }
+    },
+    {
+      "id": "caldera-enterprise-lolbins-broad",
+      "name": "LOLBins Broad Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-lolbins-broad",
+        "adversary_id": "tamandua-windows-enterprise-lolbins-broad-v1",
+        "abilities": [
+          {
+            "mitre": "T1218.010",
+            "name": "Regsvr32 Safe Proxy Execution",
+            "ability_id": "44444444-1218-4001-8000-000000000010"
+          },
+          {
+            "mitre": "T1218.011",
+            "name": "Rundll32 Safe Proxy Execution",
+            "ability_id": "44444444-1218-4001-8000-000000000011"
+          },
+          {
+            "mitre": "T1218.005",
+            "name": "Mshta Safe Proxy Execution",
+            "ability_id": "44444444-1218-4001-8000-000000000005"
+          },
+          {
+            "mitre": "T1140",
+            "name": "Certutil Decode Safe",
+            "ability_id": "44444444-1140-4001-8000-000000000001"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "module_load",
+        "network_connect",
+        "dns_query"
+      ],
+      "expected_detections": [
+        "regsvr32",
+        "rundll32",
+        "mshta",
+        "certutil"
+      ],
+      "expected_alerts": [
+        "regsvr32",
+        "rundll32"
+      ],
+      "expected_correlations": [
+        "signed_binary_proxy_execution_sequence"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "lolbins",
+        "tactic:defense-evasion",
+        "mitre:T1218.010",
+        "mitre:T1218.011",
+        "mitre:T1218.005",
+        "mitre:T1140"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name",
+          "path"
+        ],
+        "module_load": [
+          "module_path"
+        ]
+      }
+    },
+    {
+      "id": "caldera-enterprise-tamper-defense-evasion-aggressive-safe",
+      "name": "Tamper Defense Evasion Aggressive Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-enterprise-tamper-defense-evasion-aggressive-safe",
+        "adversary_id": "tamandua-windows-enterprise-tamper-defense-evasion-aggressive-safe-v1",
+        "abilities": [
+          {
+            "mitre": "T1562.001",
+            "name": "Security Tool Configuration Discovery Safe",
+            "ability_id": "44444444-1562-4001-8000-000000000001"
+          },
+          {
+            "mitre": "T1070.004",
+            "name": "Indicator Removal File Delete Safe",
+            "ability_id": "44444444-1070-4001-8000-000000000004"
+          },
+          {
+            "mitre": "T1490",
+            "name": "Inhibit Recovery Discovery Safe",
+            "ability_id": "44444444-1490-4001-8000-000000000001"
+          }
+        ]
+      },
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_delete",
+        "registry_set_value"
+      ],
+      "expected_detections": [
+        "tamper",
+        "defense",
+        "vssadmin"
+      ],
+      "expected_alerts": [
+        "tamper",
+        "defense"
+      ],
+      "expected_correlations": [
+        "defense_evasion_then_cleanup_sequence"
+      ],
+      "tags": [
+        "caldera",
+        "enterprise-safe",
+        "tamper",
+        "defense-evasion",
+        "tactic:defense-evasion",
+        "tactic:impact",
+        "mitre:T1562.001",
+        "mitre:T1070.004",
+        "mitre:T1490"
+      ],
+      "risk": "medium",
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name",
+          "path"
+        ],
+        "registry_set_value": [
+          "registry_key"
+        ]
+      }
+    }
+  ]
+}

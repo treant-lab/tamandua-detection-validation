@@ -1,0 +1,116 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-caldera-smoke",
+  "name": "Windows CALDERA Smoke",
+  "description": "Design profile for future CALDERA adapter coverage. CALDERA executes multi-step operations; Tamandua scores evidence per ability and across the timeline.",
+  "platform": "windows",
+  "default_observation_seconds": 120,
+  "adapter_status": "experimental",
+  "tests": [
+    {
+      "id": "caldera-discovery-chain",
+      "name": "CALDERA Discovery Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-discovery-safe",
+        "adversary_id": "tamandua-windows-safe-discovery-v2",
+        "abilities": [
+          {"mitre": "T1033", "name": "System Owner/User Discovery", "ability_id": "33333333-1033-4001-8000-000000000001"},
+          {"mitre": "T1082", "name": "System Information Discovery", "ability_id": "33333333-1082-4001-8000-000000000001"},
+          {"mitre": "T1057", "name": "Process Discovery", "ability_id": "33333333-1057-4001-8000-000000000001"},
+          {"mitre": "T1007", "name": "System Service Discovery", "ability_id": "33333333-1007-4001-8000-000000000001"},
+          {"mitre": "T1016", "name": "Network Configuration Discovery", "ability_id": "33333333-1016-4001-8000-000000000001"}
+        ]
+      },
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_correlations": ["process_sequence"],
+      "tags": ["caldera", "adversary-emulation", "discovery", "tactic:discovery"],
+      "risk": "low"
+    },
+    {
+      "id": "caldera-execution-chain",
+      "name": "CALDERA Execution Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-execution-safe",
+        "adversary_id": "tamandua-windows-safe-execution-v3",
+        "abilities": [
+          {"mitre": "T1059.003", "name": "Windows Command Shell", "ability_id": "33333333-1059-4001-8000-000000000001"},
+          {"mitre": "T1059.001", "name": "PowerShell EncodedCommand", "ability_id": "33333333-1059-4001-8000-000000000002"}
+        ]
+      },
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["file_create", "file_modify"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "expected_detections": ["powershell", "encoded"],
+      "expected_alerts": [],
+      "expected_correlations": ["process_sequence", "suspicious_script_execution"],
+      "tags": ["caldera", "adversary-emulation", "execution", "detection", "tactic:execution", "mitre:T1059.001", "mitre:T1059.003"],
+      "risk": "medium"
+    },
+    {
+      "id": "caldera-persistence-safe-chain",
+      "name": "CALDERA Persistence Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-persistence-safe",
+        "adversary_id": "tamandua-windows-safe-persistence-v3",
+        "abilities": [
+          {"mitre": "T1547.001", "name": "HKCU Run Key with cleanup", "ability_id": "33333333-1547-4001-8000-000000000001"},
+          {"mitre": "T1053.005", "name": "Scheduled Task with cleanup", "ability_id": "33333333-1053-4001-8000-000000000001"}
+        ]
+      },
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["registry_set_value", "file_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "expected_detections": ["REGISTRY_PERSISTENCE"],
+      "expected_alerts": [],
+      "expected_correlations": ["persistence_attempt"],
+      "tags": ["caldera", "adversary-emulation", "persistence", "tactic:persistence", "mitre:T1547.001", "mitre:T1053.005"],
+      "risk": "medium"
+    },
+    {
+      "id": "caldera-collection-safe-chain",
+      "name": "CALDERA Collection Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-collection-safe",
+        "adversary_id": "tamandua-windows-safe-collection-v1",
+        "abilities": [
+          {"mitre": "T1005", "name": "Data from Local System", "ability_id": "33333333-1005-4001-8000-000000000001"}
+        ]
+      },
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["file_create", "file_modify"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_correlations": ["file_activity_sequence"],
+      "tags": ["caldera", "adversary-emulation", "collection", "tactic:collection", "mitre:T1005"],
+      "risk": "low"
+    },
+    {
+      "id": "caldera-defense-evasion-safe-chain",
+      "name": "CALDERA Defense Evasion Safe Chain",
+      "executor": "caldera_operation",
+      "caldera": {
+        "adversary_profile": "tamandua-windows-defense-evasion-safe",
+        "adversary_id": "tamandua-windows-safe-defense-evasion-v1",
+        "abilities": [
+          {"mitre": "T1070.004", "name": "File Deletion", "ability_id": "33333333-1070-4001-8000-000000000001"}
+        ]
+      },
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["file_create", "file_delete"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_correlations": ["file_activity_sequence"],
+      "tags": ["caldera", "adversary-emulation", "defense-evasion", "tactic:defense-evasion", "mitre:T1070.004"],
+      "risk": "low"
+    }
+  ]
+}

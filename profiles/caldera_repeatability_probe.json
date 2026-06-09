@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "profile_id": "caldera-repeatability-probe",
+  "name": "CALDERA Repeatability Probe",
+  "description": "Non-destructive Roadmap D probe that validates whether archived CALDERA benchmark artifacts prove three consecutive upstream-backed passing runs.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\caldera_repeatability_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "caldera_repeatability_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "CALDERA repeatability evidence only. Passing this profile does not create CALDERA operations, does not prove new endpoint telemetry, and does not replace fresh PAW-backed upstream execution.",
+  "tests": [
+    {
+      "id": "caldera-repeatability-windows-caldera-smoke",
+      "name": "windows-caldera-smoke has three consecutive upstream-backed passes",
+      "executor": "caldera_repeatability_probe",
+      "expected_telemetry": ["caldera_repeatability_evidence"],
+      "expected_fields": ["profile_id", "artifact_count", "consecutive_passing_tail", "required_consecutive_passes"]
+    },
+    {
+      "id": "caldera-repeatability-windows-caldera-enterprise-safe",
+      "name": "windows-caldera-enterprise-safe has three consecutive upstream-backed passes",
+      "executor": "caldera_repeatability_probe",
+      "expected_telemetry": ["caldera_repeatability_evidence"],
+      "expected_fields": ["profile_id", "artifact_count", "consecutive_passing_tail", "required_consecutive_passes", "latest_error_codes"]
+    }
+  ]
+}

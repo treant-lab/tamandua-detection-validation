@@ -1,0 +1,4929 @@
+{
+  "schema_version": 1,
+  "source": "tools/detection_validation/roadmaps/external_rule_global_improvement_roadmap.json",
+  "normalization_target": "tamandua.events.v1",
+  "runtime_effect": "none",
+  "summary": {
+    "event_type_count": 27,
+    "runtime_status_counts": {
+      "planned": 10,
+      "existing": 15,
+      "normalize-alias": 2
+    },
+    "owner_area_counts": {
+      "identity_auth_collector": 5,
+      "windows_registry_directory_collector": 3,
+      "agent_network_collector": 3,
+      "agent_file_collector": 2,
+      "agent_file_read_collector": 1,
+      "deep_endpoint_sensor": 3,
+      "specialized_context_collectors": 5,
+      "agent_process_collector": 1,
+      "detection_engine": 1,
+      "service_persistence_collector": 3
+    }
+  },
+  "contracts": [
+    {
+      "event_type": "account_change",
+      "runtime_status": "planned",
+      "owner_area": "identity_auth_collector",
+      "agent_event_aliases": [
+        "account_change"
+      ],
+      "source_names": [
+        "endpoint_auth",
+        "ad_monitor",
+        "windows_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/identity.rs",
+        "apps/tamandua_agent/src/collectors/ad_monitor.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "actor_user",
+        "target_domain",
+        "pid",
+        "uid",
+        "process_guid",
+        "integrity_level"
+      ],
+      "usage": {
+        "item_count": 21,
+        "priority_counts": {
+          "p0-gap": 1,
+          "p1-high-signal": 1,
+          "p2-roadmap-hardening": 1,
+          "p3-backlog": 18
+        },
+        "platform_counts": {
+          "windows": 7,
+          "linux": 7,
+          "macos": 7
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1098",
+            "platform": "windows",
+            "technique_id": "T1098",
+            "priority": "p0-gap",
+            "source_rule_count": 93,
+            "source_mix": {
+              "splunk_security_content": 48,
+              "elastic_detection_rules": 18,
+              "azure_sentinel": 14,
+              "wazuh_ruleset": 13
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098",
+            "platform": "linux",
+            "technique_id": "T1098",
+            "priority": "p1-high-signal",
+            "source_rule_count": 52,
+            "source_mix": {
+              "splunk_security_content": 32,
+              "elastic_detection_rules": 12,
+              "azure_sentinel": 6,
+              "wazuh_ruleset": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098-004",
+            "platform": "linux",
+            "technique_id": "T1098.004",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 8,
+            "source_mix": {
+              "elastic_detection_rules": 4,
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098-003",
+            "platform": "linux",
+            "technique_id": "T1098.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 17,
+            "source_mix": {
+              "splunk_security_content": 17
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098-005",
+            "platform": "linux",
+            "technique_id": "T1098.005",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "splunk_security_content": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098-001",
+            "platform": "linux",
+            "technique_id": "T1098.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098-007",
+            "platform": "linux",
+            "technique_id": "T1098.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098-002",
+            "platform": "linux",
+            "technique_id": "T1098.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1098",
+            "platform": "macos",
+            "technique_id": "T1098",
+            "priority": "p3-backlog",
+            "source_rule_count": 35,
+            "source_mix": {
+              "splunk_security_content": 26,
+              "azure_sentinel": 6,
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1098-003",
+            "platform": "macos",
+            "technique_id": "T1098.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 17,
+            "source_mix": {
+              "splunk_security_content": 17
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1098-005",
+            "platform": "macos",
+            "technique_id": "T1098.005",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "splunk_security_content": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1098-001",
+            "platform": "macos",
+            "technique_id": "T1098.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1098-007",
+            "platform": "macos",
+            "technique_id": "T1098.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1098-002",
+            "platform": "macos",
+            "technique_id": "T1098.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1098-004",
+            "platform": "macos",
+            "technique_id": "T1098.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "elastic_detection_rules": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "auth_event",
+      "runtime_status": "existing",
+      "owner_area": "identity_auth_collector",
+      "agent_event_aliases": [
+        "AuthLogin",
+        "AuthFailed",
+        "auth_event"
+      ],
+      "source_names": [
+        "endpoint_auth",
+        "auditd",
+        "windows_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/identity.rs",
+        "apps/tamandua_agent/src/collectors/lateral_movement.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "user",
+        "pid",
+        "uid",
+        "signing_id"
+      ],
+      "usage": {
+        "item_count": 639,
+        "priority_counts": {
+          "p0-gap": 7,
+          "p1-high-signal": 19,
+          "p2-roadmap-hardening": 122,
+          "p3-backlog": 491
+        },
+        "platform_counts": {
+          "linux": 329,
+          "macos": 274,
+          "windows": 36
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1059",
+            "platform": "linux",
+            "technique_id": "T1059",
+            "priority": "p0-gap",
+            "source_rule_count": 142,
+            "source_mix": {
+              "elastic_detection_rules": 120,
+              "splunk_security_content": 17,
+              "gtfobins": 4,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110",
+            "platform": "linux",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 128,
+            "source_mix": {
+              "wazuh_ruleset": 75,
+              "splunk_security_content": 33,
+              "azure_sentinel": 12,
+              "elastic_detection_rules": 8
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1190",
+            "platform": "macos",
+            "technique_id": "T1190",
+            "priority": "p0-gap",
+            "source_rule_count": 85,
+            "source_mix": {
+              "splunk_security_content": 72,
+              "elastic_detection_rules": 9,
+              "azure_sentinel": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1484",
+            "platform": "windows",
+            "technique_id": "T1484",
+            "priority": "p0-gap",
+            "source_rule_count": 134,
+            "source_mix": {
+              "wazuh_ruleset": 110,
+              "splunk_security_content": 19,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078",
+            "platform": "windows",
+            "technique_id": "T1078",
+            "priority": "p0-gap",
+            "source_rule_count": 106,
+            "source_mix": {
+              "splunk_security_content": 47,
+              "azure_sentinel": 26,
+              "elastic_detection_rules": 17,
+              "wazuh_ruleset": 15,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110",
+            "platform": "windows",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 98,
+            "source_mix": {
+              "splunk_security_content": 66,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 13,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1098",
+            "platform": "windows",
+            "technique_id": "T1098",
+            "priority": "p0-gap",
+            "source_rule_count": 93,
+            "source_mix": {
+              "splunk_security_content": 48,
+              "elastic_detection_rules": 18,
+              "azure_sentinel": 14,
+              "wazuh_ruleset": 13
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1190",
+            "platform": "linux",
+            "technique_id": "T1190",
+            "priority": "p1-high-signal",
+            "source_rule_count": 126,
+            "source_mix": {
+              "splunk_security_content": 85,
+              "elastic_detection_rules": 20,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078",
+            "platform": "linux",
+            "technique_id": "T1078",
+            "priority": "p1-high-signal",
+            "source_rule_count": 125,
+            "source_mix": {
+              "wazuh_ruleset": 58,
+              "splunk_security_content": 37,
+              "azure_sentinel": 19,
+              "elastic_detection_rules": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1059-004",
+            "platform": "linux",
+            "technique_id": "T1059.004",
+            "priority": "p1-high-signal",
+            "source_rule_count": 104,
+            "source_mix": {
+              "elastic_detection_rules": 99,
+              "splunk_security_content": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1548",
+            "platform": "linux",
+            "technique_id": "T1548",
+            "priority": "p1-high-signal",
+            "source_rule_count": 69,
+            "source_mix": {
+              "elastic_detection_rules": 35,
+              "splunk_security_content": 32,
+              "gtfobins": 1,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1133",
+            "platform": "linux",
+            "technique_id": "T1133",
+            "priority": "p1-high-signal",
+            "source_rule_count": 53,
+            "source_mix": {
+              "splunk_security_content": 26,
+              "wazuh_ruleset": 22,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098",
+            "platform": "linux",
+            "technique_id": "T1098",
+            "priority": "p1-high-signal",
+            "source_rule_count": 52,
+            "source_mix": {
+              "splunk_security_content": 32,
+              "elastic_detection_rules": 12,
+              "azure_sentinel": 6,
+              "wazuh_ruleset": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1543",
+            "platform": "linux",
+            "technique_id": "T1543",
+            "priority": "p1-high-signal",
+            "source_rule_count": 50,
+            "source_mix": {
+              "elastic_detection_rules": 43,
+              "splunk_security_content": 7
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1548-003",
+            "platform": "linux",
+            "technique_id": "T1548.003",
+            "priority": "p1-high-signal",
+            "source_rule_count": 50,
+            "source_mix": {
+              "splunk_security_content": 36,
+              "elastic_detection_rules": 14
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "directory_change",
+      "runtime_status": "planned",
+      "owner_area": "windows_registry_directory_collector",
+      "agent_event_aliases": [
+        "directory_change"
+      ],
+      "source_names": [
+        "ad_monitor",
+        "windows_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/ad_monitor.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "policy_object",
+        "actor_user",
+        "change_type",
+        "target_domain"
+      ],
+      "usage": {
+        "item_count": 7,
+        "priority_counts": {
+          "p0-gap": 1,
+          "p3-backlog": 6
+        },
+        "platform_counts": {
+          "windows": 3,
+          "linux": 2,
+          "macos": 2
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1484",
+            "platform": "windows",
+            "technique_id": "T1484",
+            "priority": "p0-gap",
+            "source_rule_count": 134,
+            "source_mix": {
+              "wazuh_ruleset": 110,
+              "splunk_security_content": 19,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1484",
+            "platform": "linux",
+            "technique_id": "T1484",
+            "priority": "p3-backlog",
+            "source_rule_count": 4,
+            "source_mix": {
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1484-002",
+            "platform": "linux",
+            "technique_id": "T1484.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1484",
+            "platform": "macos",
+            "technique_id": "T1484",
+            "priority": "p3-backlog",
+            "source_rule_count": 4,
+            "source_mix": {
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1484-002",
+            "platform": "macos",
+            "technique_id": "T1484.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1484-001",
+            "platform": "windows",
+            "technique_id": "T1484.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 13,
+            "source_mix": {
+              "splunk_security_content": 9,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1484-002",
+            "platform": "windows",
+            "technique_id": "T1484.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "dns_query",
+      "runtime_status": "existing",
+      "owner_area": "agent_network_collector",
+      "agent_event_aliases": [
+        "DnsQuery",
+        "dns_query"
+      ],
+      "source_names": [
+        "endpoint_dns"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/dns.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "remote_domain",
+        "pid",
+        "process_name",
+        "remote_address",
+        "protocol"
+      ],
+      "usage": {
+        "item_count": 13,
+        "priority_counts": {
+          "p1-high-signal": 1,
+          "p2-roadmap-hardening": 3,
+          "p3-backlog": 9
+        },
+        "platform_counts": {
+          "linux": 4,
+          "macos": 4,
+          "windows": 5
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1071",
+            "platform": "linux",
+            "technique_id": "T1071",
+            "priority": "p1-high-signal",
+            "source_rule_count": 48,
+            "source_mix": {
+              "elastic_detection_rules": 36,
+              "wazuh_ruleset": 4,
+              "azure_sentinel": 4,
+              "gtfobins": 2,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1071-001",
+            "platform": "linux",
+            "technique_id": "T1071.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 19,
+            "source_mix": {
+              "splunk_security_content": 11,
+              "elastic_detection_rules": 7,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1071-001",
+            "platform": "macos",
+            "technique_id": "T1071.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 21,
+            "source_mix": {
+              "splunk_security_content": 11,
+              "elastic_detection_rules": 9,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1071-001",
+            "platform": "windows",
+            "technique_id": "T1071.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 27,
+            "source_mix": {
+              "splunk_security_content": 14,
+              "elastic_detection_rules": 10,
+              "azure_sentinel": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1071-004",
+            "platform": "linux",
+            "technique_id": "T1071.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "elastic_detection_rules": 2,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1071-002",
+            "platform": "linux",
+            "technique_id": "T1071.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1071",
+            "platform": "macos",
+            "technique_id": "T1071",
+            "priority": "p3-backlog",
+            "source_rule_count": 22,
+            "source_mix": {
+              "elastic_detection_rules": 15,
+              "azure_sentinel": 3,
+              "gtfobins": 2,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1071-004",
+            "platform": "macos",
+            "technique_id": "T1071.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "elastic_detection_rules": 2,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1071-002",
+            "platform": "macos",
+            "technique_id": "T1071.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1071",
+            "platform": "windows",
+            "technique_id": "T1071",
+            "priority": "p3-backlog",
+            "source_rule_count": 33,
+            "source_mix": {
+              "elastic_detection_rules": 23,
+              "splunk_security_content": 5,
+              "azure_sentinel": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1071-004",
+            "platform": "windows",
+            "technique_id": "T1071.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 16,
+            "source_mix": {
+              "splunk_security_content": 10,
+              "elastic_detection_rules": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1071-003",
+            "platform": "windows",
+            "technique_id": "T1071.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1071-002",
+            "platform": "windows",
+            "technique_id": "T1071.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "failed_login",
+      "runtime_status": "existing",
+      "owner_area": "identity_auth_collector",
+      "agent_event_aliases": [
+        "AuthFailed",
+        "failed_login"
+      ],
+      "source_names": [
+        "endpoint_auth",
+        "auditd",
+        "windows_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/identity.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "user",
+        "failure_count",
+        "source_address",
+        "time_window"
+      ],
+      "usage": {
+        "item_count": 15,
+        "priority_counts": {
+          "p0-gap": 2,
+          "p1-high-signal": 2,
+          "p2-roadmap-hardening": 3,
+          "p3-backlog": 8
+        },
+        "platform_counts": {
+          "linux": 5,
+          "windows": 5,
+          "macos": 5
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110",
+            "platform": "linux",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 128,
+            "source_mix": {
+              "wazuh_ruleset": 75,
+              "splunk_security_content": 33,
+              "azure_sentinel": 12,
+              "elastic_detection_rules": 8
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110",
+            "platform": "windows",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 98,
+            "source_mix": {
+              "splunk_security_content": 66,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 13,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110",
+            "platform": "macos",
+            "technique_id": "T1110",
+            "priority": "p1-high-signal",
+            "source_rule_count": 43,
+            "source_mix": {
+              "splunk_security_content": 32,
+              "azure_sentinel": 9,
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110-003",
+            "platform": "windows",
+            "technique_id": "T1110.003",
+            "priority": "p1-high-signal",
+            "source_rule_count": 43,
+            "source_mix": {
+              "splunk_security_content": 40,
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110-001",
+            "platform": "linux",
+            "technique_id": "T1110.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 14,
+            "source_mix": {
+              "splunk_security_content": 8,
+              "elastic_detection_rules": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110-001",
+            "platform": "macos",
+            "technique_id": "T1110.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 6,
+            "source_mix": {
+              "splunk_security_content": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110-001",
+            "platform": "windows",
+            "technique_id": "T1110.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 12,
+            "source_mix": {
+              "splunk_security_content": 9,
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110-003",
+            "platform": "linux",
+            "technique_id": "T1110.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 21,
+            "source_mix": {
+              "splunk_security_content": 17,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110-004",
+            "platform": "linux",
+            "technique_id": "T1110.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 11,
+            "source_mix": {
+              "splunk_security_content": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110-002",
+            "platform": "linux",
+            "technique_id": "T1110.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 2,
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110-003",
+            "platform": "macos",
+            "technique_id": "T1110.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 16,
+            "source_mix": {
+              "splunk_security_content": 16
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110-004",
+            "platform": "macos",
+            "technique_id": "T1110.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 10,
+            "source_mix": {
+              "splunk_security_content": 10
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110-002",
+            "platform": "macos",
+            "technique_id": "T1110.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110-004",
+            "platform": "windows",
+            "technique_id": "T1110.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 11,
+            "source_mix": {
+              "splunk_security_content": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110-002",
+            "platform": "windows",
+            "technique_id": "T1110.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "splunk_security_content": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "file_create",
+      "runtime_status": "existing",
+      "owner_area": "agent_file_collector",
+      "agent_event_aliases": [
+        "FileCreate",
+        "file_create"
+      ],
+      "source_names": [
+        "endpoint_file",
+        "kernel_driver",
+        "fim",
+        "auditd"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/file.rs",
+        "apps/tamandua_agent/src/collectors/fim.rs",
+        "apps/tamandua_agent/src/collectors/file_journal.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "file_path",
+        "pid",
+        "uid",
+        "process_guid",
+        "integrity_level"
+      ],
+      "usage": {
+        "item_count": 1057,
+        "priority_counts": {
+          "p0-gap": 10,
+          "p1-high-signal": 40,
+          "p2-roadmap-hardening": 180,
+          "p3-backlog": 827
+        },
+        "platform_counts": {
+          "linux": 329,
+          "macos": 274,
+          "windows": 454
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1059",
+            "platform": "linux",
+            "technique_id": "T1059",
+            "priority": "p0-gap",
+            "source_rule_count": 142,
+            "source_mix": {
+              "elastic_detection_rules": 120,
+              "splunk_security_content": 17,
+              "gtfobins": 4,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110",
+            "platform": "linux",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 128,
+            "source_mix": {
+              "wazuh_ruleset": 75,
+              "splunk_security_content": 33,
+              "azure_sentinel": 12,
+              "elastic_detection_rules": 8
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1190",
+            "platform": "macos",
+            "technique_id": "T1190",
+            "priority": "p0-gap",
+            "source_rule_count": 85,
+            "source_mix": {
+              "splunk_security_content": 72,
+              "elastic_detection_rules": 9,
+              "azure_sentinel": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1059",
+            "platform": "windows",
+            "technique_id": "T1059",
+            "priority": "p0-gap",
+            "source_rule_count": 197,
+            "source_mix": {
+              "elastic_detection_rules": 136,
+              "splunk_security_content": 53,
+              "lolbas": 4,
+              "azure_sentinel": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1218",
+            "platform": "windows",
+            "technique_id": "T1218",
+            "priority": "p0-gap",
+            "source_rule_count": 172,
+            "source_mix": {
+              "elastic_detection_rules": 67,
+              "lolbas": 55,
+              "splunk_security_content": 50
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1484",
+            "platform": "windows",
+            "technique_id": "T1484",
+            "priority": "p0-gap",
+            "source_rule_count": 134,
+            "source_mix": {
+              "wazuh_ruleset": 110,
+              "splunk_security_content": 19,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1685",
+            "platform": "windows",
+            "technique_id": "T1685",
+            "priority": "p0-gap",
+            "source_rule_count": 112,
+            "source_mix": {
+              "splunk_security_content": 112
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078",
+            "platform": "windows",
+            "technique_id": "T1078",
+            "priority": "p0-gap",
+            "source_rule_count": 106,
+            "source_mix": {
+              "splunk_security_content": 47,
+              "azure_sentinel": 26,
+              "elastic_detection_rules": 17,
+              "wazuh_ruleset": 15,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110",
+            "platform": "windows",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 98,
+            "source_mix": {
+              "splunk_security_content": 66,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 13,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1098",
+            "platform": "windows",
+            "technique_id": "T1098",
+            "priority": "p0-gap",
+            "source_rule_count": 93,
+            "source_mix": {
+              "splunk_security_content": 48,
+              "elastic_detection_rules": 18,
+              "azure_sentinel": 14,
+              "wazuh_ruleset": 13
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1190",
+            "platform": "linux",
+            "technique_id": "T1190",
+            "priority": "p1-high-signal",
+            "source_rule_count": 126,
+            "source_mix": {
+              "splunk_security_content": 85,
+              "elastic_detection_rules": 20,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078",
+            "platform": "linux",
+            "technique_id": "T1078",
+            "priority": "p1-high-signal",
+            "source_rule_count": 125,
+            "source_mix": {
+              "wazuh_ruleset": 58,
+              "splunk_security_content": 37,
+              "azure_sentinel": 19,
+              "elastic_detection_rules": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1059-004",
+            "platform": "linux",
+            "technique_id": "T1059.004",
+            "priority": "p1-high-signal",
+            "source_rule_count": 104,
+            "source_mix": {
+              "elastic_detection_rules": 99,
+              "splunk_security_content": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1548",
+            "platform": "linux",
+            "technique_id": "T1548",
+            "priority": "p1-high-signal",
+            "source_rule_count": 69,
+            "source_mix": {
+              "elastic_detection_rules": 35,
+              "splunk_security_content": 32,
+              "gtfobins": 1,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1133",
+            "platform": "linux",
+            "technique_id": "T1133",
+            "priority": "p1-high-signal",
+            "source_rule_count": 53,
+            "source_mix": {
+              "splunk_security_content": 26,
+              "wazuh_ruleset": 22,
+              "elastic_detection_rules": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "file_modify",
+      "runtime_status": "existing",
+      "owner_area": "agent_file_collector",
+      "agent_event_aliases": [
+        "FileModify",
+        "file_modify",
+        "file_write"
+      ],
+      "source_names": [
+        "endpoint_file",
+        "kernel_driver",
+        "fim",
+        "auditd"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/file.rs",
+        "apps/tamandua_agent/src/collectors/fim.rs",
+        "apps/tamandua_agent/src/collectors/file_journal.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "file_path",
+        "pid",
+        "uid",
+        "process_guid",
+        "integrity_level"
+      ],
+      "usage": {
+        "item_count": 1057,
+        "priority_counts": {
+          "p0-gap": 10,
+          "p1-high-signal": 40,
+          "p2-roadmap-hardening": 180,
+          "p3-backlog": 827
+        },
+        "platform_counts": {
+          "linux": 329,
+          "macos": 274,
+          "windows": 454
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1059",
+            "platform": "linux",
+            "technique_id": "T1059",
+            "priority": "p0-gap",
+            "source_rule_count": 142,
+            "source_mix": {
+              "elastic_detection_rules": 120,
+              "splunk_security_content": 17,
+              "gtfobins": 4,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110",
+            "platform": "linux",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 128,
+            "source_mix": {
+              "wazuh_ruleset": 75,
+              "splunk_security_content": 33,
+              "azure_sentinel": 12,
+              "elastic_detection_rules": 8
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1190",
+            "platform": "macos",
+            "technique_id": "T1190",
+            "priority": "p0-gap",
+            "source_rule_count": 85,
+            "source_mix": {
+              "splunk_security_content": 72,
+              "elastic_detection_rules": 9,
+              "azure_sentinel": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1059",
+            "platform": "windows",
+            "technique_id": "T1059",
+            "priority": "p0-gap",
+            "source_rule_count": 197,
+            "source_mix": {
+              "elastic_detection_rules": 136,
+              "splunk_security_content": 53,
+              "lolbas": 4,
+              "azure_sentinel": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1218",
+            "platform": "windows",
+            "technique_id": "T1218",
+            "priority": "p0-gap",
+            "source_rule_count": 172,
+            "source_mix": {
+              "elastic_detection_rules": 67,
+              "lolbas": 55,
+              "splunk_security_content": 50
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1484",
+            "platform": "windows",
+            "technique_id": "T1484",
+            "priority": "p0-gap",
+            "source_rule_count": 134,
+            "source_mix": {
+              "wazuh_ruleset": 110,
+              "splunk_security_content": 19,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1685",
+            "platform": "windows",
+            "technique_id": "T1685",
+            "priority": "p0-gap",
+            "source_rule_count": 112,
+            "source_mix": {
+              "splunk_security_content": 112
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078",
+            "platform": "windows",
+            "technique_id": "T1078",
+            "priority": "p0-gap",
+            "source_rule_count": 106,
+            "source_mix": {
+              "splunk_security_content": 47,
+              "azure_sentinel": 26,
+              "elastic_detection_rules": 17,
+              "wazuh_ruleset": 15,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110",
+            "platform": "windows",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 98,
+            "source_mix": {
+              "splunk_security_content": 66,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 13,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1098",
+            "platform": "windows",
+            "technique_id": "T1098",
+            "priority": "p0-gap",
+            "source_rule_count": 93,
+            "source_mix": {
+              "splunk_security_content": 48,
+              "elastic_detection_rules": 18,
+              "azure_sentinel": 14,
+              "wazuh_ruleset": 13
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1190",
+            "platform": "linux",
+            "technique_id": "T1190",
+            "priority": "p1-high-signal",
+            "source_rule_count": 126,
+            "source_mix": {
+              "splunk_security_content": 85,
+              "elastic_detection_rules": 20,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078",
+            "platform": "linux",
+            "technique_id": "T1078",
+            "priority": "p1-high-signal",
+            "source_rule_count": 125,
+            "source_mix": {
+              "wazuh_ruleset": 58,
+              "splunk_security_content": 37,
+              "azure_sentinel": 19,
+              "elastic_detection_rules": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1059-004",
+            "platform": "linux",
+            "technique_id": "T1059.004",
+            "priority": "p1-high-signal",
+            "source_rule_count": 104,
+            "source_mix": {
+              "elastic_detection_rules": 99,
+              "splunk_security_content": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1548",
+            "platform": "linux",
+            "technique_id": "T1548",
+            "priority": "p1-high-signal",
+            "source_rule_count": 69,
+            "source_mix": {
+              "elastic_detection_rules": 35,
+              "splunk_security_content": 32,
+              "gtfobins": 1,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1133",
+            "platform": "linux",
+            "technique_id": "T1133",
+            "priority": "p1-high-signal",
+            "source_rule_count": 53,
+            "source_mix": {
+              "splunk_security_content": 26,
+              "wazuh_ruleset": 22,
+              "elastic_detection_rules": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "file_read",
+      "runtime_status": "planned",
+      "owner_area": "agent_file_read_collector",
+      "agent_event_aliases": [
+        "file_read"
+      ],
+      "source_names": [
+        "credential_theft",
+        "auditd",
+        "kernel_driver"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/file.rs",
+        "apps/tamandua_agent/src/collectors/credential_theft.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "file_path",
+        "pid",
+        "user",
+        "uid",
+        "target_process",
+        "access_mask"
+      ],
+      "usage": {
+        "item_count": 33,
+        "priority_counts": {
+          "p1-high-signal": 1,
+          "p2-roadmap-hardening": 8,
+          "p3-backlog": 24
+        },
+        "platform_counts": {
+          "windows": 15,
+          "linux": 10,
+          "macos": 8
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003",
+            "platform": "windows",
+            "technique_id": "T1003",
+            "priority": "p1-high-signal",
+            "source_rule_count": 71,
+            "source_mix": {
+              "elastic_detection_rules": 49,
+              "splunk_security_content": 14,
+              "lolbas": 5,
+              "azure_sentinel": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552-001",
+            "platform": "linux",
+            "technique_id": "T1552.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 23,
+            "source_mix": {
+              "elastic_detection_rules": 19,
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-008",
+            "platform": "linux",
+            "technique_id": "T1003.008",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 12,
+            "source_mix": {
+              "elastic_detection_rules": 8,
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552-004",
+            "platform": "linux",
+            "technique_id": "T1552.004",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 4,
+            "source_mix": {
+              "elastic_detection_rules": 2,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1552-001",
+            "platform": "macos",
+            "technique_id": "T1552.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 12,
+            "source_mix": {
+              "elastic_detection_rules": 10,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1003",
+            "platform": "macos",
+            "technique_id": "T1003",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 6,
+            "source_mix": {
+              "elastic_detection_rules": 5,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003-001",
+            "platform": "windows",
+            "technique_id": "T1003.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 36,
+            "source_mix": {
+              "elastic_detection_rules": 19,
+              "splunk_security_content": 11,
+              "lolbas": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1552-001",
+            "platform": "windows",
+            "technique_id": "T1552.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 18,
+            "source_mix": {
+              "elastic_detection_rules": 12,
+              "splunk_security_content": 5,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1552-006",
+            "platform": "windows",
+            "technique_id": "T1552.006",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 4,
+            "source_mix": {
+              "splunk_security_content": 3,
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552",
+            "platform": "linux",
+            "technique_id": "T1552",
+            "priority": "p3-backlog",
+            "source_rule_count": 28,
+            "source_mix": {
+              "elastic_detection_rules": 26,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003",
+            "platform": "linux",
+            "technique_id": "T1003",
+            "priority": "p3-backlog",
+            "source_rule_count": 18,
+            "source_mix": {
+              "elastic_detection_rules": 15,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552-007",
+            "platform": "linux",
+            "technique_id": "T1552.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "splunk_security_content": 4,
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-007",
+            "platform": "linux",
+            "technique_id": "T1003.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-002",
+            "platform": "linux",
+            "technique_id": "T1003.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552-005",
+            "platform": "linux",
+            "technique_id": "T1552.005",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "elastic_detection_rules": 2,
+              "splunk_security_content": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "image_load",
+      "runtime_status": "existing",
+      "owner_area": "deep_endpoint_sensor",
+      "agent_event_aliases": [
+        "module_load",
+        "image_load"
+      ],
+      "source_names": [
+        "kernel_driver",
+        "endpoint_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/endpoint_security.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "file_path",
+        "pid",
+        "process_guid",
+        "integrity_level",
+        "process_name",
+        "command_line"
+      ],
+      "usage": {
+        "item_count": 36,
+        "priority_counts": {
+          "p0-gap": 1,
+          "p1-high-signal": 2,
+          "p2-roadmap-hardening": 6,
+          "p3-backlog": 27
+        },
+        "platform_counts": {
+          "windows": 25,
+          "linux": 6,
+          "macos": 5
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1218",
+            "platform": "windows",
+            "technique_id": "T1218",
+            "priority": "p0-gap",
+            "source_rule_count": 172,
+            "source_mix": {
+              "elastic_detection_rules": 67,
+              "lolbas": 55,
+              "splunk_security_content": 50
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1574",
+            "platform": "linux",
+            "technique_id": "T1574",
+            "priority": "p1-high-signal",
+            "source_rule_count": 45,
+            "source_mix": {
+              "elastic_detection_rules": 44,
+              "gtfobins": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1218-011",
+            "platform": "windows",
+            "technique_id": "T1218.011",
+            "priority": "p1-high-signal",
+            "source_rule_count": 58,
+            "source_mix": {
+              "elastic_detection_rules": 27,
+              "splunk_security_content": 18,
+              "lolbas": 13
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1574-006",
+            "platform": "linux",
+            "technique_id": "T1574.006",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 17,
+            "source_mix": {
+              "elastic_detection_rules": 12,
+              "splunk_security_content": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1574-006",
+            "platform": "macos",
+            "technique_id": "T1574.006",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1218-005",
+            "platform": "windows",
+            "technique_id": "T1218.005",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 39,
+            "source_mix": {
+              "elastic_detection_rules": 26,
+              "splunk_security_content": 12,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1574-001",
+            "platform": "windows",
+            "technique_id": "T1574.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 27,
+            "source_mix": {
+              "splunk_security_content": 16,
+              "elastic_detection_rules": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1218-010",
+            "platform": "windows",
+            "technique_id": "T1218.010",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 25,
+            "source_mix": {
+              "elastic_detection_rules": 17,
+              "splunk_security_content": 7,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1574-011",
+            "platform": "windows",
+            "technique_id": "T1574.011",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 6,
+            "source_mix": {
+              "elastic_detection_rules": 4,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1218",
+            "platform": "linux",
+            "technique_id": "T1218",
+            "priority": "p3-backlog",
+            "source_rule_count": 9,
+            "source_mix": {
+              "elastic_detection_rules": 7,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1574-007",
+            "platform": "linux",
+            "technique_id": "T1574.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1218-011",
+            "platform": "linux",
+            "technique_id": "T1218.011",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1574-013",
+            "platform": "linux",
+            "technique_id": "T1574.013",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1574",
+            "platform": "macos",
+            "technique_id": "T1574",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "elastic_detection_rules": 5,
+              "gtfobins": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1218",
+            "platform": "macos",
+            "technique_id": "T1218",
+            "priority": "p3-backlog",
+            "source_rule_count": 4,
+            "source_mix": {
+              "elastic_detection_rules": 2,
+              "splunk_security_content": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "mail_access",
+      "runtime_status": "existing",
+      "owner_area": "specialized_context_collectors",
+      "agent_event_aliases": [
+        "mail_access"
+      ],
+      "source_names": [
+        "office_email"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/office_email.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "user",
+        "pid",
+        "uid",
+        "process_guid",
+        "integrity_level"
+      ],
+      "usage": {
+        "item_count": 10,
+        "priority_counts": {
+          "p3-backlog": 10
+        },
+        "platform_counts": {
+          "linux": 3,
+          "macos": 3,
+          "windows": 4
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1114",
+            "platform": "linux",
+            "technique_id": "T1114",
+            "priority": "p3-backlog",
+            "source_rule_count": 39,
+            "source_mix": {
+              "wazuh_ruleset": 35,
+              "splunk_security_content": 3,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1114-002",
+            "platform": "linux",
+            "technique_id": "T1114.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 4,
+            "source_mix": {
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1114-003",
+            "platform": "linux",
+            "technique_id": "T1114.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1114",
+            "platform": "macos",
+            "technique_id": "T1114",
+            "priority": "p3-backlog",
+            "source_rule_count": 4,
+            "source_mix": {
+              "splunk_security_content": 3,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1114-002",
+            "platform": "macos",
+            "technique_id": "T1114.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 4,
+            "source_mix": {
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1114-003",
+            "platform": "macos",
+            "technique_id": "T1114.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1114",
+            "platform": "windows",
+            "technique_id": "T1114",
+            "priority": "p3-backlog",
+            "source_rule_count": 9,
+            "source_mix": {
+              "elastic_detection_rules": 5,
+              "splunk_security_content": 3,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1114-002",
+            "platform": "windows",
+            "technique_id": "T1114.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 9,
+            "source_mix": {
+              "splunk_security_content": 5,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1114-001",
+            "platform": "windows",
+            "technique_id": "T1114.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "elastic_detection_rules": 4,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1114-003",
+            "platform": "windows",
+            "technique_id": "T1114.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "memory_event",
+      "runtime_status": "existing",
+      "owner_area": "deep_endpoint_sensor",
+      "agent_event_aliases": [
+        "MemoryScan",
+        "memory_event"
+      ],
+      "source_names": [
+        "memory",
+        "kernel_driver"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/memory.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "target_process",
+        "source_process",
+        "access_mask",
+        "call_trace"
+      ],
+      "usage": {
+        "item_count": 10,
+        "priority_counts": {
+          "p1-high-signal": 1,
+          "p2-roadmap-hardening": 2,
+          "p3-backlog": 7
+        },
+        "platform_counts": {
+          "windows": 7,
+          "linux": 2,
+          "macos": 1
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1055",
+            "platform": "windows",
+            "technique_id": "T1055",
+            "priority": "p1-high-signal",
+            "source_rule_count": 78,
+            "source_mix": {
+              "splunk_security_content": 35,
+              "wazuh_ruleset": 26,
+              "elastic_detection_rules": 15,
+              "lolbas": 1,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1055",
+            "platform": "linux",
+            "technique_id": "T1055",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 13,
+            "source_mix": {
+              "wazuh_ruleset": 7,
+              "elastic_detection_rules": 4,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1055",
+            "platform": "macos",
+            "technique_id": "T1055",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 2,
+            "source_mix": {
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1055-008",
+            "platform": "linux",
+            "technique_id": "T1055.008",
+            "priority": "p3-backlog",
+            "source_rule_count": 4,
+            "source_mix": {
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1055-001",
+            "platform": "windows",
+            "technique_id": "T1055.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "splunk_security_content": 4,
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1055-002",
+            "platform": "windows",
+            "technique_id": "T1055.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "splunk_security_content": 4,
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1055-012",
+            "platform": "windows",
+            "technique_id": "T1055.012",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "elastic_detection_rules": 4,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1055-003",
+            "platform": "windows",
+            "technique_id": "T1055.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 1,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1055-004",
+            "platform": "windows",
+            "technique_id": "T1055.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 1,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1055-013",
+            "platform": "windows",
+            "technique_id": "T1055.013",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "network_connect",
+      "runtime_status": "existing",
+      "owner_area": "agent_network_collector",
+      "agent_event_aliases": [
+        "NetworkConnect",
+        "network_connect"
+      ],
+      "source_names": [
+        "endpoint_network",
+        "auditd"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/network.rs",
+        "apps/tamandua_agent/src/collectors/network_anomaly.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "remote_address",
+        "remote_port",
+        "pid",
+        "protocol",
+        "uid"
+      ],
+      "usage": {
+        "item_count": 45,
+        "priority_counts": {
+          "p1-high-signal": 4,
+          "p2-roadmap-hardening": 10,
+          "p3-backlog": 31
+        },
+        "platform_counts": {
+          "linux": 14,
+          "windows": 18,
+          "macos": 13
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1133",
+            "platform": "linux",
+            "technique_id": "T1133",
+            "priority": "p1-high-signal",
+            "source_rule_count": 53,
+            "source_mix": {
+              "splunk_security_content": 26,
+              "wazuh_ruleset": 22,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1071",
+            "platform": "linux",
+            "technique_id": "T1071",
+            "priority": "p1-high-signal",
+            "source_rule_count": 48,
+            "source_mix": {
+              "elastic_detection_rules": 36,
+              "wazuh_ruleset": 4,
+              "azure_sentinel": 4,
+              "gtfobins": 2,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1499",
+            "platform": "linux",
+            "technique_id": "T1499",
+            "priority": "p1-high-signal",
+            "source_rule_count": 46,
+            "source_mix": {
+              "wazuh_ruleset": 43,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1021",
+            "platform": "windows",
+            "technique_id": "T1021",
+            "priority": "p1-high-signal",
+            "source_rule_count": 61,
+            "source_mix": {
+              "elastic_detection_rules": 40,
+              "splunk_security_content": 18,
+              "azure_sentinel": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1021-004",
+            "platform": "linux",
+            "technique_id": "T1021.004",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 20,
+            "source_mix": {
+              "elastic_detection_rules": 14,
+              "splunk_security_content": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1071-001",
+            "platform": "linux",
+            "technique_id": "T1071.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 19,
+            "source_mix": {
+              "splunk_security_content": 11,
+              "elastic_detection_rules": 7,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1021-002",
+            "platform": "linux",
+            "technique_id": "T1021.002",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 4,
+            "source_mix": {
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1071-001",
+            "platform": "macos",
+            "technique_id": "T1071.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 21,
+            "source_mix": {
+              "splunk_security_content": 11,
+              "elastic_detection_rules": 9,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1021-004",
+            "platform": "macos",
+            "technique_id": "T1021.004",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 6,
+            "source_mix": {
+              "splunk_security_content": 4,
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1021-002",
+            "platform": "macos",
+            "technique_id": "T1021.002",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 1,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1133",
+            "platform": "windows",
+            "technique_id": "T1133",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 35,
+            "source_mix": {
+              "splunk_security_content": 33,
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1021-002",
+            "platform": "windows",
+            "technique_id": "T1021.002",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 31,
+            "source_mix": {
+              "elastic_detection_rules": 19,
+              "splunk_security_content": 12
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1071-001",
+            "platform": "windows",
+            "technique_id": "T1071.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 27,
+            "source_mix": {
+              "splunk_security_content": 14,
+              "elastic_detection_rules": 10,
+              "azure_sentinel": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1021-006",
+            "platform": "windows",
+            "technique_id": "T1021.006",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 13,
+            "source_mix": {
+              "splunk_security_content": 10,
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1114",
+            "platform": "linux",
+            "technique_id": "T1114",
+            "priority": "p3-backlog",
+            "source_rule_count": 39,
+            "source_mix": {
+              "wazuh_ruleset": 35,
+              "splunk_security_content": 3,
+              "azure_sentinel": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "privilege_change",
+      "runtime_status": "planned",
+      "owner_area": "identity_auth_collector",
+      "agent_event_aliases": [
+        "privilege_change"
+      ],
+      "source_names": [
+        "endpoint_auth",
+        "ad_monitor",
+        "windows_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/identity.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "actor_user",
+        "change_type",
+        "pid",
+        "uid",
+        "process_guid",
+        "integrity_level"
+      ],
+      "usage": {
+        "item_count": 46,
+        "priority_counts": {
+          "p0-gap": 2,
+          "p1-high-signal": 6,
+          "p2-roadmap-hardening": 4,
+          "p3-backlog": 34
+        },
+        "platform_counts": {
+          "windows": 16,
+          "linux": 14,
+          "macos": 16
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078",
+            "platform": "windows",
+            "technique_id": "T1078",
+            "priority": "p0-gap",
+            "source_rule_count": 106,
+            "source_mix": {
+              "splunk_security_content": 47,
+              "azure_sentinel": 26,
+              "elastic_detection_rules": 17,
+              "wazuh_ruleset": 15,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1098",
+            "platform": "windows",
+            "technique_id": "T1098",
+            "priority": "p0-gap",
+            "source_rule_count": 93,
+            "source_mix": {
+              "splunk_security_content": 48,
+              "elastic_detection_rules": 18,
+              "azure_sentinel": 14,
+              "wazuh_ruleset": 13
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078",
+            "platform": "linux",
+            "technique_id": "T1078",
+            "priority": "p1-high-signal",
+            "source_rule_count": 125,
+            "source_mix": {
+              "wazuh_ruleset": 58,
+              "splunk_security_content": 37,
+              "azure_sentinel": 19,
+              "elastic_detection_rules": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1548",
+            "platform": "linux",
+            "technique_id": "T1548",
+            "priority": "p1-high-signal",
+            "source_rule_count": 69,
+            "source_mix": {
+              "elastic_detection_rules": 35,
+              "splunk_security_content": 32,
+              "gtfobins": 1,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098",
+            "platform": "linux",
+            "technique_id": "T1098",
+            "priority": "p1-high-signal",
+            "source_rule_count": 52,
+            "source_mix": {
+              "splunk_security_content": 32,
+              "elastic_detection_rules": 12,
+              "azure_sentinel": 6,
+              "wazuh_ruleset": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1548-003",
+            "platform": "linux",
+            "technique_id": "T1548.003",
+            "priority": "p1-high-signal",
+            "source_rule_count": 50,
+            "source_mix": {
+              "splunk_security_content": 36,
+              "elastic_detection_rules": 14
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1078",
+            "platform": "macos",
+            "technique_id": "T1078",
+            "priority": "p1-high-signal",
+            "source_rule_count": 58,
+            "source_mix": {
+              "splunk_security_content": 33,
+              "azure_sentinel": 16,
+              "elastic_detection_rules": 9
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1548",
+            "platform": "windows",
+            "technique_id": "T1548",
+            "priority": "p1-high-signal",
+            "source_rule_count": 60,
+            "source_mix": {
+              "splunk_security_content": 44,
+              "elastic_detection_rules": 15,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098-004",
+            "platform": "linux",
+            "technique_id": "T1098.004",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 8,
+            "source_mix": {
+              "elastic_detection_rules": 4,
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1548-003",
+            "platform": "macos",
+            "technique_id": "T1548.003",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 3,
+            "source_mix": {
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1548-001",
+            "platform": "macos",
+            "technique_id": "T1548.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 1,
+            "source_mix": {
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1548-002",
+            "platform": "windows",
+            "technique_id": "T1548.002",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 35,
+            "source_mix": {
+              "splunk_security_content": 17,
+              "elastic_detection_rules": 11,
+              "lolbas": 6,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078-004",
+            "platform": "linux",
+            "technique_id": "T1078.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 28,
+            "source_mix": {
+              "splunk_security_content": 14,
+              "azure_sentinel": 14
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1548-001",
+            "platform": "linux",
+            "technique_id": "T1548.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 25,
+            "source_mix": {
+              "elastic_detection_rules": 19,
+              "splunk_security_content": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1098-003",
+            "platform": "linux",
+            "technique_id": "T1098.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 17,
+            "source_mix": {
+              "splunk_security_content": 17
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "process_access",
+      "runtime_status": "planned",
+      "owner_area": "deep_endpoint_sensor",
+      "agent_event_aliases": [
+        "ProcessInject",
+        "process_access"
+      ],
+      "source_names": [
+        "injection",
+        "kernel_driver",
+        "endpoint_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/injection.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "source_process",
+        "target_process",
+        "access_mask",
+        "file_path",
+        "user"
+      ],
+      "usage": {
+        "item_count": 27,
+        "priority_counts": {
+          "p1-high-signal": 2,
+          "p2-roadmap-hardening": 5,
+          "p3-backlog": 20
+        },
+        "platform_counts": {
+          "windows": 15,
+          "linux": 7,
+          "macos": 5
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1055",
+            "platform": "windows",
+            "technique_id": "T1055",
+            "priority": "p1-high-signal",
+            "source_rule_count": 78,
+            "source_mix": {
+              "splunk_security_content": 35,
+              "wazuh_ruleset": 26,
+              "elastic_detection_rules": 15,
+              "lolbas": 1,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003",
+            "platform": "windows",
+            "technique_id": "T1003",
+            "priority": "p1-high-signal",
+            "source_rule_count": 71,
+            "source_mix": {
+              "elastic_detection_rules": 49,
+              "splunk_security_content": 14,
+              "lolbas": 5,
+              "azure_sentinel": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1055",
+            "platform": "linux",
+            "technique_id": "T1055",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 13,
+            "source_mix": {
+              "wazuh_ruleset": 7,
+              "elastic_detection_rules": 4,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-008",
+            "platform": "linux",
+            "technique_id": "T1003.008",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 12,
+            "source_mix": {
+              "elastic_detection_rules": 8,
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1003",
+            "platform": "macos",
+            "technique_id": "T1003",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 6,
+            "source_mix": {
+              "elastic_detection_rules": 5,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1055",
+            "platform": "macos",
+            "technique_id": "T1055",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 2,
+            "source_mix": {
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003-001",
+            "platform": "windows",
+            "technique_id": "T1003.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 36,
+            "source_mix": {
+              "elastic_detection_rules": 19,
+              "splunk_security_content": 11,
+              "lolbas": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003",
+            "platform": "linux",
+            "technique_id": "T1003",
+            "priority": "p3-backlog",
+            "source_rule_count": 18,
+            "source_mix": {
+              "elastic_detection_rules": 15,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-007",
+            "platform": "linux",
+            "technique_id": "T1003.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1055-008",
+            "platform": "linux",
+            "technique_id": "T1055.008",
+            "priority": "p3-backlog",
+            "source_rule_count": 4,
+            "source_mix": {
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-002",
+            "platform": "linux",
+            "technique_id": "T1003.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-001",
+            "platform": "linux",
+            "technique_id": "T1003.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1003-002",
+            "platform": "macos",
+            "technique_id": "T1003.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1003-008",
+            "platform": "macos",
+            "technique_id": "T1003.008",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1003-001",
+            "platform": "macos",
+            "technique_id": "T1003.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "process_create",
+      "runtime_status": "existing",
+      "owner_area": "agent_process_collector",
+      "agent_event_aliases": [
+        "ProcessCreate",
+        "process_create"
+      ],
+      "source_names": [
+        "endpoint_process",
+        "kernel_driver",
+        "auditd"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/process.rs",
+        "apps/tamandua_agent/src/collectors/linux/event_normalizer.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "process_name",
+        "command_line",
+        "pid",
+        "uid",
+        "process_guid",
+        "integrity_level"
+      ],
+      "usage": {
+        "item_count": 1057,
+        "priority_counts": {
+          "p0-gap": 10,
+          "p1-high-signal": 40,
+          "p2-roadmap-hardening": 180,
+          "p3-backlog": 827
+        },
+        "platform_counts": {
+          "linux": 329,
+          "macos": 274,
+          "windows": 454
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1059",
+            "platform": "linux",
+            "technique_id": "T1059",
+            "priority": "p0-gap",
+            "source_rule_count": 142,
+            "source_mix": {
+              "elastic_detection_rules": 120,
+              "splunk_security_content": 17,
+              "gtfobins": 4,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110",
+            "platform": "linux",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 128,
+            "source_mix": {
+              "wazuh_ruleset": 75,
+              "splunk_security_content": 33,
+              "azure_sentinel": 12,
+              "elastic_detection_rules": 8
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1190",
+            "platform": "macos",
+            "technique_id": "T1190",
+            "priority": "p0-gap",
+            "source_rule_count": 85,
+            "source_mix": {
+              "splunk_security_content": 72,
+              "elastic_detection_rules": 9,
+              "azure_sentinel": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1059",
+            "platform": "windows",
+            "technique_id": "T1059",
+            "priority": "p0-gap",
+            "source_rule_count": 197,
+            "source_mix": {
+              "elastic_detection_rules": 136,
+              "splunk_security_content": 53,
+              "lolbas": 4,
+              "azure_sentinel": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1218",
+            "platform": "windows",
+            "technique_id": "T1218",
+            "priority": "p0-gap",
+            "source_rule_count": 172,
+            "source_mix": {
+              "elastic_detection_rules": 67,
+              "lolbas": 55,
+              "splunk_security_content": 50
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1484",
+            "platform": "windows",
+            "technique_id": "T1484",
+            "priority": "p0-gap",
+            "source_rule_count": 134,
+            "source_mix": {
+              "wazuh_ruleset": 110,
+              "splunk_security_content": 19,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1685",
+            "platform": "windows",
+            "technique_id": "T1685",
+            "priority": "p0-gap",
+            "source_rule_count": 112,
+            "source_mix": {
+              "splunk_security_content": 112
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078",
+            "platform": "windows",
+            "technique_id": "T1078",
+            "priority": "p0-gap",
+            "source_rule_count": 106,
+            "source_mix": {
+              "splunk_security_content": 47,
+              "azure_sentinel": 26,
+              "elastic_detection_rules": 17,
+              "wazuh_ruleset": 15,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110",
+            "platform": "windows",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 98,
+            "source_mix": {
+              "splunk_security_content": 66,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 13,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1098",
+            "platform": "windows",
+            "technique_id": "T1098",
+            "priority": "p0-gap",
+            "source_rule_count": 93,
+            "source_mix": {
+              "splunk_security_content": 48,
+              "elastic_detection_rules": 18,
+              "azure_sentinel": 14,
+              "wazuh_ruleset": 13
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1190",
+            "platform": "linux",
+            "technique_id": "T1190",
+            "priority": "p1-high-signal",
+            "source_rule_count": 126,
+            "source_mix": {
+              "splunk_security_content": 85,
+              "elastic_detection_rules": 20,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078",
+            "platform": "linux",
+            "technique_id": "T1078",
+            "priority": "p1-high-signal",
+            "source_rule_count": 125,
+            "source_mix": {
+              "wazuh_ruleset": 58,
+              "splunk_security_content": 37,
+              "azure_sentinel": 19,
+              "elastic_detection_rules": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1059-004",
+            "platform": "linux",
+            "technique_id": "T1059.004",
+            "priority": "p1-high-signal",
+            "source_rule_count": 104,
+            "source_mix": {
+              "elastic_detection_rules": 99,
+              "splunk_security_content": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1548",
+            "platform": "linux",
+            "technique_id": "T1548",
+            "priority": "p1-high-signal",
+            "source_rule_count": 69,
+            "source_mix": {
+              "elastic_detection_rules": 35,
+              "splunk_security_content": 32,
+              "gtfobins": 1,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1133",
+            "platform": "linux",
+            "technique_id": "T1133",
+            "priority": "p1-high-signal",
+            "source_rule_count": 53,
+            "source_mix": {
+              "splunk_security_content": 26,
+              "wazuh_ruleset": 22,
+              "elastic_detection_rules": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "rate_window",
+      "runtime_status": "planned",
+      "owner_area": "detection_engine",
+      "agent_event_aliases": [
+        "rate_window"
+      ],
+      "source_names": [
+        "detection_engine"
+      ],
+      "primary_files": [
+        "tools/detection_response",
+        "apps/tamandua_agent/src/detection"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "failure_count",
+        "time_window",
+        "user",
+        "source_address"
+      ],
+      "usage": {
+        "item_count": 15,
+        "priority_counts": {
+          "p0-gap": 2,
+          "p1-high-signal": 2,
+          "p2-roadmap-hardening": 3,
+          "p3-backlog": 8
+        },
+        "platform_counts": {
+          "linux": 5,
+          "windows": 5,
+          "macos": 5
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110",
+            "platform": "linux",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 128,
+            "source_mix": {
+              "wazuh_ruleset": 75,
+              "splunk_security_content": 33,
+              "azure_sentinel": 12,
+              "elastic_detection_rules": 8
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110",
+            "platform": "windows",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 98,
+            "source_mix": {
+              "splunk_security_content": 66,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 13,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110",
+            "platform": "macos",
+            "technique_id": "T1110",
+            "priority": "p1-high-signal",
+            "source_rule_count": 43,
+            "source_mix": {
+              "splunk_security_content": 32,
+              "azure_sentinel": 9,
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110-003",
+            "platform": "windows",
+            "technique_id": "T1110.003",
+            "priority": "p1-high-signal",
+            "source_rule_count": 43,
+            "source_mix": {
+              "splunk_security_content": 40,
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110-001",
+            "platform": "linux",
+            "technique_id": "T1110.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 14,
+            "source_mix": {
+              "splunk_security_content": 8,
+              "elastic_detection_rules": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110-001",
+            "platform": "macos",
+            "technique_id": "T1110.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 6,
+            "source_mix": {
+              "splunk_security_content": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110-001",
+            "platform": "windows",
+            "technique_id": "T1110.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 12,
+            "source_mix": {
+              "splunk_security_content": 9,
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110-003",
+            "platform": "linux",
+            "technique_id": "T1110.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 21,
+            "source_mix": {
+              "splunk_security_content": 17,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110-004",
+            "platform": "linux",
+            "technique_id": "T1110.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 11,
+            "source_mix": {
+              "splunk_security_content": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1110-002",
+            "platform": "linux",
+            "technique_id": "T1110.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 2,
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110-003",
+            "platform": "macos",
+            "technique_id": "T1110.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 16,
+            "source_mix": {
+              "splunk_security_content": 16
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110-004",
+            "platform": "macos",
+            "technique_id": "T1110.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 10,
+            "source_mix": {
+              "splunk_security_content": 10
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1110-002",
+            "platform": "macos",
+            "technique_id": "T1110.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110-004",
+            "platform": "windows",
+            "technique_id": "T1110.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 11,
+            "source_mix": {
+              "splunk_security_content": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110-002",
+            "platform": "windows",
+            "technique_id": "T1110.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "splunk_security_content": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "registry_modify",
+      "runtime_status": "existing",
+      "owner_area": "windows_registry_directory_collector",
+      "agent_event_aliases": [
+        "RegistryCreate",
+        "RegistrySetValue",
+        "RegistryDelete",
+        "registry_set_value",
+        "registry_delete"
+      ],
+      "source_names": [
+        "endpoint_registry",
+        "kernel_driver",
+        "etw"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/registry.rs",
+        "apps/tamandua_agent/src/collectors/etw.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "registry_key",
+        "registry_value",
+        "pid",
+        "process_guid",
+        "integrity_level",
+        "user",
+        "actor_process"
+      ],
+      "usage": {
+        "item_count": 485,
+        "priority_counts": {
+          "p0-gap": 7,
+          "p1-high-signal": 24,
+          "p2-roadmap-hardening": 67,
+          "p3-backlog": 387
+        },
+        "platform_counts": {
+          "windows": 454,
+          "linux": 18,
+          "macos": 13
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1059",
+            "platform": "windows",
+            "technique_id": "T1059",
+            "priority": "p0-gap",
+            "source_rule_count": 197,
+            "source_mix": {
+              "elastic_detection_rules": 136,
+              "splunk_security_content": 53,
+              "lolbas": 4,
+              "azure_sentinel": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1218",
+            "platform": "windows",
+            "technique_id": "T1218",
+            "priority": "p0-gap",
+            "source_rule_count": 172,
+            "source_mix": {
+              "elastic_detection_rules": 67,
+              "lolbas": 55,
+              "splunk_security_content": 50
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1484",
+            "platform": "windows",
+            "technique_id": "T1484",
+            "priority": "p0-gap",
+            "source_rule_count": 134,
+            "source_mix": {
+              "wazuh_ruleset": 110,
+              "splunk_security_content": 19,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1685",
+            "platform": "windows",
+            "technique_id": "T1685",
+            "priority": "p0-gap",
+            "source_rule_count": 112,
+            "source_mix": {
+              "splunk_security_content": 112
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078",
+            "platform": "windows",
+            "technique_id": "T1078",
+            "priority": "p0-gap",
+            "source_rule_count": 106,
+            "source_mix": {
+              "splunk_security_content": 47,
+              "azure_sentinel": 26,
+              "elastic_detection_rules": 17,
+              "wazuh_ruleset": 15,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1110",
+            "platform": "windows",
+            "technique_id": "T1110",
+            "priority": "p0-gap",
+            "source_rule_count": 98,
+            "source_mix": {
+              "splunk_security_content": 66,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 13,
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1098",
+            "platform": "windows",
+            "technique_id": "T1098",
+            "priority": "p0-gap",
+            "source_rule_count": 93,
+            "source_mix": {
+              "splunk_security_content": 48,
+              "elastic_detection_rules": 18,
+              "azure_sentinel": 14,
+              "wazuh_ruleset": 13
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1059-001",
+            "platform": "windows",
+            "technique_id": "T1059.001",
+            "priority": "p1-high-signal",
+            "source_rule_count": 191,
+            "source_mix": {
+              "elastic_detection_rules": 95,
+              "splunk_security_content": 92,
+              "azure_sentinel": 3,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1190",
+            "platform": "windows",
+            "technique_id": "T1190",
+            "priority": "p1-high-signal",
+            "source_rule_count": 137,
+            "source_mix": {
+              "splunk_security_content": 111,
+              "elastic_detection_rules": 19,
+              "azure_sentinel": 7
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1105",
+            "platform": "windows",
+            "technique_id": "T1105",
+            "priority": "p1-high-signal",
+            "source_rule_count": 130,
+            "source_mix": {
+              "lolbas": 58,
+              "splunk_security_content": 44,
+              "elastic_detection_rules": 28
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1112",
+            "platform": "windows",
+            "technique_id": "T1112",
+            "priority": "p1-high-signal",
+            "source_rule_count": 121,
+            "source_mix": {
+              "splunk_security_content": 80,
+              "elastic_detection_rules": 40,
+              "wazuh_ruleset": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1562-001",
+            "platform": "windows",
+            "technique_id": "T1562.001",
+            "priority": "p1-high-signal",
+            "source_rule_count": 93,
+            "source_mix": {
+              "splunk_security_content": 72,
+              "elastic_detection_rules": 20,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1055",
+            "platform": "windows",
+            "technique_id": "T1055",
+            "priority": "p1-high-signal",
+            "source_rule_count": 78,
+            "source_mix": {
+              "splunk_security_content": 35,
+              "wazuh_ruleset": 26,
+              "elastic_detection_rules": 15,
+              "lolbas": 1,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003",
+            "platform": "windows",
+            "technique_id": "T1003",
+            "priority": "p1-high-signal",
+            "source_rule_count": 71,
+            "source_mix": {
+              "elastic_detection_rules": 49,
+              "splunk_security_content": 14,
+              "lolbas": 5,
+              "azure_sentinel": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1036",
+            "platform": "windows",
+            "technique_id": "T1036",
+            "priority": "p1-high-signal",
+            "source_rule_count": 68,
+            "source_mix": {
+              "elastic_detection_rules": 43,
+              "splunk_security_content": 21,
+              "lolbas": 3,
+              "azure_sentinel": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "resource_usage",
+      "runtime_status": "existing",
+      "owner_area": "specialized_context_collectors",
+      "agent_event_aliases": [
+        "resource_usage"
+      ],
+      "source_names": [
+        "health"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/health.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "pid",
+        "uid",
+        "signing_id",
+        "process_guid"
+      ],
+      "usage": {
+        "item_count": 3,
+        "priority_counts": {
+          "p1-high-signal": 1,
+          "p3-backlog": 2
+        },
+        "platform_counts": {
+          "linux": 1,
+          "macos": 1,
+          "windows": 1
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1499",
+            "platform": "linux",
+            "technique_id": "T1499",
+            "priority": "p1-high-signal",
+            "source_rule_count": 46,
+            "source_mix": {
+              "wazuh_ruleset": 43,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1499",
+            "platform": "macos",
+            "technique_id": "T1499",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1499",
+            "platform": "windows",
+            "technique_id": "T1499",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "wazuh_ruleset": 3,
+              "splunk_security_content": 2,
+              "azure_sentinel": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "scheduled_event",
+      "runtime_status": "existing",
+      "owner_area": "service_persistence_collector",
+      "agent_event_aliases": [
+        "ScheduledTask",
+        "scheduled_event"
+      ],
+      "source_names": [
+        "scheduled_tasks",
+        "persistence"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/scheduled_tasks.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "trigger_path",
+        "trigger_type",
+        "actor_process",
+        "user"
+      ],
+      "usage": {
+        "item_count": 26,
+        "priority_counts": {
+          "p2-roadmap-hardening": 3,
+          "p3-backlog": 23
+        },
+        "platform_counts": {
+          "linux": 6,
+          "macos": 6,
+          "windows": 14
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1546-004",
+            "platform": "linux",
+            "technique_id": "T1546.004",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 10,
+            "source_mix": {
+              "elastic_detection_rules": 6,
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1546-004",
+            "platform": "macos",
+            "technique_id": "T1546.004",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1546-003",
+            "platform": "windows",
+            "technique_id": "T1546.003",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 6,
+            "source_mix": {
+              "elastic_detection_rules": 3,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1546",
+            "platform": "linux",
+            "technique_id": "T1546",
+            "priority": "p3-backlog",
+            "source_rule_count": 31,
+            "source_mix": {
+              "elastic_detection_rules": 28,
+              "splunk_security_content": 2,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1546-016",
+            "platform": "linux",
+            "technique_id": "T1546.016",
+            "priority": "p3-backlog",
+            "source_rule_count": 8,
+            "source_mix": {
+              "elastic_detection_rules": 8
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1546-017",
+            "platform": "linux",
+            "technique_id": "T1546.017",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1546-018",
+            "platform": "linux",
+            "technique_id": "T1546.018",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1546-005",
+            "platform": "linux",
+            "technique_id": "T1546.005",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1546",
+            "platform": "macos",
+            "technique_id": "T1546",
+            "priority": "p3-backlog",
+            "source_rule_count": 14,
+            "source_mix": {
+              "elastic_detection_rules": 13,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1546-002",
+            "platform": "macos",
+            "technique_id": "T1546.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1546-014",
+            "platform": "macos",
+            "technique_id": "T1546.014",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1546-005",
+            "platform": "macos",
+            "technique_id": "T1546.005",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1546-016",
+            "platform": "macos",
+            "technique_id": "T1546.016",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1546",
+            "platform": "windows",
+            "technique_id": "T1546",
+            "priority": "p3-backlog",
+            "source_rule_count": 30,
+            "source_mix": {
+              "elastic_detection_rules": 19,
+              "splunk_security_content": 9,
+              "azure_sentinel": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1546-012",
+            "platform": "windows",
+            "technique_id": "T1546.012",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "elastic_detection_rules": 4,
+              "splunk_security_content": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "secret_scan",
+      "runtime_status": "existing",
+      "owner_area": "specialized_context_collectors",
+      "agent_event_aliases": [
+        "SecretExposure",
+        "secret_scan"
+      ],
+      "source_names": [
+        "credential_theft",
+        "script_inspector"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/credential_theft.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "file_path",
+        "pid",
+        "uid",
+        "process_guid",
+        "integrity_level"
+      ],
+      "usage": {
+        "item_count": 16,
+        "priority_counts": {
+          "p2-roadmap-hardening": 5,
+          "p3-backlog": 11
+        },
+        "platform_counts": {
+          "linux": 5,
+          "macos": 4,
+          "windows": 7
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552-001",
+            "platform": "linux",
+            "technique_id": "T1552.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 23,
+            "source_mix": {
+              "elastic_detection_rules": 19,
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552-004",
+            "platform": "linux",
+            "technique_id": "T1552.004",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 4,
+            "source_mix": {
+              "elastic_detection_rules": 2,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1552-001",
+            "platform": "macos",
+            "technique_id": "T1552.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 12,
+            "source_mix": {
+              "elastic_detection_rules": 10,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1552-001",
+            "platform": "windows",
+            "technique_id": "T1552.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 18,
+            "source_mix": {
+              "elastic_detection_rules": 12,
+              "splunk_security_content": 5,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1552-006",
+            "platform": "windows",
+            "technique_id": "T1552.006",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 4,
+            "source_mix": {
+              "splunk_security_content": 3,
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552",
+            "platform": "linux",
+            "technique_id": "T1552",
+            "priority": "p3-backlog",
+            "source_rule_count": 28,
+            "source_mix": {
+              "elastic_detection_rules": 26,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552-007",
+            "platform": "linux",
+            "technique_id": "T1552.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "splunk_security_content": 4,
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1552-005",
+            "platform": "linux",
+            "technique_id": "T1552.005",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "elastic_detection_rules": 2,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1552",
+            "platform": "macos",
+            "technique_id": "T1552",
+            "priority": "p3-backlog",
+            "source_rule_count": 16,
+            "source_mix": {
+              "elastic_detection_rules": 15,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1552-007",
+            "platform": "macos",
+            "technique_id": "T1552.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "splunk_security_content": 4,
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1552-005",
+            "platform": "macos",
+            "technique_id": "T1552.005",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1552",
+            "platform": "windows",
+            "technique_id": "T1552",
+            "priority": "p3-backlog",
+            "source_rule_count": 37,
+            "source_mix": {
+              "elastic_detection_rules": 22,
+              "splunk_security_content": 14,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1552-004",
+            "platform": "windows",
+            "technique_id": "T1552.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 7,
+            "source_mix": {
+              "splunk_security_content": 4,
+              "elastic_detection_rules": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1552-002",
+            "platform": "windows",
+            "technique_id": "T1552.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "splunk_security_content": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1552-007",
+            "platform": "windows",
+            "technique_id": "T1552.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "splunk_security_content": 4,
+              "elastic_detection_rules": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "security_event",
+      "runtime_status": "normalize-alias",
+      "owner_area": "specialized_context_collectors",
+      "agent_event_aliases": [
+        "security_event"
+      ],
+      "source_names": [
+        "windows_security",
+        "endpoint_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/endpoint_security.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "security_product",
+        "target_process",
+        "access_mask",
+        "file_path",
+        "user"
+      ],
+      "usage": {
+        "item_count": 17,
+        "priority_counts": {
+          "p1-high-signal": 1,
+          "p2-roadmap-hardening": 3,
+          "p3-backlog": 13
+        },
+        "platform_counts": {
+          "windows": 8,
+          "linux": 5,
+          "macos": 4
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003",
+            "platform": "windows",
+            "technique_id": "T1003",
+            "priority": "p1-high-signal",
+            "source_rule_count": 71,
+            "source_mix": {
+              "elastic_detection_rules": 49,
+              "splunk_security_content": 14,
+              "lolbas": 5,
+              "azure_sentinel": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-008",
+            "platform": "linux",
+            "technique_id": "T1003.008",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 12,
+            "source_mix": {
+              "elastic_detection_rules": 8,
+              "splunk_security_content": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1003",
+            "platform": "macos",
+            "technique_id": "T1003",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 6,
+            "source_mix": {
+              "elastic_detection_rules": 5,
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003-001",
+            "platform": "windows",
+            "technique_id": "T1003.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 36,
+            "source_mix": {
+              "elastic_detection_rules": 19,
+              "splunk_security_content": 11,
+              "lolbas": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003",
+            "platform": "linux",
+            "technique_id": "T1003",
+            "priority": "p3-backlog",
+            "source_rule_count": 18,
+            "source_mix": {
+              "elastic_detection_rules": 15,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-007",
+            "platform": "linux",
+            "technique_id": "T1003.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-002",
+            "platform": "linux",
+            "technique_id": "T1003.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1003-001",
+            "platform": "linux",
+            "technique_id": "T1003.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1003-002",
+            "platform": "macos",
+            "technique_id": "T1003.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1003-008",
+            "platform": "macos",
+            "technique_id": "T1003.008",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1003-001",
+            "platform": "macos",
+            "technique_id": "T1003.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003-002",
+            "platform": "windows",
+            "technique_id": "T1003.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 20,
+            "source_mix": {
+              "elastic_detection_rules": 11,
+              "splunk_security_content": 8,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003-003",
+            "platform": "windows",
+            "technique_id": "T1003.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 17,
+            "source_mix": {
+              "elastic_detection_rules": 6,
+              "splunk_security_content": 6,
+              "lolbas": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003-006",
+            "platform": "windows",
+            "technique_id": "T1003.006",
+            "priority": "p3-backlog",
+            "source_rule_count": 8,
+            "source_mix": {
+              "elastic_detection_rules": 5,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1003-004",
+            "platform": "windows",
+            "technique_id": "T1003.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 7,
+            "source_mix": {
+              "elastic_detection_rules": 5,
+              "splunk_security_content": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "service_create",
+      "runtime_status": "planned",
+      "owner_area": "service_persistence_collector",
+      "agent_event_aliases": [
+        "service_create"
+      ],
+      "source_names": [
+        "persistence",
+        "scheduled_tasks",
+        "windows_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/persistence.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "service_name",
+        "service_path",
+        "actor_process",
+        "user"
+      ],
+      "usage": {
+        "item_count": 10,
+        "priority_counts": {
+          "p1-high-signal": 1,
+          "p2-roadmap-hardening": 4,
+          "p3-backlog": 5
+        },
+        "platform_counts": {
+          "linux": 4,
+          "macos": 3,
+          "windows": 3
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1543",
+            "platform": "linux",
+            "technique_id": "T1543",
+            "priority": "p1-high-signal",
+            "source_rule_count": 50,
+            "source_mix": {
+              "elastic_detection_rules": 43,
+              "splunk_security_content": 7
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1543-002",
+            "platform": "linux",
+            "technique_id": "T1543.002",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 7,
+            "source_mix": {
+              "elastic_detection_rules": 7
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1543-001",
+            "platform": "macos",
+            "technique_id": "T1543.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 8,
+            "source_mix": {
+              "elastic_detection_rules": 6,
+              "splunk_security_content": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1543-004",
+            "platform": "macos",
+            "technique_id": "T1543.004",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 5,
+            "source_mix": {
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1543-003",
+            "platform": "windows",
+            "technique_id": "T1543.003",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 39,
+            "source_mix": {
+              "splunk_security_content": 21,
+              "elastic_detection_rules": 17,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1543-003",
+            "platform": "linux",
+            "technique_id": "T1543.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1543-005",
+            "platform": "linux",
+            "technique_id": "T1543.005",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1543",
+            "platform": "macos",
+            "technique_id": "T1543",
+            "priority": "p3-backlog",
+            "source_rule_count": 12,
+            "source_mix": {
+              "elastic_detection_rules": 9,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1543",
+            "platform": "windows",
+            "technique_id": "T1543",
+            "priority": "p3-backlog",
+            "source_rule_count": 38,
+            "source_mix": {
+              "elastic_detection_rules": 19,
+              "splunk_security_content": 17,
+              "azure_sentinel": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1543-001",
+            "platform": "windows",
+            "technique_id": "T1543.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "service_health",
+      "runtime_status": "existing",
+      "owner_area": "specialized_context_collectors",
+      "agent_event_aliases": [
+        "service_health"
+      ],
+      "source_names": [
+        "health"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/health.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "pid",
+        "uid",
+        "signing_id",
+        "process_guid"
+      ],
+      "usage": {
+        "item_count": 3,
+        "priority_counts": {
+          "p1-high-signal": 1,
+          "p3-backlog": 2
+        },
+        "platform_counts": {
+          "linux": 1,
+          "macos": 1,
+          "windows": 1
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1499",
+            "platform": "linux",
+            "technique_id": "T1499",
+            "priority": "p1-high-signal",
+            "source_rule_count": 46,
+            "source_mix": {
+              "wazuh_ruleset": 43,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1499",
+            "platform": "macos",
+            "technique_id": "T1499",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "splunk_security_content": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1499",
+            "platform": "windows",
+            "technique_id": "T1499",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "wazuh_ruleset": 3,
+              "splunk_security_content": 2,
+              "azure_sentinel": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "service_modify",
+      "runtime_status": "planned",
+      "owner_area": "service_persistence_collector",
+      "agent_event_aliases": [
+        "service_modify"
+      ],
+      "source_names": [
+        "persistence",
+        "scheduled_tasks",
+        "windows_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/persistence.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "service_name",
+        "service_path",
+        "security_product",
+        "policy_key",
+        "actor_process"
+      ],
+      "usage": {
+        "item_count": 22,
+        "priority_counts": {
+          "p1-high-signal": 2,
+          "p2-roadmap-hardening": 2,
+          "p3-backlog": 18
+        },
+        "platform_counts": {
+          "windows": 8,
+          "linux": 9,
+          "macos": 5
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1562-001",
+            "platform": "windows",
+            "technique_id": "T1562.001",
+            "priority": "p1-high-signal",
+            "source_rule_count": 93,
+            "source_mix": {
+              "splunk_security_content": 72,
+              "elastic_detection_rules": 20,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1562",
+            "platform": "windows",
+            "technique_id": "T1562",
+            "priority": "p1-high-signal",
+            "source_rule_count": 62,
+            "source_mix": {
+              "elastic_detection_rules": 36,
+              "splunk_security_content": 24,
+              "lolbas": 1,
+              "azure_sentinel": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1562-001",
+            "platform": "linux",
+            "technique_id": "T1562.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 31,
+            "source_mix": {
+              "elastic_detection_rules": 21,
+              "splunk_security_content": 10
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1562-001",
+            "platform": "macos",
+            "technique_id": "T1562.001",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 19,
+            "source_mix": {
+              "splunk_security_content": 10,
+              "elastic_detection_rules": 9
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1562",
+            "platform": "linux",
+            "technique_id": "T1562",
+            "priority": "p3-backlog",
+            "source_rule_count": 33,
+            "source_mix": {
+              "elastic_detection_rules": 22,
+              "splunk_security_content": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1562-008",
+            "platform": "linux",
+            "technique_id": "T1562.008",
+            "priority": "p3-backlog",
+            "source_rule_count": 10,
+            "source_mix": {
+              "splunk_security_content": 10
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1562-007",
+            "platform": "linux",
+            "technique_id": "T1562.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "splunk_security_content": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1562-003",
+            "platform": "linux",
+            "technique_id": "T1562.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1562-004",
+            "platform": "linux",
+            "technique_id": "T1562.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 2,
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1562-012",
+            "platform": "linux",
+            "technique_id": "T1562.012",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1562-006",
+            "platform": "linux",
+            "technique_id": "T1562.006",
+            "priority": "p3-backlog",
+            "source_rule_count": 2,
+            "source_mix": {
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1562-010",
+            "platform": "linux",
+            "technique_id": "T1562.010",
+            "priority": "p3-backlog",
+            "source_rule_count": 1,
+            "source_mix": {
+              "elastic_detection_rules": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1562",
+            "platform": "macos",
+            "technique_id": "T1562",
+            "priority": "p3-backlog",
+            "source_rule_count": 18,
+            "source_mix": {
+              "elastic_detection_rules": 10,
+              "splunk_security_content": 8
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1562-008",
+            "platform": "macos",
+            "technique_id": "T1562.008",
+            "priority": "p3-backlog",
+            "source_rule_count": 10,
+            "source_mix": {
+              "splunk_security_content": 10
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1562-007",
+            "platform": "macos",
+            "technique_id": "T1562.007",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "splunk_security_content": 5
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "session_start",
+      "runtime_status": "normalize-alias",
+      "owner_area": "identity_auth_collector",
+      "agent_event_aliases": [
+        "AuthLogin",
+        "session_start"
+      ],
+      "source_names": [
+        "endpoint_auth",
+        "auditd",
+        "windows_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/identity.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "user",
+        "logon_type",
+        "source_address",
+        "host_role"
+      ],
+      "usage": {
+        "item_count": 16,
+        "priority_counts": {
+          "p0-gap": 1,
+          "p1-high-signal": 3,
+          "p2-roadmap-hardening": 1,
+          "p3-backlog": 11
+        },
+        "platform_counts": {
+          "windows": 6,
+          "linux": 5,
+          "macos": 5
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078",
+            "platform": "windows",
+            "technique_id": "T1078",
+            "priority": "p0-gap",
+            "source_rule_count": 106,
+            "source_mix": {
+              "splunk_security_content": 47,
+              "azure_sentinel": 26,
+              "elastic_detection_rules": 17,
+              "wazuh_ruleset": 15,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078",
+            "platform": "linux",
+            "technique_id": "T1078",
+            "priority": "p1-high-signal",
+            "source_rule_count": 125,
+            "source_mix": {
+              "wazuh_ruleset": 58,
+              "splunk_security_content": 37,
+              "azure_sentinel": 19,
+              "elastic_detection_rules": 11
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1133",
+            "platform": "linux",
+            "technique_id": "T1133",
+            "priority": "p1-high-signal",
+            "source_rule_count": 53,
+            "source_mix": {
+              "splunk_security_content": 26,
+              "wazuh_ruleset": 22,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1078",
+            "platform": "macos",
+            "technique_id": "T1078",
+            "priority": "p1-high-signal",
+            "source_rule_count": 58,
+            "source_mix": {
+              "splunk_security_content": 33,
+              "azure_sentinel": 16,
+              "elastic_detection_rules": 9
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1133",
+            "platform": "windows",
+            "technique_id": "T1133",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 35,
+            "source_mix": {
+              "splunk_security_content": 33,
+              "elastic_detection_rules": 2
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078-004",
+            "platform": "linux",
+            "technique_id": "T1078.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 28,
+            "source_mix": {
+              "splunk_security_content": 14,
+              "azure_sentinel": 14
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078-003",
+            "platform": "linux",
+            "technique_id": "T1078.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 6,
+            "source_mix": {
+              "elastic_detection_rules": 3,
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1078-001",
+            "platform": "linux",
+            "technique_id": "T1078.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1078-004",
+            "platform": "macos",
+            "technique_id": "T1078.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 28,
+            "source_mix": {
+              "splunk_security_content": 14,
+              "azure_sentinel": 14
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1133",
+            "platform": "macos",
+            "technique_id": "T1133",
+            "priority": "p3-backlog",
+            "source_rule_count": 26,
+            "source_mix": {
+              "splunk_security_content": 21,
+              "elastic_detection_rules": 5
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1078-003",
+            "platform": "macos",
+            "technique_id": "T1078.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 4,
+            "source_mix": {
+              "elastic_detection_rules": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1078-001",
+            "platform": "macos",
+            "technique_id": "T1078.001",
+            "priority": "p3-backlog",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078-004",
+            "platform": "windows",
+            "technique_id": "T1078.004",
+            "priority": "p3-backlog",
+            "source_rule_count": 31,
+            "source_mix": {
+              "splunk_security_content": 16,
+              "azure_sentinel": 15
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078-002",
+            "platform": "windows",
+            "technique_id": "T1078.002",
+            "priority": "p3-backlog",
+            "source_rule_count": 17,
+            "source_mix": {
+              "elastic_detection_rules": 10,
+              "splunk_security_content": 7
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1078-003",
+            "platform": "windows",
+            "technique_id": "T1078.003",
+            "priority": "p3-backlog",
+            "source_rule_count": 5,
+            "source_mix": {
+              "splunk_security_content": 3,
+              "elastic_detection_rules": 2
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "web_request",
+      "runtime_status": "planned",
+      "owner_area": "agent_network_collector",
+      "agent_event_aliases": [
+        "web_request"
+      ],
+      "source_names": [
+        "network_dpi",
+        "cloud"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/network_dpi.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "remote_domain",
+        "remote_address",
+        "pid",
+        "uid",
+        "signing_id",
+        "process_guid"
+      ],
+      "usage": {
+        "item_count": 3,
+        "priority_counts": {
+          "p0-gap": 1,
+          "p1-high-signal": 2
+        },
+        "platform_counts": {
+          "macos": 1,
+          "linux": 1,
+          "windows": 1
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-macos-t1190",
+            "platform": "macos",
+            "technique_id": "T1190",
+            "priority": "p0-gap",
+            "source_rule_count": 85,
+            "source_mix": {
+              "splunk_security_content": 72,
+              "elastic_detection_rules": 9,
+              "azure_sentinel": 4
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1190",
+            "platform": "linux",
+            "technique_id": "T1190",
+            "priority": "p1-high-signal",
+            "source_rule_count": 126,
+            "source_mix": {
+              "splunk_security_content": 85,
+              "elastic_detection_rules": 20,
+              "wazuh_ruleset": 15,
+              "azure_sentinel": 6
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1190",
+            "platform": "windows",
+            "technique_id": "T1190",
+            "priority": "p1-high-signal",
+            "source_rule_count": 137,
+            "source_mix": {
+              "splunk_security_content": 111,
+              "elastic_detection_rules": 19,
+              "azure_sentinel": 7
+            }
+          }
+        ]
+      }
+    },
+    {
+      "event_type": "wmi_event",
+      "runtime_status": "planned",
+      "owner_area": "windows_registry_directory_collector",
+      "agent_event_aliases": [
+        "wmi_event"
+      ],
+      "source_names": [
+        "etw",
+        "windows_security"
+      ],
+      "primary_files": [
+        "apps/tamandua_agent/src/collectors/etw.rs"
+      ],
+      "minimum_fields": [
+        "agent_id",
+        "hostname",
+        "timestamp",
+        "event_type",
+        "actor_process",
+        "process_name",
+        "command_line",
+        "parent_process_name",
+        "user"
+      ],
+      "usage": {
+        "item_count": 2,
+        "priority_counts": {
+          "p1-high-signal": 1,
+          "p2-roadmap-hardening": 1
+        },
+        "platform_counts": {
+          "windows": 1,
+          "linux": 1
+        },
+        "top_candidates": [
+          {
+            "source_candidate_id": "semantic-rewrite-windows-t1047",
+            "platform": "windows",
+            "technique_id": "T1047",
+            "priority": "p1-high-signal",
+            "source_rule_count": 63,
+            "source_mix": {
+              "wazuh_ruleset": 22,
+              "splunk_security_content": 21,
+              "elastic_detection_rules": 19,
+              "lolbas": 1
+            }
+          },
+          {
+            "source_candidate_id": "semantic-rewrite-linux-t1047",
+            "platform": "linux",
+            "technique_id": "T1047",
+            "priority": "p2-roadmap-hardening",
+            "source_rule_count": 3,
+            "source_mix": {
+              "splunk_security_content": 3
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

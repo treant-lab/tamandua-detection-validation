@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "profile_id": "detection-rule-backlog-fixture-probe",
+  "name": "Detection Rule Backlog Fixture Probe",
+  "description": "Local Roadmap Q fixture probe for all high/critical positive-evidence backlog waves. Validates Tamandua-authored fixture contract shape and benign contrast across the backlog without claiming runtime detector coverage.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "detection-governance",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\detection_rule_wave_fixture_probe.py --wave all",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "detection_rule_all_waves_fixture_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local fixture contract only. Does not prove live endpoint execution, server-side detection, alert generation, per-rule benign runtime evidence, or full external-source parity.",
+  "tests": [
+    {
+      "id": "rule-gap-wave-1-fixture-contracts",
+      "name": "Wave 1 fixture contracts are present and safe",
+      "executor": "detection_rule_wave_fixture_probe",
+      "expected_telemetry": ["rule_fixture_contract"],
+      "expected_fields": ["rule", "positive_fixture", "benign_contrast"]
+    },
+    {
+      "id": "rule-gap-wave-2-fixture-contracts",
+      "name": "Wave 2 fixture contracts are present and safe",
+      "executor": "detection_rule_wave_fixture_probe",
+      "expected_telemetry": ["rule_fixture_contract"],
+      "expected_fields": ["rule", "positive_fixture", "benign_contrast"]
+    },
+    {
+      "id": "rule-gap-wave-3-fixture-contracts",
+      "name": "Wave 3 fixture contracts are present and safe",
+      "executor": "detection_rule_wave_fixture_probe",
+      "expected_telemetry": ["rule_fixture_contract"],
+      "expected_fields": ["rule", "positive_fixture", "benign_contrast"]
+    },
+    {
+      "id": "rule-gap-wave-4-fixture-contracts",
+      "name": "Wave 4 fixture contracts are present and safe",
+      "executor": "detection_rule_wave_fixture_probe",
+      "expected_telemetry": ["rule_fixture_contract"],
+      "expected_fields": ["rule", "positive_fixture", "benign_contrast"]
+    }
+  ]
+}

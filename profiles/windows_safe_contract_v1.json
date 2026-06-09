@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-safe-contract-v1",
+  "name": "Windows Safe Contract v1",
+  "description": "Small non-destructive Windows sensor-contract profile. It validates persisted process, file, registry, DNS, and network evidence with investigation fields, driver raw counters, zero unknown source events, and zero driver drops.",
+  "platform": "windows",
+  "default_observation_seconds": 60,
+  "quality_bar": {
+    "purpose": "windows_safe_contract",
+    "requires_driver_health": true,
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "contract": {
+    "write_scope": [
+      "%TEMP%\\tamandua-contract-*",
+      "HKCU\\Software\\TamanduaContract"
+    ],
+    "forbidden_actions": [
+      "credential dumping",
+      "LSASS access",
+      "service or driver installation",
+      "firewall changes",
+      "destructive delete outside the declared write scope",
+      "persistent autostart without cleanup"
+    ],
+    "required_outcomes": [
+      "persisted_events",
+      "source_attribution",
+      "investigation_fields",
+      "driver_raw_counter_delta",
+      "zero_driver_drops"
+    ]
+  },
+  "tests": [
+    {
+      "id": "contract-process-shell",
+      "name": "Process Contract Shell",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua-contract & whoami & hostname\"",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["windows-safe-contract", "contract", "tactic:discovery", "mitre:T1033"],
+      "risk": "low"
+    },
+    {
+      "id": "contract-temp-file-write",
+      "name": "Temp File Contract Write",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua-contract>%TEMP%\\tamandua-contract-file.txt & type %TEMP%\\tamandua-contract-file.txt > nul & del /f /q %TEMP%\\tamandua-contract-file.txt\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["file_create", "file_modify", "file_delete"],
+      "expected_driver_raw_event_types": ["file_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "path"],
+      "tags": ["windows-safe-contract", "contract", "file", "tactic:collection", "mitre:T1005"],
+      "risk": "low"
+    },
+    {
+      "id": "contract-hkcu-registry-write",
+      "name": "HKCU Registry Contract Write",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"reg add HKCU\\Software\\TamanduaContract /v Marker /t REG_SZ /d tamandua /f & ping -n 3 127.0.0.1 > nul & reg delete HKCU\\Software\\TamanduaContract /f\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["registry_set_value", "registry_delete_key"],
+      "expected_driver_raw_event_types": ["registry_set_value"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "registry_key"],
+      "tags": ["windows-safe-contract", "contract", "registry", "tactic:defense-evasion", "mitre:T1112"],
+      "risk": "low"
+    },
+    {
+      "id": "contract-dns-network-example",
+      "name": "DNS and Network Contract Example",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"nslookup example.com & curl.exe -I https://example.com/\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "dns_response", "network_connect"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "domain", "remote_ip"],
+      "tags": ["windows-safe-contract", "contract", "network", "tactic:command-and-control", "mitre:T1071.001"],
+      "risk": "low"
+    }
+  ]
+}

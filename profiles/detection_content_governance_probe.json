@@ -1,0 +1,134 @@
+{
+  "schema_version": 1,
+  "profile_id": "detection-content-governance-probe",
+  "name": "Detection Content Governance Probe",
+  "description": "Local Roadmap Q probe for detection content governance: high/critical metadata, selected positive/benign/replay evidence, and clean-room provenance contracts.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "detection-governance",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\detection_content_governance_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "detection_content_governance_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Selected content-governance evidence only. Does not prove all rules have positive and benign fixtures, that every high/critical rule is non-bypassable, or that external-source-inspired candidates are implemented.",
+  "tests": [
+    {
+      "id": "governance-high-critical-metadata-report",
+      "name": "High/critical rule metadata report is clean",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["metadata_report"],
+      "expected_fields": ["rules_scanned", "high_critical_rules", "high_critical_review"]
+    },
+    {
+      "id": "governance-enterprise-eval-positive-evidence",
+      "name": "Enterprise eval profile provides positive detection evidence",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate"]
+    },
+    {
+      "id": "governance-atomic-positive-evidence",
+      "name": "Atomic smoke profile provides upstream-backed positive evidence",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate"]
+    },
+    {
+      "id": "governance-caldera-positive-evidence",
+      "name": "CALDERA smoke profile provides upstream-backed positive evidence",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate"]
+    },
+    {
+      "id": "governance-benign-noise-evidence",
+      "name": "Broad benign/noise profile provides contrast evidence",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate"]
+    },
+    {
+      "id": "governance-replay-evidence",
+      "name": "Offline FP/severity replay profile provides regression evidence",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate"]
+    },
+    {
+      "id": "governance-clean-room-acquisition-doc",
+      "name": "External rule acquisition document preserves clean-room boundaries",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["source_governance_contract"],
+      "expected_fields": ["artifact", "checked_terms"]
+    },
+    {
+      "id": "governance-external-coverage-doc",
+      "name": "External rule coverage mapping documents source mix and claim boundaries",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["source_governance_contract"],
+      "expected_fields": ["artifact", "checked_terms"]
+    },
+    {
+      "id": "governance-event-contract-doc",
+      "name": "External rule event contracts document existing, normalize-alias, and planned telemetry",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["source_governance_contract"],
+      "expected_fields": ["artifact", "checked_terms"]
+    },
+    {
+      "id": "governance-metadata-checker-conservative-fields",
+      "name": "Metadata checker enforces high/critical explanation fields",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["source_governance_contract"],
+      "expected_fields": ["artifact", "checked_terms"]
+    },
+    {
+      "id": "governance-external-inventory-shape",
+      "name": "External rule inventory preserves source and candidate accounting",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["json_governance_contract"],
+      "expected_fields": ["artifact", "item_count"]
+    },
+    {
+      "id": "governance-semantic-candidate-shape",
+      "name": "Semantic rewrite candidate list exists for Tamandua-authored promotion",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["json_governance_contract"],
+      "expected_fields": ["artifact", "item_count"]
+    },
+    {
+      "id": "governance-rule-evidence-matrix-shape",
+      "name": "High/critical rule evidence matrix records positive and benign mapping gaps",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["json_governance_contract"],
+      "expected_fields": ["artifact", "item_count"]
+    },
+    {
+      "id": "governance-rule-evidence-backlog-shape",
+      "name": "High/critical rule evidence backlog prioritizes missing positive mappings",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["json_governance_contract"],
+      "expected_fields": ["artifact", "item_count"]
+    },
+    {
+      "id": "governance-rule-wave1-fixture-plan-shape",
+      "name": "Wave 1 high/critical rule fixture plan is implementation-ready",
+      "executor": "detection_content_governance_probe",
+      "expected_telemetry": ["json_governance_contract"],
+      "expected_fields": ["artifact", "item_count"]
+    }
+  ]
+}

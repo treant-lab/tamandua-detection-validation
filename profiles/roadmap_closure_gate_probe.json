@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "profile_id": "roadmap-closure-gate-probe",
+  "name": "Roadmap Closure Gate Probe",
+  "description": "Read-only generated-scorecard gate for active roadmap closure. It consolidates A/B/D/E/M into one artifact so the runner can decide whether broad Windows, Atomic, CALDERA, or macOS validation is claim-safe.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\roadmap_closure_gate_probe.py",
+    "timeout_seconds": 90,
+    "runtime_effect": "read_only_scorecard",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "roadmap_closure_gate",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Read-only generated-scorecard closure gate only. Passing this profile means the selected roadmap gates are already green in generated evidence; it does not execute endpoints or prove new detections.",
+  "tests": [
+    {
+      "id": "roadmap-a-closure-gate",
+      "name": "Roadmap A Windows P0 segmented and lab readiness is green",
+      "executor": "roadmap_closure_gate_probe",
+      "expected_telemetry": ["generated_scorecard_status"],
+      "expected_fields": ["roadmap_status", "blocking_profiles"]
+    },
+    {
+      "id": "roadmap-b-closure-gate",
+      "name": "Roadmap B Windows 300 fresh-restore provenance is green",
+      "executor": "roadmap_closure_gate_probe",
+      "expected_telemetry": ["generated_scorecard_status"],
+      "expected_fields": ["roadmap_status", "blocking_profiles"]
+    },
+    {
+      "id": "roadmap-d-closure-gate",
+      "name": "Roadmap D CALDERA repeatability is green",
+      "executor": "roadmap_closure_gate_probe",
+      "expected_telemetry": ["generated_scorecard_status"],
+      "expected_fields": ["roadmap_status", "blocking_profiles"]
+    },
+    {
+      "id": "roadmap-e-closure-gate",
+      "name": "Roadmap E Linux/macOS P0 sensor smoke is green",
+      "executor": "roadmap_closure_gate_probe",
+      "expected_telemetry": ["generated_scorecard_status"],
+      "expected_fields": ["roadmap_status", "blocking_profiles"]
+    },
+    {
+      "id": "roadmap-m-closure-gate",
+      "name": "Roadmap M expanded upstream profiles are green",
+      "executor": "roadmap_closure_gate_probe",
+      "expected_telemetry": ["generated_scorecard_status"],
+      "expected_fields": ["roadmap_status", "blocking_profiles"]
+    }
+  ]
+}

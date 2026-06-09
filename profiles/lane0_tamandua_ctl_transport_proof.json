@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "profile_id": "lane0-tamandua-ctl-transport-proof",
+  "name": "Lane 0 Tamandua CTL Transport Proof",
+  "description": "Runner hardening proof for the tamandua-ctl live-response execution channel. This profile validates bounded artifact generation, live-response dispatch/audit, and runner/infra classification. It intentionally does not claim endpoint telemetry or detector coverage.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "stable-regression",
+  "quality_bar": {
+    "purpose": "runner_hardening",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Runner hardening only. Passing or failing this profile does not support detection, benign/noise, or upstream Atomic/CALDERA coverage claims.",
+  "tests": [
+    {
+      "id": "lane0-tamandua-ctl-benign-command-dispatch",
+      "name": "Tamandua CTL Benign Command Dispatch",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua-lane0-transport-proof && ping -n 3 127.0.0.1 > nul\"",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "session_id", "output"],
+      "tags": ["lane0", "runner", "live-response", "tamandua-ctl", "transport"],
+      "risk": "low"
+    },
+    {
+      "id": "lane0-tamandua-ctl-windows-if-exist-dispatch",
+      "name": "Tamandua CTL Windows cmd.exe if-exist Dispatch",
+      "executor": "command",
+      "fallback_command": "if exist D:\\Windows echo tamandua-lane0-if-exist-proof",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "session_id", "output"],
+      "tags": ["lane0", "runner", "live-response", "tamandua-ctl", "transport", "windows-cmd"],
+      "risk": "low"
+    }
+  ]
+}

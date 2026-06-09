@@ -1,0 +1,623 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-roadmap-300-p1-batch-08",
+  "name": "Linux Roadmap 300 P1 Batch 08",
+  "description": "Executable batch generated directly from the Linux 300-scenario roadmap.",
+  "platform": "linux",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "linux_roadmap_300_p1_batch_08",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/linux_detection_roadmap_300.json",
+    "selected_scenarios": 12,
+    "generated_tests": 12,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-lin-collection-008-t1560-001",
+      "name": "Archive via Utility: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-collection; echo sample >/tmp/tamandua-collection/sample.txt; tar -cf /tmp/tamandua-collection.tar -C /tmp/tamandua-collection sample.txt; rm -rf /tmp/tamandua-collection /tmp/tamandua-collection.tar'",
+      "roadmap_traceability": {
+        "technique": "T1560.001",
+        "technique_name": "Archive via Utility",
+        "tactic": "collection",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-collection-008",
+        "tactic:collection",
+        "mitre:T1560.001",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-collection-009-t1213",
+      "name": "Data from Information Repositories: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-collection; echo sample >/tmp/tamandua-collection/sample.txt; tar -cf /tmp/tamandua-collection.tar -C /tmp/tamandua-collection sample.txt; rm -rf /tmp/tamandua-collection /tmp/tamandua-collection.tar'",
+      "roadmap_traceability": {
+        "technique": "T1213",
+        "technique_name": "Data from Information Repositories",
+        "tactic": "collection",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-collection-009",
+        "tactic:collection",
+        "mitre:T1213",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-collection-010-t1119",
+      "name": "Automated Collection: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-collection; echo sample >/tmp/tamandua-collection/sample.txt; tar -cf /tmp/tamandua-collection.tar -C /tmp/tamandua-collection sample.txt; rm -rf /tmp/tamandua-collection /tmp/tamandua-collection.tar'",
+      "roadmap_traceability": {
+        "technique": "T1119",
+        "technique_name": "Automated Collection",
+        "tactic": "collection",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-collection-010",
+        "tactic:collection",
+        "mitre:T1119",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-collection-011-t1005",
+      "name": "Data from Local System: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-collection; echo sample >/tmp/tamandua-collection/sample.txt; tar -cf /tmp/tamandua-collection.tar -C /tmp/tamandua-collection sample.txt; rm -rf /tmp/tamandua-collection /tmp/tamandua-collection.tar'",
+      "roadmap_traceability": {
+        "technique": "T1005",
+        "technique_name": "Data from Local System",
+        "tactic": "collection",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-collection-011",
+        "tactic:collection",
+        "mitre:T1005",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-collection-012-t1115",
+      "name": "Clipboard Data: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-collection; echo sample >/tmp/tamandua-collection/sample.txt; tar -cf /tmp/tamandua-collection.tar -C /tmp/tamandua-collection sample.txt; rm -rf /tmp/tamandua-collection /tmp/tamandua-collection.tar'",
+      "roadmap_traceability": {
+        "technique": "T1115",
+        "technique_name": "Clipboard Data",
+        "tactic": "collection",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-collection-012",
+        "tactic:collection",
+        "mitre:T1115",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-commandandcontrol-013-t1071-001",
+      "name": "Web Protocols: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'getent hosts example.com >/dev/null || nslookup example.com >/dev/null 2>&1 || true'",
+      "roadmap_traceability": {
+        "technique": "T1071.001",
+        "technique_name": "Web Protocols",
+        "tactic": "command-and-control",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-commandandcontrol-013",
+        "tactic:command-and-control",
+        "mitre:T1071.001",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-commandandcontrol-014-t1105",
+      "name": "Ingress Tool Transfer: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'getent hosts example.com >/dev/null || nslookup example.com >/dev/null 2>&1 || true'",
+      "roadmap_traceability": {
+        "technique": "T1105",
+        "technique_name": "Ingress Tool Transfer",
+        "tactic": "command-and-control",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-commandandcontrol-014",
+        "tactic:command-and-control",
+        "mitre:T1105",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-commandandcontrol-015-t1095",
+      "name": "Non-Application Layer Protocol: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'getent hosts example.com >/dev/null || nslookup example.com >/dev/null 2>&1 || true'",
+      "roadmap_traceability": {
+        "technique": "T1095",
+        "technique_name": "Non-Application Layer Protocol",
+        "tactic": "command-and-control",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-commandandcontrol-015",
+        "tactic:command-and-control",
+        "mitre:T1095",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-commandandcontrol-016-t1573",
+      "name": "Encrypted Channel: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'getent hosts example.com >/dev/null || nslookup example.com >/dev/null 2>&1 || true'",
+      "roadmap_traceability": {
+        "technique": "T1573",
+        "technique_name": "Encrypted Channel",
+        "tactic": "command-and-control",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-commandandcontrol-016",
+        "tactic:command-and-control",
+        "mitre:T1573",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-commandandcontrol-017-t1090",
+      "name": "Proxy: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'getent hosts example.com >/dev/null || nslookup example.com >/dev/null 2>&1 || true'",
+      "roadmap_traceability": {
+        "technique": "T1090",
+        "technique_name": "Proxy",
+        "tactic": "command-and-control",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-commandandcontrol-017",
+        "tactic:command-and-control",
+        "mitre:T1090",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-commandandcontrol-018-t1132",
+      "name": "Data Encoding: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'getent hosts example.com >/dev/null || nslookup example.com >/dev/null 2>&1 || true'",
+      "roadmap_traceability": {
+        "technique": "T1132",
+        "technique_name": "Data Encoding",
+        "tactic": "command-and-control",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-commandandcontrol-018",
+        "tactic:command-and-control",
+        "mitre:T1132",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-commandandcontrol-019-t1071-001",
+      "name": "Web Protocols: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'getent hosts example.com >/dev/null || nslookup example.com >/dev/null 2>&1 || true'",
+      "roadmap_traceability": {
+        "technique": "T1071.001",
+        "technique_name": "Web Protocols",
+        "tactic": "command-and-control",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-commandandcontrol-019",
+        "tactic:command-and-control",
+        "mitre:T1071.001",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    }
+  ]
+}

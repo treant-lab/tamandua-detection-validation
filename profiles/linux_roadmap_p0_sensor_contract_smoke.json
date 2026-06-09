@@ -1,0 +1,623 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-roadmap-p0-sensor-contract-smoke",
+  "name": "Linux Roadmap P0 Sensor Contract Smoke",
+  "description": "First P0 sensor-contract batch to move this platform out of planned-only state.",
+  "platform": "linux",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "linux_p0_sensor_contract_smoke",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/linux_detection_roadmap_300.json",
+    "selected_scenarios": 17,
+    "generated_tests": 12,
+    "limit": 12
+  },
+  "tests": [
+    {
+      "id": "roadmap-lin-initialaccess-001-t1190",
+      "name": "Exploit Public-Facing Application: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-initial-access > /tmp/tamandua-initial-access.txt; cat /tmp/tamandua-initial-access.txt >/dev/null; rm -f /tmp/tamandua-initial-access.txt'",
+      "roadmap_traceability": {
+        "technique": "T1190",
+        "technique_name": "Exploit Public-Facing Application",
+        "tactic": "initial-access",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-initialaccess-001",
+        "tactic:initial-access",
+        "mitre:T1190",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-execution-001-t1059-004",
+      "name": "Unix Shell: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1059.004",
+        "technique_name": "Unix Shell",
+        "tactic": "execution",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-execution-001",
+        "tactic:execution",
+        "mitre:T1059.004",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-execution-009-t1059-004",
+      "name": "Unix Shell: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1059.004",
+        "technique_name": "Unix Shell",
+        "tactic": "execution",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-execution-009",
+        "tactic:execution",
+        "mitre:T1059.004",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-persistence-001-t1053-003",
+      "name": "Cron: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1053.003",
+        "technique_name": "Cron",
+        "tactic": "persistence",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-persistence-001",
+        "tactic:persistence",
+        "mitre:T1053.003",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-privilegeescalation-001-t1548-003",
+      "name": "Sudo and Sudo Caching: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami'",
+      "roadmap_traceability": {
+        "technique": "T1548.003",
+        "technique_name": "Sudo and Sudo Caching",
+        "tactic": "privilege-escalation",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-privilegeescalation-001",
+        "tactic:privilege-escalation",
+        "mitre:T1548.003",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-defenseevasion-001-t1027",
+      "name": "Obfuscated Files or Information: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1027",
+        "technique_name": "Obfuscated Files or Information",
+        "tactic": "defense-evasion",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-001",
+        "tactic:defense-evasion",
+        "mitre:T1027",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-defenseevasion-009-t1140",
+      "name": "Deobfuscate/Decode Files: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "roadmap_traceability": {
+        "technique": "T1140",
+        "technique_name": "Deobfuscate/Decode Files",
+        "tactic": "defense-evasion",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-defenseevasion-009",
+        "tactic:defense-evasion",
+        "mitre:T1140",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-001-t1003-008",
+      "name": "/etc/passwd and /etc/shadow: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1003.008",
+        "technique_name": "/etc/passwd and /etc/shadow",
+        "tactic": "credential-access",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-001",
+        "tactic:credential-access",
+        "mitre:T1003.008",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-credentialaccess-009-t1552-001",
+      "name": "Credentials In Files: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "tactic": "credential-access",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-credentialaccess-009",
+        "tactic:credential-access",
+        "mitre:T1552.001",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-discovery-001-t1082",
+      "name": "System Information Discovery: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'whoami; hostname; uname -a; ps -eo pid,comm | head'",
+      "roadmap_traceability": {
+        "technique": "T1082",
+        "technique_name": "System Information Discovery",
+        "tactic": "discovery",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-discovery-001",
+        "tactic:discovery",
+        "mitre:T1082",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-lateralmovement-001-t1021-004",
+      "name": "SSH: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'hostname; id; getent hosts localhost || true'",
+      "roadmap_traceability": {
+        "technique": "T1021.004",
+        "technique_name": "SSH",
+        "tactic": "lateral-movement",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-lateralmovement-001",
+        "tactic:lateral-movement",
+        "mitre:T1021.004",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-lin-lateralmovement-009-t1550-002",
+      "name": "Pass the Hash: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'hostname; id; getent hosts localhost || true'",
+      "roadmap_traceability": {
+        "technique": "T1550.002",
+        "technique_name": "Pass the Hash",
+        "tactic": "lateral-movement",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-lateralmovement-009",
+        "tactic:lateral-movement",
+        "mitre:T1550.002",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    }
+  ]
+}

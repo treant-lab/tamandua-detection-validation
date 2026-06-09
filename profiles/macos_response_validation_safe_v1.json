@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-response-validation-safe-v1",
+  "name": "macOS Response Validation Safe v1",
+  "description": "Safe response-validation lane for macOS analyst-facing outcomes, live-response audit context, and non-destructive inventory/artifact workflows.",
+  "platform": "macos",
+  "default_observation_seconds": 90,
+  "benchmark_lane": "enterprise-eval",
+  "claim_boundary": "Selected non-destructive macOS response/audit validation only. This does not prove containment, kill-process, deletion, or broad response parity until server-backed transcript evidence exists.",
+  "expected_gap_categories": [
+    "collector",
+    "normalization",
+    "detector",
+    "alert-quality",
+    "response-audit",
+    "runner",
+    "infrastructure",
+    "noise",
+    "claim-boundary"
+  ],
+  "quality_bar": {
+    "purpose": "macos_response_validation_safe",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "response_contract": {
+    "minimum_alert_context": [
+      "event_ids",
+      "contributing_events",
+      "mitre_tactics",
+      "mitre_techniques"
+    ],
+    "required_response_questions": [
+      "what executed",
+      "who executed it",
+      "where it executed",
+      "why it alerted",
+      "which evidence supports the alert"
+    ],
+    "write_scope": [
+      "/tmp/tamandua-response-*"
+    ]
+  },
+  "tests": [
+    {
+      "id": "response-macos-shell-audit",
+      "name": "Response Shell Audit",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-response-shell; id; pwd'",
+      "expected_telemetry": [
+        "live_response_command"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "command",
+        "session_id"
+      ],
+      "tags": [
+        "response-validation",
+        "tactic:execution",
+        "mitre:T1059.004"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "process_create"
+      ],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive macOS response/audit context only"
+    },
+    {
+      "id": "response-macos-launchd-inventory",
+      "name": "Response Launchd Inventory",
+      "executor": "command",
+      "fallback_command": "sh -lc 'launchctl list 2>/dev/null | head -n 20; ls /Library/LaunchDaemons 2>/dev/null | head -n 20'",
+      "expected_telemetry": [
+        "live_response_command"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "command",
+        "session_id"
+      ],
+      "tags": [
+        "response-validation",
+        "tactic:persistence",
+        "mitre:T1543.004"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "process_create"
+      ],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive macOS response/audit context only"
+    },
+    {
+      "id": "response-macos-network-inventory",
+      "name": "Response Network Inventory",
+      "executor": "command",
+      "fallback_command": "sh -lc 'lsof -n -P -iTCP -iUDP 2>/dev/null | head -n 25 || netstat -an | head -n 25'",
+      "expected_telemetry": [
+        "live_response_command"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "command",
+        "session_id"
+      ],
+      "tags": [
+        "response-validation",
+        "tactic:discovery",
+        "mitre:T1049"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "network_connect"
+      ],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive macOS response/audit context only"
+    },
+    {
+      "id": "response-macos-process-signature",
+      "name": "Response Process Signature Context",
+      "executor": "command",
+      "fallback_command": "sh -lc 'codesign -dv --verbose=2 /bin/ls >/dev/null 2>&1 || true; ps -axo pid,comm | head -n 10'",
+      "expected_telemetry": [
+        "live_response_command"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "command",
+        "session_id"
+      ],
+      "tags": [
+        "response-validation",
+        "tactic:defense-evasion",
+        "mitre:T1553.001"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "process_create"
+      ],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive macOS response/audit context only"
+    },
+    {
+      "id": "response-macos-artifact-collection-safe",
+      "name": "Response Artifact Collection Safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'd=$(mktemp -d /tmp/tamandua-response.XXXXXX); echo artifact > \"$d/artifact.txt\"; shasum -a 256 \"$d/artifact.txt\"; rm -rf \"$d\"'",
+      "expected_telemetry": [
+        "live_response_command"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "command",
+        "session_id"
+      ],
+      "tags": [
+        "response-validation",
+        "dfir",
+        "artifact",
+        "mitre:T1005"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "file_create",
+        "file_delete"
+      ],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive macOS response/audit context only"
+    }
+  ]
+}

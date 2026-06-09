@@ -1,0 +1,702 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-roadmap-p0-existing-sensor-contract",
+  "name": "Windows Roadmap P0 Existing Sensor Contract",
+  "description": "Focused batch that promotes Windows P0 scenarios already mapped to existing profiles into fresh evidence.",
+  "platform": "windows",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "windows_p0_existing_sensor_contract",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "requires_driver_health": true,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/windows_detection_roadmap_300.json",
+    "selected_scenarios": 17,
+    "generated_tests": 12,
+    "limit": 12
+  },
+  "tests": [
+    {
+      "id": "roadmap-win-initialaccess-001-t1566-001",
+      "name": "Spearphishing Attachment: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua-phishing-attachment > %TEMP%\\tamandua-phishing-attachment.txt & type %TEMP%\\tamandua-phishing-attachment.txt & del /f /q %TEMP%\\tamandua-phishing-attachment.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1566.001",
+        "technique_name": "Spearphishing Attachment",
+        "tactic": "initial-access",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-initialaccess-001",
+        "tactic:initial-access",
+        "mitre:T1566.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-execution-001-t1059-001",
+      "name": "PowerShell: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ver\"",
+      "roadmap_traceability": {
+        "technique": "T1059.001",
+        "technique_name": "PowerShell",
+        "tactic": "execution",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-enterprise-safe",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-execution-001",
+        "tactic:execution",
+        "mitre:T1059.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-execution-009-t1059-001",
+      "name": "PowerShell: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ver\"",
+      "roadmap_traceability": {
+        "technique": "T1059.001",
+        "technique_name": "PowerShell",
+        "tactic": "execution",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-enterprise-safe",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-execution-009",
+        "tactic:execution",
+        "mitre:T1059.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-persistence-001-t1547-001",
+      "name": "Registry Run Keys / Startup Folder: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /t REG_SZ /d tamandua-bench-run /f & reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun & reg delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /f\"",
+      "roadmap_traceability": {
+        "technique": "T1547.001",
+        "technique_name": "Registry Run Keys / Startup Folder",
+        "tactic": "persistence",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create",
+        "registry_set_value"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-persistence-001",
+        "tactic:persistence",
+        "mitre:T1547.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-privilegeescalation-001-t1548-002",
+      "name": "Bypass User Account Control: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami /groups & whoami /priv\"",
+      "roadmap_traceability": {
+        "technique": "T1548.002",
+        "technique_name": "Bypass User Account Control",
+        "tactic": "privilege-escalation",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-privilegeescalation-001",
+        "tactic:privilege-escalation",
+        "mitre:T1548.002",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-defenseevasion-001-t1027",
+      "name": "Obfuscated Files or Information: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua>%TEMP%\\tamandua-evasion.txt & attrib +h %TEMP%\\tamandua-evasion.txt & attrib -h %TEMP%\\tamandua-evasion.txt & del /f /q %TEMP%\\tamandua-evasion.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1027",
+        "technique_name": "Obfuscated Files or Information",
+        "tactic": "defense-evasion",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-defenseevasion-001",
+        "tactic:defense-evasion",
+        "mitre:T1027",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-defenseevasion-009-t1036",
+      "name": "Masquerading: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua>%TEMP%\\tamandua-evasion.txt & attrib +h %TEMP%\\tamandua-evasion.txt & attrib -h %TEMP%\\tamandua-evasion.txt & del /f /q %TEMP%\\tamandua-evasion.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1036",
+        "technique_name": "Masquerading",
+        "tactic": "defense-evasion",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-defenseevasion-009",
+        "tactic:defense-evasion",
+        "mitre:T1036",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-001-t1003-001",
+      "name": "LSASS Memory: telemetry contract",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"Get-Process lsass | Select-Object -First 1 -Property Id,ProcessName | Out-Null\"",
+      "roadmap_traceability": {
+        "technique": "T1003.001",
+        "technique_name": "LSASS Memory",
+        "tactic": "credential-access",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-001",
+        "tactic:credential-access",
+        "mitre:T1003.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-009-t1552-001",
+      "name": "Credentials In Files: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami /user & cmdkey /list 2>nul\"",
+      "roadmap_traceability": {
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "tactic": "credential-access",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-009",
+        "tactic:credential-access",
+        "mitre:T1552.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-001-t1082",
+      "name": "System Information Discovery: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1082",
+        "technique_name": "System Information Discovery",
+        "tactic": "discovery",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-001",
+        "tactic:discovery",
+        "mitre:T1082",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-lateralmovement-001-t1021-002",
+      "name": "SMB/Windows Admin Shares: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"net view \\\\localhost 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1021.002",
+        "technique_name": "SMB/Windows Admin Shares",
+        "tactic": "lateral-movement",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-001",
+        "tactic:lateral-movement",
+        "mitre:T1021.002",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-lateralmovement-009-t1047",
+      "name": "Windows Management Instrumentation: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"net view \\\\localhost 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1047",
+        "technique_name": "Windows Management Instrumentation",
+        "tactic": "lateral-movement",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-extended-safe",
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-009",
+        "tactic:lateral-movement",
+        "mitre:T1047",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    }
+  ]
+}

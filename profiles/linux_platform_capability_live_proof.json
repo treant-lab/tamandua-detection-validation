@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-platform-capability-live-proof",
+  "name": "Linux Platform Capability Live Proof",
+  "description": "Server-backed live-response proof for Roadmap K on lab-linux01. Executes bounded, non-sensitive Linux commands to prove endpoint reachability and live evidence shape for FIM baseline/change, inventory freshness, and compliance evidence without claiming full FIM collector or SIEM delivery maturity.",
+  "platform": "linux",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "stable-regression",
+  "quality_bar": {
+    "purpose": "platform_capability_live_proof",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Live endpoint command/audit proof only. Does not prove production FIM collector baseline/change events, compliance posture, vulnerability enrichment, or external SIEM delivery ack.",
+  "tests": [
+    {
+      "id": "linux-platform-fim-baseline-change-live",
+      "name": "Linux live FIM baseline/change evidence shape",
+      "executor": "command",
+      "fallback_command": "p=/tmp/tamandua-fim-live-proof-$$.txt; printf 'tamandua-fim-baseline\\n' > $p; b=$(sha256sum $p | awk '{print $1}'); printf 'tamandua-fim-change\\n' >> $p; c=$(sha256sum $p | awk '{print $1}'); printf 'tamandua_platform_fim_live path=%s baseline_sha256=%s changed_sha256=%s changed=%s\\n' \"$p\" \"$b\" \"$c\" \"$(test \"$b\" != \"$c\" && echo true || echo false)\"; rm -f $p",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "session_id", "output"],
+      "tags": ["roadmap-k", "platform-capability", "fim", "live-response", "linux"],
+      "risk": "low"
+    },
+    {
+      "id": "linux-platform-inventory-freshness-live",
+      "name": "Linux live inventory freshness evidence shape",
+      "executor": "command",
+      "fallback_command": "printf 'tamandua_platform_inventory_live hostname=%s kernel=%s uptime_seconds=%s os=%s\\n' \"$(hostname)\" \"$(uname -r)\" \"$(cut -d. -f1 /proc/uptime)\" \"$(. /etc/os-release 2>/dev/null; echo ${ID:-unknown}-${VERSION_ID:-unknown})\"",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "session_id", "output"],
+      "tags": ["roadmap-k", "platform-capability", "inventory", "live-response", "linux"],
+      "risk": "low"
+    },
+    {
+      "id": "linux-platform-compliance-control-live",
+      "name": "Linux live compliance control evidence shape",
+      "executor": "command",
+      "fallback_command": "mode=$(stat -c '%a' /etc/passwd 2>/dev/null || echo unknown); owner=$(stat -c '%U:%G' /etc/passwd 2>/dev/null || echo unknown); hash=$(sha256sum /etc/passwd 2>/dev/null | awk '{print $1}'); printf 'tamandua_platform_compliance_live control=linux-passwd-permissions path=/etc/passwd mode=%s owner=%s evidence_sha256=%s\\n' \"$mode\" \"$owner\" \"$hash\"",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "session_id", "output"],
+      "tags": ["roadmap-k", "platform-capability", "compliance", "live-response", "linux"],
+      "risk": "low"
+    }
+  ]
+}

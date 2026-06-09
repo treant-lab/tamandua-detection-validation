@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-ebpf-readiness-probe",
+  "name": "Linux eBPF/LSM Readiness Probe",
+  "description": "Local read-only Lane 0 probe that records whether the current Linux host meets the eBPF and eBPF-LSM prerequisites (kernel version, BTF, kernel config, LSM list, bpffs mount, and CAP_BPF/CAP_SYS_ADMIN). On non-Linux hosts the probe records a skipped verdict without failing the gate.",
+  "platform": "linux",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\linux_ebpf_readiness_probe.py",
+    "timeout_seconds": 60,
+    "runtime_effect": "local_read_only_host_probe",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "linux_ebpf_readiness",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local read-only host readiness proof. Passing this profile records that the host meets the eBPF/LSM prerequisites; it does not load BPF programs and does not prove end-to-end sensor coverage.",
+  "tests": [
+    {
+      "id": "linux-ebpf-kernel-version",
+      "name": "Kernel version meets eBPF/LSM minimum (>= 5.7)",
+      "executor": "linux_ebpf_readiness_probe",
+      "expected_telemetry": ["local_read_only_host_probe"],
+      "expected_fields": ["kernel.release", "kernel.parsed", "kernel.meets_minimum"]
+    },
+    {
+      "id": "linux-ebpf-btf-available",
+      "name": "BTF information is available at /sys/kernel/btf/vmlinux",
+      "executor": "linux_ebpf_readiness_probe",
+      "expected_telemetry": ["local_read_only_host_probe"],
+      "expected_fields": ["btf.path", "btf.available", "btf.size_bytes"]
+    },
+    {
+      "id": "linux-ebpf-kernel-config",
+      "name": "CONFIG_BPF, CONFIG_BPF_SYSCALL, and CONFIG_BPF_LSM are enabled",
+      "executor": "linux_ebpf_readiness_probe",
+      "expected_telemetry": ["local_read_only_host_probe"],
+      "expected_fields": ["kernel_config.source", "kernel_config.flags", "kernel_config.required_flags_satisfied"]
+    },
+    {
+      "id": "linux-ebpf-lsm-bpf",
+      "name": "Active LSM list at /sys/kernel/security/lsm contains 'bpf'",
+      "executor": "linux_ebpf_readiness_probe",
+      "expected_telemetry": ["local_read_only_host_probe"],
+      "expected_fields": ["lsm.path", "lsm.entries", "lsm.bpf_enabled"]
+    },
+    {
+      "id": "linux-ebpf-bpffs-mounted",
+      "name": "bpf filesystem is mounted at /sys/fs/bpf",
+      "executor": "linux_ebpf_readiness_probe",
+      "expected_telemetry": ["local_read_only_host_probe"],
+      "expected_fields": ["bpf_fs.path", "bpf_fs.exists", "bpf_fs.mounted", "bpf_fs.fs_type"]
+    },
+    {
+      "id": "linux-ebpf-capabilities",
+      "name": "Process has CAP_BPF or CAP_SYS_ADMIN to load eBPF programs",
+      "executor": "linux_ebpf_readiness_probe",
+      "expected_telemetry": ["local_read_only_host_probe"],
+      "expected_fields": ["capabilities.cap_bpf", "capabilities.cap_sys_admin", "capabilities.load_capable"]
+    }
+  ]
+}

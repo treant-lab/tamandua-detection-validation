@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-atomic-detection-smoke",
+  "name": "Windows Atomic Detection Smoke",
+  "description": "Small Windows profile that expects real detections/alerts, not only telemetry. Use after endpoint-core and driver-core are stable.",
+  "platform": "windows",
+  "default_observation_seconds": 60,
+  "tests": [
+    {
+      "id": "T1059.001-execution-policy-bypass",
+      "name": "PowerShell Execution Policy Bypass",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1059.001",
+        "test_numbers": [1]
+      },
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command 'Write-Output TamanduaDetectionSmoke; whoami; Start-Sleep -Seconds 10'",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": ["execution_policy", "powershell"],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["atomic", "detection", "powershell", "mitre:T1059.001"],
+      "risk": "low"
+    },
+    {
+      "id": "T1059.001-encoded-command",
+      "name": "PowerShell EncodedCommand",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1059.001",
+        "test_numbers": [20]
+      },
+      "fallback_command": "powershell.exe -NoProfile -EncodedCommand VwByAGkAdABlAC0ATwB1AHQAcAB1AHQAIABUAGEAbQBhAG4AZAB1AGEARQBuAGMAbwBkAGUAZABTAG0AbwBrAGUAOwAgAHcAaABvAGEAbQBpADsAIABTAHQAYQByAHQALQBTAGwAZQBlAHAAIAAtAFMAZQBjAG8AbgBkAHMAIAA0ADUA",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": ["encoded", "powershell"],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["atomic", "detection", "powershell", "encoded", "mitre:T1059.001", "mitre:T1027"],
+      "risk": "low"
+    },
+    {
+      "id": "T1082-systeminfo-discovery",
+      "name": "System Information Discovery Detection Calibration",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1082",
+        "test_numbers": [1]
+      },
+      "fallback_command": "cmd.exe /c systeminfo",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["atomic", "discovery", "mitre:T1082"],
+      "risk": "low"
+    },
+    {
+      "id": "T1016-network-config-discovery",
+      "name": "Network Configuration Discovery Detection Calibration",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1016",
+        "test_numbers": [1]
+      },
+      "fallback_command": "cmd.exe /c ipconfig /all",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["atomic", "discovery", "network", "mitre:T1016"],
+      "risk": "low"
+    }
+  ]
+}

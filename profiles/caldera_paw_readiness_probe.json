@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "profile_id": "caldera-paw-readiness-probe",
+  "name": "CALDERA PAW Readiness Probe",
+  "description": "Read-only Roadmap D probe that checks whether CALDERA has a fresh target PAW before upstream operations are allowed.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\caldera_paw_readiness_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "caldera_paw_readiness_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "CALDERA PAW readiness evidence only. Passing this profile does not create CALDERA operations, does not execute abilities, and does not prove endpoint detection.",
+  "tests": [
+    {
+      "id": "caldera-api-agents-readable",
+      "name": "CALDERA agents API is readable",
+      "executor": "caldera_paw_readiness_probe",
+      "expected_telemetry": ["caldera_agents_api_readable"],
+      "expected_fields": ["status", "duration_ms"]
+    },
+    {
+      "id": "caldera-paw-inventory-nonempty",
+      "name": "CALDERA reports at least one PAW",
+      "executor": "caldera_paw_readiness_probe",
+      "expected_telemetry": ["caldera_paw_inventory"],
+      "expected_fields": ["agent_count", "known_paws"]
+    },
+    {
+      "id": "caldera-target-paw-present",
+      "name": "Requested target PAW exists",
+      "executor": "caldera_paw_readiness_probe",
+      "expected_telemetry": ["caldera_target_paw"],
+      "expected_fields": ["requested_paw", "target"]
+    },
+    {
+      "id": "caldera-target-paw-group",
+      "name": "Requested target PAW group matches",
+      "executor": "caldera_paw_readiness_probe",
+      "expected_telemetry": ["caldera_target_paw_group"],
+      "expected_fields": ["requested_group", "actual_group"]
+    },
+    {
+      "id": "caldera-target-paw-fresh",
+      "name": "Requested target PAW is fresh",
+      "executor": "caldera_paw_readiness_probe",
+      "expected_telemetry": ["caldera_target_paw_freshness"],
+      "expected_fields": ["last_seen", "last_seen_age_seconds", "freshness_seconds"]
+    }
+  ]
+}

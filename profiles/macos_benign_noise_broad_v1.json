@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-benign-noise-broad-v1",
+  "name": "macOS Benign Noise Broad v1",
+  "description": "Broader benign workload regression pack for macOS update, browser, developer-tool, launchd, TCC/XPC, and network false-positive controls.",
+  "platform": "macos",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "macos_benign_noise_broad",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "claim_boundary": "Benign/noise regression only. Passing this profile supports false-positive calibration claims, not attack detection coverage claims.",
+  "tests": [
+    {
+      "id": "benign-macos-curl-head-example",
+      "name": "Benign Curl HEAD Example",
+      "executor": "command",
+      "fallback_command": "sh -lc 'curl -I https://example.com/ >/dev/null 2>&1 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise",
+        "curl",
+        "network",
+        "mitre:T1071.001"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "dns_query",
+        "network_connect"
+      ]
+    },
+    {
+      "id": "benign-macos-curl-download-example",
+      "name": "Benign Curl Download Example",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-benign-download.XXXXXX); curl -L https://example.com/ -o \"$p\" >/dev/null 2>&1 || echo benign > \"$p\"; rm -f \"$p\"'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise",
+        "curl",
+        "download",
+        "mitre:T1105"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "dns_query",
+        "network_connect",
+        "file_create",
+        "file_delete"
+      ]
+    },
+    {
+      "id": "benign-macos-launchctl-query",
+      "name": "Benign Launchctl Query",
+      "executor": "command",
+      "fallback_command": "sh -lc 'launchctl list 2>/dev/null | head -n 20 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise",
+        "launchd"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "benign-macos-softwareupdate-list",
+      "name": "Benign Softwareupdate List",
+      "executor": "command",
+      "fallback_command": "sh -lc 'softwareupdate --list --no-scan >/dev/null 2>&1 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise",
+        "softwareupdate",
+        "patch"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "benign-macos-dev-tools-discovery",
+      "name": "Benign Developer Tools Discovery",
+      "executor": "command",
+      "fallback_command": "sh -lc 'xcode-select -p >/dev/null 2>&1 || true; clang --version >/dev/null 2>&1 || true; git --version >/dev/null 2>&1 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise",
+        "developer-tools"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "benign-macos-tcc-xpc-context",
+      "name": "Benign TCC XPC Context",
+      "executor": "command",
+      "fallback_command": "sh -lc 'ls ~/Library/Application\\ Support/com.apple.TCC 2>/dev/null || true; ps -axo comm | grep -E \"tccd|cfprefsd\" >/dev/null 2>&1 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise",
+        "tcc",
+        "xpc"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "benign-macos-browser-cache-touch",
+      "name": "Benign Browser Cache Touch",
+      "executor": "command",
+      "fallback_command": "sh -lc 'for d in \"$HOME/Library/Application Support/Google/Chrome\" \"$HOME/Library/Safari\"; do test -d \"$d\" && find \"$d\" -maxdepth 1 2>/dev/null | head -n 3 >/dev/null; done; true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "benign",
+        "noise",
+        "browser"
+      ],
+      "risk": "low"
+    }
+  ]
+}

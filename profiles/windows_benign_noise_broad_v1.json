@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-benign-noise-broad-v1",
+  "name": "Windows Benign Noise Broad v1",
+  "description": "Broader benign workload regression pack for Windows update, web transfer, administrative discovery, scheduled task query, and system-drive masquerading false-positive controls.",
+  "platform": "windows",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "benign_noise_broad",
+    "requires_persisted_events": true,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Benign/noise regression only. Passing this profile supports false-positive calibration claims, not attack detection coverage claims.",
+  "tests": [
+    {
+      "id": "benign-noise-curl-head-example",
+      "name": "Benign Curl HEAD Example",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"curl.exe -I https://example.com/ || exit /b 0\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "network_connect"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["benign", "noise", "curl", "network", "mitre:T1071.001"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-noise-curl-download-example",
+      "name": "Benign Curl Download Example",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"curl.exe -L https://example.com/ -o %TEMP%\\tamandua-benign-noise-download.txt || echo benign>%TEMP%\\tamandua-benign-noise-download.txt & del /f /q %TEMP%\\tamandua-benign-noise-download.txt 2>nul & exit /b 0\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "network_connect", "file_create", "file_delete"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "path"],
+      "tags": ["benign", "noise", "curl", "download", "mitre:T1105"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-noise-scheduled-task-query",
+      "name": "Benign Scheduled Task Query",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"schtasks.exe /Query /FO LIST 2>nul | more & exit /b 0\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["benign", "noise", "scheduled-task"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-noise-admin-powershell-inventory",
+      "name": "Benign Administrative PowerShell Inventory Query",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Get-Process | Select-Object -First 3 Id,ProcessName | Out-Null; & $env:ComSpec /d /c ver | Out-Null\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["benign", "noise", "powershell", "admin"],
+      "risk": "low"
+    },
+    {
+      "id": "benign-noise-system-drive-system32",
+      "name": "Benign System32 Reference",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$root = $env:SystemRoot; Get-Process -Name svchost,services -ErrorAction SilentlyContinue | Select-Object -First 2 | Out-Null; if (Test-Path (Join-Path $root 'System32\\whoami.exe')) { & (Join-Path $root 'System32\\whoami.exe') | Out-Null }\"",
+      "expected_telemetry": ["live_response_command"],
+      "optional_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["benign", "noise", "system32", "masquerading"],
+      "risk": "low"
+    }
+  ]
+}

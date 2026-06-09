@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-response-validation-safe-v1",
+  "name": "Windows Response Validation Safe v1",
+  "description": "Small response-validation lane for analyst-facing outcomes. It uses safe behaviors that should create detections or alerts, then requires investigable evidence, alert linkage, MITRE context, and low noise.",
+  "platform": "windows",
+  "default_observation_seconds": 90,
+  "claim_boundary": "Selected non-destructive Windows response/audit validation only. This profile proves analyst-facing alert context and audit-backed response evidence for safe commands; it does not claim containment, isolation, kill-process, file deletion, or broad response parity.",
+  "expected_gap_categories": [
+    "collector",
+    "normalization",
+    "detector",
+    "alert-quality",
+    "response-audit",
+    "runner",
+    "infrastructure",
+    "noise",
+    "claim-boundary"
+  ],
+  "quality_bar": {
+    "purpose": "response_validation_safe",
+    "requires_driver_health": true,
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "response_contract": {
+    "minimum_alert_context": [
+      "event_ids",
+      "contributing_events",
+      "mitre_tactics",
+      "mitre_techniques"
+    ],
+    "required_response_questions": [
+      "what executed",
+      "who executed it",
+      "where it executed",
+      "why it alerted",
+      "which evidence supports the alert"
+    ],
+    "write_scope": [
+      "%TEMP%\\tamandua-response-*"
+    ]
+  },
+  "tests": [
+    {
+      "id": "response-powershell-encoded",
+      "name": "Response PowerShell Encoded Command",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1059.001", "test_numbers": [20]},
+      "fallback_command": "powershell.exe -NoProfile -EncodedCommand VwByAGkAdABlAC0ATwB1AHQAcAB1AHQAIAAnAFQAYQBtAGEAbgBkAHUAYQBSAGUAcwBwAG8AbgBzAGUAJwA7ACAAUwB0AGEAcgB0AC0AUwBsAGUAZQBwACAALQBTAGUAYwBvAG4AZABzACAANAA1AA==",
+      "expected_telemetry": ["live_response_command"],
+      "optional_telemetry": ["process_create"],
+      "expected_detections": ["encoded", "powershell"],
+      "expected_alerts": ["powershell"],
+      "expected_fields": ["agent_id", "hostname", "user", "process_name", "command_line", "decoded_command_line"],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive response/audit context only",
+      "tags": ["response-validation", "detection", "tactic:execution", "tactic:defense-evasion", "mitre:T1059.001", "mitre:T1027"],
+      "risk": "low"
+    },
+    {
+      "id": "response-regsvr32-proxy-safe",
+      "name": "Response Regsvr32 Proxy Safe",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQAgAD0AIAAnAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUAJwAKACQAZABpAHIAIAA9ACAASgBvAGkAbgAtAFAAYQB0AGgAIAAkAGUAbgB2ADoAVABFAE0AUAAgACcAdABhAG0AYQBuAGQAdQBhAC0AcgBlAHMAcABvAG4AcwBlAC0AcgBlAGcAcwB2AHIAMwAyACcACgBOAGUAdwAtAEkAdABlAG0AIAAtAEkAdABlAG0AVAB5AHAAZQAgAEQAaQByAGUAYwB0AG8AcgB5ACAALQBQAGEAdABoACAAJABkAGkAcgAgAC0ARgBvAHIAYwBlACAAfAAgAE8AdQB0AC0ATgB1AGwAbAAKACQAcwBjAHQAIAA9ACAASgBvAGkAbgAtAFAAYQB0AGgAIAAkAGQAaQByACAAJwB0AGEAbQBhAG4AZAB1AGEALQByAGUAcwBwAG8AbgBzAGUALgBzAGMAdAAnAAoAJAB4AG0AbAAgAD0AIAAnADwAJwAgACsAIAAnAD8AWABNAEwAIAB2AGUAcgBzAGkAbwBuAD0AJwAnADEALgAwACcAJwA/ACcAIAArACAAJwA+ACcAIAArACAAJwA8AHMAYwByAGkAcAB0AGwAZQB0AD4APAByAGUAZwBpAHMAdAByAGEAdABpAG8AbgAgAHAAcgBvAGcAaQBkAD0AJwAnAFQAYQBtAGEAbgBkAHUAYQAuAFIAZQBzAHAAbwBuAHMAZQAnACcAIABjAGwAYQBzAHMAaQBkAD0AJwAnAHsARgAwADAAMAAxADEAMQAxAC0AMAAwADAAMAAtADAAMAAwADAALQAwADAAMAAwAC0AMAAwADAAMABGAEUARQBEADAAMAAwADEAfQAnACcAPgA8AHMAYwByAGkAcAB0ACAAbABhAG4AZwB1AGEAZwBlAD0AJwAnAEoAUwBjAHIAaQBwAHQAJwAnAD4APAAhAFsAQwBEAEEAVABBAFsAZgB1AG4AYwB0AGkAbwBuACAAUgBlAGcAaQBzAHQAZQByACgAKQB7AHYAYQByACAAcwBoAGUAbABsACAAPQAgAG4AZQB3ACAAQQBjAHQAaQB2AGUAWABPAGIAagBlAGMAdAAoACcAJwBXAFMAYwByAGkAcAB0AC4AUwBoAGUAbABsACcAJwApADsAIABzAGgAZQBsAGwALgBSAHUAbgAoACcAJwBjAG0AZAAuAGUAeABlACAALwBkACAALwBjACAAcABpAG4AZwAgAC0AbgAgADQANQAgADEAMgA3AC4AMAAuADAALgAxACAAPgAgAG4AdQBsACcAJwAsACAAMAAsACAAdAByAHUAZQApADsAfQBdAF0APgA8AC8AcwBjAHIAaQBwAHQAPgA8AC8AcgBlAGcAaQBzAHQAcgBhAHQAaQBvAG4APgA8AC8AcwBjAHIAaQBwAHQAbABlAHQAPgAnAAoAUwBlAHQALQBDAG8AbgB0AGUAbgB0ACAALQBQAGEAdABoACAAJABzAGMAdAAgAC0AVgBhAGwAdQBlACAAJAB4AG0AbAAgAC0ARQBuAGMAbwBkAGkAbgBnACAAQQBTAEMASQBJAAoAJgAgAHIAZQBnAHMAdgByADMAMgAuAGUAeABlACAALwBzACAALwBuACAALwB1ACAALwBpADoAJABzAGMAdAAgAHMAYwByAG8AYgBqAC4AZABsAGwACgBSAGUAbQBvAHYAZQAtAEkAdABlAG0AIAAtAFAAYQB0AGgAIAAkAGQAaQByACAALQBSAGUAYwB1AHIAcwBlACAALQBGAG8AcgBjAGUAIAAtAEUAcgByAG8AcgBBAGMAdABpAG8AbgAgAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUA",
+      "expected_telemetry": ["live_response_command"],
+      "optional_telemetry": ["process_create"],
+      "expected_detections": ["regsvr32"],
+      "expected_alerts": ["regsvr32"],
+      "expected_fields": ["agent_id", "hostname", "user", "process_name", "command_line", "decoded_command_line"],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive response/audit context only",
+      "tags": ["response-validation", "detection", "tactic:defense-evasion", "mitre:T1218.010"],
+      "risk": "medium"
+    },
+    {
+      "id": "response-masquerade-copy-safe",
+      "name": "Response Masquerade Copy Safe",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand JABFAHIAcgBvAHIAQQBjAHQAaQBvAG4AUAByAGUAZgBlAHIAZQBuAGMAZQAgAD0AIAAnAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUAJwAKACQAZQB4AGUAIAA9ACAASgBvAGkAbgAtAFAAYQB0AGgAIAAkAGUAbgB2ADoAVABFAE0AUAAgACcAdABhAG0AYQBuAGQAdQBhAC0AcgBlAHMAcABvAG4AcwBlAC0AaABvAHMAdAAuAGUAeABlACcACgBDAG8AcAB5AC0ASQB0AGUAbQAgAC0AUABhAHQAaAAgACgASgBvAGkAbgAtAFAAYQB0AGgAIAAkAGUAbgB2ADoAUwB5AHMAdABlAG0AUgBvAG8AdAAgACcAUwB5AHMAdABlAG0AMwAyAFwAYwBtAGQALgBlAHgAZQAnACkAIAAtAEQAZQBzAHQAaQBuAGEAdABpAG8AbgAgACQAZQB4AGUAIAAtAEYAbwByAGMAZQAKACQAcAAgAD0AIABTAHQAYQByAHQALQBQAHIAbwBjAGUAcwBzACAALQBGAGkAbABlAFAAYQB0AGgAIAAkAGUAeABlACAALQBBAHIAZwB1AG0AZQBuAHQATABpAHMAdAAgAEAAKAAnAC8AZAAnACwAJwAvAGMAJwAsACcAcABpAG4AZwAgAC0AbgAgADQANQAgADEAMgA3AC4AMAAuADAALgAxACAAPgAgAG4AdQBsACcAKQAgAC0AUABhAHMAcwBUAGgAcgB1ACAALQBXAGkAbgBkAG8AdwBTAHQAeQBsAGUAIABIAGkAZABkAGUAbgAKACQAcAAuAFcAYQBpAHQARgBvAHIARQB4AGkAdAAoACkACgBSAGUAbQBvAHYAZQAtAEkAdABlAG0AIAAtAFAAYQB0AGgAIAAkAGUAeABlACAALQBGAG8AcgBjAGUAIAAtAEUAcgByAG8AcgBBAGMAdABpAG8AbgAgAFMAaQBsAGUAbgB0AGwAeQBDAG8AbgB0AGkAbgB1AGUA",
+      "expected_telemetry": ["live_response_command"],
+      "expected_detections": ["masquerade"],
+      "expected_alerts": ["masquerade"],
+      "optional_telemetry": ["process_create", "file_create", "file_delete"],
+      "expected_fields": ["agent_id", "hostname", "user", "process_name", "command_line", "decoded_command_line"],
+      "validation_category": "response-audit",
+      "claim_boundary": "non-destructive response/audit context only",
+      "tags": ["response-validation", "detection", "tactic:defense-evasion", "mitre:T1036"],
+      "risk": "medium"
+    }
+  ]
+}

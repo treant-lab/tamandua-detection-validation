@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-lane0-tamandua-ctl-transport-proof",
+  "name": "Linux Lane 0 Tamandua CTL Transport Proof",
+  "description": "Runner hardening proof for the tamandua-ctl live-response execution channel on Linux. This validates bounded command dispatch/audit and separates global ctl transport issues from Windows lab instability.",
+  "platform": "linux",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "stable-regression",
+  "quality_bar": {
+    "purpose": "runner_hardening",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Runner hardening only. Passing or failing this profile does not support endpoint detection, benign/noise, or upstream Atomic/CALDERA coverage claims.",
+  "tests": [
+    {
+      "id": "linux-lane0-tamandua-ctl-benign-command-dispatch",
+      "name": "Linux Tamandua CTL Benign Command Dispatch",
+      "executor": "command",
+      "fallback_command": "printf 'tamandua-linux-lane0-transport-proof\\n' && sleep 1",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "session_id", "output"],
+      "tags": ["lane0", "runner", "live-response", "tamandua-ctl", "transport", "linux"],
+      "risk": "low"
+    },
+    {
+      "id": "linux-lane0-tamandua-ctl-shell-condition-dispatch",
+      "name": "Linux Tamandua CTL Shell Condition Dispatch",
+      "executor": "command",
+      "fallback_command": "if test -d /tmp; then echo tamandua-linux-lane0-condition-proof; fi",
+      "expected_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "session_id", "output"],
+      "tags": ["lane0", "runner", "live-response", "tamandua-ctl", "transport", "linux-shell"],
+      "risk": "low"
+    }
+  ]
+}

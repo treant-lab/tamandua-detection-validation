@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-platform-capabilities-dry-run",
+  "name": "Windows Platform Capabilities Dry Run",
+  "description": "Report-only Roadmap K profile for FIM, inventory, compliance, and SIEM evidence. Commands are non-destructive inspections or planned contracts and do not change watched paths, compliance state, or SIEM destinations.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "platform-capability",
+  "quality_bar": {
+    "purpose": "platform_capabilities_dry_run",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "capability_contract": {
+    "evidence_scope": [
+      "FIM watch path and hash baseline contract",
+      "asset/software inventory freshness contract",
+      "compliance control mapping and exception contract",
+      "SIEM export format, delivery, retry, and acknowledgement contract"
+    ],
+    "promotion_requires": [
+      "executed FIM baseline and file change artifact with before/after hashes",
+      "server-side inventory record with host identity, software, services, local users, and network interfaces",
+      "compliance evidence linked to named controls and exceptions",
+      "SIEM delivery proof with schema, destination, retry/audit, and acknowledgement evidence"
+    ]
+  },
+  "claim_boundary": "Dry-run platform capability contract only. It makes Roadmap K scorecard-mappable without claiming live FIM, inventory, compliance, or SIEM readiness.",
+  "tests": [
+    {
+      "id": "platform-fim-baseline-contract-report-only",
+      "name": "FIM Baseline Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='fim'; WatchPaths=@('%ProgramData%\\\\Tamandua\\\\fim-safe','%TEMP%\\\\tamandua-fim-safe'); RequiredFields=@('path','sha256','size','mtime','owner','baseline_id','change_type'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:K", "fim", "hash-baseline", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "platform-inventory-freshness-contract-report-only",
+      "name": "Inventory Freshness Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='inventory'; RequiredSets=@('host_identity','os_build','installed_software','services','local_users','network_interfaces'); FreshnessSeconds=86400; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:K", "inventory", "asset", "software", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "platform-compliance-control-map-report-only",
+      "name": "Compliance Control Map Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='compliance'; ControlFamilies=@('cis','soc2','iso27001'); RequiredFields=@('control_id','asset_id','evidence_id','status','exception','last_checked_at'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:K", "compliance", "controls", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "platform-siem-export-contract-report-only",
+      "name": "SIEM Export Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='siem_export'; Destinations=@('syslog','webhook','splunk-hec','sentinel-log-analytics'); RequiredFields=@('event_id','tenant_id','agent_id','schema_version','delivery_status','retry_count','ack_id'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:K", "siem", "export", "delivery", "report-only", "windows"],
+      "risk": "low"
+    }
+  ]
+}

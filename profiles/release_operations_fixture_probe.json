@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "profile_id": "release-operations-fixture-probe",
+  "name": "Release Operations Fixture Probe",
+  "description": "Local Roadmap G fixture for release manifest, SBOM/hash, compatibility matrix, and install/upgrade/rollback/uninstall audit semantics.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "release-readiness",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\release_operations_fixture_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "release_operations_fixture",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local release operations fixture only. Does not prove signed production artifacts, installer execution, upgrade/rollback/uninstall on endpoints, or release compatibility in the field.",
+  "tests": [
+    {
+      "id": "release-manifest-hashes-fixture",
+      "name": "Fixture release manifest carries artifacts, hashes, version, and compatibility rows",
+      "executor": "release_operations_fixture_probe",
+      "expected_telemetry": ["release_operations_fixture"],
+      "expected_fields": ["manifest"]
+    },
+    {
+      "id": "release-sbom-fixture",
+      "name": "Fixture SBOM carries package identities and document hash",
+      "executor": "release_operations_fixture_probe",
+      "expected_telemetry": ["release_operations_fixture"],
+      "expected_fields": ["sbom"]
+    },
+    {
+      "id": "release-lifecycle-audit-fixture",
+      "name": "Fixture lifecycle covers install, upgrade, rollback, uninstall with audit events",
+      "executor": "release_operations_fixture_probe",
+      "expected_telemetry": ["release_operations_fixture"],
+      "expected_fields": ["lifecycle"]
+    },
+    {
+      "id": "release-compatibility-matrix-fixture",
+      "name": "Fixture compatibility matrix separates Windows/Linux support and driver optionality",
+      "executor": "release_operations_fixture_probe",
+      "expected_telemetry": ["release_operations_fixture"],
+      "expected_fields": ["compatibility_matrix"]
+    }
+  ]
+}

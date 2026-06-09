@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "profile_id": "fleet-scale-inventory-api-probe",
+  "name": "Fleet Scale Inventory API Probe",
+  "description": "Executed non-destructive Roadmap S probe that uses tamandua-ctl to validate authenticated fleet inventory, agent identity uniqueness, cross-platform inventory, online/offline state split, and online health status. It does not execute simultaneous workloads or prove scale latency/loss.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "fleet-scale",
+  "quality_bar": {
+    "purpose": "fleet_scale_inventory_api_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Authenticated fleet inventory/state proof only. Full Roadmap S still requires simultaneous workloads, latency/loss metrics, and cross-agent evidence isolation.",
+  "tests": [
+    {
+      "id": "fleet-authenticated-inventory-list",
+      "name": "Authenticated CLI can list fleet inventory",
+      "executor": "tamandua_ctl_agents_list",
+      "expected_telemetry": ["fleet_inventory"],
+      "expected_fields": ["agent_count", "exit_code"]
+    },
+    {
+      "id": "fleet-agent-id-uniqueness",
+      "name": "Fleet inventory has unique non-empty agent IDs",
+      "executor": "tamandua_ctl_agents_list",
+      "expected_telemetry": ["fleet_inventory"],
+      "expected_fields": ["agent_id", "hostname"]
+    },
+    {
+      "id": "fleet-cross-platform-inventory",
+      "name": "Fleet inventory includes at least two OS platforms",
+      "executor": "tamandua_ctl_agents_list",
+      "expected_telemetry": ["fleet_inventory"],
+      "expected_fields": ["os_type", "platforms"]
+    },
+    {
+      "id": "fleet-online-offline-state-split",
+      "name": "Fleet inventory exposes online and offline state split",
+      "executor": "tamandua_ctl_agents_list",
+      "expected_telemetry": ["fleet_inventory"],
+      "expected_fields": ["status", "online_count", "offline_count"]
+    },
+    {
+      "id": "fleet-online-health-known",
+      "name": "Online agents have healthy or degraded health state",
+      "executor": "tamandua_ctl_agents_list",
+      "expected_telemetry": ["fleet_inventory"],
+      "expected_fields": ["health_status"]
+    }
+  ]
+}

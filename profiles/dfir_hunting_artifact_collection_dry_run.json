@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "profile_id": "dfir-hunting-artifact-collection-dry-run",
+  "name": "DFIR Hunting Artifact Collection Dry Run",
+  "description": "Report-only Roadmap T profile for DFIR hunting and artifact collection contracts. It does not collect files, read sensitive user artifacts, or export triage packages.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "dfir-hunting",
+  "quality_bar": {
+    "purpose": "dfir_hunting_artifact_collection_dry_run",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "dfir_contract": {
+    "evidence_scope": [
+      "Windows artifact catalog contract",
+      "multi-agent hunt execution manifest contract",
+      "triage package manifest, hash, and redaction contract",
+      "analyst review and export contract"
+    ],
+    "promotion_requires": [
+      "executed collection artifact with per-endpoint success, errors, duration, and bytes collected",
+      "manifest with hashes, timestamps, host identity, query/profile version, and redaction state",
+      "searchable analyst results without raw database access",
+      "exported report or package linked to the hunt run id"
+    ]
+  },
+  "claim_boundary": "Dry-run DFIR hunting contract only. It makes Roadmap T scorecard-mappable without claiming live collection, hunting, evidence preservation, or analyst review readiness.",
+  "tests": [
+    {
+      "id": "dfir-windows-artifact-catalog-report-only",
+      "name": "Windows Artifact Catalog Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='artifact_catalog'; WindowsArtifacts=@('process_tree','autoruns','services','scheduled_tasks','registry_persistence','event_logs','powershell_history','network_connections','prefetch','amcache','selected_files'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:T", "dfir", "artifact-catalog", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "dfir-hunt-execution-manifest-report-only",
+      "name": "Hunt Execution Manifest Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='hunt_manifest'; RequiredFields=@('hunt_id','tenant_id','agent_ids','artifact_ids','query_version','started_at','finished_at','status','errors','bytes_collected'); Apply='planned_not_executed'; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:T", "dfir", "hunt", "manifest", "planned-not-executed", "report-only"],
+      "risk": "low"
+    },
+    {
+      "id": "dfir-triage-package-manifest-report-only",
+      "name": "Triage Package Manifest Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='triage_package'; RequiredFields=@('package_id','hunt_id','host_identity','artifact_count','sha256_manifest','redaction_policy','chain_of_custody','created_at'); Export='planned_not_executed'; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:T", "dfir", "triage-package", "hashes", "planned-not-executed", "report-only"],
+      "risk": "low"
+    },
+    {
+      "id": "dfir-analyst-review-export-contract-report-only",
+      "name": "Analyst Review Export Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='analyst_review'; RequiredSurfaces=@('search_results','saved_query','timeline','notebook_summary','exportable_report'); RawDatabaseAccessRequired=$false; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:T", "dfir", "analyst-review", "export", "report-only"],
+      "risk": "low"
+    }
+  ]
+}

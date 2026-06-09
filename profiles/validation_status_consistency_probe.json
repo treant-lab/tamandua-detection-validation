@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "profile_id": "validation-status-consistency-probe",
+  "name": "Validation Status Consistency Probe",
+  "description": "Local read-only audit that verifies operational validation status docs point to the latest generated scorecard evidence, closure gate, execution preflight, and offline replay artifact.",
+  "platform": "cross",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\validation_status_consistency.py",
+    "timeout_seconds": 60,
+    "runtime_effect": "local_read_only_status_audit",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "validation_status_consistency",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local read-only status consistency audit only. Passing this profile proves documentation and generated artifacts are aligned; it does not prove product readiness, endpoint telemetry, transport stability, CALDERA operation success, or broad benchmark eligibility.",
+  "tests": [
+    {
+      "id": "status-consistency-closure-latest-run-id-present",
+      "name": "Closure latest run id is present",
+      "executor": "validation_status_consistency",
+      "expected_telemetry": ["local_read_only_status_audit"],
+      "expected_fields": ["roadmap-closure-gate-probe"]
+    },
+    {
+      "id": "status-consistency-preflight-latest-run-id-present",
+      "name": "Preflight latest run id is present",
+      "executor": "validation_status_consistency",
+      "expected_telemetry": ["local_read_only_status_audit"],
+      "expected_fields": ["validation-execution-preflight-probe"]
+    },
+    {
+      "id": "status-consistency-replay-latest-run-id-present",
+      "name": "Replay latest run id is present",
+      "executor": "validation_status_consistency",
+      "expected_telemetry": ["local_read_only_status_audit"],
+      "expected_fields": ["telemetry-replay-offline-fp-severity-v1"]
+    },
+    {
+      "id": "status-consistency-preflight-references-latest-closure-gate",
+      "name": "Preflight references the latest closure gate",
+      "executor": "validation_status_consistency",
+      "expected_telemetry": ["local_read_only_status_audit"],
+      "expected_fields": ["closure_gate_run_id"]
+    },
+    {
+      "id": "status-consistency-manual-docs-reference-latest-artifacts",
+      "name": "Manual status docs reference latest artifacts",
+      "executor": "validation_status_consistency",
+      "expected_telemetry": ["local_read_only_status_audit"],
+      "expected_fields": ["status_docs", "latest_artifacts"]
+    },
+    {
+      "id": "status-consistency-preflight-markdown-has-triage-sections",
+      "name": "Preflight markdown contains triage sections",
+      "executor": "validation_status_consistency",
+      "expected_telemetry": ["local_read_only_status_audit"],
+      "expected_fields": ["Roadmap Blockers", "Run Class Readiness", "Unblock Sequence"]
+    },
+    {
+      "id": "status-consistency-manual-claim-review-empty",
+      "name": "Generated manual claim review has no prompts",
+      "executor": "validation_status_consistency",
+      "expected_telemetry": ["local_read_only_status_audit"],
+      "expected_fields": ["manual_claim_review"]
+    }
+  ]
+}

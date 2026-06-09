@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "profile_id": "historical-replay-adapter-report-only",
+  "name": "Historical Replay Adapter Report-Only",
+  "description": "Local SQLite report-only probe proving historical replay persistence semantics without touching production DB, live alerts, or endpoints.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "telemetry-replay",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\historical_replay_adapter_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "historical_replay_adapter_report_only",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Validates historical replay persistence semantics in a local SQLite report-only adapter. It does not query production TimescaleDB/Postgres, does not prove tenant/RBAC controls, does not prove scheduled replay jobs, and does not execute endpoint response.",
+  "tests": [
+    {
+      "id": "historical-replay-seeds-event-envelopes",
+      "name": "Historical replay adapter seeds persisted Event Envelope rows",
+      "executor": "historical_replay_adapter_probe",
+      "expected_telemetry": ["event_envelopes"],
+      "expected_fields": ["seeded_events", "expected_count"]
+    },
+    {
+      "id": "historical-replay-writes-retrospective-results",
+      "name": "Historical replay writes one retrospective result per matched fixture",
+      "executor": "historical_replay_adapter_probe",
+      "expected_telemetry": ["retrospective_replay_results"],
+      "expected_fields": ["result_count", "expected_count", "replay_runs_complete", "outputs"]
+    },
+    {
+      "id": "historical-replay-does-not-create-live-alerts",
+      "name": "Historical replay never creates live alert rows",
+      "executor": "historical_replay_adapter_probe",
+      "expected_telemetry": ["live_alerts"],
+      "expected_fields": ["live_alert_count", "alert_created_flags"]
+    },
+    {
+      "id": "historical-replay-live-alerts-immutable",
+      "name": "Historical replay leaves existing live alerts unchanged",
+      "executor": "historical_replay_adapter_probe",
+      "expected_telemetry": ["live_alerts"],
+      "expected_fields": ["before_hash", "after_hash", "before_count", "after_count"]
+    },
+    {
+      "id": "historical-replay-no-response-execution",
+      "name": "Historical replay never executes endpoint response",
+      "executor": "historical_replay_adapter_probe",
+      "expected_telemetry": ["response_executed"],
+      "expected_fields": ["response_executed_flags"]
+    }
+  ]
+}

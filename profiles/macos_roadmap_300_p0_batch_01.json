@@ -1,0 +1,2523 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-roadmap-300-p0-batch-01",
+  "name": "macOS Roadmap 300 P0 Batch 01",
+  "description": "Executable batch generated directly from the macOS 300-scenario roadmap.",
+  "platform": "macos",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "macos_roadmap_300_p0_batch_01",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/macos_detection_roadmap_300.json",
+    "selected_scenarios": 50,
+    "generated_tests": 50,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-mac-initialaccess-001-t1566-001",
+      "name": "Spearphishing Attachment: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-initial-access > /tmp/tamandua-initial-access.txt; cat /tmp/tamandua-initial-access.txt >/dev/null; rm -f /tmp/tamandua-initial-access.txt'",
+      "roadmap_traceability": {
+        "technique": "T1566.001",
+        "technique_name": "Spearphishing Attachment",
+        "tactic": "initial-access",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-initialaccess-001",
+        "tactic:initial-access",
+        "mitre:T1566.001",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-initialaccess-002-t1566-002",
+      "name": "Spearphishing Link: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-initial-access > /tmp/tamandua-initial-access.txt; cat /tmp/tamandua-initial-access.txt >/dev/null; rm -f /tmp/tamandua-initial-access.txt'",
+      "roadmap_traceability": {
+        "technique": "T1566.002",
+        "technique_name": "Spearphishing Link",
+        "tactic": "initial-access",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-initialaccess-002",
+        "tactic:initial-access",
+        "mitre:T1566.002",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-initialaccess-003-t1195-002",
+      "name": "Compromise Software Supply Chain: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-initial-access > /tmp/tamandua-initial-access.txt; cat /tmp/tamandua-initial-access.txt >/dev/null; rm -f /tmp/tamandua-initial-access.txt'",
+      "roadmap_traceability": {
+        "technique": "T1195.002",
+        "technique_name": "Compromise Software Supply Chain",
+        "tactic": "initial-access",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-initialaccess-003",
+        "tactic:initial-access",
+        "mitre:T1195.002",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-initialaccess-004-t1091",
+      "name": "Replication Through Removable Media: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-initial-access > /tmp/tamandua-initial-access.txt; cat /tmp/tamandua-initial-access.txt >/dev/null; rm -f /tmp/tamandua-initial-access.txt'",
+      "roadmap_traceability": {
+        "technique": "T1091",
+        "technique_name": "Replication Through Removable Media",
+        "tactic": "initial-access",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-initialaccess-004",
+        "tactic:initial-access",
+        "mitre:T1091",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-initialaccess-005-t1078",
+      "name": "Valid Accounts: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo tamandua-initial-access > /tmp/tamandua-initial-access.txt; cat /tmp/tamandua-initial-access.txt >/dev/null; rm -f /tmp/tamandua-initial-access.txt'",
+      "roadmap_traceability": {
+        "technique": "T1078",
+        "technique_name": "Valid Accounts",
+        "tactic": "initial-access",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-initialaccess-005",
+        "tactic:initial-access",
+        "mitre:T1078",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-001-t1059-004",
+      "name": "Unix Shell: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1059.004",
+        "technique_name": "Unix Shell",
+        "tactic": "execution",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-001",
+        "tactic:execution",
+        "mitre:T1059.004",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-002-t1059-006",
+      "name": "Python: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1059.006",
+        "technique_name": "Python",
+        "tactic": "execution",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-002",
+        "tactic:execution",
+        "mitre:T1059.006",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-003-t1204-002",
+      "name": "Malicious File: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1204.002",
+        "technique_name": "Malicious File",
+        "tactic": "execution",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-003",
+        "tactic:execution",
+        "mitre:T1204.002",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-004-t1106",
+      "name": "Native API: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1106",
+        "technique_name": "Native API",
+        "tactic": "execution",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-004",
+        "tactic:execution",
+        "mitre:T1106",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-005-t1569-001",
+      "name": "Launchctl: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1569.001",
+        "technique_name": "Launchctl",
+        "tactic": "execution",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-005",
+        "tactic:execution",
+        "mitre:T1569.001",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-006-t1129",
+      "name": "Shared Modules: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1129",
+        "technique_name": "Shared Modules",
+        "tactic": "execution",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-006",
+        "tactic:execution",
+        "mitre:T1129",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-007-t1059-002",
+      "name": "AppleScript/JXA: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1059.002",
+        "technique_name": "AppleScript/JXA",
+        "tactic": "execution",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-007",
+        "tactic:execution",
+        "mitre:T1059.002",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-008-t1059-004",
+      "name": "Unix Shell: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1059.004",
+        "technique_name": "Unix Shell",
+        "tactic": "execution",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-008",
+        "tactic:execution",
+        "mitre:T1059.004",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-009-t1059-006",
+      "name": "Python: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1059.006",
+        "technique_name": "Python",
+        "tactic": "execution",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-009",
+        "tactic:execution",
+        "mitre:T1059.006",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-010-t1204-002",
+      "name": "Malicious File: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1204.002",
+        "technique_name": "Malicious File",
+        "tactic": "execution",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-010",
+        "tactic:execution",
+        "mitre:T1204.002",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-011-t1106",
+      "name": "Native API: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1106",
+        "technique_name": "Native API",
+        "tactic": "execution",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-011",
+        "tactic:execution",
+        "mitre:T1106",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-execution-012-t1569-001",
+      "name": "Launchctl: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
+      "roadmap_traceability": {
+        "technique": "T1569.001",
+        "technique_name": "Launchctl",
+        "tactic": "execution",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-execution-012",
+        "tactic:execution",
+        "mitre:T1569.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-001-t1543-001",
+      "name": "Launch Agent: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.001",
+        "technique_name": "Launch Agent",
+        "tactic": "persistence",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-001",
+        "tactic:persistence",
+        "mitre:T1543.001",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-002-t1543-004",
+      "name": "Launch Daemon: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.004",
+        "technique_name": "Launch Daemon",
+        "tactic": "persistence",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-002",
+        "tactic:persistence",
+        "mitre:T1543.004",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-003-t1547-011",
+      "name": "Plist Modification: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1547.011",
+        "technique_name": "Plist Modification",
+        "tactic": "persistence",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-003",
+        "tactic:persistence",
+        "mitre:T1547.011",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-004-t1037-002",
+      "name": "Login Hook: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1037.002",
+        "technique_name": "Login Hook",
+        "tactic": "persistence",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-004",
+        "tactic:persistence",
+        "mitre:T1037.002",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-005-t1546-004",
+      "name": "Unix Shell Configuration Modification: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1546.004",
+        "technique_name": "Unix Shell Configuration Modification",
+        "tactic": "persistence",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-005",
+        "tactic:persistence",
+        "mitre:T1546.004",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-006-t1574-006",
+      "name": "Dynamic Linker Hijacking: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "persistence",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-006",
+        "tactic:persistence",
+        "mitre:T1574.006",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-007-t1505-003",
+      "name": "Web Shell: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1505.003",
+        "technique_name": "Web Shell",
+        "tactic": "persistence",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-007",
+        "tactic:persistence",
+        "mitre:T1505.003",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-008-t1543-001",
+      "name": "Launch Agent: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.001",
+        "technique_name": "Launch Agent",
+        "tactic": "persistence",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-008",
+        "tactic:persistence",
+        "mitre:T1543.001",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-001-t1548-003",
+      "name": "Sudo and Sudo Caching: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.003",
+        "technique_name": "Sudo and Sudo Caching",
+        "tactic": "privilege-escalation",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-001",
+        "tactic:privilege-escalation",
+        "mitre:T1548.003",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-002-t1068",
+      "name": "Exploitation for Privilege Escalation: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1068",
+        "technique_name": "Exploitation for Privilege Escalation",
+        "tactic": "privilege-escalation",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-002",
+        "tactic:privilege-escalation",
+        "mitre:T1068",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-003-t1548-001",
+      "name": "Setuid and Setgid: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.001",
+        "technique_name": "Setuid and Setgid",
+        "tactic": "privilege-escalation",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-003",
+        "tactic:privilege-escalation",
+        "mitre:T1548.001",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-004-t1574-006",
+      "name": "Dynamic Linker Hijacking: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "privilege-escalation",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-004",
+        "tactic:privilege-escalation",
+        "mitre:T1574.006",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-005-t1055",
+      "name": "Process Injection: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1055",
+        "technique_name": "Process Injection",
+        "tactic": "privilege-escalation",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-005",
+        "tactic:privilege-escalation",
+        "mitre:T1055",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-006-t1548-003",
+      "name": "Sudo and Sudo Caching: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.003",
+        "technique_name": "Sudo and Sudo Caching",
+        "tactic": "privilege-escalation",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-006",
+        "tactic:privilege-escalation",
+        "mitre:T1548.003",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-007-t1068",
+      "name": "Exploitation for Privilege Escalation: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1068",
+        "technique_name": "Exploitation for Privilege Escalation",
+        "tactic": "privilege-escalation",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-007",
+        "tactic:privilege-escalation",
+        "mitre:T1068",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-008-t1548-001",
+      "name": "Setuid and Setgid: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.001",
+        "technique_name": "Setuid and Setgid",
+        "tactic": "privilege-escalation",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-008",
+        "tactic:privilege-escalation",
+        "mitre:T1548.001",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-001-t1027",
+      "name": "Obfuscated Files or Information: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1027",
+        "technique_name": "Obfuscated Files or Information",
+        "tactic": "defense-evasion",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-001",
+        "tactic:defense-evasion",
+        "mitre:T1027",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-002-t1562-001",
+      "name": "Disable or Modify Tools: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1562.001",
+        "technique_name": "Disable or Modify Tools",
+        "tactic": "defense-evasion",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-002",
+        "tactic:defense-evasion",
+        "mitre:T1562.001",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-003-t1070-002",
+      "name": "Clear Linux or Mac System Logs: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1070.002",
+        "technique_name": "Clear Linux or Mac System Logs",
+        "tactic": "defense-evasion",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-003",
+        "tactic:defense-evasion",
+        "mitre:T1070.002",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-004-t1070-004",
+      "name": "File Deletion: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1070.004",
+        "technique_name": "File Deletion",
+        "tactic": "defense-evasion",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-004",
+        "tactic:defense-evasion",
+        "mitre:T1070.004",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-005-t1036",
+      "name": "Masquerading: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1036",
+        "technique_name": "Masquerading",
+        "tactic": "defense-evasion",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-005",
+        "tactic:defense-evasion",
+        "mitre:T1036",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-006-t1222-002",
+      "name": "File and Directory Permissions Modification: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1222.002",
+        "technique_name": "File and Directory Permissions Modification",
+        "tactic": "defense-evasion",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-006",
+        "tactic:defense-evasion",
+        "mitre:T1222.002",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-007-t1564-001",
+      "name": "Hidden Files and Directories: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1564.001",
+        "technique_name": "Hidden Files and Directories",
+        "tactic": "defense-evasion",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-007",
+        "tactic:defense-evasion",
+        "mitre:T1564.001",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-008-t1553-001",
+      "name": "Gatekeeper Bypass: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1553.001",
+        "technique_name": "Gatekeeper Bypass",
+        "tactic": "defense-evasion",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-008",
+        "tactic:defense-evasion",
+        "mitre:T1553.001",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-009-t1140",
+      "name": "Deobfuscate/Decode Files: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1140",
+        "technique_name": "Deobfuscate/Decode Files",
+        "tactic": "defense-evasion",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-009",
+        "tactic:defense-evasion",
+        "mitre:T1140",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-010-t1027",
+      "name": "Obfuscated Files or Information: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1027",
+        "technique_name": "Obfuscated Files or Information",
+        "tactic": "defense-evasion",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-010",
+        "tactic:defense-evasion",
+        "mitre:T1027",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-011-t1562-001",
+      "name": "Disable or Modify Tools: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1562.001",
+        "technique_name": "Disable or Modify Tools",
+        "tactic": "defense-evasion",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-011",
+        "tactic:defense-evasion",
+        "mitre:T1562.001",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-defenseevasion-012-t1070-002",
+      "name": "Clear Linux or Mac System Logs: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
+      "roadmap_traceability": {
+        "technique": "T1070.002",
+        "technique_name": "Clear Linux or Mac System Logs",
+        "tactic": "defense-evasion",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-defenseevasion-012",
+        "tactic:defense-evasion",
+        "mitre:T1070.002",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-credentialaccess-001-t1555-001",
+      "name": "Keychain: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; security list-keychains >/dev/null 2>&1 || true; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1555.001",
+        "technique_name": "Keychain",
+        "tactic": "credential-access",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-credentialaccess-001",
+        "tactic:credential-access",
+        "mitre:T1555.001",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-credentialaccess-002-t1552-004",
+      "name": "Private Keys: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; security list-keychains >/dev/null 2>&1 || true; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1552.004",
+        "technique_name": "Private Keys",
+        "tactic": "credential-access",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-credentialaccess-002",
+        "tactic:credential-access",
+        "mitre:T1552.004",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-credentialaccess-003-t1552-001",
+      "name": "Credentials In Files: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; security list-keychains >/dev/null 2>&1 || true; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "tactic": "credential-access",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-credentialaccess-003",
+        "tactic:credential-access",
+        "mitre:T1552.001",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-credentialaccess-004-t1056-001",
+      "name": "Keylogging: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; security list-keychains >/dev/null 2>&1 || true; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1056.001",
+        "technique_name": "Keylogging",
+        "tactic": "credential-access",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-credentialaccess-004",
+        "tactic:credential-access",
+        "mitre:T1056.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-credentialaccess-005-t1110-001",
+      "name": "Password Guessing: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; security list-keychains >/dev/null 2>&1 || true; id >/dev/null'",
+      "roadmap_traceability": {
+        "technique": "T1110.001",
+        "technique_name": "Password Guessing",
+        "tactic": "credential-access",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-credentialaccess-005",
+        "tactic:credential-access",
+        "mitre:T1110.001",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    }
+  ]
+}

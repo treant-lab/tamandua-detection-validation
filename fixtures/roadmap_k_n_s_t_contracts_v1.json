@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "fixture_id": "roadmap-k-n-s-t-contracts-v1",
+  "description": "Report-only contract fixtures for Roadmaps K, N, S, and T. These make platform capability, tenant safety, fleet scale, and DFIR/analyst UX gates machine-checkable before VM or backend execution exists.",
+  "claim_boundary": "Contract fixtures only. They validate expected evidence shape and classified gaps; they do not prove live endpoint collection, backend enforcement, scale, SIEM delivery, or DFIR collection.",
+  "lanes": [
+    {
+      "roadmap": "K",
+      "profile_id": "windows-platform-capabilities-dry-run",
+      "owner_area": "Platform capability evidence",
+      "capabilities": ["fim", "inventory", "compliance", "siem_export"],
+      "required_evidence_fields": [
+        "agent_id",
+        "host_id",
+        "hostname",
+        "tenant_id",
+        "time_window",
+        "schema_version",
+        "quality_gate",
+        "evidence_id"
+      ],
+      "fixtures": [
+        {
+          "id": "k-fim-file-registry-baseline",
+          "capability": "fim",
+          "expected_artifact": "fim baseline and change artifact with path, registry key, sha256, owner, baseline id, and change type",
+          "gap_classification": "collector",
+          "remaining_gap": "No executed file/registry baseline or realtime change evidence exists yet."
+        },
+        {
+          "id": "k-inventory-software-cpe-cve",
+          "capability": "inventory",
+          "expected_artifact": "inventory artifact with hardware, software, packages, processes, CPE, and CVE mapping where available",
+          "gap_classification": "normalization",
+          "remaining_gap": "Inventory shape is declared but not normalized into server-side freshness and vulnerability fields."
+        },
+        {
+          "id": "k-compliance-control-proof",
+          "capability": "compliance",
+          "expected_artifact": "per-control evidence with control id, host evidence id, status, exception, and timestamp",
+          "gap_classification": "claim-boundary",
+          "remaining_gap": "Compliance scores must remain unclaimed until per-control evidence replaces synthetic status."
+        },
+        {
+          "id": "k-siem-delivery-ack",
+          "capability": "siem_export",
+          "expected_artifact": "SIEM delivery artifact with destination, schema, cursor, retry count, delivery status, and acknowledgement id",
+          "gap_classification": "integration",
+          "remaining_gap": "No Splunk/Sentinel/syslog delivery acknowledgement or replay cursor proof exists yet."
+        }
+      ]
+    },
+    {
+      "roadmap": "N",
+      "profile_id": "control-plane-tenant-safety-dry-run",
+      "owner_area": "Control-plane safety",
+      "capabilities": ["rbac", "tenant_isolation", "token_scope", "audit_immutability"],
+      "required_evidence_fields": [
+        "tenant_id",
+        "actor_id",
+        "role",
+        "target_id",
+        "action",
+        "decision",
+        "reason",
+        "audit_id",
+        "correlation_id"
+      ],
+      "fixtures": [
+        {
+          "id": "n-rbac-sensitive-action-deny",
+          "capability": "rbac",
+          "expected_artifact": "RBAC matrix showing allow/deny for alert read, response action, policy edit, export, and admin operations",
+          "gap_classification": "authorization",
+          "remaining_gap": "Dry-run declares the matrix but no API test proves destructive response denial or approval requirements."
+        },
+        {
+          "id": "n-cross-tenant-resource-deny",
+          "capability": "tenant_isolation",
+          "expected_artifact": "API boundary artifact proving cross-tenant agent, event, alert, response, export, and audit access is denied",
+          "gap_classification": "tenant-boundary",
+          "remaining_gap": "No executed cross-tenant read/write denial artifact exists."
+        },
+        {
+          "id": "n-token-state-scope-check",
+          "capability": "token_scope",
+          "expected_artifact": "token scope artifact for valid least-privilege, expired, revoked, over-scoped, and wrong-tenant credentials",
+          "gap_classification": "authentication",
+          "remaining_gap": "Token scope states are not yet covered by a backend or CLI auth fixture."
+        },
+        {
+          "id": "n-audit-write-on-deny",
+          "capability": "audit_immutability",
+          "expected_artifact": "audit record with actor, tenant, target, action, decision, reason, correlation id, and immutable storage proof",
+          "gap_classification": "audit",
+          "remaining_gap": "Audit creation on denied actions and audit immutability are not yet proven."
+        }
+      ]
+    },
+    {
+      "roadmap": "S",
+      "profile_id": "fleet-scale-multi-agent-dry-run",
+      "owner_area": "Fleet scale",
+      "capabilities": ["agent_identity", "event_isolation", "offline_reconnect", "simultaneous_workloads"],
+      "required_evidence_fields": [
+        "fleet_run_id",
+        "tenant_id",
+        "agent_id",
+        "host_id",
+        "platform",
+        "event_count",
+        "alert_count",
+        "latency_ms",
+        "loss_count"
+      ],
+      "fixtures": [
+        {
+          "id": "s-agent-identity-uniqueness",
+          "capability": "agent_identity",
+          "expected_artifact": "multi-agent artifact with stable agent ids, duplicate hostname policy, and enrollment ids",
+          "gap_classification": "identity",
+          "remaining_gap": "No three-agent run exists to prove identity stability or duplicate hostname behavior."
+        },
+        {
+          "id": "s-cross-agent-evidence-isolation",
+          "capability": "event_isolation",
+          "expected_artifact": "isolation artifact showing events and alerts remain scoped to the originating agent and tenant",
+          "gap_classification": "tenant-boundary",
+          "remaining_gap": "No simultaneous run proves absence of cross-agent evidence contamination."
+        },
+        {
+          "id": "s-offline-reconnect-catchup",
+          "capability": "offline_reconnect",
+          "expected_artifact": "offline/reconnect artifact with heartbeat gap, queued events, dropped events, and catch-up duration",
+          "gap_classification": "reliability",
+          "remaining_gap": "Offline and reconnect behavior is not measured under fleet conditions."
+        },
+        {
+          "id": "s-load-latency-loss",
+          "capability": "simultaneous_workloads",
+          "expected_artifact": "load artifact with ingest latency, alert latency, queue depth, event loss, and API query latency",
+          "gap_classification": "scale",
+          "remaining_gap": "No simultaneous benign/deterministic workload metrics exist."
+        }
+      ]
+    },
+    {
+      "roadmap": "T",
+      "profile_id": "dfir-hunting-artifact-collection-dry-run",
+      "owner_area": "DFIR hunting",
+      "capabilities": ["artifact_catalog", "hunt_manifest", "triage_package", "analyst_review"],
+      "required_evidence_fields": [
+        "hunt_id",
+        "tenant_id",
+        "agent_id",
+        "artifact_id",
+        "query_version",
+        "bytes_collected",
+        "sha256",
+        "redaction_policy",
+        "review_surface"
+      ],
+      "fixtures": [
+        {
+          "id": "t-windows-artifact-catalog",
+          "capability": "artifact_catalog",
+          "expected_artifact": "catalog artifact for process tree, autoruns, services, scheduled tasks, persistence keys, event logs, PowerShell history, network connections, prefetch/amcache, and selected files",
+          "gap_classification": "collector",
+          "remaining_gap": "Artifact catalog exists only as a contract; no endpoint collection proof exists."
+        },
+        {
+          "id": "t-multi-agent-hunt-status",
+          "capability": "hunt_manifest",
+          "expected_artifact": "hunt manifest with per-agent success, errors, duration, bytes collected, and artifact counts",
+          "gap_classification": "orchestration",
+          "remaining_gap": "No multi-agent hunt execution artifact exists."
+        },
+        {
+          "id": "t-triage-package-chain-of-custody",
+          "capability": "triage_package",
+          "expected_artifact": "triage package manifest with hashes, timestamps, host identity, query/profile version, redaction, and chain of custody",
+          "gap_classification": "evidence-integrity",
+          "remaining_gap": "No package export, manifest hash, or redaction proof exists."
+        },
+        {
+          "id": "t-analyst-review-export",
+          "capability": "analyst_review",
+          "expected_artifact": "analyst UX artifact with searchable results, saved query, timeline/notebook summary, and exportable report",
+          "gap_classification": "analyst-ux",
+          "remaining_gap": "No analyst review surface proof is linked to a DFIR hunt id."
+        }
+      ]
+    }
+  ]
+}

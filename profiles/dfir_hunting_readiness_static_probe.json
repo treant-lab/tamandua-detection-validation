@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "profile_id": "dfir-hunting-readiness-static-probe",
+  "name": "DFIR Hunting Readiness Static/API Probe",
+  "description": "Executed non-destructive Roadmap T probe for DFIR API routes, backend modules, persistence shape, analyst UI surfaces, local manifest hashes, and unauthenticated deny behavior. It does not collect endpoint artifacts.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "dfir-hunting",
+  "quality_bar": {
+    "purpose": "dfir_hunting_readiness_static_api_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "DFIR readiness proof only. Full Roadmap T still requires executed endpoint collection, per-agent status, triage package export, redaction proof, and analyst review linked to a hunt id.",
+  "tests": [
+    {
+      "id": "dfir-api-routes-present",
+      "name": "DFIR API routes expose collection and investigation surfaces",
+      "executor": "dfir_readiness_probe",
+      "expected_telemetry": ["dfir_readiness"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "dfir-context-modules-present",
+      "name": "Server has DFIR context, artifact, collector, engine, analyzer, and timeline modules",
+      "executor": "dfir_readiness_probe",
+      "expected_telemetry": ["dfir_readiness"],
+      "expected_fields": ["files"]
+    },
+    {
+      "id": "dfir-db-schema-present",
+      "name": "Forensic artifact persistence migration exists",
+      "executor": "dfir_readiness_probe",
+      "expected_telemetry": ["dfir_readiness"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "dfir-agent-forensics-module-present",
+      "name": "Agent has endpoint-side forensics response module",
+      "executor": "dfir_readiness_probe",
+      "expected_telemetry": ["dfir_readiness"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "dfir-analyst-ui-route-present",
+      "name": "Authenticated UI has forensics pages for analyst review",
+      "executor": "dfir_readiness_probe",
+      "expected_telemetry": ["dfir_readiness"],
+      "expected_fields": ["file", "required_patterns"]
+    },
+    {
+      "id": "dfir-local-triage-manifest-hashes",
+      "name": "Local DFIR contract package manifest has SHA-256 hashes and redaction policy",
+      "executor": "dfir_readiness_probe",
+      "expected_telemetry": ["dfir_manifest"],
+      "expected_fields": ["sha256", "redaction_policy", "chain_of_custody"]
+    },
+    {
+      "id": "dfir-unauth-deny-api-v1-forensics",
+      "name": "Unauthenticated DFIR route denied: /api/v1/forensics",
+      "executor": "dfir_readiness_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "dfir-unauth-deny-api-v1-forensics-investigations-stats",
+      "name": "Unauthenticated DFIR route denied: /api/v1/forensics/investigations/stats",
+      "executor": "dfir_readiness_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "dfir-unauth-deny-api-v1-live-response-example-agent-id-processes",
+      "name": "Unauthenticated live response route denied",
+      "executor": "dfir_readiness_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    }
+  ]
+}

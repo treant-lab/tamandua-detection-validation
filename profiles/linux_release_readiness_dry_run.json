@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-release-readiness-dry-run",
+  "name": "Linux Release Readiness Dry Run",
+  "description": "Non-destructive Linux release-readiness evidence for service state, binary metadata, package/manifest context, and rollback planning.",
+  "platform": "linux",
+  "default_observation_seconds": 90,
+  "benchmark_lane": "release-readiness",
+  "claim_boundary": "Report-only Linux release-readiness evidence. Passing this profile does not prove signed release, upgrade, rollback, uninstall, SBOM completeness, or compatibility matrix closure.",
+  "quality_bar": {
+    "purpose": "linux_release_readiness_dry_run",
+    "requires_persisted_events": true,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "tests": [
+    {
+      "id": "release-linux-service-state-report-only",
+      "name": "Linux Service State Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'systemctl status tamandua-agent --no-pager 2>/dev/null | head -n 25 || service tamandua-agent status 2>/dev/null || ps -eo pid,comm,args | grep -i tamandua | grep -v grep || true'",
+      "expected_telemetry": ["process_create"],
+      "expected_telemetry_alternatives": [["live_response_command_completed"]],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["release-readiness", "linux", "service-state", "report-only"],
+      "risk": "low"
+    },
+    {
+      "id": "release-linux-binary-hash-metadata-report-only",
+      "name": "Linux Binary Hash Metadata Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'for f in /usr/local/bin/tamandua-agent /usr/bin/tamandua-agent /opt/tamandua/bin/tamandua-agent; do test -f \"$f\" && { sha256sum \"$f\"; ls -l \"$f\"; file \"$f\" 2>/dev/null || true; }; done; true'",
+      "expected_telemetry": ["process_create"],
+      "expected_telemetry_alternatives": [["live_response_command_completed"]],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["release-readiness", "linux", "binary-metadata", "hash", "report-only"],
+      "risk": "low"
+    },
+    {
+      "id": "release-linux-package-metadata-report-only",
+      "name": "Linux Package Metadata Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'dpkg-query -W \"tamandua*\" 2>/dev/null || rpm -qa \"tamandua*\" 2>/dev/null || true'",
+      "expected_telemetry": ["process_create"],
+      "expected_telemetry_alternatives": [["live_response_command_completed"]],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["release-readiness", "linux", "package-metadata", "report-only"],
+      "risk": "low"
+    },
+    {
+      "id": "release-linux-manifest-sbom-compatibility-report-only",
+      "name": "Linux Manifest SBOM Compatibility Report Only",
+      "executor": "command",
+      "fallback_command": "echo tamandua_release_manifest=${TAMANDUA_RELEASE_MANIFEST:-unset}; echo tamandua_release_sbom=${TAMANDUA_RELEASE_SBOM:-unset}; echo tamandua_release_compatibility=${TAMANDUA_RELEASE_COMPATIBILITY_MATRIX:-unset}; sleep 2; true",
+      "expected_telemetry": ["process_create"],
+      "expected_telemetry_alternatives": [["live_response_command_completed"]],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["release-readiness", "linux", "manifest", "sbom", "compatibility", "report-only"],
+      "risk": "low"
+    },
+    {
+      "id": "release-linux-rollback-uninstall-plan-not-executed",
+      "name": "Linux Rollback Uninstall Plan Not Executed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'printf \"rollback=planned_not_executed\\nuninstall=planned_not_executed\\nunsafe_actions_blocked=systemctl_stop,package_remove,rm_rf_agent\\n\"'",
+      "expected_telemetry": ["process_create"],
+      "expected_telemetry_alternatives": [["live_response_command_completed"]],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "user"],
+      "tags": ["release-readiness", "linux", "rollback", "uninstall", "planned-not-executed", "report-only"],
+      "risk": "low"
+    }
+  ]
+}

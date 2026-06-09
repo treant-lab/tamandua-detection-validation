@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "profile_id": "control-plane-two-tenant-fixture-probe",
+  "name": "Control Plane Two-Tenant Fixture Probe",
+  "description": "Local deterministic Roadmap N fixture for tenant isolation, token scope/revocation, role denial, append-only audit semantics, and destructive response approval requirements.",
+  "platform": "control-plane",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "control-plane-safety",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\control_plane_two_tenant_fixture_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "two_tenant_fixture_contract",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local two-tenant fixture contract only. Does not prove runtime database isolation, authenticated API denial across real tenants, immutable persisted audit rows, or MFA approval enforcement.",
+  "tests": [
+    {
+      "id": "tenant-same-org-alert-read-allowed",
+      "name": "Same-tenant alert read is allowed",
+      "executor": "control_plane_two_tenant_fixture_probe",
+      "expected_telemetry": ["tenant_fixture_decision"],
+      "expected_fields": ["observed", "expected", "reason"]
+    },
+    {
+      "id": "tenant-cross-org-alert-read-denied",
+      "name": "Cross-tenant alert read is denied",
+      "executor": "control_plane_two_tenant_fixture_probe",
+      "expected_telemetry": ["tenant_fixture_decision"],
+      "expected_fields": ["observed", "expected", "reason"]
+    },
+    {
+      "id": "tenant-cross-org-agent-read-denied",
+      "name": "Cross-tenant agent read is denied",
+      "executor": "control_plane_two_tenant_fixture_probe",
+      "expected_telemetry": ["tenant_fixture_decision"],
+      "expected_fields": ["observed", "expected", "reason"]
+    },
+    {
+      "id": "token-revoked-denied",
+      "name": "Revoked token is denied",
+      "executor": "control_plane_two_tenant_fixture_probe",
+      "expected_telemetry": ["tenant_fixture_decision"],
+      "expected_fields": ["observed", "expected", "reason"]
+    },
+    {
+      "id": "role-denies-response-execute",
+      "name": "Viewer role cannot execute response even with token scope",
+      "executor": "control_plane_two_tenant_fixture_probe",
+      "expected_telemetry": ["tenant_fixture_decision"],
+      "expected_fields": ["observed", "expected", "reason"]
+    },
+    {
+      "id": "destructive-response-requires-approval",
+      "name": "Destructive response requires explicit approval",
+      "executor": "control_plane_two_tenant_fixture_probe",
+      "expected_telemetry": ["tenant_fixture_decision"],
+      "expected_fields": ["observed", "expected", "reason"]
+    },
+    {
+      "id": "destructive-response-approved-allowed",
+      "name": "Admin response with tenant-matched approval is allowed",
+      "executor": "control_plane_two_tenant_fixture_probe",
+      "expected_telemetry": ["tenant_fixture_decision"],
+      "expected_fields": ["observed", "expected", "reason"]
+    },
+    {
+      "id": "audit-log-append-only-fixture",
+      "name": "Audit log append-only semantics preserve prior entries",
+      "executor": "control_plane_two_tenant_fixture_probe",
+      "expected_telemetry": ["tenant_fixture_decision"],
+      "expected_fields": ["observed", "expected", "audit_entries"]
+    }
+  ]
+}

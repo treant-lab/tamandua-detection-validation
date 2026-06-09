@@ -1,0 +1,161 @@
+{
+  "schema_version": 1,
+  "profile_id": "control-plane-tenant-safety-static-probe",
+  "name": "Control Plane Tenant Safety Static/API Probe",
+  "description": "Executed non-destructive Roadmap N probe for source-level tenant/RBAC/audit guardrails and unauthenticated API deny checks. This is stronger than the report-only contract, but still not a full two-tenant runtime isolation proof.",
+  "platform": "control-plane",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "control-plane-safety",
+  "quality_bar": {
+    "purpose": "tenant_safety_static_api_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Static source and unauthenticated deny proof only. Full Roadmap N still requires two-tenant executed API fixtures for cross-tenant read/write denial, token scope, role denial, and immutable audit proof.",
+  "tests": [
+    {
+      "id": "tenant-scope-helper-enforced",
+      "name": "TenantScope rejects nil tenant and provides scoped reads",
+      "executor": "control_plane_static_probe",
+      "expected_telemetry": ["control_plane_static_probe"],
+      "expected_fields": ["file", "required_patterns", "missing_patterns"]
+    },
+    {
+      "id": "agents-context-tenant-scoped",
+      "name": "Agent context exposes tenant-scoped list/show/create helpers",
+      "executor": "control_plane_static_probe",
+      "expected_telemetry": ["control_plane_static_probe"],
+      "expected_fields": ["file", "required_patterns", "missing_patterns"]
+    },
+    {
+      "id": "alerts-context-tenant-scoped",
+      "name": "Alert context and bulk operations accept organization scope",
+      "executor": "control_plane_static_probe",
+      "expected_telemetry": ["control_plane_static_probe"],
+      "expected_fields": ["file", "required_patterns", "missing_patterns"]
+    },
+    {
+      "id": "api-auth-requires-user-context",
+      "name": "API pipeline requires bearer/session auth and assigns tenant context",
+      "executor": "control_plane_static_probe",
+      "expected_telemetry": ["control_plane_static_probe"],
+      "expected_fields": ["file", "required_patterns", "missing_patterns"]
+    },
+    {
+      "id": "api-pipeline-requires-tenant-context",
+      "name": "Authenticated API pipeline adds tenant context checks",
+      "executor": "control_plane_static_probe",
+      "expected_telemetry": ["control_plane_static_probe"],
+      "expected_fields": ["file", "required_patterns", "missing_patterns"]
+    },
+    {
+      "id": "rbac-controller-cross-user-denies",
+      "name": "RBAC controller rejects cross-organization user operations",
+      "executor": "control_plane_static_probe",
+      "expected_telemetry": ["control_plane_static_probe"],
+      "expected_fields": ["file", "required_patterns", "missing_patterns"]
+    },
+    {
+      "id": "api-key-lifecycle-scoped",
+      "name": "API keys are org-scoped, hashed, expirable, and permission-gated",
+      "executor": "control_plane_static_probe",
+      "expected_telemetry": ["control_plane_static_probe"],
+      "expected_fields": ["file", "required_patterns", "missing_patterns"]
+    },
+    {
+      "id": "rbac-audit-append-only-schema",
+      "name": "RBAC audit log has tenant scope and append-only timestamps",
+      "executor": "control_plane_static_probe",
+      "expected_telemetry": ["control_plane_static_probe"],
+      "expected_fields": ["file", "required_patterns", "missing_patterns"]
+    },
+    {
+      "id": "response-controller-audits-actions",
+      "name": "Response actions resolve org context and write audit entries",
+      "executor": "control_plane_static_probe",
+      "expected_telemetry": ["control_plane_static_probe"],
+      "expected_fields": ["file", "required_patterns", "missing_patterns"]
+    },
+    {
+      "id": "unauth-deny-api-v1-agents",
+      "name": "Unauthenticated request denied: /api/v1/agents",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-agents-data-sources-health",
+      "name": "Unauthenticated request denied: /api/v1/agents/data-sources/health",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-alerts",
+      "name": "Unauthenticated request denied: /api/v1/alerts",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-alerts-summary",
+      "name": "Unauthenticated request denied: /api/v1/alerts/summary",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-events",
+      "name": "Unauthenticated request denied: /api/v1/events",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-response-metrics",
+      "name": "Unauthenticated request denied: /api/v1/response/metrics",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-response-audit",
+      "name": "Unauthenticated request denied: /api/v1/response-audit",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-rbac-roles",
+      "name": "Unauthenticated request denied: /api/v1/rbac/roles",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-rbac-audit-log",
+      "name": "Unauthenticated request denied: /api/v1/rbac/audit-log",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-api-keys",
+      "name": "Unauthenticated request denied: /api/v1/api-keys",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    },
+    {
+      "id": "unauth-deny-api-v1-tenants",
+      "name": "Unauthenticated request denied: /api/v1/tenants",
+      "executor": "control_plane_api_probe",
+      "expected_telemetry": ["remote_api_deny"],
+      "expected_fields": ["url", "status_code"]
+    }
+  ]
+}

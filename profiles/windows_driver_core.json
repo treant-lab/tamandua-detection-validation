@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-driver-core",
+  "name": "Windows Driver Core",
+  "description": "Low-risk validation profile for Windows driver level 14 core callbacks and endpoint ingestion.",
+  "platform": "windows",
+  "default_observation_seconds": 45,
+  "tests": [
+    {
+      "id": "driver-process-basic",
+      "name": "Process Callback Basic",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname\"",
+      "expected_telemetry": ["process_create", "process_terminate"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["driver", "process", "core"],
+      "risk": "low"
+    },
+    {
+      "id": "driver-file-temp",
+      "name": "File Callback Temp Create Modify Delete",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '$d=Join-Path $env:TEMP (\"tamandua-driver-bench-\" + [guid]::NewGuid().ToString(\"N\")); New-Item -ItemType Directory -Path $d -Force | Out-Null; $p=Join-Path $d \"sample.txt\"; New-Item -ItemType File -Path $p -Force | Out-Null; Start-Sleep -Milliseconds 300; Set-Content -Path $p -Value \"tamandua\"; Start-Sleep -Milliseconds 300; Add-Content -Path $p -Value \"driver\"; Start-Sleep -Milliseconds 300; Remove-Item -Path $p -Force; Start-Sleep -Milliseconds 300; Remove-Item -Path $d -Force -Recurse'",
+      "expected_telemetry": ["process_create", "file_modify"],
+      "optional_telemetry": ["file_create", "file_delete"],
+      "expected_fields": ["agent_id", "hostname", "path", "process_name"],
+      "tags": ["driver", "file", "core"],
+      "risk": "low"
+    },
+    {
+      "id": "driver-registry-hkcu",
+      "name": "Registry Callback HKLM Safe Key",
+      "executor": "command",
+      "fallback_command": "cmd.exe /c \"reg add HKLM\\Software\\TamanduaBench /v Smoke /t REG_SZ /d 1 /f && reg delete HKLM\\Software\\TamanduaBench /f\"",
+      "expected_telemetry": ["process_create", "registry_set_value"],
+      "expected_driver_raw_event_types": ["registry_set_value"],
+      "expected_fields": ["agent_id", "hostname", "registry_key", "process_name"],
+      "tags": ["driver", "registry", "core"],
+      "risk": "low"
+    },
+    {
+      "id": "driver-module-load",
+      "name": "Image Load Callback Basic",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command 'Start-Process -FilePath \"$env:WINDIR\\System32\\notepad.exe\" -WindowStyle Hidden; Start-Sleep -Milliseconds 800; Get-Process notepad -ErrorAction SilentlyContinue | Stop-Process -Force'",
+      "expected_telemetry": ["process_create", "module_load", "process_terminate"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "module_path"],
+      "tags": ["driver", "module", "core"],
+      "risk": "low"
+    },
+    {
+      "id": "driver-dns-basic",
+      "name": "DNS Telemetry Basic",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command 'Resolve-DnsName example.com -ErrorAction SilentlyContinue | Out-Null'",
+      "expected_telemetry": ["process_create", "dns_query"],
+      "expected_fields": ["agent_id", "hostname", "domain", "process_name"],
+      "tags": ["driver", "dns", "network", "core"],
+      "risk": "low"
+    }
+  ]
+}

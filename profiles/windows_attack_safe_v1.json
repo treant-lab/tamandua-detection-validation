@@ -1,0 +1,202 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-attack-safe-v1",
+  "name": "Windows ATT&CK Safe v1",
+  "description": "Product validation profile for safe Windows ATT&CK coverage. It validates telemetry, investigation fields, selected detections, and driver raw counters without credential dumping, LSASS access, destructive changes, firewall isolation, ransomware encryption, or persistence that survives cleanup.",
+  "platform": "windows",
+  "default_observation_seconds": 75,
+  "quality_bar": {
+    "purpose": "release_candidate",
+    "requires_driver_health": true,
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "tests": [
+    {
+      "id": "T1033-user-discovery",
+      "name": "System Owner/User Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1033", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c whoami",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["attack-safe-v1", "atomic", "discovery", "mitre:T1033"],
+      "risk": "low"
+    },
+    {
+      "id": "T1082-system-info-discovery",
+      "name": "System Information Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1082", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c ver",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name"],
+      "tags": ["attack-safe-v1", "atomic", "discovery", "mitre:T1082"],
+      "risk": "low"
+    },
+    {
+      "id": "T1057-process-discovery",
+      "name": "Process Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1057", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c tasklist /v",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["attack-safe-v1", "atomic", "discovery", "mitre:T1057"],
+      "risk": "low"
+    },
+    {
+      "id": "T1007-service-discovery",
+      "name": "System Service Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1007", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c sc.exe query type= service state= all",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["attack-safe-v1", "atomic", "discovery", "service", "mitre:T1007"],
+      "risk": "low"
+    },
+    {
+      "id": "T1016-network-config-discovery",
+      "name": "System Network Configuration Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1016", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c ipconfig /all",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "network_connect"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["attack-safe-v1", "atomic", "discovery", "network", "mitre:T1016"],
+      "risk": "low"
+    },
+    {
+      "id": "T1049-network-connections-discovery",
+      "name": "System Network Connections Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1049", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c netstat -ano",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["network_connect"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["attack-safe-v1", "atomic", "discovery", "network", "mitre:T1049"],
+      "risk": "low"
+    },
+    {
+      "id": "T1012-registry-query",
+      "name": "Query Registry",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1012", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c \"reg.exe query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\"",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["attack-safe-v1", "atomic", "discovery", "registry", "mitre:T1012"],
+      "risk": "low"
+    },
+    {
+      "id": "T1083-file-directory-discovery",
+      "name": "File and Directory Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1083", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c dir %TEMP%",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["attack-safe-v1", "atomic", "discovery", "file", "mitre:T1083"],
+      "risk": "low"
+    },
+    {
+      "id": "T1059.003-command-shell",
+      "name": "Windows Command Shell",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1059.003", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c \"echo TamanduaAttackSafeV1 & whoami & hostname & ping -n 4 127.0.0.1 > nul\"",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["attack-safe-v1", "atomic", "execution", "cmd", "mitre:T1059.003"],
+      "risk": "low"
+    },
+    {
+      "id": "T1059.001-powershell-encoded",
+      "name": "PowerShell EncodedCommand",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1059.001", "test_numbers": [20]},
+      "fallback_command": "powershell.exe -NoProfile -EncodedCommand VwByAGkAdABlAC0ATwB1AHQAcAB1AHQAIABUAGEAbQBhAG4AZAB1AGEAQQB0AHQAYQBjAGsAUwBhAGYAZQBWADEAOwAgAHcAaABvAGEAbQBpADsAIABTAHQAYQByAHQALQBTAGwAZQBlAHAAIAAtAFMAZQBjAG8AbgBkAHMAIAA0ADUA",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": ["encoded", "powershell"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["attack-safe-v1", "atomic", "execution", "detection", "powershell", "mitre:T1059.001", "mitre:T1027"],
+      "risk": "low"
+    },
+    {
+      "id": "T1027-certutil-encode-safe",
+      "name": "Certutil Encode Safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua>%TEMP%\\tamandua-certutil-v1.txt & certutil.exe -encode %TEMP%\\tamandua-certutil-v1.txt %TEMP%\\tamandua-certutil-v1.b64 > nul & ping -n 3 127.0.0.1 > nul & del /f /q %TEMP%\\tamandua-certutil-v1.txt %TEMP%\\tamandua-certutil-v1.b64\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["file_create", "file_modify", "file_delete"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "path"],
+      "tags": ["attack-safe-v1", "atomic", "defense-evasion", "obfuscation", "mitre:T1027"],
+      "risk": "low"
+    },
+    {
+      "id": "T1112-registry-modification-safe",
+      "name": "Modify Registry Safe",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1112", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c \"reg add HKLM\\Software\\TamanduaAttackSafeV1 /v Marker /t REG_SZ /d tamandua /f & ping -n 8 127.0.0.1 > nul & reg delete HKLM\\Software\\TamanduaAttackSafeV1 /f\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["registry_set_value", "registry_delete_key"],
+      "expected_driver_raw_event_types": ["registry_set_value"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "registry_key"],
+      "tags": ["attack-safe-v1", "atomic", "defense-evasion", "registry", "driver-registry", "mitre:T1112"],
+      "risk": "low"
+    },
+    {
+      "id": "T1547.001-run-key-safe",
+      "name": "Run Key Persistence Safe",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1547.001", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c \"reg add HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaAttackSafeV1 /t REG_SZ /d tamandua /f & ping -n 8 127.0.0.1 > nul & reg delete HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaAttackSafeV1 /f\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["registry_set_value", "registry_delete_value"],
+      "expected_driver_raw_event_types": ["registry_set_value"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "registry_key"],
+      "tags": ["attack-safe-v1", "atomic", "persistence", "registry", "driver-registry", "mitre:T1547.001"],
+      "risk": "medium"
+    },
+    {
+      "id": "T1053.005-scheduled-task-safe",
+      "name": "Scheduled Task Create Delete Safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"schtasks.exe /Create /TN TamanduaAttackSafeV1 /SC DAILY /ST 23:59 /TR notepad.exe /RU SYSTEM /F & ping -n 3 127.0.0.1 > nul & schtasks.exe /Delete /TN TamanduaAttackSafeV1 /F\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["registry_set_value", "file_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["attack-safe-v1", "atomic", "persistence", "scheduled-task", "mitre:T1053.005"],
+      "risk": "medium"
+    },
+    {
+      "id": "T1105-benign-transfer",
+      "name": "Ingress Tool Transfer Benign",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1105", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c \"curl.exe -L https://example.com/ -o %TEMP%\\tamandua-t1105-v1.txt & ping -n 3 127.0.0.1 > nul & del /f /q %TEMP%\\tamandua-t1105-v1.txt\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "network_connect", "file_create", "file_delete"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "remote_ip", "domain", "path"],
+      "tags": ["attack-safe-v1", "atomic", "command-and-control", "network", "file", "mitre:T1105"],
+      "risk": "low"
+    },
+    {
+      "id": "T1560-archive-collected-data-safe",
+      "name": "Archive Collected Data Safe",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1560", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c \"rmdir /s /q %TEMP%\\tamandua-archive-v1 2>nul & mkdir %TEMP%\\tamandua-archive-v1 & echo tamandua > %TEMP%\\tamandua-archive-v1\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-archive-v1\\sample.zip -C %TEMP%\\tamandua-archive-v1 sample.txt & ping -n 3 127.0.0.1 > nul & rmdir /s /q %TEMP%\\tamandua-archive-v1\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["file_create", "file_modify", "file_delete"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "path"],
+      "tags": ["attack-safe-v1", "atomic", "collection", "archive", "mitre:T1560"],
+      "risk": "low"
+    }
+  ]
+}

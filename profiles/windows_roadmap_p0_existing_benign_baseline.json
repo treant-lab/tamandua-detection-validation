@@ -1,0 +1,501 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-roadmap-p0-existing-benign-baseline",
+  "name": "Windows Roadmap P0 Existing Benign Baseline",
+  "description": "Focused batch that promotes Windows P0 scenarios already mapped to existing profiles into fresh evidence.",
+  "platform": "windows",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "windows_p0_existing_benign_baseline",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "requires_driver_health": true,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/windows_detection_roadmap_300.json",
+    "selected_scenarios": 9,
+    "generated_tests": 9,
+    "limit": 12
+  },
+  "tests": [
+    {
+      "id": "roadmap-win-execution-006-t1106",
+      "name": "Native API: benign contrast",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand JABzAHIAYwAgAD0AIABAACIADQAKAHUAcwBpAG4AZwAgAFMAeQBzAHQAZQBtAC4AUgB1AG4AdABpAG0AZQAuAEkAbgB0AGUAcgBvAHAAUwBlAHIAdgBpAGMAZQBzADsADQAKAHAAdQBiAGwAaQBjACAAcwB0AGEAdABpAGMAIABjAGwAYQBzAHMAIABUAGEAbQBhAG4AZAB1AGEATgBhAHQAaQB2AGUAQQBwAGkAUAByAG8AYgBlACAAewAgAFsARABsAGwASQBtAHAAbwByAHQAKAAiAGsAZQByAG4AZQBsADMAMgAuAGQAbABsACIAKQBdACAAcAB1AGIAbABpAGMAIABzAHQAYQB0AGkAYwAgAGUAeAB0AGUAcgBuACAAdQBpAG4AdAAgAEcAZQB0AFQAaQBjAGsAQwBvAHUAbgB0ACgAKQA7ACAAfQANAAoAIgBAADsAIABBAGQAZAAtAFQAeQBwAGUAIAAtAFQAeQBwAGUARABlAGYAaQBuAGkAdABpAG8AbgAgACQAcwByAGMAOwAgAFsAVABhAG0AYQBuAGQAdQBhAE4AYQB0AGkAdgBlAEEAcABpAFAAcgBvAGIAZQBdADoAOgBHAGUAdABUAGkAYwBrAEMAbwB1AG4AdAAoACkAIAB8ACAATwB1AHQALQBOAHUAbABsADsAIABTAHQAYQByAHQALQBTAGwAZQBlAHAAIAAtAFMAZQBjAG8AbgBkAHMAIAAzAA==",
+      "roadmap_traceability": {
+        "technique": "T1106",
+        "technique_name": "Native API",
+        "tactic": "execution",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-execution-006",
+        "tactic:execution",
+        "mitre:T1106",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-persistence-006-t1574-001",
+      "name": "DLL Search Order Hijacking: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"schtasks.exe /Query /TN \\Microsoft\\Windows\\Defrag\\ScheduledDefrag 2>nul || schtasks.exe /Query /FO CSV /NH\"",
+      "roadmap_traceability": {
+        "technique": "T1574.001",
+        "technique_name": "DLL Search Order Hijacking",
+        "tactic": "persistence",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-benign-baseline"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-persistence-006",
+        "tactic:persistence",
+        "mitre:T1574.001",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-privilegeescalation-006-t1543-003",
+      "name": "Windows Service: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"sc.exe create TamanduaBenchSvc binPath= %ComSpec% start= demand > nul & sc.exe query TamanduaBenchSvc & sc.exe delete TamanduaBenchSvc > nul\"",
+      "roadmap_traceability": {
+        "technique": "T1543.003",
+        "technique_name": "Windows Service",
+        "tactic": "privilege-escalation",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-benign-baseline"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-privilegeescalation-006",
+        "tactic:privilege-escalation",
+        "mitre:T1543.003",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-defenseevasion-006-t1218-011",
+      "name": "Rundll32: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua>%TEMP%\\tamandua-evasion.txt & attrib +h %TEMP%\\tamandua-evasion.txt & attrib -h %TEMP%\\tamandua-evasion.txt & del /f /q %TEMP%\\tamandua-evasion.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1218.011",
+        "technique_name": "Rundll32",
+        "tactic": "defense-evasion",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-extended-safe",
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-benign-baseline"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-defenseevasion-006",
+        "tactic:defense-evasion",
+        "mitre:T1218.011",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-006-t1552-006",
+      "name": "Group Policy Preferences: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"dir \\\\localhost\\SYSVOL 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1552.006",
+        "technique_name": "Group Policy Preferences",
+        "tactic": "credential-access",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-006",
+        "tactic:credential-access",
+        "mitre:T1552.006",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-lateralmovement-006-t1550-002",
+      "name": "Pass the Hash: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"klist 2>nul || whoami /groups\"",
+      "roadmap_traceability": {
+        "technique": "T1550.002",
+        "technique_name": "Pass the Hash",
+        "tactic": "lateral-movement",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-006",
+        "tactic:lateral-movement",
+        "mitre:T1550.002",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-commandandcontrol-006-t1132",
+      "name": "Data Encoding: benign contrast",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"[Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes('tamandua-c2-encoding')) | Out-Null\"",
+      "roadmap_traceability": {
+        "technique": "T1132",
+        "technique_name": "Data Encoding",
+        "tactic": "command-and-control",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-commandandcontrol-006",
+        "tactic:command-and-control",
+        "mitre:T1132",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-exfiltration-006-t1041",
+      "name": "Exfiltration Over C2 Channel: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua-exfil>%TEMP%\\tamandua-exfil.txt & type %TEMP%\\tamandua-exfil.txt > nul & del /f /q %TEMP%\\tamandua-exfil.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1041",
+        "technique_name": "Exfiltration Over C2 Channel",
+        "tactic": "exfiltration",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-benign-baseline"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-exfiltration-006",
+        "tactic:exfiltration",
+        "mitre:T1041",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-impact-006-t1565-001",
+      "name": "Stored Data Manipulation: benign contrast",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"$p=Join-Path $env:TEMP 'tamandua-data.txt'; Set-Content $p 'before'; Add-Content $p 'after'; Remove-Item $p -Force\"",
+      "roadmap_traceability": {
+        "technique": "T1565.001",
+        "technique_name": "Stored Data Manipulation",
+        "tactic": "impact",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-006",
+        "tactic:impact",
+        "mitre:T1565.001",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    }
+  ]
+}

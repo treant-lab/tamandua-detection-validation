@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-release-reliability-dry-run",
+  "name": "Windows Release Reliability Dry Run",
+  "description": "Small non-destructive reliability/readiness lane for agent status, component health, offline queue/backpressure surfaces, driver stress/drop budget shape, and release action rollback planning. The profile is executable, but every command is report-only.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "release-readiness",
+  "quality_bar": {
+    "purpose": "release_reliability_dry_run",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "reliability_contract": {
+    "evidence_scope": [
+      "tamandua-ctl status --detailed when IPC is available",
+      "tamandua-ctl status --metrics when IPC is available",
+      "read-only offline queue database discovery and size metadata",
+      "driver stress budget and drop counter surfaces declared without generating load",
+      "rollback/uninstall explicitly planned but not executed"
+    ],
+    "promotion_requires": [
+      "agent online/offline state matches backend state during repeated reconnects",
+      "bounded offline queue replay proves ACK-safe drain without local data loss",
+      "backpressure metrics are surfaced in tamandua-ctl JSON and benchmark reports",
+      "driver stress tests record channel drops, kernel drops, queue depth, latency, and recovery after burst load",
+      "rollback/uninstall are executed only in a disposable clean template with audit evidence"
+    ]
+  },
+  "claim_boundary": "Dry-run release reliability only. Passing this profile proves that safe reliability probes are runnable or gracefully report missing APIs; it does not prove stress, reconnect, replay, rollback, uninstall, driver unload/reload, or production release readiness.",
+  "tests": [
+    {
+      "id": "reliability-agent-component-status-report-only",
+      "name": "Agent Component Status Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$ctl = Get-Command tamandua-ctl.exe,tamandua-ctl -ErrorAction SilentlyContinue | Select-Object -First 1; if ($ctl) { & $ctl.Source --json status --detailed } else { [pscustomobject]@{ status='tamandua_ctl_not_found'; fallback='service_inventory'; checked='report_only'; services=@(Get-Service -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'tamandua' -or $_.DisplayName -match 'tamandua' } | Select-Object Name,Status,StartType) } | ConvertTo-Json -Compress }\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-reliability", "agent-status", "component-health", "tamandua-ctl", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "reliability-backpressure-metrics-report-only",
+      "name": "Backpressure Metrics Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$ctl = Get-Command tamandua-ctl.exe,tamandua-ctl -ErrorAction SilentlyContinue | Select-Object -First 1; if ($ctl) { & $ctl.Source --json status --metrics } else { [pscustomobject]@{ status='metrics_api_not_available'; expected_surface='tamandua-ctl --json status --metrics'; checked='report_only' } | ConvertTo-Json -Compress }\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["live_response_command_completed"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-reliability", "backpressure", "metrics", "tamandua-ctl", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "reliability-offline-queue-metadata-report-only",
+      "name": "Offline Queue Metadata Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$roots = @((Join-Path $env:ProgramData 'Tamandua'), (Join-Path $env:LOCALAPPDATA 'Tamandua'), (Join-Path $env:APPDATA 'Tamandua')) | Where-Object { $_ -and (Test-Path $_) }; $dbs = foreach ($root in $roots) { Get-ChildItem -LiteralPath $root -ErrorAction SilentlyContinue -File -Recurse -Include '*tamandua*.db','*tamandua*.sqlite','*sync*.db','*sync*.sqlite' | Where-Object { $_.FullName -match 'tamandua|sync|offline' } | Select-Object -First 20 }; $dbs = @($dbs | Select-Object -Unique FullName); if ($dbs.Count -eq 0) { [pscustomobject]@{ status='offline_queue_store_not_found'; scope='metadata_report_only' } | ConvertTo-Json -Compress } else { $dbs | ForEach-Object { [pscustomobject]@{ Path=$_.FullName; Length=$_.Length; LastWriteTimeUtc=$_.LastWriteTimeUtc; QueueRowCount='not_read_without_sqlite_client' } } | ConvertTo-Json -Compress }\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-reliability", "offline", "queue", "backpressure", "metadata", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "reliability-driver-stress-budget-report-only",
+      "name": "Driver Stress Budget Report Only",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$drivers = @(& sc.exe query type= driver state= all 2>$null | Select-String -Pattern 'tamandua|tamd' -CaseSensitive:$false | ForEach-Object { $_.Line }); [pscustomobject]@{ DriverCandidateLines=$drivers; StressExecution='planned_not_executed'; RequiredCounters=@('driver_channel_drops','driver_kernel_drops','queue_depth','event_latency_ms','burst_recovery_seconds'); RequiredWorkloads=@('process_burst','file_burst','network_burst','service_restart_during_load'); RuntimeEffect='none_report_only' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-reliability", "driver-stress", "drops", "budget", "planned-not-executed", "report-only", "windows"],
+      "risk": "low"
+    },
+    {
+      "id": "reliability-rollback-uninstall-safety-plan",
+      "name": "Rollback Uninstall Safety Plan",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"[pscustomobject]@{ Rollback='planned_not_executed'; Uninstall='planned_not_executed'; DriverUnload='planned_not_executed'; ServiceRestart='planned_not_executed'; RequiredEnvironment='disposable_clean_template'; CheckedBy='windows-release-reliability-dry-run' } | ConvertTo-Json -Compress\"",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
+      "tags": ["release-reliability", "rollback", "uninstall", "planned-not-executed", "report-only", "windows"],
+      "risk": "low"
+    }
+  ]
+}

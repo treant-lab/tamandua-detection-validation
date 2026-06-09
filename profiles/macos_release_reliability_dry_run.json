@@ -1,0 +1,123 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-release-reliability-dry-run",
+  "name": "macOS Release Reliability Dry Run",
+  "description": "Report-only macOS release reliability lane for process health, logs, resource snapshot, and reconnect prerequisites.",
+  "platform": "macos",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "release-readiness",
+  "quality_bar": {
+    "purpose": "macos_release_reliability_dry_run",
+    "requires_persisted_events": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "claim_boundary": "Dry-run reliability contract only. Promotion requires repeated server-backed restart/reconnect/upgrade/rollback runs.",
+  "tests": [
+    {
+      "id": "reliability-macos-process-health-report-only",
+      "name": "Process Health Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'ps -axo pid,ppid,stat,comm | grep -i tamandua || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "release-reliability",
+        "process-health",
+        "report-only",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "reliability-macos-log-tail-report-only",
+      "name": "Agent Log Tail Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'log show --style compact --last 5m --predicate \"process CONTAINS[c] \\\"tamandua\\\"\" 2>/dev/null | tail -n 50 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "release-reliability",
+        "logs",
+        "report-only",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "reliability-macos-resource-snapshot-report-only",
+      "name": "Resource Snapshot Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'vm_stat | head; top -l 1 -stats pid,cpu,mem,command 2>/dev/null | head -n 20 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "release-reliability",
+        "resources",
+        "report-only",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "reliability-macos-reconnect-prereq-report-only",
+      "name": "Reconnect Prereq Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'scutil --dns 2>/dev/null | head -n 20; nc -z agents.tamandua.treantlab.org 8443 >/dev/null 2>&1 || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "release-reliability",
+        "reconnect",
+        "network",
+        "report-only",
+        "macos"
+      ],
+      "risk": "low",
+      "optional_telemetry": [
+        "dns_query",
+        "network_connect"
+      ]
+    }
+  ]
+}

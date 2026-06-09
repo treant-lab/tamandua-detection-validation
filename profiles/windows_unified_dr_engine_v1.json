@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-unified-dr-engine-v1",
+  "name": "Windows Unified D&R Engine V1",
+  "description": "Selected Windows report-only proof that one D&R loop can connect Event Envelope, detection, alert contract, storyline/correlation contract, response plan/audit, analyst feedback, and replay stability.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "unified-dr-engine",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\unified_dr_engine_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "windows_unified_dr_engine_v1",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Selected Windows D&R fixture proof only. Does not prove runtime backend execution, production response, multi-tenant controls, cross-platform parity, or LimaCharlie/CrowdStrike equivalence.",
+  "tests": [
+    {
+      "id": "unified-dr-process-powershell-encoded",
+      "name": "Process execution: PowerShell encoded command",
+      "executor": "unified_dr_engine_probe",
+      "expected_telemetry": ["event_envelope", "process"],
+      "expected_fields": ["source_event", "detection_id", "alert", "storyline", "response_plan", "feedback", "replay"],
+      "expected_detections": ["dr.suspicious_powershell_encoded_command"],
+      "expected_alerts": ["alert_contract"],
+      "expected_correlations": ["storyline_contract"]
+    },
+    {
+      "id": "unified-dr-network-c2-web-protocol",
+      "name": "Network/C2: web protocol beacon-safe candidate",
+      "executor": "unified_dr_engine_probe",
+      "expected_telemetry": ["event_envelope", "process", "network"],
+      "expected_fields": ["source_event", "detection_id", "alert", "storyline", "response_plan", "feedback", "replay"],
+      "expected_detections": ["dr.windows_c2_web_protocol"],
+      "expected_alerts": ["alert_contract"],
+      "expected_correlations": ["storyline_contract"]
+    },
+    {
+      "id": "unified-dr-registry-run-key",
+      "name": "Registry persistence: Run key",
+      "executor": "unified_dr_engine_probe",
+      "expected_telemetry": ["event_envelope", "process", "registry"],
+      "expected_fields": ["source_event", "detection_id", "alert", "storyline", "response_plan", "feedback", "replay"],
+      "expected_detections": ["dr.windows_registry_run_key"],
+      "expected_alerts": ["alert_contract"],
+      "expected_correlations": ["storyline_contract"]
+    },
+    {
+      "id": "unified-dr-file-certutil-encode",
+      "name": "File/LOLBAS: certutil encode/decode",
+      "executor": "unified_dr_engine_probe",
+      "expected_telemetry": ["event_envelope", "process", "file"],
+      "expected_fields": ["source_event", "detection_id", "alert", "storyline", "response_plan", "feedback", "replay"],
+      "expected_detections": ["dr.windows_certutil_encode"],
+      "expected_alerts": ["alert_contract"],
+      "expected_correlations": ["storyline_contract"]
+    },
+    {
+      "id": "unified-dr-response-lsass-guardrail",
+      "name": "Response-linked investigation: LSASS guardrail denial",
+      "executor": "unified_dr_engine_probe",
+      "expected_telemetry": ["event_envelope", "process", "guardrail"],
+      "expected_fields": ["source_event", "detection_id", "alert", "storyline", "response_plan", "feedback", "replay"],
+      "expected_detections": ["dr.blocked_lsass_kill_guardrail"],
+      "expected_alerts": ["alert_contract"],
+      "expected_correlations": ["storyline_contract", "guardrail_denial"]
+    },
+    {
+      "id": "unified-dr-benign-admin-contrast",
+      "name": "Benign contrast: normal process envelope stays non-alerting for C2 rule",
+      "executor": "unified_dr_engine_probe",
+      "expected_telemetry": ["event_envelope", "process", "benign_contrast"],
+      "expected_fields": ["source_event", "detection_id", "alert", "storyline", "response_plan", "feedback", "replay"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_correlations": ["storyline_contract"]
+    }
+  ]
+}

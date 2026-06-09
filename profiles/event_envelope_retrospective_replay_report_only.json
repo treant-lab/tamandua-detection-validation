@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "profile_id": "event-envelope-retrospective-replay-report-only",
+  "name": "Event Envelope Retrospective Replay Report-Only",
+  "platform": "multi",
+  "description": "Runs the D&R Event Envelope report-only replay suite and emits benchmark artifacts without mutating live alerts or executing endpoint response.",
+  "benchmark_lane": "telemetry-replay",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\event_envelope_replay_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "event_envelope_retrospective_replay_report_only",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Validates Event Envelope and D&R report-only replay fixtures only. It does not query historical events from TimescaleDB/Postgres, persist retrospective detection records, mutate live alerts, execute endpoint actions, or prove tenant/RBAC controls for production replay.",
+  "tests": [
+    {
+      "id": "event-envelope-replay-required-assets",
+      "name": "Event Envelope replay assets exist",
+      "executor": "event_envelope_replay_probe",
+      "expected_telemetry": ["schema", "validator", "replay_harness", "suite", "fixtures"],
+      "expected_fields": ["checked_paths", "missing"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_correlations": []
+    },
+    {
+      "id": "event-envelope-fixtures-validate",
+      "name": "All D&R Event Envelope fixtures validate",
+      "executor": "event_envelope_replay_probe",
+      "expected_telemetry": ["event_envelope_v1"],
+      "expected_fields": ["event_count", "valid_count", "failures"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_correlations": []
+    },
+    {
+      "id": "event-envelope-routing-fields-present",
+      "name": "Validated fixtures expose routing/platform/event_type metadata",
+      "executor": "event_envelope_replay_probe",
+      "expected_telemetry": ["tenant_id", "agent_id", "platform", "event_type"],
+      "expected_fields": ["platforms", "event_types"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_correlations": []
+    },
+    {
+      "id": "event-envelope-retrospective-replay-matches",
+      "name": "Replay harness matches suspicious PowerShell fixture without alert mutation",
+      "executor": "event_envelope_replay_probe",
+      "expected_telemetry": ["process.command_line", "process.path"],
+      "expected_fields": ["status", "matched", "alert_created", "response_executed", "rule", "event_type"],
+      "expected_detections": ["suspicious_powershell"],
+      "expected_alerts": [],
+      "expected_correlations": []
+    },
+    {
+      "id": "detection-response-report-only-suite-pass",
+      "name": "D&R report-only suite passes with runtime_effect none",
+      "executor": "event_envelope_replay_probe",
+      "expected_telemetry": ["rules", "events", "replay", "planner", "guardrails"],
+      "expected_fields": ["status", "runtime_effect", "check_count", "checks"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_correlations": []
+    },
+    {
+      "id": "replay-retrospective-boundary-documented",
+      "name": "Replay contract documents live-alert immutability and remaining production gaps",
+      "executor": "event_envelope_replay_probe",
+      "expected_telemetry": ["claim_boundary"],
+      "expected_fields": ["document", "missing_terms"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_correlations": []
+    }
+  ]
+}

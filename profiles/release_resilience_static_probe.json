@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "profile_id": "release-resilience-static-probe",
+  "name": "Release Resilience Static Probe",
+  "description": "Static repo-side source contract probe for Roadmaps G/L/V: Windows installer, signing, rollback, response guardrails, driver queue/stress, safe-boot, and transactional update readiness.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "release-readiness",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\release_resilience_static_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "release_resilience_static_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Static repo-side release/resilience source contracts only. Does not prove signed release artifacts, SBOM attachment, install/upgrade/rollback/uninstall execution, Secure Boot driver loading, reboot safety, offline queue drain, driver stress, local response enforcement, or transactional OTA rollback.",
+  "tests": [
+    {
+      "id": "release-windows-installer-upgrade-uninstall-contract",
+      "name": "Windows MSI declares service install, upgrade, uninstall, hidden credentials, and driver feature switch",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["installer_contract"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-windows-installer-docs-signing-enrollment-contract",
+      "name": "Windows installer docs cover enrollment, signing, silent install, upgrade, and uninstall",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["installer_docs"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-build-script-signing-contract",
+      "name": "Windows installer build script supports WiX and optional Authenticode signing",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["build_signing_contract"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-driver-signing-secureboot-runbook",
+      "name": "Driver signing runbook distinguishes test, EV, attestation, WHQL/HLK, HVCI, and Secure Boot",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["driver_signing_runbook"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-safe-boot-crash-marker-runbook",
+      "name": "Safe-boot runbook defines crash markers, degraded mode, signing chain, and production blockers",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["safe_boot_runbook"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-agent-updater-config-contract",
+      "name": "Agent config declares signed self-update, integrity, atomic install, and rollback intent",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["updater_config"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-config-rollback-doc-contract",
+      "name": "Agent config rollback documentation covers backup, verification, rollback telemetry, and monitoring",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["config_rollback_docs"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-response-guardrails-contract",
+      "name": "Response guardrails deny protected OS/Tamandua processes and unsafe isolation without allowlist",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["response_guardrails"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-response-rollback-harness-contract",
+      "name": "Response validation harness covers rollback, reversible commands, audit sequence, and denied paths",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["response_rollback_harness"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-driver-telemetry-queue-contract",
+      "name": "Driver docs declare telemetry ring buffer, dropped counters, priority behavior, and queue depth",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["driver_queue_contract"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-driver-stress-test-contract",
+      "name": "Driver test tree has stress, IOCTL, telemetry, callback, and hardening tests",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["driver_test_contract"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    },
+    {
+      "id": "release-windows-installer-validation-contract",
+      "name": "Windows installer has repo-side validation script for expected assets and installation shape",
+      "executor": "release_resilience_static_probe",
+      "expected_telemetry": ["installer_validation"],
+      "expected_fields": ["checked_paths", "missing_files", "missing_terms"]
+    }
+  ]
+}

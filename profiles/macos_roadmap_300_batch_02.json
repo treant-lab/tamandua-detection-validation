@@ -1,0 +1,2523 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-roadmap-300-batch-02",
+  "name": "macOS Roadmap 300 Batch 02",
+  "description": "Executable batch generated directly from the macOS 300-scenario roadmap.",
+  "platform": "macos",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "macos_roadmap_300_batch_02",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/macos_detection_roadmap_300.json",
+    "selected_scenarios": 50,
+    "generated_tests": 50,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-mac-persistence-006-t1574-006",
+      "name": "Dynamic Linker Hijacking: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "persistence",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-006",
+        "tactic:persistence",
+        "mitre:T1574.006",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-007-t1505-003",
+      "name": "Web Shell: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1505.003",
+        "technique_name": "Web Shell",
+        "tactic": "persistence",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-007",
+        "tactic:persistence",
+        "mitre:T1505.003",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-008-t1543-001",
+      "name": "Launch Agent: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.001",
+        "technique_name": "Launch Agent",
+        "tactic": "persistence",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-008",
+        "tactic:persistence",
+        "mitre:T1543.001",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-009-t1543-004",
+      "name": "Launch Daemon: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.004",
+        "technique_name": "Launch Daemon",
+        "tactic": "persistence",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-009",
+        "tactic:persistence",
+        "mitre:T1543.004",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-010-t1547-011",
+      "name": "Plist Modification: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1547.011",
+        "technique_name": "Plist Modification",
+        "tactic": "persistence",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-010",
+        "tactic:persistence",
+        "mitre:T1547.011",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-011-t1037-002",
+      "name": "Login Hook: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1037.002",
+        "technique_name": "Login Hook",
+        "tactic": "persistence",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-011",
+        "tactic:persistence",
+        "mitre:T1037.002",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-012-t1546-004",
+      "name": "Unix Shell Configuration Modification: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1546.004",
+        "technique_name": "Unix Shell Configuration Modification",
+        "tactic": "persistence",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-012",
+        "tactic:persistence",
+        "mitre:T1546.004",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-013-t1574-006",
+      "name": "Dynamic Linker Hijacking: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "persistence",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-013",
+        "tactic:persistence",
+        "mitre:T1574.006",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-014-t1505-003",
+      "name": "Web Shell: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1505.003",
+        "technique_name": "Web Shell",
+        "tactic": "persistence",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-014",
+        "tactic:persistence",
+        "mitre:T1505.003",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-015-t1543-001",
+      "name": "Launch Agent: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.001",
+        "technique_name": "Launch Agent",
+        "tactic": "persistence",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-015",
+        "tactic:persistence",
+        "mitre:T1543.001",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-016-t1543-004",
+      "name": "Launch Daemon: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.004",
+        "technique_name": "Launch Daemon",
+        "tactic": "persistence",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-016",
+        "tactic:persistence",
+        "mitre:T1543.004",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-017-t1547-011",
+      "name": "Plist Modification: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1547.011",
+        "technique_name": "Plist Modification",
+        "tactic": "persistence",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-017",
+        "tactic:persistence",
+        "mitre:T1547.011",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-018-t1037-002",
+      "name": "Login Hook: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1037.002",
+        "technique_name": "Login Hook",
+        "tactic": "persistence",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-018",
+        "tactic:persistence",
+        "mitre:T1037.002",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-019-t1546-004",
+      "name": "Unix Shell Configuration Modification: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1546.004",
+        "technique_name": "Unix Shell Configuration Modification",
+        "tactic": "persistence",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-019",
+        "tactic:persistence",
+        "mitre:T1546.004",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-020-t1574-006",
+      "name": "Dynamic Linker Hijacking: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "persistence",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-020",
+        "tactic:persistence",
+        "mitre:T1574.006",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-021-t1505-003",
+      "name": "Web Shell: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1505.003",
+        "technique_name": "Web Shell",
+        "tactic": "persistence",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-021",
+        "tactic:persistence",
+        "mitre:T1505.003",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-022-t1543-001",
+      "name": "Launch Agent: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.001",
+        "technique_name": "Launch Agent",
+        "tactic": "persistence",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-022",
+        "tactic:persistence",
+        "mitre:T1543.001",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-023-t1543-004",
+      "name": "Launch Daemon: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.004",
+        "technique_name": "Launch Daemon",
+        "tactic": "persistence",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-023",
+        "tactic:persistence",
+        "mitre:T1543.004",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-024-t1547-011",
+      "name": "Plist Modification: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1547.011",
+        "technique_name": "Plist Modification",
+        "tactic": "persistence",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-024",
+        "tactic:persistence",
+        "mitre:T1547.011",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-025-t1037-002",
+      "name": "Login Hook: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1037.002",
+        "technique_name": "Login Hook",
+        "tactic": "persistence",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-025",
+        "tactic:persistence",
+        "mitre:T1037.002",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-026-t1546-004",
+      "name": "Unix Shell Configuration Modification: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1546.004",
+        "technique_name": "Unix Shell Configuration Modification",
+        "tactic": "persistence",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-026",
+        "tactic:persistence",
+        "mitre:T1546.004",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-027-t1574-006",
+      "name": "Dynamic Linker Hijacking: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "persistence",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-027",
+        "tactic:persistence",
+        "mitre:T1574.006",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-028-t1505-003",
+      "name": "Web Shell: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1505.003",
+        "technique_name": "Web Shell",
+        "tactic": "persistence",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-028",
+        "tactic:persistence",
+        "mitre:T1505.003",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-029-t1543-001",
+      "name": "Launch Agent: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.001",
+        "technique_name": "Launch Agent",
+        "tactic": "persistence",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-029",
+        "tactic:persistence",
+        "mitre:T1543.001",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-persistence-030-t1543-004",
+      "name": "Launch Daemon: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
+      "roadmap_traceability": {
+        "technique": "T1543.004",
+        "technique_name": "Launch Daemon",
+        "tactic": "persistence",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-persistence-030",
+        "tactic:persistence",
+        "mitre:T1543.004",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-001-t1548-003",
+      "name": "Sudo and Sudo Caching: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.003",
+        "technique_name": "Sudo and Sudo Caching",
+        "tactic": "privilege-escalation",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-001",
+        "tactic:privilege-escalation",
+        "mitre:T1548.003",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-002-t1068",
+      "name": "Exploitation for Privilege Escalation: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1068",
+        "technique_name": "Exploitation for Privilege Escalation",
+        "tactic": "privilege-escalation",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-002",
+        "tactic:privilege-escalation",
+        "mitre:T1068",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-003-t1548-001",
+      "name": "Setuid and Setgid: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.001",
+        "technique_name": "Setuid and Setgid",
+        "tactic": "privilege-escalation",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-003",
+        "tactic:privilege-escalation",
+        "mitre:T1548.001",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-004-t1574-006",
+      "name": "Dynamic Linker Hijacking: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "privilege-escalation",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-004",
+        "tactic:privilege-escalation",
+        "mitre:T1574.006",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-005-t1055",
+      "name": "Process Injection: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1055",
+        "technique_name": "Process Injection",
+        "tactic": "privilege-escalation",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-005",
+        "tactic:privilege-escalation",
+        "mitre:T1055",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-006-t1548-003",
+      "name": "Sudo and Sudo Caching: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.003",
+        "technique_name": "Sudo and Sudo Caching",
+        "tactic": "privilege-escalation",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-006",
+        "tactic:privilege-escalation",
+        "mitre:T1548.003",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-007-t1068",
+      "name": "Exploitation for Privilege Escalation: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1068",
+        "technique_name": "Exploitation for Privilege Escalation",
+        "tactic": "privilege-escalation",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-007",
+        "tactic:privilege-escalation",
+        "mitre:T1068",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-008-t1548-001",
+      "name": "Setuid and Setgid: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.001",
+        "technique_name": "Setuid and Setgid",
+        "tactic": "privilege-escalation",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-008",
+        "tactic:privilege-escalation",
+        "mitre:T1548.001",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-009-t1574-006",
+      "name": "Dynamic Linker Hijacking: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "privilege-escalation",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-009",
+        "tactic:privilege-escalation",
+        "mitre:T1574.006",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-010-t1055",
+      "name": "Process Injection: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1055",
+        "technique_name": "Process Injection",
+        "tactic": "privilege-escalation",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-010",
+        "tactic:privilege-escalation",
+        "mitre:T1055",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-011-t1548-003",
+      "name": "Sudo and Sudo Caching: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.003",
+        "technique_name": "Sudo and Sudo Caching",
+        "tactic": "privilege-escalation",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-011",
+        "tactic:privilege-escalation",
+        "mitre:T1548.003",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-012-t1068",
+      "name": "Exploitation for Privilege Escalation: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1068",
+        "technique_name": "Exploitation for Privilege Escalation",
+        "tactic": "privilege-escalation",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-012",
+        "tactic:privilege-escalation",
+        "mitre:T1068",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-013-t1548-001",
+      "name": "Setuid and Setgid: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.001",
+        "technique_name": "Setuid and Setgid",
+        "tactic": "privilege-escalation",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-013",
+        "tactic:privilege-escalation",
+        "mitre:T1548.001",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-014-t1574-006",
+      "name": "Dynamic Linker Hijacking: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "privilege-escalation",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-014",
+        "tactic:privilege-escalation",
+        "mitre:T1574.006",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-015-t1055",
+      "name": "Process Injection: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1055",
+        "technique_name": "Process Injection",
+        "tactic": "privilege-escalation",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-015",
+        "tactic:privilege-escalation",
+        "mitre:T1055",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-016-t1548-003",
+      "name": "Sudo and Sudo Caching: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.003",
+        "technique_name": "Sudo and Sudo Caching",
+        "tactic": "privilege-escalation",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-016",
+        "tactic:privilege-escalation",
+        "mitre:T1548.003",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-017-t1068",
+      "name": "Exploitation for Privilege Escalation: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1068",
+        "technique_name": "Exploitation for Privilege Escalation",
+        "tactic": "privilege-escalation",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-017",
+        "tactic:privilege-escalation",
+        "mitre:T1068",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-018-t1548-001",
+      "name": "Setuid and Setgid: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.001",
+        "technique_name": "Setuid and Setgid",
+        "tactic": "privilege-escalation",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-018",
+        "tactic:privilege-escalation",
+        "mitre:T1548.001",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-019-t1574-006",
+      "name": "Dynamic Linker Hijacking: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "privilege-escalation",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-019",
+        "tactic:privilege-escalation",
+        "mitre:T1574.006",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-020-t1055",
+      "name": "Process Injection: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1055",
+        "technique_name": "Process Injection",
+        "tactic": "privilege-escalation",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-020",
+        "tactic:privilege-escalation",
+        "mitre:T1055",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-021-t1548-003",
+      "name": "Sudo and Sudo Caching: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.003",
+        "technique_name": "Sudo and Sudo Caching",
+        "tactic": "privilege-escalation",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-021",
+        "tactic:privilege-escalation",
+        "mitre:T1548.003",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-022-t1068",
+      "name": "Exploitation for Privilege Escalation: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1068",
+        "technique_name": "Exploitation for Privilege Escalation",
+        "tactic": "privilege-escalation",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-022",
+        "tactic:privilege-escalation",
+        "mitre:T1068",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-023-t1548-001",
+      "name": "Setuid and Setgid: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1548.001",
+        "technique_name": "Setuid and Setgid",
+        "tactic": "privilege-escalation",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-023",
+        "tactic:privilege-escalation",
+        "mitre:T1548.001",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-024-t1574-006",
+      "name": "Dynamic Linker Hijacking: kernel backed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1574.006",
+        "technique_name": "Dynamic Linker Hijacking",
+        "tactic": "privilege-escalation",
+        "category": "kernel_contract",
+        "lane": "enterprise-eval",
+        "executor": "kernel_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "kernel_contract",
+      "source_executor": "kernel_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-024",
+        "tactic:privilege-escalation",
+        "mitre:T1574.006",
+        "category:kernel_contract",
+        "lane:enterprise-eval",
+        "variant:kernel-backed",
+        "executor:kernel_contract",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-mac-privilegeescalation-025-t1055",
+      "name": "Process Injection: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
+      "roadmap_traceability": {
+        "technique": "T1055",
+        "technique_name": "Process Injection",
+        "tactic": "privilege-escalation",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "macos-roadmap-batch",
+        "roadmap:mac-privilegeescalation-025",
+        "tactic:privilege-escalation",
+        "mitre:T1055",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    }
+  ]
+}

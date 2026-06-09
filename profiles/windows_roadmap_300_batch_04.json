@@ -1,0 +1,2733 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-roadmap-300-batch-04",
+  "name": "Windows Roadmap 300 Batch 04",
+  "description": "Executable batch generated directly from the Windows 300-scenario roadmap.",
+  "platform": "windows",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "windows_roadmap_300_batch_04",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "requires_driver_health": true,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/windows_detection_roadmap_300.json",
+    "selected_scenarios": 50,
+    "generated_tests": 50,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-win-credentialaccess-016-t1552-001",
+      "name": "Credentials In Files: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami /user & cmdkey /list 2>nul\"",
+      "roadmap_traceability": {
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "tactic": "credential-access",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-016",
+        "tactic:credential-access",
+        "mitre:T1552.001",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-017-t1555-003",
+      "name": "Credentials From Web Browsers: telemetry contract",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"$p=Join-Path $env:LOCALAPPDATA 'Google\\Chrome\\User Data\\Default\\Login Data'; if (Test-Path -LiteralPath $p) { Get-Item -LiteralPath $p | Out-Null }\"",
+      "roadmap_traceability": {
+        "technique": "T1555.003",
+        "technique_name": "Credentials From Web Browsers",
+        "tactic": "credential-access",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-017",
+        "tactic:credential-access",
+        "mitre:T1555.003",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-018-t1110-001",
+      "name": "Password Guessing: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami /user & cmdkey /list 2>nul\"",
+      "roadmap_traceability": {
+        "technique": "T1110.001",
+        "technique_name": "Password Guessing",
+        "tactic": "credential-access",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-018",
+        "tactic:credential-access",
+        "mitre:T1110.001",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-019-t1558-003",
+      "name": "Kerberoasting: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"setspn -Q */* 2>nul || whoami /user\"",
+      "roadmap_traceability": {
+        "technique": "T1558.003",
+        "technique_name": "Kerberoasting",
+        "tactic": "credential-access",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-019",
+        "tactic:credential-access",
+        "mitre:T1558.003",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-020-t1552-006",
+      "name": "Group Policy Preferences: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"dir \\\\localhost\\SYSVOL 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1552.006",
+        "technique_name": "Group Policy Preferences",
+        "tactic": "credential-access",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-020",
+        "tactic:credential-access",
+        "mitre:T1552.006",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-021-t1056-001",
+      "name": "Keylogging: alert quality",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"Get-Process | Where-Object {$_.MainWindowTitle} | Select-Object -First 1 | Out-Null\"",
+      "roadmap_traceability": {
+        "technique": "T1056.001",
+        "technique_name": "Keylogging",
+        "tactic": "credential-access",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-021",
+        "tactic:credential-access",
+        "mitre:T1056.001",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-022-t1003-001",
+      "name": "LSASS Memory: benign contrast",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"Get-Process lsass | Select-Object -First 1 -Property Id,ProcessName | Out-Null\"",
+      "roadmap_traceability": {
+        "technique": "T1003.001",
+        "technique_name": "LSASS Memory",
+        "tactic": "credential-access",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-022",
+        "tactic:credential-access",
+        "mitre:T1003.001",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-023-t1552-001",
+      "name": "Credentials In Files: response readiness",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami /user & cmdkey /list 2>nul\"",
+      "roadmap_traceability": {
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "tactic": "credential-access",
+        "category": "response",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "response",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-023",
+        "tactic:credential-access",
+        "mitre:T1552.001",
+        "category:response",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-024-t1555-003",
+      "name": "Credentials From Web Browsers: driver backed",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"$p=Join-Path $env:LOCALAPPDATA 'Google\\Chrome\\User Data\\Default\\Login Data'; if (Test-Path -LiteralPath $p) { Get-Item -LiteralPath $p | Out-Null }\"",
+      "roadmap_traceability": {
+        "technique": "T1555.003",
+        "technique_name": "Credentials From Web Browsers",
+        "tactic": "credential-access",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-024",
+        "tactic:credential-access",
+        "mitre:T1555.003",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-025-t1110-001",
+      "name": "Password Guessing: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami /user & cmdkey /list 2>nul\"",
+      "roadmap_traceability": {
+        "technique": "T1110.001",
+        "technique_name": "Password Guessing",
+        "tactic": "credential-access",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-025",
+        "tactic:credential-access",
+        "mitre:T1110.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-026-t1558-003",
+      "name": "Kerberoasting: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"setspn -Q */* 2>nul || whoami /user\"",
+      "roadmap_traceability": {
+        "technique": "T1558.003",
+        "technique_name": "Kerberoasting",
+        "tactic": "credential-access",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-026",
+        "tactic:credential-access",
+        "mitre:T1558.003",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-027-t1552-006",
+      "name": "Group Policy Preferences: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"dir \\\\localhost\\SYSVOL 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1552.006",
+        "technique_name": "Group Policy Preferences",
+        "tactic": "credential-access",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-027",
+        "tactic:credential-access",
+        "mitre:T1552.006",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-028-t1056-001",
+      "name": "Keylogging: correlation storyline",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"Get-Process | Where-Object {$_.MainWindowTitle} | Select-Object -First 1 | Out-Null\"",
+      "roadmap_traceability": {
+        "technique": "T1056.001",
+        "technique_name": "Keylogging",
+        "tactic": "credential-access",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-028",
+        "tactic:credential-access",
+        "mitre:T1056.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-029-t1003-001",
+      "name": "LSASS Memory: alert quality",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"Get-Process lsass | Select-Object -First 1 -Property Id,ProcessName | Out-Null\"",
+      "roadmap_traceability": {
+        "technique": "T1003.001",
+        "technique_name": "LSASS Memory",
+        "tactic": "credential-access",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-029",
+        "tactic:credential-access",
+        "mitre:T1003.001",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-credentialaccess-030-t1552-001",
+      "name": "Credentials In Files: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami /user & cmdkey /list 2>nul\"",
+      "roadmap_traceability": {
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "tactic": "credential-access",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-030",
+        "tactic:credential-access",
+        "mitre:T1552.001",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-001-t1082",
+      "name": "System Information Discovery: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1082",
+        "technique_name": "System Information Discovery",
+        "tactic": "discovery",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-001",
+        "tactic:discovery",
+        "mitre:T1082",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-002-t1057",
+      "name": "Process Discovery: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1057",
+        "technique_name": "Process Discovery",
+        "tactic": "discovery",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-002",
+        "tactic:discovery",
+        "mitre:T1057",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-003-t1016",
+      "name": "System Network Configuration Discovery: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1016",
+        "technique_name": "System Network Configuration Discovery",
+        "tactic": "discovery",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-003",
+        "tactic:discovery",
+        "mitre:T1016",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-004-t1049",
+      "name": "System Network Connections Discovery: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1049",
+        "technique_name": "System Network Connections Discovery",
+        "tactic": "discovery",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-004",
+        "tactic:discovery",
+        "mitre:T1049",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-005-t1033",
+      "name": "System Owner/User Discovery: alert quality",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1033",
+        "technique_name": "System Owner/User Discovery",
+        "tactic": "discovery",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-safe-contract-v1"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-005",
+        "tactic:discovery",
+        "mitre:T1033",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-006-t1083",
+      "name": "File and Directory Discovery: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1083",
+        "technique_name": "File and Directory Discovery",
+        "tactic": "discovery",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-006",
+        "tactic:discovery",
+        "mitre:T1083",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-007-t1135",
+      "name": "Network Share Discovery: response readiness",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1135",
+        "technique_name": "Network Share Discovery",
+        "tactic": "discovery",
+        "category": "response",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "response",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-007",
+        "tactic:discovery",
+        "mitre:T1135",
+        "category:response",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-discovery-008-t1069-001",
+      "name": "Local Groups: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1069.001",
+        "technique_name": "Local Groups",
+        "tactic": "discovery",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-008",
+        "tactic:discovery",
+        "mitre:T1069.001",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-discovery-009-t1124",
+      "name": "System Time Discovery: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1124",
+        "technique_name": "System Time Discovery",
+        "tactic": "discovery",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-009",
+        "tactic:discovery",
+        "mitre:T1124",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-010-t1518-001",
+      "name": "Security Software Discovery: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1518.001",
+        "technique_name": "Security Software Discovery",
+        "tactic": "discovery",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-010",
+        "tactic:discovery",
+        "mitre:T1518.001",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-011-t1082",
+      "name": "System Information Discovery: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1082",
+        "technique_name": "System Information Discovery",
+        "tactic": "discovery",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-011",
+        "tactic:discovery",
+        "mitre:T1082",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-012-t1057",
+      "name": "Process Discovery: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1057",
+        "technique_name": "Process Discovery",
+        "tactic": "discovery",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-012",
+        "tactic:discovery",
+        "mitre:T1057",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-013-t1016",
+      "name": "System Network Configuration Discovery: alert quality",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1016",
+        "technique_name": "System Network Configuration Discovery",
+        "tactic": "discovery",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-013",
+        "tactic:discovery",
+        "mitre:T1016",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-014-t1049",
+      "name": "System Network Connections Discovery: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1049",
+        "technique_name": "System Network Connections Discovery",
+        "tactic": "discovery",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-014",
+        "tactic:discovery",
+        "mitre:T1049",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-015-t1033",
+      "name": "System Owner/User Discovery: response readiness",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1033",
+        "technique_name": "System Owner/User Discovery",
+        "tactic": "discovery",
+        "category": "response",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-safe-contract-v1"
+        ]
+      },
+      "validation_category": "response",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-015",
+        "tactic:discovery",
+        "mitre:T1033",
+        "category:response",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-discovery-016-t1083",
+      "name": "File and Directory Discovery: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1083",
+        "technique_name": "File and Directory Discovery",
+        "tactic": "discovery",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-016",
+        "tactic:discovery",
+        "mitre:T1083",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-discovery-017-t1135",
+      "name": "Network Share Discovery: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1135",
+        "technique_name": "Network Share Discovery",
+        "tactic": "discovery",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-017",
+        "tactic:discovery",
+        "mitre:T1135",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-018-t1069-001",
+      "name": "Local Groups: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1069.001",
+        "technique_name": "Local Groups",
+        "tactic": "discovery",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-018",
+        "tactic:discovery",
+        "mitre:T1069.001",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-019-t1124",
+      "name": "System Time Discovery: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1124",
+        "technique_name": "System Time Discovery",
+        "tactic": "discovery",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-019",
+        "tactic:discovery",
+        "mitre:T1124",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-020-t1518-001",
+      "name": "Security Software Discovery: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1518.001",
+        "technique_name": "Security Software Discovery",
+        "tactic": "discovery",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-020",
+        "tactic:discovery",
+        "mitre:T1518.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-021-t1082",
+      "name": "System Information Discovery: alert quality",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1082",
+        "technique_name": "System Information Discovery",
+        "tactic": "discovery",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-021",
+        "tactic:discovery",
+        "mitre:T1082",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-022-t1057",
+      "name": "Process Discovery: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1057",
+        "technique_name": "Process Discovery",
+        "tactic": "discovery",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-022",
+        "tactic:discovery",
+        "mitre:T1057",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-023-t1016",
+      "name": "System Network Configuration Discovery: response readiness",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1016",
+        "technique_name": "System Network Configuration Discovery",
+        "tactic": "discovery",
+        "category": "response",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "response",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-023",
+        "tactic:discovery",
+        "mitre:T1016",
+        "category:response",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-discovery-024-t1049",
+      "name": "System Network Connections Discovery: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1049",
+        "technique_name": "System Network Connections Discovery",
+        "tactic": "discovery",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-024",
+        "tactic:discovery",
+        "mitre:T1049",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "roadmap-win-discovery-025-t1033",
+      "name": "System Owner/User Discovery: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1033",
+        "technique_name": "System Owner/User Discovery",
+        "tactic": "discovery",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-safe-contract-v1"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-025",
+        "tactic:discovery",
+        "mitre:T1033",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-026-t1083",
+      "name": "File and Directory Discovery: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1083",
+        "technique_name": "File and Directory Discovery",
+        "tactic": "discovery",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-026",
+        "tactic:discovery",
+        "mitre:T1083",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-027-t1135",
+      "name": "Network Share Discovery: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1135",
+        "technique_name": "Network Share Discovery",
+        "tactic": "discovery",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-027",
+        "tactic:discovery",
+        "mitre:T1135",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-028-t1069-001",
+      "name": "Local Groups: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1069.001",
+        "technique_name": "Local Groups",
+        "tactic": "discovery",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-028",
+        "tactic:discovery",
+        "mitre:T1069.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-029-t1124",
+      "name": "System Time Discovery: alert quality",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1124",
+        "technique_name": "System Time Discovery",
+        "tactic": "discovery",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-029",
+        "tactic:discovery",
+        "mitre:T1124",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-discovery-030-t1518-001",
+      "name": "Security Software Discovery: benign contrast",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all\"",
+      "roadmap_traceability": {
+        "technique": "T1518.001",
+        "technique_name": "Security Software Discovery",
+        "tactic": "discovery",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-030",
+        "tactic:discovery",
+        "mitre:T1518.001",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-lateralmovement-001-t1021-002",
+      "name": "SMB/Windows Admin Shares: telemetry contract",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"net view \\\\localhost 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1021.002",
+        "technique_name": "SMB/Windows Admin Shares",
+        "tactic": "lateral-movement",
+        "category": "telemetry",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "telemetry",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-001",
+        "tactic:lateral-movement",
+        "mitre:T1021.002",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-lateralmovement-002-t1021-006",
+      "name": "Windows Remote Management: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"net view \\\\localhost 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1021.006",
+        "technique_name": "Windows Remote Management",
+        "tactic": "lateral-movement",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract"
+        ]
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-002",
+        "tactic:lateral-movement",
+        "mitre:T1021.006",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-lateralmovement-003-t1047",
+      "name": "Windows Management Instrumentation: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"net view \\\\localhost 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1047",
+        "technique_name": "Windows Management Instrumentation",
+        "tactic": "lateral-movement",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-atomic-extended-safe",
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-003",
+        "tactic:lateral-movement",
+        "mitre:T1047",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-lateralmovement-004-t1570",
+      "name": "Lateral Tool Transfer: correlation storyline",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua-lateral-tool>%TEMP%\\tamandua-tool.exe & copy %TEMP%\\tamandua-tool.exe %TEMP%\\tamandua-tool-copy.exe > nul & del /f /q %TEMP%\\tamandua-tool.exe %TEMP%\\tamandua-tool-copy.exe\"",
+      "roadmap_traceability": {
+        "technique": "T1570",
+        "technique_name": "Lateral Tool Transfer",
+        "tactic": "lateral-movement",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-004",
+        "tactic:lateral-movement",
+        "mitre:T1570",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "roadmap-win-lateralmovement-005-t1563-002",
+      "name": "RDP Hijacking: alert quality",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"query session 2>nul || qwinsta 2>nul || whoami\"",
+      "roadmap_traceability": {
+        "technique": "T1563.002",
+        "technique_name": "RDP Hijacking",
+        "tactic": "lateral-movement",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "parent_process_name"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-005",
+        "tactic:lateral-movement",
+        "mitre:T1563.002",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low"
+    }
+  ]
+}

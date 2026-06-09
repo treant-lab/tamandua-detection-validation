@@ -1,0 +1,1522 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-enterprise-eval-safe-v1",
+  "name": "Windows Enterprise Evaluation Safe v1",
+  "description": "Safe enterprise-style endpoint evaluation profile modeled after ATT&CK evaluation outcomes: broad tactic coverage, investigative context, low noise, deterministic fallback commands, and readiness for Atomic/CALDERA upstream lanes. It avoids credential dumping, LSASS access, destructive encryption, firewall isolation, and irreversible persistence.",
+  "platform": "windows",
+  "default_observation_seconds": 90,
+  "quality_bar": {
+    "purpose": "enterprise_eval_safe",
+    "requires_driver_health": true,
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "coverage_model": {
+    "visibility": "Expected telemetry must be persisted with source attribution.",
+    "analytics": "Expected detections/alerts are required only where the behavior is unambiguously suspicious.",
+    "storyline": "Process, parent, command line, file, registry, DNS, and network fields are required when relevant.",
+    "noise": "Low-risk tests must not emit unexpected high/critical events.",
+    "upstream": "Atomic/CALDERA-backed runs should use --require-upstream; fallback runs remain valid for regression only."
+  },
+  "tests": [
+    {
+      "id": "eval-T1033-user-discovery",
+      "name": "User Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1033",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c whoami /all",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1033"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1082-system-info",
+      "name": "System Information Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1082",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c ver",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1082"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1057-process-discovery",
+      "name": "Process Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1057",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c tasklist /v",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1057"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1016-network-config",
+      "name": "Network Configuration Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1016",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c ipconfig /all",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "dns_query",
+        "network_connect"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1016"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1049-network-connections",
+      "name": "Network Connections Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1049",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c netstat -ano",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "network_connect"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1049"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1059.003-command-shell",
+      "name": "Windows Command Shell",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1059.003",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c \"echo TamanduaEnterpriseEval & whoami & hostname & ping -n 3 127.0.0.1 > nul\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:execution",
+        "mitre:T1059.003"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1059.001-powershell-encoded",
+      "name": "PowerShell Encoded Command",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1059.001",
+        "test_numbers": [
+          20
+        ]
+      },
+      "fallback_command": "powershell.exe -NoProfile -EncodedCommand VwByAGkAdABlAC0ATwB1AHQAcAB1AHQAIABUAGEAbQBhAG4AZAB1AGEARQBuAHQAZQByAHAAcgBpAHMAZQBFAHYAYQBsADsAIAB3AGgAbwBhAG0AaQA=",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_detections": [
+        "encoded",
+        "powershell"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:execution",
+        "tactic:defense-evasion",
+        "mitre:T1059.001",
+        "mitre:T1027"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1047-wmi-execution",
+      "name": "WMI Execution/Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1047",
+        "test_numbers": [
+          1
+        ]
+      },
+      "precondition_command": "cmd.exe /d /c \"if exist %SystemRoot%\\System32\\wbem\\wmic.exe (exit /b 0) else exit /b 2\"",
+      "precondition_timeout_seconds": 45,
+      "precondition_error_code": "wmi_cli_unavailable_on_target",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$wmic = Join-Path $env:SystemRoot 'System32\\wbem\\wmic.exe'; $p = Start-Process -FilePath $wmic -ArgumentList @('process','list','brief') -WindowStyle Hidden -PassThru; if (-not $p.WaitForExit(20)) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue; exit 124 }; exit $p.ExitCode\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:execution",
+        "mitre:T1047"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1218.011-rundll32-benign",
+      "name": "Signed Binary Proxy Execution Rundll32",
+      "executor": "command",
+      "fallback_command": "rundll32.exe shell32.dll,Control_RunDLL timedate.cpl",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "optional_telemetry": [
+        "module_load"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:defense-evasion",
+        "mitre:T1218.011"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1027-certutil-encode",
+      "name": "Obfuscated Files Certutil Encode",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$src = Join-Path $env:TEMP 'tamandua-eval-certutil.txt'; $dst = Join-Path $env:TEMP 'tamandua-eval-certutil.b64'; 'tamandua' | Set-Content -Path $src -Encoding ASCII; & certutil.exe -encode $src $dst | Out-Null; Start-Sleep -Seconds 4; Remove-Item -Path $src,$dst -Force -ErrorAction SilentlyContinue\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:defense-evasion",
+        "mitre:T1027"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "path"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1112-registry-modification",
+      "name": "Registry Modification",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1112",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c \"reg add HKCU\\Software\\TamanduaEnterpriseEval /v Marker /t REG_SZ /d tamandua /f & ping -n 5 127.0.0.1 > nul & reg delete HKCU\\Software\\TamanduaEnterpriseEval /f\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "optional_telemetry": [
+        "registry_set_value"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:defense-evasion",
+        "mitre:T1112"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1547.001-run-key",
+      "name": "Run Key Persistence With Cleanup",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1547.001",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c \"reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaEnterpriseEval /t REG_SZ /d tamandua /f & ping -n 5 127.0.0.1 > nul & reg delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaEnterpriseEval /f\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "registry_set_value"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:persistence",
+        "mitre:T1547.001"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1053.005-scheduled-task",
+      "name": "Scheduled Task Persistence With Cleanup",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"schtasks.exe /Create /TN TamanduaEnterpriseEval /SC DAILY /ST 23:59 /TR notepad.exe /RU SYSTEM /F & ping -n 3 127.0.0.1 > nul & schtasks.exe /Delete /TN TamanduaEnterpriseEval /F\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "registry_set_value",
+        "file_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:persistence",
+        "tactic:privilege-escalation",
+        "mitre:T1053.005"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1136-local-account-discovery-only",
+      "name": "Local Account Management Discovery",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"net user 2>nul || exit /b 0\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:persistence",
+        "mitre:T1136"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1003-credential-access-safe-probe",
+      "name": "Credential Access Safe Probe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"cmdkey.exe /list & whoami /priv\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:credential-access",
+        "mitre:T1003"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1552-unsecured-credentials-safe-search",
+      "name": "Unsecured Credentials Safe Search",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Get-ChildItem -Path $env:USERPROFILE -Include *.config,*.txt -File -ErrorAction SilentlyContinue | Select-Object -First 5 | Out-Null; exit 0\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_read"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:credential-access",
+        "mitre:T1552"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "path"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1083-file-discovery",
+      "name": "File and Directory Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1083",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Get-ChildItem -Path $env:TEMP -ErrorAction SilentlyContinue | Select-Object -First 5 | Out-Null; Start-Sleep -Seconds 4\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1083"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1115-clipboard",
+      "name": "Clipboard Collection",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Set-Clipboard -Value 'tamandua-enterprise-eval'; Get-Clipboard | Out-Null; Start-Sleep -Seconds 2\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:collection",
+        "mitre:T1115"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1560-archive",
+      "name": "Archive Collected Data",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1560",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c \"rmdir /s /q %TEMP%\\tamandua-enterprise-archive 2>nul & mkdir %TEMP%\\tamandua-enterprise-archive & echo tamandua > %TEMP%\\tamandua-enterprise-archive\\sample.txt & tar.exe -a -c -f %TEMP%\\tamandua-enterprise-archive\\sample.zip -C %TEMP%\\tamandua-enterprise-archive sample.txt & ping -n 3 127.0.0.1 > nul & rmdir /s /q %TEMP%\\tamandua-enterprise-archive\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:collection",
+        "mitre:T1560"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1105-benign-transfer",
+      "name": "Ingress Tool Transfer Benign",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1105",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c \"curl.exe -L https://example.com/ -o %TEMP%\\tamandua-enterprise-t1105.txt & ping -n 3 127.0.0.1 > nul & del /f /q %TEMP%\\tamandua-enterprise-t1105.txt\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "optional_telemetry": [
+        "dns_query",
+        "network_connect",
+        "file_create",
+        "file_delete"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:command-and-control",
+        "mitre:T1105"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1071.001-web-protocol",
+      "name": "Web Protocol C2 Simulation",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"curl.exe -I https://example.com/ & ping -n 2 127.0.0.1 > nul\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "optional_telemetry": [
+        "dns_query",
+        "network_connect"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:command-and-control",
+        "mitre:T1071.001"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1041-exfil-over-c2-safe",
+      "name": "Exfiltration Over C2 Channel Safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua-enterprise-eval>%TEMP%\\tamandua-exfil-safe.txt & curl.exe -I https://example.com/ & del /f /q %TEMP%\\tamandua-exfil-safe.txt\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_delete",
+        "dns_query",
+        "network_connect"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:exfiltration",
+        "mitre:T1041"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1070.004-file-delete",
+      "name": "Indicator Removal File Delete",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua>%TEMP%\\tamandua-enterprise-delete.txt & ping -n 2 127.0.0.1 > nul & del /f /q %TEMP%\\tamandua-enterprise-delete.txt\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_delete"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "path"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:defense-evasion",
+        "mitre:T1070.004"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1490-inhibit-recovery-safe",
+      "name": "Inhibit System Recovery Safe Probe",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& vssadmin.exe list shadows 2>$null | Out-Null; Start-Sleep -Seconds 4; exit 0\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:impact",
+        "mitre:T1490"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1486-impact-canary-safe",
+      "name": "Impact Canary File Write",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua impact canary>%TEMP%\\tamandua-impact-canary.txt & ping -n 2 127.0.0.1 > nul & del /f /q %TEMP%\\tamandua-impact-canary.txt\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "path"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:impact",
+        "mitre:T1486"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1135-network-share-discovery",
+      "name": "Network Share Discovery",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c net share",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1135"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1069-local-group-discovery",
+      "name": "Local Group Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1069.001",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c \"net localgroup & whoami /groups\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1069.001"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1124-system-time-discovery",
+      "name": "System Time Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1124",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Get-Date | Out-Null; & tzutil.exe /g | Out-Null; Start-Sleep -Seconds 4\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1124"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1518-software-discovery",
+      "name": "Software Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1518",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"Get-ItemProperty HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\* -ErrorAction SilentlyContinue | Select-Object -First 5 DisplayName,DisplayVersion | Out-Null; exit 0\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1518"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1518.001-security-software-discovery",
+      "name": "Security Software Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1518.001",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c \"reg query HKLM\\SOFTWARE\\Microsoft\\Windows Defender 2>nul || sc.exe query Windefend 2>nul || ver\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:discovery",
+        "mitre:T1518.001"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1005-local-data-staging-safe",
+      "name": "Data From Local System Safe",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$path = Join-Path $env:TEMP 'tamandua-local-data-safe.txt'; Get-ChildItem -Path (Join-Path $env:USERPROFILE 'Documents') -ErrorAction SilentlyContinue | Select-Object -First 5 | Out-Null; 'tamandua' | Set-Content -Path $path -Encoding ASCII; Get-Content -Path $path | Out-Null; Start-Sleep -Seconds 4; Remove-Item -Path $path -Force -ErrorAction SilentlyContinue\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_read",
+        "file_delete"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:collection",
+        "mitre:T1005"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "eval-T1564.001-hidden-file-safe",
+      "name": "Hidden File Safe",
+      "executor": "atomic_or_command",
+      "atomic": {
+        "technique": "T1564.001",
+        "test_numbers": [
+          1
+        ]
+      },
+      "fallback_command": "cmd.exe /d /c \"echo tamandua>%TEMP%\\tamandua-hidden-safe.txt & attrib +h %TEMP%\\tamandua-hidden-safe.txt & ping -n 2 127.0.0.1 > nul & attrib -h %TEMP%\\tamandua-hidden-safe.txt & del /f /q %TEMP%\\tamandua-hidden-safe.txt\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:defense-evasion",
+        "mitre:T1564.001"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "path"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1036-masquerading-safe",
+      "name": "Masquerading Safe Copy",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"copy %SystemRoot%\\System32\\cmd.exe %TEMP%\\svchost.exe > nul & %TEMP%\\svchost.exe /c ping -n 5 127.0.0.1 ^> nul & del /f /q %TEMP%\\svchost.exe\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_detections": [
+        "masquerade"
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "path"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      },
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:defense-evasion",
+        "mitre:T1036"
+      ],
+      "risk": "medium"
+    },
+    {
+      "id": "eval-T1218.010-regsvr32-benign",
+      "name": "Regsvr32 Signed Binary Proxy Safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"regsvr32.exe /s /u /i:tamandua scrobj.dll || exit /b 0\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [
+        "regsvr32"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:defense-evasion",
+        "mitre:T1218.010"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    },
+    {
+      "id": "eval-T1021-remote-services-discovery-safe",
+      "name": "Remote Services Discovery Safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"net use & qwinsta 2>nul\"",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "tags": [
+        "enterprise-eval-safe",
+        "tactic:lateral-movement",
+        "mitre:T1021"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "process_create"
+        ],
+        [
+          "live_response_command"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ],
+        "live_response_command": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line"
+        ]
+      }
+    }
+  ]
+}

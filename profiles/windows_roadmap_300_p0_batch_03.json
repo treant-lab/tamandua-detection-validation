@@ -1,0 +1,513 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-roadmap-300-p0-batch-03",
+  "name": "Windows Roadmap 300 P0 Batch 03",
+  "description": "Executable batch generated directly from the Windows 300-scenario roadmap.",
+  "platform": "windows",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "windows_roadmap_300_p0_batch_03",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "requires_driver_health": true,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/windows_detection_roadmap_300.json",
+    "selected_scenarios": 7,
+    "generated_tests": 7,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-win-impact-002-t1490",
+      "name": "Inhibit System Recovery: atomic safe",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo before>%TEMP%\\tamandua-impact.txt & echo after>>%TEMP%\\tamandua-impact.txt & del /f /q %TEMP%\\tamandua-impact.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1490",
+        "technique_name": "Inhibit System Recovery",
+        "tactic": "impact",
+        "category": "atomic-upstream-candidate",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": "atomic-upstream",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-driver-contract"
+        ]
+      },
+      "validation_category": "atomic-upstream-candidate",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-002",
+        "tactic:impact",
+        "mitre:T1490",
+        "category:atomic-upstream-candidate",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-impact-003-t1485",
+      "name": "Data Destruction: caldera chain",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo tamandua-delete-safe>%TEMP%\\tamandua-delete-safe.txt & del /f /q %TEMP%\\tamandua-delete-safe.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1485",
+        "technique_name": "Data Destruction",
+        "tactic": "impact",
+        "category": "caldera-upstream-candidate",
+        "lane": "caldera-upstream",
+        "executor": "caldera_operation",
+        "upstream_target_lane": "caldera-upstream",
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "caldera-upstream-candidate",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "caldera-upstream",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-003",
+        "tactic:impact",
+        "mitre:T1485",
+        "category:caldera-upstream-candidate",
+        "lane:caldera-upstream",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-impact-004-t1491-001",
+      "name": "Internal Defacement: correlation storyline",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"$p=Join-Path $env:TEMP 'tamandua-deface.html'; Set-Content -Path $p -Value '<html>tamandua</html>'; Remove-Item $p -Force\"",
+      "roadmap_traceability": {
+        "technique": "T1491.001",
+        "technique_name": "Internal Defacement",
+        "tactic": "impact",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-004",
+        "tactic:impact",
+        "mitre:T1491.001",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-impact-005-t1529",
+      "name": "System Shutdown/Reboot: alert quality",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"shutdown.exe /a 2>nul || ver\"",
+      "roadmap_traceability": {
+        "technique": "T1529",
+        "technique_name": "System Shutdown/Reboot",
+        "tactic": "impact",
+        "category": "alert-quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "alert-quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-005",
+        "tactic:impact",
+        "mitre:T1529",
+        "category:alert-quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-impact-006-t1565-001",
+      "name": "Stored Data Manipulation: benign contrast",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -Command \"$p=Join-Path $env:TEMP 'tamandua-data.txt'; Set-Content $p 'before'; Add-Content $p 'after'; Remove-Item $p -Force\"",
+      "roadmap_traceability": {
+        "technique": "T1565.001",
+        "technique_name": "Stored Data Manipulation",
+        "tactic": "impact",
+        "category": "benign-baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ]
+      },
+      "validation_category": "benign-baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-006",
+        "tactic:impact",
+        "mitre:T1565.001",
+        "category:benign-baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-impact-007-t1486",
+      "name": "Data Encrypted for Impact: response readiness",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo before>%TEMP%\\tamandua-impact.txt & echo after>>%TEMP%\\tamandua-impact.txt & del /f /q %TEMP%\\tamandua-impact.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1486",
+        "technique_name": "Data Encrypted for Impact",
+        "tactic": "impact",
+        "category": "response",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1"
+        ]
+      },
+      "validation_category": "response",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-007",
+        "tactic:impact",
+        "mitre:T1486",
+        "category:response",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    },
+    {
+      "id": "roadmap-win-impact-008-t1490",
+      "name": "Inhibit System Recovery: driver backed",
+      "executor": "command",
+      "fallback_command": "cmd.exe /d /c \"echo before>%TEMP%\\tamandua-impact.txt & echo after>>%TEMP%\\tamandua-impact.txt & del /f /q %TEMP%\\tamandua-impact.txt\"",
+      "roadmap_traceability": {
+        "technique": "T1490",
+        "technique_name": "Inhibit System Recovery",
+        "tactic": "impact",
+        "category": "driver",
+        "lane": "enterprise-eval",
+        "executor": "driver_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-driver-contract"
+        ]
+      },
+      "validation_category": "driver",
+      "source_executor": "driver_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-impact-008",
+        "tactic:impact",
+        "mitre:T1490",
+        "category:driver",
+        "lane:enterprise-eval",
+        "variant:driver-backed",
+        "executor:driver_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "risk": "medium",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
+    }
+  ]
+}

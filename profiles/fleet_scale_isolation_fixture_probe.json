@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "profile_id": "fleet-scale-isolation-fixture-probe",
+  "name": "Fleet Scale Isolation Fixture Probe",
+  "description": "Local Roadmap S fixture for simultaneous multi-agent workload semantics, latency budgets, event loss, queue depth, and cross-agent evidence isolation.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "fleet-scale",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\fleet_scale_isolation_fixture_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "fleet_scale_isolation_fixture",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local fleet fixture only. Does not prove real simultaneous endpoint throughput, server ingest SLOs, UI behavior under load, or fleet scale.",
+  "tests": [
+    {
+      "id": "fleet-simultaneous-workload-fixture",
+      "name": "Fixture contains simultaneous workload evidence for multiple online agents",
+      "executor": "fleet_scale_isolation_fixture_probe",
+      "expected_telemetry": ["fleet_fixture"],
+      "expected_fields": ["online_agents", "events"]
+    },
+    {
+      "id": "fleet-latency-budget-fixture",
+      "name": "Fleet fixture records ingest and alert latency inside budget",
+      "executor": "fleet_scale_isolation_fixture_probe",
+      "expected_telemetry": ["fleet_fixture"],
+      "expected_fields": ["max_ingest_latency_ms", "max_alert_latency_ms"]
+    },
+    {
+      "id": "fleet-loss-queue-depth-fixture",
+      "name": "Fleet fixture records zero loss and bounded queue depth",
+      "executor": "fleet_scale_isolation_fixture_probe",
+      "expected_telemetry": ["fleet_fixture"],
+      "expected_fields": ["dropped_events", "max_queue_depth"]
+    },
+    {
+      "id": "fleet-cross-agent-evidence-isolation-fixture",
+      "name": "Fleet fixture keeps event ownership isolated by agent id",
+      "executor": "fleet_scale_isolation_fixture_probe",
+      "expected_telemetry": ["fleet_fixture"],
+      "expected_fields": ["agent_event_counts"]
+    },
+    {
+      "id": "fleet-offline-agent-no-event-leak-fixture",
+      "name": "Offline agents remain visible but do not emit workload events",
+      "executor": "fleet_scale_isolation_fixture_probe",
+      "expected_telemetry": ["fleet_fixture"],
+      "expected_fields": ["offline_agents", "offline_event_leaks"]
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "profile_id": "agent-platform-capabilities-live-api-probe",
+  "name": "Agent Platform Capabilities Live API Probe",
+  "description": "Authenticated read-only Analyst UX/API probe for deployed agent capability rendering. Validates online healthy agents expose runtime-reported capability while offline/critical agents are not promoted.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "analyst-ux",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\agent_platform_capabilities_live_api_probe.py",
+    "timeout_seconds": 90,
+    "runtime_effect": "read_only_api",
+    "requires_agent": false,
+    "requires_server": true,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "agent_platform_capabilities_live_api",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Authenticated read-only live API proof only. Does not prove endpoint collector telemetry, driver health, or live-response command execution.",
+  "tests": [
+    {
+      "id": "agent-capabilities-live-api-readable",
+      "name": "Authenticated CLI can read agent inventory and platform capabilities",
+      "executor": "agent_platform_capabilities_live_api_probe",
+      "expected_telemetry": [
+        "authenticated_read_only_api_probe"
+      ],
+      "expected_fields": [
+        "agent_count",
+        "platform_capabilities"
+      ]
+    },
+    {
+      "id": "agent-capabilities-online-healthy-runtime-reported",
+      "name": "Online healthy agents expose runtime-reported endpoint telemetry/live response capability",
+      "executor": "agent_platform_capabilities_live_api_probe",
+      "expected_telemetry": [
+        "authenticated_read_only_api_probe"
+      ],
+      "expected_fields": [
+        "online_healthy_agents",
+        "endpoint_telemetry",
+        "live_response"
+      ]
+    },
+    {
+      "id": "agent-capabilities-offline-critical-not-promoted",
+      "name": "Offline, unknown, or critical agents are not promoted to runtime-reported capability",
+      "executor": "agent_platform_capabilities_live_api_probe",
+      "expected_telemetry": [
+        "authenticated_read_only_api_probe"
+      ],
+      "expected_fields": [
+        "offline_or_critical_agents",
+        "not_promoted"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "schema_version": 1,
+  "profile_id": "macos-release-readiness-dry-run",
+  "name": "macOS Release Readiness Dry Run",
+  "description": "Report-only macOS release/readiness lane for LaunchDaemon, binary signature/hash, plist, manifest/SBOM, rollback, and uninstall planning.",
+  "platform": "macos",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "release-readiness",
+  "quality_bar": {
+    "purpose": "macos_release_readiness_dry_run",
+    "requires_persisted_events": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "release_contract": {
+    "evidence_scope": [
+      "LaunchDaemon status report-only",
+      "binary path, version, signature and hash metadata",
+      "plist lint and ownership metadata",
+      "release manifest, SBOM and compatibility matrix presence",
+      "rollback and uninstall command surfaces recorded as planned/not executed"
+    ],
+    "promotion_requires": [
+      "signed/notarized pkg or app artifact evidence",
+      "generated SBOM attached to the release pack",
+      "successful install/update/rollback/uninstall execution on a clean macOS host",
+      "explicit separation from lab-only or unsigned builds"
+    ]
+  },
+  "claim_boundary": "Dry-run release/readiness contract only. Passing this profile does not prove notarization, installer success, update success, rollback success, clean uninstall, EndpointSecurity coverage, or server-backed parity.",
+  "tests": [
+    {
+      "id": "release-macos-launchdaemon-status-report-only",
+      "name": "LaunchDaemon Status Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'launchctl print system/com.treant.tamandua 2>/dev/null || launchctl list | grep -i tamandua || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "release-readiness",
+        "launchdaemon",
+        "report-only",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "release-macos-binary-hash-metadata-report-only",
+      "name": "Binary Hash Metadata Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'for f in /usr/local/bin/tamandua-agent /usr/local/bin/tamandua-watchdog /Applications/Tamandua.app/Contents/MacOS/*; do test -f \"$f\" && shasum -a 256 \"$f\" && codesign -dv \"$f\" >/dev/null 2>&1 || true; done'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "release-readiness",
+        "binary-metadata",
+        "hash",
+        "signature",
+        "report-only",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "release-macos-plist-metadata-report-only",
+      "name": "LaunchDaemon Plist Metadata Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'for f in /Library/LaunchDaemons/*tamandua*.plist; do test -f \"$f\" && plutil -lint \"$f\" && ls -l \"$f\"; done; true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "release-readiness",
+        "plist",
+        "launchdaemon",
+        "report-only",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "release-macos-manifest-sbom-compatibility-report-only",
+      "name": "Manifest SBOM Compatibility Report Only",
+      "executor": "command",
+      "fallback_command": "sh -lc 'printf \"manifest=%s\\nsbom=%s\\ncompat=%s\\n\" \"$TAMANDUA_RELEASE_MANIFEST\" \"$TAMANDUA_RELEASE_SBOM\" \"$TAMANDUA_RELEASE_COMPATIBILITY_MATRIX\"; test -n \"$TAMANDUA_RELEASE_MANIFEST\" && test -f \"$TAMANDUA_RELEASE_MANIFEST\" || true'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "release-readiness",
+        "manifest",
+        "sbom",
+        "compatibility",
+        "report-only",
+        "macos"
+      ],
+      "risk": "low"
+    },
+    {
+      "id": "release-macos-rollback-uninstall-plan-not-executed",
+      "name": "Rollback Uninstall Plan Not Executed",
+      "executor": "command",
+      "fallback_command": "sh -lc 'printf \"rollback=planned_not_executed\\nuninstall=planned_not_executed\\nunsafe_actions_blocked=launchctl_bootout,pkgutil_forget,rm_rf_app\\n\"'",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ],
+      "tags": [
+        "release-readiness",
+        "rollback",
+        "uninstall",
+        "planned-not-executed",
+        "report-only",
+        "macos"
+      ],
+      "risk": "low"
+    }
+  ]
+}

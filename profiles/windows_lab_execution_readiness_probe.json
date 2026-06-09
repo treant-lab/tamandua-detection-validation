@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-lab-execution-readiness-probe",
+  "name": "Windows Lab Execution Readiness Probe",
+  "description": "Authenticated read-only Lane 0 probe for deciding whether WIN-TEMPLATE is safe to use for broad Windows, Atomic extended, or CALDERA enterprise validation.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\windows_lab_execution_readiness_probe.py",
+    "timeout_seconds": 90,
+    "runtime_effect": "read_only_api",
+    "requires_agent": false,
+    "requires_server": true,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "windows_lab_execution_readiness",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Authenticated read-only lab readiness proof only. Passing this profile allows broad Windows benchmark scheduling; it does not prove detection coverage.",
+  "tests": [
+    {
+      "id": "windows-lab-target-present",
+      "name": "WIN-TEMPLATE target is present in authenticated inventory",
+      "executor": "windows_lab_execution_readiness_probe",
+      "expected_telemetry": ["authenticated_read_only_api_probe"],
+      "expected_fields": ["target_hostname", "agent_count"]
+    },
+    {
+      "id": "windows-lab-target-online",
+      "name": "WIN-TEMPLATE target is online with a fresh backend state",
+      "executor": "windows_lab_execution_readiness_probe",
+      "expected_telemetry": ["authenticated_read_only_api_probe"],
+      "expected_fields": ["status", "last_seen"]
+    },
+    {
+      "id": "windows-lab-target-health-acceptable",
+      "name": "WIN-TEMPLATE target health is healthy or degraded, not critical/offline",
+      "executor": "windows_lab_execution_readiness_probe",
+      "expected_telemetry": ["authenticated_read_only_api_probe"],
+      "expected_fields": ["health_status", "reasons"]
+    },
+    {
+      "id": "windows-lab-target-live-response-ready",
+      "name": "WIN-TEMPLATE target reports live response runtime readiness",
+      "executor": "windows_lab_execution_readiness_probe",
+      "expected_telemetry": ["authenticated_read_only_api_probe"],
+      "expected_fields": ["live_response"]
+    },
+    {
+      "id": "windows-lab-target-endpoint-telemetry-ready",
+      "name": "WIN-TEMPLATE target reports endpoint telemetry runtime readiness",
+      "executor": "windows_lab_execution_readiness_probe",
+      "expected_telemetry": ["authenticated_read_only_api_probe"],
+      "expected_fields": ["endpoint_telemetry"]
+    },
+    {
+      "id": "windows-lab-target-load-safe-for-broad-runs",
+      "name": "WIN-TEMPLATE target load is safe for broad shards",
+      "executor": "windows_lab_execution_readiness_probe",
+      "expected_telemetry": ["authenticated_read_only_api_probe"],
+      "expected_fields": ["cpu_usage", "driver_state"]
+    }
+  ]
+}

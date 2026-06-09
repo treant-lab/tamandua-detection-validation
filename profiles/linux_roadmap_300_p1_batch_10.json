@@ -1,0 +1,373 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-roadmap-300-p1-batch-10",
+  "name": "Linux Roadmap 300 P1 Batch 10",
+  "description": "Executable batch generated directly from the Linux 300-scenario roadmap.",
+  "platform": "linux",
+  "default_observation_seconds": 75,
+  "benchmark_lane": "enterprise-eval",
+  "quality_bar": {
+    "purpose": "linux_roadmap_300_p1_batch_10",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0
+  },
+  "roadmap_selection": {
+    "source": "tools/detection_validation/roadmaps/linux_detection_roadmap_300.json",
+    "selected_scenarios": 7,
+    "generated_tests": 7,
+    "limit": 0
+  },
+  "tests": [
+    {
+      "id": "roadmap-lin-impact-009-t1486",
+      "name": "Data Encrypted for Impact: telemetry contract",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo before >/tmp/tamandua-impact.txt; echo after >>/tmp/tamandua-impact.txt; rm -f /tmp/tamandua-impact.txt'",
+      "roadmap_traceability": {
+        "technique": "T1486",
+        "technique_name": "Data Encrypted for Impact",
+        "tactic": "impact",
+        "category": "sensor_contract",
+        "lane": "enterprise-eval",
+        "executor": "sensor_contract",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "sensor_contract",
+      "source_executor": "sensor_contract",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-impact-009",
+        "tactic:impact",
+        "mitre:T1486",
+        "category:sensor_contract",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-impact-010-t1490",
+      "name": "Inhibit System Recovery: atomic safe",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo before >/tmp/tamandua-impact.txt; echo after >>/tmp/tamandua-impact.txt; rm -f /tmp/tamandua-impact.txt'",
+      "roadmap_traceability": {
+        "technique": "T1490",
+        "technique_name": "Inhibit System Recovery",
+        "tactic": "impact",
+        "category": "atomic_or_command",
+        "lane": "enterprise-eval",
+        "executor": "atomic_or_command",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "atomic_or_command",
+      "source_executor": "atomic_or_command",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic fallback evidence for an Atomic candidate; not Atomic upstream proof",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-impact-010",
+        "tactic:impact",
+        "mitre:T1490",
+        "category:atomic_or_command",
+        "lane:enterprise-eval",
+        "variant:atomic-safe",
+        "executor:atomic_or_command",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-impact-011-t1485",
+      "name": "Data Destruction: caldera chain",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo before >/tmp/tamandua-impact.txt; echo after >>/tmp/tamandua-impact.txt; rm -f /tmp/tamandua-impact.txt'",
+      "roadmap_traceability": {
+        "technique": "T1485",
+        "technique_name": "Data Destruction",
+        "tactic": "impact",
+        "category": "caldera_operation",
+        "lane": "enterprise-eval",
+        "executor": "caldera_operation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "caldera_operation",
+      "source_executor": "caldera_operation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-impact-011",
+        "tactic:impact",
+        "mitre:T1485",
+        "category:caldera_operation",
+        "lane:enterprise-eval",
+        "variant:caldera-chain",
+        "executor:caldera_operation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-impact-012-t1529",
+      "name": "System Shutdown/Reboot: correlation storyline",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo before >/tmp/tamandua-impact.txt; echo after >>/tmp/tamandua-impact.txt; rm -f /tmp/tamandua-impact.txt'",
+      "roadmap_traceability": {
+        "technique": "T1529",
+        "technique_name": "System Shutdown/Reboot",
+        "tactic": "impact",
+        "category": "correlation",
+        "lane": "enterprise-eval",
+        "executor": "correlation",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "correlation",
+      "source_executor": "correlation",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-impact-012",
+        "tactic:impact",
+        "mitre:T1529",
+        "category:correlation",
+        "lane:enterprise-eval",
+        "variant:correlation-storyline",
+        "executor:correlation",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-impact-013-t1486",
+      "name": "Data Encrypted for Impact: alert quality",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo before >/tmp/tamandua-impact.txt; echo after >>/tmp/tamandua-impact.txt; rm -f /tmp/tamandua-impact.txt'",
+      "roadmap_traceability": {
+        "technique": "T1486",
+        "technique_name": "Data Encrypted for Impact",
+        "tactic": "impact",
+        "category": "alert_quality",
+        "lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "alert_quality",
+      "source_executor": "alert_quality",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-impact-013",
+        "tactic:impact",
+        "mitre:T1486",
+        "category:alert_quality",
+        "lane:enterprise-eval",
+        "variant:alert-quality",
+        "executor:alert_quality",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-impact-014-t1490",
+      "name": "Inhibit System Recovery: benign contrast",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo before >/tmp/tamandua-impact.txt; echo after >>/tmp/tamandua-impact.txt; rm -f /tmp/tamandua-impact.txt'",
+      "roadmap_traceability": {
+        "technique": "T1490",
+        "technique_name": "Inhibit System Recovery",
+        "tactic": "impact",
+        "category": "benign_baseline",
+        "lane": "enterprise-eval",
+        "executor": "benign_baseline",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "benign_baseline",
+      "source_executor": "benign_baseline",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-impact-014",
+        "tactic:impact",
+        "mitre:T1490",
+        "category:benign_baseline",
+        "lane:enterprise-eval",
+        "variant:benign-contrast",
+        "executor:benign_baseline",
+        "status:planned"
+      ],
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    },
+    {
+      "id": "roadmap-lin-impact-015-t1485",
+      "name": "Data Destruction: response readiness",
+      "executor": "command",
+      "fallback_command": "sh -lc 'echo before >/tmp/tamandua-impact.txt; echo after >>/tmp/tamandua-impact.txt; rm -f /tmp/tamandua-impact.txt'",
+      "roadmap_traceability": {
+        "technique": "T1485",
+        "technique_name": "Data Destruction",
+        "tactic": "impact",
+        "category": "response_harness",
+        "lane": "enterprise-eval",
+        "executor": "response_harness",
+        "upstream_target_lane": null,
+        "existing_profile_refs": []
+      },
+      "validation_category": "response_harness",
+      "source_executor": "response_harness",
+      "source_benchmark_lane": "enterprise-eval",
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "optional_telemetry": [
+        "file_create",
+        "file_modify",
+        "file_delete",
+        "network_connect",
+        "dns_query",
+        "registry_set_value"
+      ],
+      "tags": [
+        "linux-roadmap-batch",
+        "roadmap:lin-impact-015",
+        "tactic:impact",
+        "mitre:T1485",
+        "category:response_harness",
+        "lane:enterprise-eval",
+        "variant:response-readiness",
+        "executor:response_harness",
+        "status:planned"
+      ],
+      "risk": "medium",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
+    }
+  ]
+}

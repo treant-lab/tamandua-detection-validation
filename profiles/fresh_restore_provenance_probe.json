@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "profile_id": "fresh-restore-provenance-probe",
+  "name": "Fresh Restore Provenance Probe",
+  "description": "Non-destructive Roadmap B claim-boundary probe that validates whether Windows 300 artifacts carry enough VM snapshot/restore provenance to support a fresh-restore claim.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\fresh_restore_provenance_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "fresh_restore_provenance_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Fresh-restore provenance readiness only. Passing this profile does not execute Windows 300, does not restore a VM, and does not prove detector coverage; it only proves that selected Windows 300 artifacts carry enough snapshot/restore metadata for a bounded fresh-restore claim.",
+  "tests": [
+    {
+      "id": "fresh-restore-windows-300-artifact-set-present",
+      "name": "Latest Windows 300 batch artifacts exist for all six batches",
+      "executor": "fresh_restore_provenance_probe",
+      "expected_telemetry": ["fresh_restore_provenance"],
+      "expected_fields": ["expected_profiles", "present_profiles", "latest_paths", "observed_context_by_profile"]
+    },
+    {
+      "id": "fresh-restore-provenance-metadata-present",
+      "name": "Windows 300 artifacts carry explicit fresh-restore provenance metadata",
+      "executor": "fresh_restore_provenance_probe",
+      "expected_telemetry": ["fresh_restore_provenance"],
+      "expected_fields": ["fresh_restore", "restore_started_at", "restore_finished_at", "snapshot_name", "snapshot_id", "vmid", "observed_context_by_profile"]
+    },
+    {
+      "id": "fresh-restore-required-fields-complete",
+      "name": "Fresh-restore provenance includes snapshot, VM, agent, and timing fields",
+      "executor": "fresh_restore_provenance_probe",
+      "expected_telemetry": ["fresh_restore_provenance"],
+      "expected_fields": ["agent_id_after_restore", "hostname_after_restore", "restore_finished_at", "observed_context_by_profile"]
+    },
+    {
+      "id": "fresh-restore-single-provenance-window",
+      "name": "All Windows 300 batch artifacts map to one restored VM/provenance window",
+      "executor": "fresh_restore_provenance_probe",
+      "expected_telemetry": ["fresh_restore_provenance"],
+      "expected_fields": ["unique_restore_windows", "restore_windows"]
+    }
+  ]
+}

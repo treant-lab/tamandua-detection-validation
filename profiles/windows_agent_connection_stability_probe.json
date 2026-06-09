@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-agent-connection-stability-probe",
+  "name": "Windows Agent Connection Stability Probe",
+  "description": "Read-only server-log probe for WIN-TEMPLATE connection stability. It gates broad Windows benchmark scheduling by checking recent connect/join/telemetry/disconnect evidence on the 146 server.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\windows_agent_connection_stability_probe.py",
+    "timeout_seconds": 180,
+    "runtime_effect": "server_log_read_only",
+    "requires_agent": false,
+    "requires_server": true,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "windows_agent_connection_stability",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Server-log readiness proof only. Passing this profile allows broad Windows benchmark scheduling when paired with lab readiness; it does not execute endpoints or prove detection coverage.",
+  "tests": [
+    {
+      "id": "windows-agent-server-log-readable",
+      "name": "146 server logs are readable for WIN-TEMPLATE",
+      "executor": "windows_agent_connection_stability_probe",
+      "expected_telemetry": ["server_log_connection_evidence"],
+      "expected_fields": ["server_log_readable", "agent_id"]
+    },
+    {
+      "id": "windows-agent-recent-connection-observed",
+      "name": "Recent WIN-TEMPLATE connection or join is visible in server logs",
+      "executor": "windows_agent_connection_stability_probe",
+      "expected_telemetry": ["server_log_connection_evidence"],
+      "expected_fields": ["connected_at", "joined_at"]
+    },
+    {
+      "id": "windows-agent-stable-session-duration",
+      "name": "At least one recent WIN-TEMPLATE session lasted long enough for benchmark shards",
+      "executor": "windows_agent_connection_stability_probe",
+      "expected_telemetry": ["server_log_connection_evidence"],
+      "expected_fields": ["duration_seconds", "min_stable_session_seconds"]
+    },
+    {
+      "id": "windows-agent-not-currently-disconnected",
+      "name": "Latest observed WIN-TEMPLATE session is not already closed",
+      "executor": "windows_agent_connection_stability_probe",
+      "expected_telemetry": ["server_log_connection_evidence"],
+      "expected_fields": ["disconnected_at", "disconnect_reason"]
+    },
+    {
+      "id": "windows-agent-telemetry-flow-observed",
+      "name": "WIN-TEMPLATE sent telemetry batches during the recent log window",
+      "executor": "windows_agent_connection_stability_probe",
+      "expected_telemetry": ["server_log_connection_evidence"],
+      "expected_fields": ["telemetry_batches", "telemetry_events"]
+    }
+  ]
+}

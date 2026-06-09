@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-endpoint-core",
+  "name": "Windows Endpoint Core",
+  "description": "Endpoint collector smoke profile for process, DNS, network, file, and registry telemetry. No malicious behavior expected.",
+  "platform": "windows",
+  "default_observation_seconds": 45,
+  "tests": [
+    {
+      "id": "endpoint-process-shell",
+      "name": "Process Telemetry From Shell",
+      "executor": "command",
+      "fallback_command": "cmd.exe /c whoami && ver",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["process_terminate"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["endpoint", "process", "core"],
+      "risk": "low"
+    },
+    {
+      "id": "endpoint-dns-resolution",
+      "name": "DNS Resolution Telemetry",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command 'Resolve-DnsName example.com -ErrorAction SilentlyContinue | Out-Null'",
+      "expected_telemetry": ["process_create", "dns_query"],
+      "optional_telemetry": ["network_connect"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "domain", "process_name"],
+      "tags": ["endpoint", "dns", "core"],
+      "risk": "low"
+    },
+    {
+      "id": "endpoint-web-request",
+      "name": "Network Connect And File Write",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '$p=Join-Path $env:TEMP (\"tamandua-endpoint-core-\" + [guid]::NewGuid().ToString(\"N\") + \".txt\"); Invoke-WebRequest -Uri \"https://example.com/\" -OutFile $p; Remove-Item $p -Force -ErrorAction SilentlyContinue'",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "network_connect", "file_modify", "file_create", "file_delete"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["endpoint", "network", "file", "core"],
+      "risk": "low"
+    },
+    {
+      "id": "endpoint-registry-hkcu",
+      "name": "Registry HKCU Safe Write",
+      "executor": "command",
+      "fallback_command": "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command '$k=\"HKCU:\\Software\\TamanduaEndpointCore\"; New-Item -Path $k -Force | Out-Null; New-ItemProperty -Path $k -Name \"Smoke\" -Value \"1\" -PropertyType String -Force | Out-Null; Remove-Item -Path $k -Force -Recurse'",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["registry_set_value", "registry_create_key", "registry_delete_key"],
+      "expected_detections": [],
+      "expected_alerts": [],
+      "expected_fields": ["agent_id", "hostname", "registry_key", "process_name"],
+      "tags": ["endpoint", "registry", "core"],
+      "risk": "low"
+    }
+  ]
+}

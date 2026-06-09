@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "profile_id": "public-snapshot-package-probe",
+  "name": "Public Snapshot Package Probe",
+  "description": "Local claim-safe packaging probe for Roadmap H. It validates selected archived benchmark artifacts, emits allowed/disallowed public claim language, and redacts live endpoint/server details.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "public-snapshot",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\public_snapshot_package_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "public_snapshot_package_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Claim-safe packaging for selected archived benchmark artifacts only. Does not prove full ATT&CK coverage, full Atomic/CALDERA coverage, CrowdStrike/SentinelOne parity, Wazuh replacement readiness, Linux/macOS parity, signed production release readiness, or fleet-scale SOC operation.",
+  "tests": [
+    {
+      "id": "atomic-smoke-selected-profile",
+      "name": "Selected Windows Atomic smoke artifact is green and upstream-backed",
+      "executor": "public_snapshot_package_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate", "allowed_claim", "blocked_claims"]
+    },
+    {
+      "id": "caldera-smoke-selected-profile",
+      "name": "Selected Windows CALDERA smoke artifact is green and upstream-backed",
+      "executor": "public_snapshot_package_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate", "allowed_claim", "blocked_claims"]
+    },
+    {
+      "id": "windows-p1-deterministic-final",
+      "name": "Selected Windows P1 deterministic artifact is green and scoped",
+      "executor": "public_snapshot_package_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate", "allowed_claim", "blocked_claims"]
+    },
+    {
+      "id": "unified-dr-selected-fixtures",
+      "name": "Selected unified D&R fixture artifact is green and scoped",
+      "executor": "public_snapshot_package_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate", "allowed_claim", "blocked_claims"]
+    },
+    {
+      "id": "release-resilience-static-boundary",
+      "name": "Release/resilience static artifact is green with production boundaries",
+      "executor": "public_snapshot_package_probe",
+      "expected_telemetry": ["archived_benchmark_artifact"],
+      "expected_fields": ["profile_id", "run_id", "quality_gate", "allowed_claim", "blocked_claims"]
+    },
+    {
+      "id": "roadmap-h-scorecard-present",
+      "name": "Generated roadmap scorecard includes Roadmap H",
+      "executor": "public_snapshot_package_probe",
+      "expected_telemetry": ["generated_scorecard"],
+      "expected_fields": ["roadmap_h_status", "artifact"]
+    },
+    {
+      "id": "prohibited-public-claims-denied",
+      "name": "Snapshot explicitly denies unsupported broad claims",
+      "executor": "public_snapshot_package_probe",
+      "expected_telemetry": ["claim_guardrail"],
+      "expected_fields": ["disallowed_claims"]
+    }
+  ]
+}

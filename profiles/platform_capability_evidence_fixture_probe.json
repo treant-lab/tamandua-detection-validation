@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "profile_id": "platform-capability-evidence-fixture-probe",
+  "name": "Platform Capability Evidence Fixture Probe",
+  "description": "Local Roadmap K fixture for FIM baseline/change semantics, inventory freshness and CPE/CVE mapping, per-control compliance evidence, and SIEM delivery ack/cursor semantics.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "platform-capability",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\platform_capability_evidence_fixture_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "platform_capability_evidence_fixture",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local platform capability evidence fixture only. Does not prove live endpoint FIM collection, inventory freshness from real agents, compliance posture, or acknowledged delivery to an external SIEM.",
+  "tests": [
+    {
+      "id": "platform-fim-baseline-change-fixture",
+      "name": "FIM fixture records baseline, changed hash, modifier context, and compliance impact",
+      "executor": "platform_capability_evidence_fixture_probe",
+      "expected_telemetry": ["platform_capability_fixture"],
+      "expected_fields": ["baseline", "change"]
+    },
+    {
+      "id": "platform-inventory-freshness-cpe-fixture",
+      "name": "Inventory fixture carries freshness, normalized host/software fields, and CPE/CVE mapping",
+      "executor": "platform_capability_evidence_fixture_probe",
+      "expected_telemetry": ["platform_capability_fixture"],
+      "expected_fields": ["asset", "freshness_seconds"]
+    },
+    {
+      "id": "platform-compliance-per-control-evidence-fixture",
+      "name": "Compliance fixture uses per-control hashed evidence and no synthetic score",
+      "executor": "platform_capability_evidence_fixture_probe",
+      "expected_telemetry": ["platform_capability_fixture"],
+      "expected_fields": ["evidence", "report"]
+    },
+    {
+      "id": "platform-siem-delivery-ack-cursor-fixture",
+      "name": "SIEM fixture records schema, delivery ack, cursor, and no duplicate event id",
+      "executor": "platform_capability_evidence_fixture_probe",
+      "expected_telemetry": ["platform_capability_fixture"],
+      "expected_fields": ["event", "delivery"]
+    }
+  ]
+}

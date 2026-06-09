@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "profile_id": "caldera-api-shape-probe",
+  "name": "CALDERA API Shape Probe",
+  "description": "Read-only Roadmap D probe that records CALDERA inventory endpoint shapes before operation execution is attempted.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\caldera_api_shape_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "caldera_api_shape_probe",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "CALDERA API shape evidence only. Passing this profile does not create operations, execute abilities, or prove endpoint detection.",
+  "tests": [
+    {
+      "id": "caldera-api-agents-readable",
+      "name": "CALDERA agents endpoint is readable",
+      "executor": "caldera_api_shape_probe",
+      "expected_telemetry": ["caldera_agents_api_readable"],
+      "expected_fields": ["status", "shape"]
+    },
+    {
+      "id": "caldera-api-shape-inventory-parsed",
+      "name": "CALDERA agents endpoint shape is parsed",
+      "executor": "caldera_api_shape_probe",
+      "expected_telemetry": ["caldera_agents_shape_parsed"],
+      "expected_fields": ["parsed_agent_count", "shape"]
+    },
+    {
+      "id": "caldera-api-supporting-endpoints-readable",
+      "name": "Supporting CALDERA inventory endpoints are readable",
+      "executor": "caldera_api_shape_probe",
+      "expected_telemetry": ["caldera_supporting_endpoints"],
+      "expected_fields": ["readable_paths", "endpoints"]
+    }
+  ]
+}

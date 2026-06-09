@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "profile_id": "validation-execution-preflight-probe",
+  "name": "Validation Execution Preflight Probe",
+  "description": "Local read-only scheduling gate that checks the latest roadmap closure gate and required environment inputs before broad Windows, Atomic, CALDERA, or macOS validation runs are allowed.",
+  "platform": "cross",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\validation_execution_preflight_probe.py",
+    "timeout_seconds": 60,
+    "runtime_effect": "local_read_only_preflight",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "validation_execution_preflight",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local read-only scheduling preflight only. Passing this profile only allows broad validation scheduling; it does not prove detection, transport stability, endpoint telemetry, CALDERA operation success, or product readiness.",
+  "tests": [
+    {
+      "id": "execution-preflight-closure-gate-present",
+      "name": "Latest roadmap closure gate artifact is available",
+      "executor": "validation_execution_preflight_probe",
+      "expected_telemetry": ["local_read_only_preflight"],
+      "expected_fields": ["closure_gate_path", "closure_gate_run_id"]
+    },
+    {
+      "id": "execution-preflight-required-env-present",
+      "name": "Required preflight environment variables are present in this shell",
+      "executor": "validation_execution_preflight_probe",
+      "expected_telemetry": ["local_read_only_preflight"],
+      "expected_fields": ["required_env_by_roadmap", "required_env_missing"]
+    },
+    {
+      "id": "execution-preflight-closure-gate-green",
+      "name": "Roadmap closure gate is green before broad execution",
+      "executor": "validation_execution_preflight_probe",
+      "expected_telemetry": ["local_read_only_preflight"],
+      "expected_fields": ["closure_gate_passed", "open_roadmaps"]
+    },
+    {
+      "id": "execution-preflight-roadmap-blockers-summarized",
+      "name": "Roadmap blocker profiles are summarized for scheduling triage",
+      "executor": "validation_execution_preflight_probe",
+      "expected_telemetry": ["local_read_only_preflight"],
+      "expected_fields": ["roadmap_blockers", "roadmap_blocker_count"]
+    },
+    {
+      "id": "execution-preflight-run-class-readiness-summarized",
+      "name": "Run class readiness is summarized before broad scheduling",
+      "executor": "validation_execution_preflight_probe",
+      "expected_telemetry": ["local_read_only_preflight"],
+      "expected_fields": ["run_class_readiness", "blocked_run_classes", "allowed_run_classes"]
+    },
+    {
+      "id": "execution-preflight-unblock-sequence-summarized",
+      "name": "Unblock sequence is summarized before broad scheduling",
+      "executor": "validation_execution_preflight_probe",
+      "expected_telemetry": ["local_read_only_preflight"],
+      "expected_fields": ["unblock_sequence", "unblock_step_count"]
+    },
+    {
+      "id": "execution-preflight-broad-runs-allowed",
+      "name": "Broad validation runs are allowed from this shell",
+      "executor": "validation_execution_preflight_probe",
+      "expected_telemetry": ["local_read_only_preflight"],
+      "expected_fields": ["allowed", "blocked_run_classes"]
+    }
+  ]
+}

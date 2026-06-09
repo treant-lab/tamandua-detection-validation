@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "profile_id": "agent-driver-reliability-fixture-probe",
+  "name": "Agent Driver Reliability Fixture Probe",
+  "description": "Local Roadmap L fixture for lifecycle health, reboot recovery, driver stress/drop accounting, offline replay, and Tamandua self-protection semantics.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "agent-driver-reliability",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\agent_driver_reliability_fixture_probe.py",
+    "runtime_effect": "none",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "agent_driver_reliability_fixture",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Local agent/driver reliability fixture only. Does not prove service lifecycle on Windows, reboot recovery, driver stress under kernel load, real queue drain, or tamper protection on an endpoint.",
+  "tests": [
+    {
+      "id": "agent-driver-lifecycle-health-fixture",
+      "name": "Fixture validates lifecycle states, health fields, and audit events",
+      "executor": "agent_driver_reliability_fixture_probe",
+      "expected_telemetry": ["agent_driver_reliability_fixture"],
+      "expected_fields": ["states", "health_fields", "audit_events"]
+    },
+    {
+      "id": "agent-driver-reboot-recovery-fixture",
+      "name": "Fixture validates reboot recovery and degraded diagnostics semantics",
+      "executor": "agent_driver_reliability_fixture_probe",
+      "expected_telemetry": ["agent_driver_reliability_fixture"],
+      "expected_fields": ["sequence", "failure_sequence", "no_destructive_action"]
+    },
+    {
+      "id": "agent-driver-stress-drop-accounting-fixture",
+      "name": "Fixture validates driver event classes, flush metrics, and drop counters",
+      "executor": "agent_driver_reliability_fixture_probe",
+      "expected_telemetry": ["agent_driver_reliability_fixture"],
+      "expected_fields": ["event_classes", "drop_counters", "flush_metrics"]
+    },
+    {
+      "id": "agent-driver-offline-replay-fixture",
+      "name": "Fixture validates bounded offline replay and live-alert immutability",
+      "executor": "agent_driver_reliability_fixture_probe",
+      "expected_telemetry": ["agent_driver_reliability_fixture"],
+      "expected_fields": ["queue_policy", "reconnect_steps", "immutability"]
+    },
+    {
+      "id": "agent-driver-self-protection-fixture",
+      "name": "Fixture validates Tamandua self-protection and recovery semantics",
+      "executor": "agent_driver_reliability_fixture_probe",
+      "expected_telemetry": ["agent_driver_reliability_fixture"],
+      "expected_fields": ["protected_names", "allowed_recovery", "denied_by_default"]
+    }
+  ]
+}

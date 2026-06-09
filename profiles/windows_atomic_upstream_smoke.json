@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "profile_id": "windows-atomic-upstream-smoke",
+  "name": "Windows Atomic Upstream Smoke",
+  "description": "Small Atomic Red Team-backed lane. All tests are atomic_or_command by design and should be run with --benchmark-lane atomic-upstream --require-upstream. If Invoke-AtomicTest is absent, the quality gate must fail instead of silently producing an Atomic claim.",
+  "platform": "windows",
+  "default_observation_seconds": 90,
+  "quality_bar": {
+    "purpose": "atomic_upstream_smoke",
+    "requires_persisted_events": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "tests": [
+    {
+      "id": "atomic-upstream-T1033-user-discovery",
+      "name": "Atomic User Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1033", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c whoami /all",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["atomic-upstream", "tactic:discovery", "mitre:T1033"],
+      "risk": "low"
+    },
+    {
+      "id": "atomic-upstream-T1082-system-info",
+      "name": "Atomic System Information Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1082", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c systeminfo",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["atomic-upstream", "tactic:discovery", "mitre:T1082"],
+      "risk": "low"
+    },
+    {
+      "id": "atomic-upstream-T1057-process-discovery",
+      "name": "Atomic Process Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1057", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c tasklist /v",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["atomic-upstream", "tactic:discovery", "mitre:T1057"],
+      "risk": "low"
+    },
+    {
+      "id": "atomic-upstream-T1016-network-config",
+      "name": "Atomic Network Configuration Discovery",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1016", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c ipconfig /all",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["atomic-upstream", "tactic:discovery", "mitre:T1016"],
+      "risk": "low"
+    },
+    {
+      "id": "atomic-upstream-T1059.003-command-shell",
+      "name": "Atomic Windows Command Shell",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1059.003", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c \"echo TamanduaAtomicUpstream & whoami\"",
+      "expected_telemetry": ["process_create"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["atomic-upstream", "tactic:execution", "mitre:T1059.003"],
+      "risk": "low"
+    },
+    {
+      "id": "atomic-upstream-T1059.001-powershell-encoded",
+      "name": "Atomic PowerShell Encoded Command",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1059.001", "test_numbers": [15]},
+      "fallback_command": "powershell.exe -NoProfile -EncodedCommand VwByAGkAdABlAC0ATwB1AHQAcAB1AHQAIABUAGEAbQBhAG4AZAB1AGEAQQB0AG8AbQBpAGMAUwBtAG8AawBlAA==",
+      "expected_telemetry": ["process_create"],
+      "expected_detections": ["encoded", "powershell"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "tags": ["atomic-upstream", "tactic:execution", "tactic:defense-evasion", "mitre:T1059.001", "mitre:T1027"],
+      "risk": "low"
+    },
+    {
+      "id": "atomic-upstream-T1112-registry-modification",
+      "name": "Atomic Registry Modification",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1112", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c \"reg add HKCU\\Software\\TamanduaAtomicSmoke /v Marker /t REG_SZ /d tamandua /f & ping -n 5 127.0.0.1 > nul & reg delete HKCU\\Software\\TamanduaAtomicSmoke /f\"",
+      "expected_telemetry": ["process_create", "registry_set_value"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "registry_key"],
+      "tags": ["atomic-upstream", "tactic:defense-evasion", "mitre:T1112"],
+      "risk": "low"
+    },
+    {
+      "id": "atomic-upstream-T1105-ingress-tool-transfer",
+      "name": "Atomic Ingress Tool Transfer",
+      "executor": "atomic_or_command",
+      "atomic": {"technique": "T1105", "test_numbers": [1]},
+      "fallback_command": "cmd.exe /d /c \"curl.exe -L https://example.com/ -o %TEMP%\\tamandua-atomic-upstream.txt & ping -n 3 127.0.0.1 > nul & del /f /q %TEMP%\\tamandua-atomic-upstream.txt\"",
+      "expected_telemetry": ["process_create"],
+      "optional_telemetry": ["dns_query", "network_connect", "file_create", "file_delete"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "remote_ip", "domain", "path"],
+      "tags": ["atomic-upstream", "tactic:command-and-control", "mitre:T1105"],
+      "risk": "low"
+    }
+  ]
+}

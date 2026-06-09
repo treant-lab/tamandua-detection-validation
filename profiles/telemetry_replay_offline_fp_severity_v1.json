@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "profile_id": "telemetry-replay-offline-fp-severity-v1",
+  "name": "Telemetry Replay Offline FP/Severity V1",
+  "description": "Executed offline Roadmap P replay profile for sanitized Windows/macOS false-positive and severity-calibration fixtures. The executor applies Tamandua-authored structured FP severity decisions and compares them to fixture expectations without DB access or live alert mutation.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "telemetry-replay",
+  "quality_bar": {
+    "purpose": "telemetry_replay_offline_fp_severity",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Offline sanitized replay decision proof only. Full Roadmap P still requires historical event replay, retrospective-only persistence, alert immutability proof, and broader fixtures for process, network, registry, file, DNS, response, and benign/noise.",
+  "tests": [
+    {
+      "id": "offline-replay-macos-false-positive-replay-v1-osascript-tamandua-launchdaemon-admin",
+      "name": "Offline replay decision: osascript-tamandua-launchdaemon-admin",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-macos-false-positive-replay-v1-launchctl-tamandua-bootstrap",
+      "name": "Offline replay decision: launchctl-tamandua-bootstrap",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-macos-false-positive-replay-v1-lsof-network-inventory-unusual-time",
+      "name": "Offline replay decision: lsof-network-inventory-unusual-time",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-macos-false-positive-replay-v1-specific-applescript-remains-critical",
+      "name": "Offline replay decision: specific-applescript-remains-critical",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-contextless-browser",
+      "name": "Offline replay decision: ntdll-write-contextless-browser",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-lsass-target-retains-critical",
+      "name": "Offline replay decision: ntdll-write-lsass-target-retains-critical",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-edgeupdate-scheduler-etw",
+      "name": "Offline replay decision: edgeupdate-scheduler-etw",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-etw-tamper-contextless",
+      "name": "Offline replay decision: etw-tamper-contextless",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-etw-tamper-with-target-session-retains-critical",
+      "name": "Offline replay decision: etw-tamper-with-target-session-retains-critical",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-systemdrive-system32-lsass-legitimate",
+      "name": "Offline replay decision: systemdrive-system32-lsass-legitimate",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-cross-process-signed-text-downgrades",
+      "name": "Offline replay decision: ntdll-write-cross-process-signed-text-downgrades",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-cross-process-allowlisted-path-no-signature-verdict",
+      "name": "Offline replay decision: ntdll-write-cross-process-allowlisted-path-no-signature-verdict",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-cross-process-rwx-retains-critical",
+      "name": "Offline replay decision: ntdll-write-cross-process-rwx-retains-critical",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-cross-process-signed-credential-target-retains-critical",
+      "name": "Offline replay decision: ntdll-write-cross-process-signed-credential-target-retains-critical",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-cross-process-unsigned-unknown-source-retains-critical",
+      "name": "Offline replay decision: ntdll-write-cross-process-unsigned-unknown-source-retains-critical",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-cross-process-signed-export-table-retains-critical",
+      "name": "Offline replay decision: ntdll-write-cross-process-signed-export-table-retains-critical",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-cross-process-signed-unbacked-thread-retains-critical",
+      "name": "Offline replay decision: ntdll-write-cross-process-signed-unbacked-thread-retains-critical",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    },
+    {
+      "id": "offline-replay-windows-false-positive-replay-v1-ntdll-write-cross-process-signed-rwx-protection-fallback-retains-critical",
+      "name": "Offline replay decision: ntdll-write-cross-process-signed-rwx-protection-fallback-retains-critical",
+      "executor": "telemetry_replay_executor",
+      "expected_telemetry": ["offline_replay_fixture"],
+      "expected_fields": ["observed", "expected", "live_alert_mutation", "db_access"]
+    }
+  ]
+}

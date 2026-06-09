@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "profile_id": "atomic-t1047-lab-capability-probe",
+  "name": "Atomic T1047 Lab Capability Probe",
+  "description": "Local read-only claim-boundary probe that verifies the latest windows-atomic-extended-safe T1047 artifact records a bounded WMIC precondition outcome for the current lab.",
+  "platform": "windows",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\atomic_t1047_lab_capability_probe.py",
+    "timeout_seconds": 60,
+    "runtime_effect": "local_read_only_artifact_audit",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "atomic_t1047_lab_capability",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Passing this profile proves only that the current archived Atomic T1047 evidence has a bounded WMIC lab-capability outcome. It does not execute Atomic Red Team, prove WMI telemetry, prove upstream support, or close Roadmap M.",
+  "tests": [
+    {
+      "id": "atomic-t1047-profile-has-wmic-precondition",
+      "name": "T1047 profile declares a bounded WMIC precondition",
+      "executor": "atomic_t1047_lab_capability_probe",
+      "expected_telemetry": ["local_read_only_artifact_audit"],
+      "expected_fields": ["precondition_command", "precondition_timeout_seconds", "precondition_error_code"]
+    },
+    {
+      "id": "atomic-t1047-latest-artifact-present",
+      "name": "Latest windows-atomic-extended-safe artifact includes T1047 result",
+      "executor": "atomic_t1047_lab_capability_probe",
+      "expected_telemetry": ["local_read_only_artifact_audit"],
+      "expected_fields": ["source_run_id", "source_path", "T1047-wmi-discovery"]
+    },
+    {
+      "id": "atomic-t1047-precondition-executed-bounded",
+      "name": "Latest T1047 precondition executed through live response and completed bounded",
+      "executor": "atomic_t1047_lab_capability_probe",
+      "expected_telemetry": ["local_read_only_artifact_audit"],
+      "expected_fields": ["command_confirmed", "end_reason", "guest_exit_code"]
+    },
+    {
+      "id": "atomic-t1047-wmic-unavailable-classified",
+      "name": "Latest T1047 artifact classifies WMIC absence instead of running an unsupported scenario",
+      "executor": "atomic_t1047_lab_capability_probe",
+      "expected_telemetry": ["local_read_only_artifact_audit"],
+      "expected_fields": ["wmi_cli_unavailable_on_target", "guest_exit_code=2"]
+    }
+  ]
+}
