@@ -21,7 +21,12 @@ from typing import Any
 from validate_replay_fixtures import validate_fixture_file
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 FIXTURE_DIR = ROOT / "tools" / "detection_validation" / "fixtures"
 PROFILE_ID = "telemetry-replay-offline-fp-severity-v1"

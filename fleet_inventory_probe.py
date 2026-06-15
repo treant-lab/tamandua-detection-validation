@@ -5,13 +5,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 CTL = ROOT / "apps" / "tamandua_ctl" / "target" / "release" / "tamandua-ctl.exe"
 PROFILE_ID = "fleet-scale-inventory-api-probe"
@@ -46,6 +53,30 @@ def git_snapshot() -> dict[str, Any]:
     }
 
 
+def tamandua_ctl_env(server: str | None, base_env: dict[str, str] | None = None) -> dict[str, str]:
+    env = dict(base_env or os.environ)
+    if not server:
+        return env
+    host = urlparse(server).hostname
+    if not host:
+        return env
+
+    existing_values: list[str] = []
+    for name in ("NO_PROXY", "no_proxy"):
+        existing = env.get(name)
+        if existing:
+            existing_values.extend(item.strip() for item in existing.split(",") if item.strip())
+
+    merged: list[str] = []
+    for value in [*existing_values, host]:
+        if value and value not in merged:
+            merged.append(value)
+    no_proxy = ",".join(merged)
+    env["NO_PROXY"] = no_proxy
+    env["no_proxy"] = no_proxy
+    return env
+
+
 def run_ctl_agents_list(server: str, timeout: int) -> dict[str, Any]:
     command = [str(CTL), "--json", "remote", "agents", "list", "--server", server]
     try:
@@ -55,6 +86,7 @@ def run_ctl_agents_list(server: str, timeout: int) -> dict[str, Any]:
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=tamandua_ctl_env(server),
             timeout=timeout,
             check=False,
         )

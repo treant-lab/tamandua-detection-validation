@@ -8,7 +8,12 @@ from collections import Counter
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 ROADMAP_DIR = ROOT / "tools" / "detection_validation" / "roadmaps"
 OUT = ROADMAP_DIR / "index.json"
 MD_OUT = ROOT / "docs" / "benchmarks" / "DETECTION_ROADMAP_INDEX.md"

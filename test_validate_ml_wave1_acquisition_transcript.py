@@ -15,7 +15,12 @@ from validate_ml_contracts import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 GUARDED_RUN_PACKET = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-wave1-guarded-run-command-packet.json"
 LAUNCHER = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-execution-plan.handoff" / "wave_1_real_acquisition_launcher.ps1"
 SANITIZATION_RULES = [
@@ -132,12 +137,11 @@ def test_validate_wave1_acquisition_transcript_rejects_log_hash_mismatch(tmp_pat
         validate_wave1_acquisition_transcript(payload, tmp_path / "20260604T-ml-wave1-real-acquisition-transcript.json")
 
 
-def test_validate_wave1_acquisition_transcript_rejects_nonzero_returncode(tmp_path: Path) -> None:
+def test_validate_wave1_acquisition_transcript_accepts_nonzero_returncode_as_blocked_run(tmp_path: Path) -> None:
     payload = valid_transcript(tmp_path)
     payload["returncode"] = 1
 
-    with pytest.raises(ContractError, match="returncode"):
-        validate_wave1_acquisition_transcript(payload, tmp_path / "20260604T-ml-wave1-real-acquisition-transcript.json")
+    validate_wave1_acquisition_transcript(payload, tmp_path / "20260604T-ml-wave1-real-acquisition-transcript.json")
 
 
 def test_validate_wave1_acquisition_transcript_rejects_inverted_time_window(tmp_path: Path) -> None:

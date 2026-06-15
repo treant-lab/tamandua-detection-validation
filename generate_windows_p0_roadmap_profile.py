@@ -7,7 +7,12 @@ import json
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 ROADMAP = ROOT / "tools" / "detection_validation" / "roadmaps" / "windows_detection_roadmap_300.json"
 OUT = ROOT / "tools" / "detection_validation" / "profiles" / "windows_roadmap_p0_safe_expansion.json"
 
@@ -64,7 +69,7 @@ COMMANDS = {
         "ping -n 9 127.0.0.1 > nul & "
         "del /f /q %TEMP%\\tamandua-webshell.aspx\""
     ),
-    "T1003.001": "powershell.exe -NoProfile -Command \"Get-Process lsass | Select-Object -First 1 -Property Id,ProcessName | Out-Null\"",
+    "T1003.001": "cmd.exe /d /c \"tasklist.exe /FI \\\"IMAGENAME eq lsass.exe\\\" /NH > nul\"",
     "T1555.003": (
         "powershell.exe -NoProfile -Command \"$p=Join-Path $env:LOCALAPPDATA "
         "'Google\\Chrome\\User Data\\Default\\Login Data'; "
@@ -72,7 +77,7 @@ COMMANDS = {
     ),
     "T1558.003": "cmd.exe /d /c \"setspn -Q */* 2>nul || whoami /user\"",
     "T1552.006": "cmd.exe /d /c \"dir \\\\localhost\\SYSVOL 2>nul || whoami\"",
-    "T1056.001": "powershell.exe -NoProfile -Command \"Get-Process | Where-Object {$_.MainWindowTitle} | Select-Object -First 1 | Out-Null\"",
+    "T1056.001": "cmd.exe /d /c \"tasklist.exe /V /FI \\\"STATUS eq running\\\" /NH > nul\"",
     "T1570": (
         "cmd.exe /d /c \"echo tamandua-lateral-tool>%TEMP%\\tamandua-tool.exe & "
         "copy %TEMP%\\tamandua-tool.exe %TEMP%\\tamandua-tool-copy.exe > nul & "

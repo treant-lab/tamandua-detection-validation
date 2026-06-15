@@ -23,7 +23,12 @@ from typing import Any
 from caldera_paw_readiness_probe import agents_from_body
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 PROFILE_ID = "caldera-api-shape-probe"
 PROFILE_NAME = "CALDERA API Shape Probe"
@@ -63,7 +68,8 @@ def request_json(url: str, api_key: str | None, path: str, timeout: int) -> dict
     request = urllib.request.Request(full_url, headers=headers, method="GET")
     started = time.monotonic()
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(request, timeout=timeout) as response:
             raw = response.read().decode(errors="replace")
             body: Any = json.loads(raw) if raw.strip() else {}
             return {

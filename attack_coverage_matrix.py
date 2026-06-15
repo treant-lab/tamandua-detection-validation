@@ -23,7 +23,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RULE_DIR = ROOT / "apps" / "tamandua_server" / "priv" / "sigma_rules"
 GENERATED_DIR = ROOT / "docs" / "benchmarks" / "generated"
 EVIDENCE_MATRIX = GENERATED_DIR / "detection_rule_evidence_matrix.json"

@@ -24,10 +24,32 @@ import urllib3
 
 urllib3.disable_warnings()
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 PROFILE_ID = "windows-proxmox-qga-readiness-probe"
 PROFILE_NAME = "Windows Proxmox QGA Readiness Probe"
+
+
+def load_dotenv(path: Path = ROOT / ".env") -> None:
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] in {"'", '"'} and value[-1] == value[0]:
+            value = value[1:-1]
+        os.environ[key] = value
 
 
 def utc_now() -> str:
@@ -63,6 +85,7 @@ def decode_qga(value: str | None) -> str:
 def login(args: argparse.Namespace) -> tuple[requests.Session | None, dict[str, Any]]:
     session = requests.Session()
     session.verify = False
+    session.trust_env = False
     base = f"https://{args.proxmox_host}:8006/api2/json"
     if not args.proxmox_password:
         return None, {
@@ -167,21 +190,13 @@ def request_json_retry(
 
 def qga_start_variants() -> list[tuple[str, Any]]:
     marker = "tamandua-qga-ready"
-    raw_input = f"echo {marker}\r\nexit\r\n"
-    base64_input = base64.b64encode(raw_input.encode()).decode()
+    raw_input = f"echo {marker}\r\nexit /b 0\r\n"
     return [
         (
             "stdin_raw_cmd",
             {
                 "command": "cmd.exe",
                 "input-data": raw_input,
-            },
-        ),
-        (
-            "stdin_base64_cmd",
-            {
-                "command": "cmd.exe",
-                "input-data": base64_input,
             },
         ),
         (
@@ -192,12 +207,6 @@ def qga_start_variants() -> list[tuple[str, Any]]:
                 ("command", "/c"),
                 ("command", f"echo {marker}"),
             ],
-        ),
-        (
-            "args_full_cmdline",
-            {
-                "command": f"cmd.exe /d /c echo {marker}",
-            },
         ),
     ]
 
@@ -592,6 +601,7 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
 
 
 def parse_args() -> argparse.Namespace:
+    load_dotenv()
     parser = argparse.ArgumentParser(description=PROFILE_NAME)
     parser.add_argument("--proxmox-host", default=os.getenv("TAMANDUA_PROXMOX_HOST", "192.168.12.149"))
     parser.add_argument("--proxmox-user", default=os.getenv("TAMANDUA_PROXMOX_USER", "root@pam"))

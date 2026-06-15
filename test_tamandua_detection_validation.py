@@ -1,3 +1,4 @@
+import copy
 import importlib.util
 import json
 import os
@@ -33,12 +34,29 @@ assert ROADMAP_BATCH_SPEC.loader is not None
 sys.modules[ROADMAP_BATCH_SPEC.name] = roadmap_batch
 ROADMAP_BATCH_SPEC.loader.exec_module(roadmap_batch)
 
+MERGE_REPORTS_MODULE_PATH = Path(__file__).with_name("merge_tamandua_validation_reports.py")
+MERGE_REPORTS_SPEC = importlib.util.spec_from_file_location(
+    "merge_tamandua_validation_reports",
+    MERGE_REPORTS_MODULE_PATH,
+)
+merge_reports = importlib.util.module_from_spec(MERGE_REPORTS_SPEC)
+assert MERGE_REPORTS_SPEC.loader is not None
+sys.modules[MERGE_REPORTS_SPEC.name] = merge_reports
+MERGE_REPORTS_SPEC.loader.exec_module(merge_reports)
+
 SCORECARD_MODULE_PATH = Path(__file__).with_name("generate_validation_scorecard.py")
 SCORECARD_SPEC = importlib.util.spec_from_file_location("generate_validation_scorecard", SCORECARD_MODULE_PATH)
 scorecard = importlib.util.module_from_spec(SCORECARD_SPEC)
 assert SCORECARD_SPEC.loader is not None
 sys.modules[SCORECARD_SPEC.name] = scorecard
 SCORECARD_SPEC.loader.exec_module(scorecard)
+
+SUMMARY_MODULE_PATH = Path(__file__).with_name("summarize_benchmark_runs.py")
+SUMMARY_SPEC = importlib.util.spec_from_file_location("summarize_benchmark_runs", SUMMARY_MODULE_PATH)
+benchmark_summary = importlib.util.module_from_spec(SUMMARY_SPEC)
+assert SUMMARY_SPEC.loader is not None
+sys.modules[SUMMARY_SPEC.name] = benchmark_summary
+SUMMARY_SPEC.loader.exec_module(benchmark_summary)
 
 CLOSURE_GATE_MODULE_PATH = Path(__file__).with_name("roadmap_closure_gate_probe.py")
 CLOSURE_GATE_SPEC = importlib.util.spec_from_file_location("roadmap_closure_gate_probe", CLOSURE_GATE_MODULE_PATH)
@@ -70,6 +88,3891 @@ preflight_work_package = importlib.util.module_from_spec(PREFLIGHT_WORK_PACKAGE_
 assert PREFLIGHT_WORK_PACKAGE_SPEC.loader is not None
 sys.modules[PREFLIGHT_WORK_PACKAGE_SPEC.name] = preflight_work_package
 PREFLIGHT_WORK_PACKAGE_SPEC.loader.exec_module(preflight_work_package)
+
+REFRESH_AUTHORITY_MODULE_PATH = Path(__file__).with_name("refresh_validation_authority.py")
+REFRESH_AUTHORITY_SPEC = importlib.util.spec_from_file_location(
+    "refresh_validation_authority",
+    REFRESH_AUTHORITY_MODULE_PATH,
+)
+refresh_authority = importlib.util.module_from_spec(REFRESH_AUTHORITY_SPEC)
+assert REFRESH_AUTHORITY_SPEC.loader is not None
+sys.modules[REFRESH_AUTHORITY_SPEC.name] = refresh_authority
+REFRESH_AUTHORITY_SPEC.loader.exec_module(refresh_authority)
+
+PRODUCT_READINESS_MODULE_PATH = Path(__file__).with_name("generate_product_readiness_summary.py")
+PRODUCT_READINESS_SPEC = importlib.util.spec_from_file_location(
+    "generate_product_readiness_summary",
+    PRODUCT_READINESS_MODULE_PATH,
+)
+product_readiness = importlib.util.module_from_spec(PRODUCT_READINESS_SPEC)
+assert PRODUCT_READINESS_SPEC.loader is not None
+sys.modules[PRODUCT_READINESS_SPEC.name] = product_readiness
+PRODUCT_READINESS_SPEC.loader.exec_module(product_readiness)
+
+
+def valid_env_unblock_queue_for(
+    env_names: list[str],
+    ready_claim_ids: list[str] | None = None,
+    still_blocked_claim_ids: list[str] | None = None,
+) -> dict:
+    sorted_env_names = sorted(env_names)
+    entries = [
+        {
+            "env": env_name,
+            "placeholder": f"<set-{env_name.lower().replace('_', '-')}>",
+            "powershell_set_command": f"$env:{env_name} = '<set-{env_name.lower().replace('_', '-')}>'",
+        }
+        for env_name in sorted_env_names
+    ]
+    return {
+        "entries": entries,
+        "required_env_names": sorted_env_names,
+        "all_env_powershell_set_commands": [entry["powershell_set_command"] for entry in entries],
+        "ready_after_all_env_claim_ids": sorted(ready_claim_ids or []),
+        "still_blocked_after_all_env_claim_ids": sorted(still_blocked_claim_ids or []),
+    }
+
+
+def test_refresh_validation_authority_parse_key_values_ignores_status_prefixes():
+    values = refresh_authority.parse_key_values(
+        "roadmap_closure_gate=open json=docs/benchmarks/runs/closure.json markdown=closure.md\n"
+        "dispatch_manifest=docs/benchmarks/runs/preflight.package-artifacts/dispatch_manifest.json\n"
+    )
+
+    assert values["roadmap_closure_gate"] == "open"
+    assert values["json"] == "docs/benchmarks/runs/closure.json"
+    assert values["markdown"] == "closure.md"
+    assert values["dispatch_manifest"] == "docs/benchmarks/runs/preflight.package-artifacts/dispatch_manifest.json"
+
+
+def test_refresh_validation_authority_command_plan_binds_preflight_to_closure(tmp_path):
+    runs_dir = tmp_path / "runs"
+    generated_dir = tmp_path / "generated"
+    closure_json = runs_dir / "closure.json"
+    preflight_json = runs_dir / "preflight.json"
+    package_dir = runs_dir / "preflight.package-artifacts"
+    manifest_path = package_dir / "dispatch_manifest.json"
+
+    plan = refresh_authority.command_plan(
+        runs_dir=runs_dir,
+        generated_dir=generated_dir,
+        closure_json=closure_json,
+        preflight_json=preflight_json,
+        package_output_dir=package_dir,
+        manifest_path=manifest_path,
+    )
+
+    labels = [label for label, _command, _allowed in plan]
+    assert labels == [
+        "scorecard-before-closure",
+        "roadmap-closure-gate",
+        "validation-execution-preflight",
+        "preflight-work-package",
+        "dispatch-results",
+        "scorecard-after-dispatch",
+        "product-readiness-summary",
+    ]
+    preflight_command = dict((label, command) for label, command, _allowed in plan)[
+        "validation-execution-preflight"
+    ]
+    assert "--closure-gate-json" in preflight_command
+    assert str(closure_json) in preflight_command
+
+    package_command = dict((label, command) for label, command, _allowed in plan)["preflight-work-package"]
+    assert "--preflight-json" in package_command
+    assert str(preflight_json) in package_command
+    assert "--emit-dispatch-manifest" in package_command
+
+    dispatch_command = dict((label, command) for label, command, _allowed in plan)["dispatch-results"]
+    assert "--promote-dispatch-results" in dispatch_command
+    assert str(manifest_path) in dispatch_command
+
+    product_summary_command = dict((label, command) for label, command, _allowed in plan)[
+        "product-readiness-summary"
+    ]
+    assert "tools/detection_validation/generate_product_readiness_summary.py" in product_summary_command
+    assert str(generated_dir / "validation_roadmap_scorecard.json") in product_summary_command
+
+
+def test_refresh_validation_authority_dry_run_prints_sequential_plan(tmp_path, capsys):
+    rc = refresh_authority.main(
+        [
+            "--runs-dir",
+            str(tmp_path / "runs"),
+            "--generated-dir",
+            str(tmp_path / "generated"),
+            "--dry-run",
+        ]
+    )
+
+    assert rc == 0
+    payload = json.loads(capsys.readouterr().out)
+    labels = [step["label"] for step in payload["steps"]]
+    assert labels[0] == "scorecard-before-closure"
+    assert labels[1] == "roadmap-closure-gate"
+    assert labels[2] == "validation-execution-preflight"
+    assert labels[-1] == "product-readiness-summary"
+    preflight_step = payload["steps"][2]
+    assert "--closure-gate-json" in preflight_step["command"]
+    assert preflight_step["allowed_returncodes"] == [0, 1]
+
+
+def test_status_consistency_accepts_refresh_authority_dry_run_plan():
+    payload = {
+        "steps": [
+            {"label": "scorecard-before-closure", "command": ["python", "scorecard"]},
+            {"label": "roadmap-closure-gate", "command": ["python", "closure"]},
+            {
+                "label": "validation-execution-preflight",
+                "command": [
+                    "python",
+                    "preflight",
+                    "--closure-gate-json",
+                    "<closure-json-from-previous-step>",
+                ],
+            },
+            {
+                "label": "preflight-work-package",
+                "command": [
+                    "python",
+                    "package",
+                    "--preflight-json",
+                    "<preflight-json-from-previous-step>",
+                    "--emit-dispatch-manifest",
+                ],
+            },
+            {
+                "label": "dispatch-results",
+                "command": [
+                    "python",
+                    "package",
+                    "--promote-dispatch-results",
+                    "<preflight-json-from-previous-step>.package-artifacts/dispatch_manifest.json",
+                ],
+            },
+            {"label": "scorecard-after-dispatch", "command": ["python", "scorecard"]},
+            {
+                "label": "product-readiness-summary",
+                "command": [
+                    "python",
+                    "tools/detection_validation/generate_product_readiness_summary.py",
+                    "--scorecard-json",
+                    "docs/benchmarks/generated/validation_roadmap_scorecard.json",
+                ],
+            },
+        ]
+    }
+
+    assert consistency.refresh_authority_dry_run_plan_is_sequential(payload) is True
+
+
+def test_status_consistency_rejects_refresh_authority_plan_without_closure_binding():
+    payload = {
+        "steps": [
+            {"label": "scorecard-before-closure", "command": ["python", "scorecard"]},
+            {"label": "roadmap-closure-gate", "command": ["python", "closure"]},
+            {"label": "validation-execution-preflight", "command": ["python", "preflight"]},
+            {
+                "label": "preflight-work-package",
+                "command": [
+                    "python",
+                    "package",
+                    "--preflight-json",
+                    "<preflight-json-from-previous-step>",
+                    "--emit-dispatch-manifest",
+                ],
+            },
+            {
+                "label": "dispatch-results",
+                "command": ["python", "package", "--promote-dispatch-results", "dispatch_manifest.json"],
+            },
+            {"label": "scorecard-after-dispatch", "command": ["python", "scorecard"]},
+            {
+                "label": "product-readiness-summary",
+                "command": [
+                    "python",
+                    "tools/detection_validation/generate_product_readiness_summary.py",
+                    "--scorecard-json",
+                    "docs/benchmarks/generated/validation_roadmap_scorecard.json",
+                ],
+            },
+        ]
+    }
+
+    assert consistency.refresh_authority_dry_run_plan_is_sequential(payload) is False
+
+
+def test_product_readiness_summary_consolidates_current_blockers(tmp_path):
+    runs_dir = tmp_path / "runs"
+    generated_dir = tmp_path / "generated"
+    closure_path = runs_dir / "closure.json"
+    preflight_path = runs_dir / "preflight.json"
+    dispatch_path = runs_dir / "dispatch.json"
+    package_dir = preflight_path.with_suffix(".package-artifacts")
+    package_dir.mkdir(parents=True)
+    for artifact_name in [
+        "dispatch_brief.md",
+        "env_checklist.md",
+        "env_unblock_queue.md",
+        "dispatch_manifest.json",
+        "claim_status_report.md",
+        "agent_spawn_launcher.ps1",
+        "dispatch_prelaunch_validation.ps1",
+    ]:
+        (package_dir / artifact_name).write_text("placeholder\n", encoding="utf-8")
+    (package_dir / "claim_status_report.json").write_text(
+        json.dumps(
+            {
+                "artifact": "validation-claim-status-report",
+                "claim_count": 1,
+                "status_counts": {"not_run": 1},
+                "claim_state_counts": {"blocked_missing_env": 1},
+                "locked_claim_count": 0,
+                "invalid_lock_count": 0,
+                "claims": [
+                    {
+                        "claim_id": "claim-wave-1-restore-windows-backend-readiness",
+                        "agent_status": "not_run",
+                        "agent_blocker_cleared": False,
+                        "missing_profiles": [],
+                        "status_path": "runs/preflight.package-artifacts/wave-1/agent_status.json",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (package_dir / "agent_spawn_plan.json").write_text(
+        json.dumps(
+            {
+                "artifact": "validation-agent-spawn-plan",
+                "post_env_bundle_multi_agent_actionable": False,
+                "env_bundle_ready_claim_count": 1,
+                "env_bundle_ready_batch_count": 1,
+                "env_bundle_still_blocked_claim_count": 1,
+                "env_bundle_ready_batches": [
+                    {
+                        "batch": 1,
+                        "claim_count": 1,
+                        "claims": [{"claim_id": "claim-wave-1-restore-windows-backend-readiness"}],
+                    }
+                ],
+                "env_bundle_still_blocked_claims": [
+                    {"claim_id": "claim-wave-3-rerun-preflight-and-closure-gate"}
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (package_dir / "env_template.ps1").write_text(
+        "\n".join(
+            [
+                "# Validation env handoff template",
+                "# Class: secret; Owner: operator-or-secret-holder",
+                "# Flag: --server-password; Description: Tamandua backend password",
+                "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'",
+                "",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    scorecard_path = generated_dir / "validation_roadmap_scorecard.json"
+    generated_dir.mkdir()
+    closure_path.write_text(
+        json.dumps(
+            {
+                "run_id": "closure-run",
+                "quality_gate": {"passed": False, "status": "fail"},
+                "summary": {"covered": 0, "total": 23},
+            }
+        ),
+        encoding="utf-8",
+    )
+    preflight_path.write_text(
+        json.dumps(
+            {
+                "run_id": "preflight-run",
+                "quality_gate": {"passed": False, "status": "fail"},
+                "summary": {"covered": 5, "total": 8},
+                "run_class_readiness": [
+                    {
+                        "run_class": "windows-broad",
+                        "allowed": False,
+                        "roadmaps": ["A", "B"],
+                        "missing_env": ["TAMANDUA_SERVER_PASSWORD"],
+                        "blocking_profiles": ["windows-agent-connection-stability-probe"],
+                        "action": "restore auth",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    dispatch_path.write_text(
+        json.dumps(
+            {
+                "run_id": "dispatch-run",
+                "quality_gate": {"passed": False},
+                "summary": {"covered": 0, "total": 8},
+                "missing_count": 8,
+                "invalid_count": 0,
+                "failed_count": 8,
+            }
+        ),
+        encoding="utf-8",
+    )
+    (package_dir / "env_unblock_queue.json").write_text(
+        json.dumps(
+            {
+                "current_env_present_count": 0,
+                "current_env_missing_count": 1,
+                "current_env_missing_names": ["TAMANDUA_SERVER_PASSWORD"],
+                "all_env_powershell_set_commands": [
+                    "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'"
+                ],
+                "env_bundle_validation_command": (
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "'runs/preflight.package-artifacts/env_bundle_ready_claims_launcher.ps1' -ValidateOnly"
+                ),
+                "post_env_bundle_launcher_commands": [
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "'runs/preflight.package-artifacts/env_bundle_ready_claims_launcher.ps1'"
+                ],
+                "post_env_bundle_balanced_agent_spawn_commands": [
+                    "$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; "
+                    "$env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; "
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "'runs/preflight.package-artifacts/agent_spawn_launcher.ps1' "
+                    "-Provider balanced -Phase env-bundle -Execute -Parallel"
+                ],
+                "entries": [
+                    {
+                        "env": "TAMANDUA_SERVER_PASSWORD",
+                        "claim_count": 1,
+                        "immediate_claim_count": 1,
+                        "dependency_claim_count": 0,
+                        "manual_claim_count": 0,
+                        "single_env_ready_claim_ids": ["claim-wave-1-restore-windows-backend-readiness"],
+                        "single_env_still_blocked_claim_ids": [],
+                        "immediate_claim_ids": ["claim-wave-1-restore-windows-backend-readiness"],
+                        "dependency_claim_ids": [],
+                        "manual_claim_ids": [],
+                        "package_ids": ["wave-1-restore-windows-backend-readiness"],
+                        "owners": ["operator-or-secret-holder"],
+                        "waves": [1],
+                    }
+                ],
+                "ready_after_all_env_claim_ids": ["claim-wave-1-restore-windows-backend-readiness"],
+                "still_blocked_after_all_env_claim_ids": ["claim-wave-3-rerun-preflight-and-closure-gate"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (package_dir / "agent_claims.json").write_text(
+        json.dumps(
+            {
+                "claims": [
+                    {
+                        "claim_id": "claim-wave-1-restore-windows-backend-readiness",
+                        "package_id": "wave-1-restore-windows-backend-readiness",
+                        "wave": 1,
+                        "owner": "operator-or-secret-holder",
+                        "claim_state": "blocked_missing_env",
+                        "ready_to_launch": False,
+                        "missing_effective_env": ["TAMANDUA_SERVER_PASSWORD"],
+                        "blocked_reasons": ["missing_effective_env"],
+                        "current_status": "not_run",
+                        "current_next_action": {"action": "set server password"},
+                        "command": (
+                            "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                            "'runs/preflight.package-artifacts/wave-1-restore-windows-backend-readiness.ps1'"
+                        ),
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    scorecard_path.write_text(
+        json.dumps(
+            {
+                "profiles": [
+                    {"profile_id": "roadmap-closure-gate-probe", "latest": {"path": str(closure_path)}},
+                    {"profile_id": "validation-execution-preflight-probe", "latest": {"path": str(preflight_path)}},
+                    {"profile_id": "validation-dispatch-results-probe", "latest": {"path": str(dispatch_path)}},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    summary = product_readiness.build_summary(scorecard_path)
+
+    assert summary["product_ready"] is False
+    assert summary["gates"]["closure"]["coverage"] == "0/23"
+    assert summary["gates"]["preflight"]["coverage"] == "5/8"
+    assert summary["gates"]["dispatch"]["coverage"] == "0/8"
+    assert summary["env_queue"]["current_env_missing_names"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert summary["env_queue"]["all_env_powershell_set_commands"] == [
+        "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'"
+    ]
+    assert "-ValidateOnly" in summary["env_queue"]["env_bundle_validation_command"]
+    assert summary["env_queue"]["post_env_bundle_balanced_agent_spawn_commands"][0].endswith(
+        "-Provider balanced -Phase env-bundle -Execute -Parallel"
+    )
+    assert summary["env_queue"]["ready_after_all_env_claim_ids"] == [
+        "claim-wave-1-restore-windows-backend-readiness"
+    ]
+    assert summary["env_queue"]["env_impact"][0]["env"] == "TAMANDUA_SERVER_PASSWORD"
+    assert summary["env_queue"]["env_impact"][0]["single_env_ready_claim_ids"] == [
+        "claim-wave-1-restore-windows-backend-readiness"
+    ]
+    assert summary["env_queue"]["env_impact"][0]["package_ids"] == [
+        "wave-1-restore-windows-backend-readiness"
+    ]
+    assert summary["env_details"]["TAMANDUA_SERVER_PASSWORD"]["class"] == "secret"
+    assert summary["env_details"]["TAMANDUA_SERVER_PASSWORD"]["placeholder"] == (
+        "<set-tamandua-server-password-secret>"
+    )
+    assert summary["handoff_artifacts"]["env_checklist"].endswith("env_checklist.md")
+    assert summary["handoff_artifacts"]["env_template"].endswith("env_template.ps1")
+    assert summary["handoff_artifacts"]["agent_spawn_plan"].endswith("agent_spawn_plan.json")
+    assert summary["handoff_artifacts"]["dispatch_prelaunch_validation"].endswith(
+        "dispatch_prelaunch_validation.ps1"
+    )
+    assert summary["post_env_bundle_plan"]["ready_claim_count"] == 1
+    assert summary["post_env_bundle_plan"]["ready_batch_count"] == 1
+    assert summary["post_env_bundle_plan"]["still_blocked_claim_count"] == 1
+    assert summary["post_env_bundle_plan"]["ready_batches"][0]["claim_ids"] == [
+        "claim-wave-1-restore-windows-backend-readiness"
+    ]
+    assert summary["post_agent_status_gate"]["ready_after_env_passed_count"] == 0
+    assert summary["post_agent_status_gate"]["ready_after_env_required_count"] == 1
+    assert summary["post_agent_status_gate"]["ready_after_env_all_passed"] is False
+    assert summary["post_agent_status_gate"]["status_counts"] == {"not_run": 1}
+    assert "--refresh-claim-status-report" in summary["post_agent_status_gate"]["refresh_command"]
+    assert summary["single_env_fast_paths"][0]["env"] == "TAMANDUA_SERVER_PASSWORD"
+    assert summary["single_env_fast_paths"][0]["claim_ids"] == [
+        "claim-wave-1-restore-windows-backend-readiness"
+    ]
+    assert summary["single_env_fast_paths"][0]["commands"] == [
+        "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'",
+        "powershell -NoProfile -ExecutionPolicy Bypass -File "
+        "'runs/preflight.package-artifacts/wave-1-restore-windows-backend-readiness.ps1'",
+    ]
+    assert summary["claims"]["blocked_missing_env_count"] == 1
+    assert summary["claim_queue"][0]["next_action"] == "set server password"
+    assert summary["manual_claims"] == []
+    assert summary["recommended_next_action_id"] == "fill-env-bundle"
+    assert summary["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert summary["recommended_next_action"]["step"] == 2
+    assert summary["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert [item["id"] for item in summary["next_action_order"]] == [
+        "check-current-env",
+        "fill-env-bundle",
+        "validate-env-bundle",
+        "launch-env-bundle-claims",
+        "balanced-agent-fanout",
+        "resolve-still-blocked-after-env",
+        "refresh-validation-authority",
+    ]
+    assert summary["blocked_run_classes"][0]["run_class"] == "windows-broad"
+
+
+def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "external_claim_allowed": False,
+        "scorecard_path": "scorecard.json",
+        "gates": {
+            "closure": {"run_id": "closure", "status": "fail", "coverage": "0/23"},
+            "preflight": {"run_id": "preflight", "status": "fail", "coverage": "5/8"},
+            "dispatch": {"run_id": "dispatch", "status": "fail", "coverage": "0/8"},
+        },
+        "product_release_gate": {
+            "passed": False,
+            "failed_count": 3,
+            "failed_ids": ["closure-gate", "required-env", "post-agent-status"],
+            "requirements": [
+                {"id": "closure-gate", "passed": False, "current": "0/23", "required": "closure gate pass"},
+                {"id": "required-env", "passed": False, "current": "1", "required": "0 missing required env values"},
+                {"id": "post-agent-status", "passed": False, "current": "0/1", "required": "agent statuses pass"},
+            ],
+            "claim_boundary": "product_ready and external_claim_allowed require every release gate requirement to pass",
+        },
+        "env_queue": {
+            "current_env_present_count": 0,
+            "current_env_missing_count": 1,
+            "current_env_missing_names": ["TAMANDUA_SERVER_PASSWORD"],
+            "all_env_powershell_set_commands": [
+                "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'"
+            ],
+            "env_bundle_validation_command": "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+            "post_env_bundle_launcher_commands": ["powershell -File env_bundle_ready_claims_launcher.ps1"],
+            "post_env_bundle_balanced_agent_spawn_commands": [
+                "powershell -File agent_spawn_launcher.ps1 -Provider balanced -Phase env-bundle -Execute -Parallel"
+            ],
+            "env_impact": [
+                {
+                    "env": "TAMANDUA_SERVER_PASSWORD",
+                    "claim_count": 1,
+                    "single_env_ready_claim_ids": ["claim-wave-1"],
+                    "immediate_claim_ids": ["claim-wave-1"],
+                    "dependency_claim_ids": [],
+                    "package_ids": ["wave-1"],
+                }
+            ],
+            "ready_after_all_env_claim_ids": [],
+            "still_blocked_after_all_env_claim_ids": [],
+        },
+        "local_env_bundle_gate": {
+            "schema_version": 1,
+            "artifact": "validation-product-readiness-local-env-bundle-gate",
+            "bundle_path": "docs/benchmarks/generated/validation_product_readiness_env_bundle.local.json",
+            "exists": False,
+            "complete": False,
+            "required_env_count": 1,
+            "present_env_count": 0,
+            "missing_env_names": ["TAMANDUA_SERVER_PASSWORD"],
+            "empty_env_names": [],
+            "placeholder_env_names": [],
+            "unexpected_env_names": [],
+            "parse_error": "",
+            "claim_boundary": "local ignored env bundle status only; never includes secret values",
+        },
+        "env_details": {
+            "TAMANDUA_SERVER_PASSWORD": {
+                "env": "TAMANDUA_SERVER_PASSWORD",
+                "class": "secret",
+                "owner": "operator",
+                "placeholder": "<set-tamandua-server-password-secret>",
+                "description": "Tamandua backend password",
+            }
+        },
+        "handoff_artifacts": {
+            "dispatch_brief": "runs/preflight.package-artifacts/dispatch_brief.md",
+            "env_checklist": "runs/preflight.package-artifacts/env_checklist.md",
+            "env_template": "runs/preflight.package-artifacts/env_template.ps1",
+            "agent_spawn_plan": "runs/preflight.package-artifacts/agent_spawn_plan.json",
+            "agent_spawn_launcher": "runs/preflight.package-artifacts/agent_spawn_launcher.ps1",
+        },
+        "post_env_bundle_plan": {
+            "actionable": True,
+            "provider_mode": "balanced",
+            "phase": "env-bundle",
+            "ready_claim_count": 1,
+            "ready_batch_count": 1,
+            "still_blocked_claim_count": 0,
+            "ready_claim_ids": ["claim-wave-1"],
+            "still_blocked_claim_ids": [],
+            "ready_batches": [{"batch": 1, "claim_count": 1, "claim_ids": ["claim-wave-1"]}],
+            "agent_spawn_plan": "runs/preflight.package-artifacts/agent_spawn_plan.json",
+            "validate_command": "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+            "package_launcher_commands": ["powershell -File env_bundle_ready_claims_launcher.ps1"],
+            "balanced_agent_spawn_commands": [
+                "powershell -File agent_spawn_launcher.ps1 -Provider balanced -Phase env-bundle -Execute -Parallel"
+            ],
+            "claim_boundary": "available only after the full env bundle validates",
+        },
+        "post_agent_status_gate": {
+            "report": "runs/preflight.package-artifacts/claim_status_report.json",
+            "markdown_report": "runs/preflight.package-artifacts/claim_status_report.md",
+            "refresh_command": (
+                "python tools/detection_validation/run_preflight_work_package.py "
+                "--refresh-claim-status-report 'runs/preflight.package-artifacts/dispatch_manifest.json'"
+            ),
+            "claim_count": 1,
+            "status_counts": {"not_run": 1},
+            "claim_state_counts": {"blocked_missing_env": 1},
+            "locked_claim_count": 0,
+            "invalid_lock_count": 0,
+            "ready_after_env_claim_ids": ["claim-wave-1"],
+            "ready_after_env_passed_claim_ids": [],
+            "ready_after_env_passed_count": 0,
+            "ready_after_env_required_count": 1,
+            "ready_after_env_all_passed": False,
+            "incomplete_ready_after_env_claims": [
+                {
+                    "claim_id": "claim-wave-1",
+                    "agent_status": "not_run",
+                    "agent_blocker_cleared": False,
+                    "missing_profiles": [],
+                    "status_path": "runs/preflight.package-artifacts/wave-1/agent_status.json",
+                }
+            ],
+            "required_agent_status_contract": {
+                "status": "pass",
+                "blocker_cleared": True,
+                "missing_profiles": [],
+                "required_fields": ["package_id", "claim_id"],
+            },
+            "claim_boundary": "refresh this report after agent fanout",
+        },
+        "claims": {
+            "claim_count": 1,
+            "ready_to_launch_count": 0,
+            "blocked_missing_env_count": 1,
+            "manual_claim_required_count": 0,
+            "not_run_count": 1,
+        },
+        "claim_queue": [
+            {
+                "claim_id": "claim-wave-1",
+                "package_id": "wave-1",
+                "wave": 1,
+                "owner": "operator",
+                "state": "blocked_missing_env",
+                "missing_effective_env": ["TAMANDUA_SERVER_PASSWORD"],
+                "next_action": "set env",
+            }
+        ],
+        "manual_claims": [
+            {
+                "claim_id": "claim-manual",
+                "package_id": "wave-manual",
+                "wave": 1,
+                "owner": "validation-agent",
+                "next_action": "Use a WMI-capable disposable target",
+                "command": "powershell -File wave-manual.ps1",
+                "claim_boundary": "manual operator decision required before automation can claim this blocker",
+            }
+        ],
+        "single_env_fast_paths": [
+            {
+                "env": "TAMANDUA_SERVER_PASSWORD",
+                "claim_ids": ["claim-wave-1"],
+                "package_ids": ["wave-1"],
+                "commands": [
+                    "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'",
+                    "powershell -File wave-1.ps1",
+                ],
+                "claim_boundary": "partial env fast path",
+            }
+        ],
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 2,
+            "title": "Fill env",
+            "claim_boundary": "operator input only",
+            "commands": [],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "next_action_order": [
+            {
+                "step": 1,
+                "id": "check-current-env",
+                "title": "Check env",
+                "claim_boundary": "no-execution operator check",
+                "commands": [
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "docs/benchmarks/generated/validation_product_readiness_operator_check.ps1 -Json"
+                ],
+            },
+            {
+                "step": 2,
+                "id": "fill-env-bundle",
+                "title": "Fill env",
+                "claim_boundary": "operator input only",
+            },
+            {
+                "step": 3,
+                "id": "refresh-validation-authority",
+                "title": "Refresh authority",
+                "claim_boundary": "local refresh",
+            },
+        ],
+        "blocked_run_classes": [
+            {
+                "run_class": "windows-broad",
+                "allowed": False,
+                "roadmaps": ["A"],
+                "missing_env": ["TAMANDUA_SERVER_PASSWORD"],
+                "blocking_profiles": ["windows-agent-connection-stability-probe"],
+            }
+        ],
+        "claim_boundary": "derived only",
+    }
+
+    json_path, md_path, operator_check_path, operator_check_schema_path = product_readiness.write_outputs(summary, tmp_path)
+
+    assert json.loads(json_path.read_text(encoding="utf-8"))["product_ready"] is False
+    markdown = md_path.read_text(encoding="utf-8")
+    assert "Product ready: `false`" in markdown
+    assert "Product Release Gate" in markdown
+    assert "`post-agent-status`" in markdown
+    assert "Next Action Order" in markdown
+    assert "`check-current-env`" in markdown
+    assert "validation_product_readiness_operator_check.ps1" in markdown
+    assert "`fill-env-bundle`" in markdown
+    assert "`TAMANDUA_SERVER_PASSWORD`" in markdown
+    assert "Env Impact" in markdown
+    assert "Single Env Fast Paths" in markdown
+    assert "`claim-wave-1`" in markdown
+    assert "`wave-1`" in markdown
+    assert "powershell -File wave-1.ps1" in markdown
+    assert "Copy/Paste Env Bundle" in markdown
+    assert "Post Env Bundle Plan" in markdown
+    assert "Actionable: `true`" in markdown
+    assert "Ready batches: `1`" in markdown
+    assert "Post Agent Status Gate" in markdown
+    assert "Ready-after-env passed: `0/1`" in markdown
+    assert "claim_status_report.json" in markdown
+    assert "--refresh-claim-status-report" in markdown
+    assert "Missing Env Details" in markdown
+    assert "<set-tamandua-server-password-secret>" in markdown
+    assert "-ValidateOnly" in markdown
+    assert "-Provider balanced -Phase env-bundle -Execute -Parallel" in markdown
+    assert "validation_product_readiness_env_bundle_runner.ps1" in markdown
+    assert "-UseBalancedAgents -Execute -RefreshClaimStatus" in markdown
+    assert "Handoff Artifacts" in markdown
+    assert "`env_template`" in markdown
+    assert "runs/preflight.package-artifacts/agent_spawn_plan.json" in markdown
+    assert "Manual Claims" in markdown
+    assert "`wave-manual`" in markdown
+    assert "WMI-capable disposable target" in markdown
+    assert "windows-agent-connection-stability-probe" in markdown
+    operator_check = operator_check_path.read_text(encoding="utf-8")
+    assert "Product Readiness Operator Check" in operator_check
+    assert "schema_version = 1" in operator_check
+    assert "validation-product-readiness-operator-check" in operator_check
+    assert "Single-env fast paths ready now" in operator_check
+    assert "Full env bundle ready now" in operator_check
+    assert "Missing set commands" in operator_check
+    assert "[switch]$Json" in operator_check
+    assert "ConvertTo-Json -Depth 12" in operator_check
+    assert "recommended_next_action_id" in operator_check
+    assert "recommended_next_action_commands" in operator_check
+    assert "automation_state" in operator_check
+    assert "can_launch_now" in operator_check
+    assert "needs_env_input" in operator_check
+    assert "missing_env_details" in operator_check
+    assert "post_env_bundle_plan" in operator_check
+    assert "post_agent_status_gate" in operator_check
+    assert "handoff_artifacts" in operator_check
+    assert "manual_claims" in operator_check
+    assert "validation_product_readiness_summary.json" in operator_check
+    doctor_path = tmp_path / "validation_product_readiness_doctor.ps1"
+    doctor = doctor_path.read_text(encoding="utf-8")
+    doctor_schema = json.loads(
+        (tmp_path / "validation_product_readiness_doctor.schema.json").read_text(encoding="utf-8")
+    )
+    assert "Product Readiness Doctor" in doctor
+    assert "validation-product-readiness-doctor" in doctor
+    assert "recommended_next_action_id" in doctor
+    assert "ReadyNowFanoutCheck" in doctor
+    assert "ready_now_fanout_check" in doctor
+    assert "ready_now_fanout_count" in doctor
+    assert "ManualClaimResolutionCheck" in doctor
+    assert "manual_claim_resolution_check" in doctor
+    assert "manual_claim_resolution_complete" in doctor
+    assert "ManualClaimResolutionRunner" in doctor
+    assert "manual_claim_resolution_runner" in doctor
+    assert "manual_claim_resolution_runner_execute_allowed" in doctor
+    assert "does not import secret values or launch claims" in doctor
+    assert doctor_schema["properties"]["artifact"]["const"] == "validation-product-readiness-doctor"
+    assert "can_launch_post_env" in doctor_schema["required"]
+    assert "recommended_next_action_id" in doctor_schema["required"]
+    assert "ready_now_fanout_check_exit_code" in doctor_schema["required"]
+    assert "ready_now_fanout_check" in doctor_schema["required"]
+    assert "manual_claim_resolution_check_exit_code" in doctor_schema["required"]
+    assert "manual_claim_resolution_check" in doctor_schema["required"]
+    assert "manual_claim_resolution_runner_exit_code" in doctor_schema["required"]
+    assert "manual_claim_resolution_runner" in doctor_schema["required"]
+    post_env_runner = (tmp_path / "validation_product_readiness_post_env_bundle_runner.ps1").read_text(
+        encoding="utf-8"
+    )
+    post_env_runner_schema = json.loads(
+        (tmp_path / "validation_product_readiness_post_env_bundle_runner.schema.json").read_text(encoding="utf-8")
+    )
+    post_env_runner_contract = json.loads(
+        (tmp_path / "validation_product_readiness_post_env_bundle_runner.contract.json").read_text(encoding="utf-8")
+    )
+    post_env_runner_contract_schema = json.loads(
+        (tmp_path / "validation_product_readiness_post_env_bundle_runner.contract.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    post_env_runner_contract_markdown = (
+        tmp_path / "validation_product_readiness_post_env_bundle_runner.contract.md"
+    ).read_text(encoding="utf-8")
+    release_gate_contract = json.loads(
+        (tmp_path / "validation_product_readiness_release_gate.contract.json").read_text(encoding="utf-8")
+    )
+    release_gate_contract_schema = json.loads(
+        (tmp_path / "validation_product_readiness_release_gate.contract.schema.json").read_text(encoding="utf-8")
+    )
+    release_gate_contract_markdown = (
+        tmp_path / "validation_product_readiness_release_gate.contract.md"
+    ).read_text(encoding="utf-8")
+    claim_status_contract = json.loads(
+        (tmp_path / "validation_product_readiness_claim_status_contract.json").read_text(encoding="utf-8")
+    )
+    claim_status_contract_schema = json.loads(
+        (tmp_path / "validation_product_readiness_claim_status_contract.schema.json").read_text(encoding="utf-8")
+    )
+    claim_status_contract_markdown = (
+        tmp_path / "validation_product_readiness_claim_status_contract.md"
+    ).read_text(encoding="utf-8")
+    blocked_run_classes_contract = json.loads(
+        (tmp_path / "validation_product_readiness_blocked_run_classes.contract.json").read_text(encoding="utf-8")
+    )
+    blocked_run_classes_contract_schema = json.loads(
+        (tmp_path / "validation_product_readiness_blocked_run_classes.contract.schema.json").read_text(encoding="utf-8")
+    )
+    blocked_run_classes_contract_markdown = (
+        tmp_path / "validation_product_readiness_blocked_run_classes.contract.md"
+    ).read_text(encoding="utf-8")
+    runbook = json.loads((tmp_path / "validation_product_readiness_runbook.json").read_text(encoding="utf-8"))
+    runbook_schema = json.loads((tmp_path / "validation_product_readiness_runbook.schema.json").read_text(encoding="utf-8"))
+    runbook_markdown = (tmp_path / "validation_product_readiness_runbook.md").read_text(encoding="utf-8")
+    remaining_work = json.loads((tmp_path / "validation_product_readiness_remaining_work.json").read_text(encoding="utf-8"))
+    remaining_work_schema = json.loads(
+        (tmp_path / "validation_product_readiness_remaining_work.schema.json").read_text(encoding="utf-8")
+    )
+    remaining_work_markdown = (tmp_path / "validation_product_readiness_remaining_work.md").read_text(encoding="utf-8")
+    remaining_work_check_path = tmp_path / "validation_product_readiness_remaining_work_check.ps1"
+    remaining_work_check = remaining_work_check_path.read_text(encoding="utf-8")
+    remaining_work_check_schema = json.loads(
+        (tmp_path / "validation_product_readiness_remaining_work_check.schema.json").read_text(encoding="utf-8")
+    )
+    ready_now_fanout = json.loads((tmp_path / "validation_product_readiness_ready_now_fanout.json").read_text(encoding="utf-8"))
+    ready_now_fanout_schema = json.loads(
+        (tmp_path / "validation_product_readiness_ready_now_fanout.schema.json").read_text(encoding="utf-8")
+    )
+    ready_now_fanout_markdown = (tmp_path / "validation_product_readiness_ready_now_fanout.md").read_text(
+        encoding="utf-8"
+    )
+    ready_now_fanout_check = (tmp_path / "validation_product_readiness_ready_now_fanout_check.ps1").read_text(
+        encoding="utf-8"
+    )
+    ready_now_fanout_check_schema = json.loads(
+        (tmp_path / "validation_product_readiness_ready_now_fanout_check.schema.json").read_text(encoding="utf-8")
+    )
+    manual_claim_resolution = json.loads(
+        (tmp_path / "validation_product_readiness_manual_claim_resolution.json").read_text(encoding="utf-8")
+    )
+    manual_claim_resolution_schema = json.loads(
+        (tmp_path / "validation_product_readiness_manual_claim_resolution.schema.json").read_text(encoding="utf-8")
+    )
+    manual_claim_resolution_runner = (
+        tmp_path / "validation_product_readiness_manual_claim_resolution_runner.ps1"
+    ).read_text(encoding="utf-8")
+    manual_claim_resolution_runner_schema = json.loads(
+        (tmp_path / "validation_product_readiness_manual_claim_resolution_runner.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    agent_handoff = json.loads((tmp_path / "validation_product_readiness_agent_handoff.json").read_text(encoding="utf-8"))
+    agent_handoff_schema = json.loads(
+        (tmp_path / "validation_product_readiness_agent_handoff.schema.json").read_text(encoding="utf-8")
+    )
+    agent_handoff_markdown = (tmp_path / "validation_product_readiness_agent_handoff.md").read_text(encoding="utf-8")
+    assert "Product Readiness Post-Env Bundle Runner" in post_env_runner
+    assert "validation_product_readiness_summary.json" in post_env_runner
+    assert "validation_product_readiness_operator_check.ps1" in post_env_runner
+    assert "[switch]$UseBalancedAgents" in post_env_runner
+    assert "[switch]$Execute" in post_env_runner
+    assert "[switch]$RefreshClaimStatus" in post_env_runner
+    assert "[switch]$Json" in post_env_runner
+    assert "validation-product-readiness-post-env-bundle-runner" in post_env_runner
+    assert "full_env_bundle_ready" in post_env_runner
+    assert "Execute not set; printing launch commands only." in post_env_runner
+    assert "TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH" in post_env_runner
+    assert "TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH" in post_env_runner
+    assert "balanced_agent_spawn_commands" in post_env_runner
+    assert "package_launcher_commands" in post_env_runner
+    assert "refresh_command" in post_env_runner
+    assert post_env_runner_contract["artifact"] == "validation-product-readiness-post-env-runner-contract"
+    assert post_env_runner_contract["runner_path"].endswith(
+        "validation_product_readiness_post_env_bundle_runner.ps1"
+    )
+    assert post_env_runner_contract["runner_schema_path"].endswith(
+        "validation_product_readiness_post_env_bundle_runner.schema.json"
+    )
+    assert post_env_runner_schema["properties"]["artifact"]["const"] == (
+        "validation-product-readiness-post-env-bundle-runner"
+    )
+    assert "execute_allowed" in post_env_runner_schema["required"]
+    assert "launch_commands" in post_env_runner_schema["required"]
+    assert agent_handoff["contracts"]["post_env_bundle_runner_schema"].endswith(
+        "validation_product_readiness_post_env_bundle_runner.schema.json"
+    )
+    assert post_env_runner_contract["env_bundle_runner_path"].endswith(
+        "validation_product_readiness_env_bundle_runner.ps1"
+    )
+    assert post_env_runner_contract["env_bundle_runner_schema_path"].endswith(
+        "validation_product_readiness_env_bundle_runner.schema.json"
+    )
+    assert post_env_runner_contract["env_bundle_runner_status_check_path"].endswith(
+        "validation_product_readiness_env_bundle_runner_status_check.ps1"
+    )
+    assert post_env_runner_contract["env_bundle_runner_status_check_schema_path"].endswith(
+        "validation_product_readiness_env_bundle_runner_status_check.schema.json"
+    )
+    assert post_env_runner_contract["env_bundle_check_path"].endswith(
+        "validation_product_readiness_env_bundle_check.ps1"
+    )
+    assert post_env_runner_contract["env_bundle_template_path"].endswith(
+        "validation_product_readiness_env_bundle.template.json"
+    )
+    assert post_env_runner_contract["env_bundle_dotenv_template_path"].endswith(
+        "validation_product_readiness_env_bundle.template.env"
+    )
+    assert post_env_runner_contract["env_bundle_local_path"].endswith(
+        "validation_product_readiness_env_bundle.local.json"
+    )
+    assert post_env_runner_contract["ready_claim_count"] == 1
+    assert post_env_runner_contract["ready_claim_ids"] == ["claim-wave-1"]
+    assert post_env_runner_contract["required_env_count"] == 1
+    assert post_env_runner_contract["required_env_names"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert post_env_runner_contract["recommended_next_action_id"] == "fill-env-bundle"
+    assert post_env_runner_contract["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert post_env_runner_contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert post_env_runner_contract["modes"][0]["id"] == "dry-run"
+    assert post_env_runner_contract["modes"][0]["executes_claims"] is False
+    assert "validation_product_readiness_env_bundle_runner.ps1" in post_env_runner_contract["modes"][0]["command"]
+    assert any(
+        mode["id"] == "process-env-dry-run"
+        and "-InitFromProcessEnv" in mode["command"]
+        and mode["executes_claims"] is False
+        for mode in post_env_runner_contract["modes"]
+    )
+    assert post_env_runner_contract["validation_command"].endswith(
+        "validation_product_readiness_env_bundle_runner.ps1 -Json"
+    )
+    assert any(
+        mode["id"] == "json-status"
+        and "-Json" in mode["command"]
+        and mode["executes_claims"] is False
+        for mode in post_env_runner_contract["modes"]
+    )
+    assert any(
+        mode["id"] == "process-env-json-status"
+        and "-InitFromProcessEnv -Json" in mode["command"]
+        and mode["executes_claims"] is False
+        for mode in post_env_runner_contract["modes"]
+    )
+    assert (
+        post_env_runner_contract["package_validation_command"]
+        == "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly"
+    )
+    assert any(mode["id"] == "balanced-agent-fanout" and mode["executes_claims"] for mode in post_env_runner_contract["modes"])
+    assert any(
+        mode["id"] == "process-env-balanced-agent-fanout"
+        and "-InitFromProcessEnv -UseBalancedAgents -Execute -RefreshClaimStatus" in mode["command"]
+        and mode["executes_claims"]
+        for mode in post_env_runner_contract["modes"]
+    )
+    assert any(
+        mode["id"] == "process-env-balanced-agent-fanout-refresh-authority"
+        and "-InitFromProcessEnv -UseBalancedAgents -Execute -RefreshClaimStatus -RefreshAuthority" in mode["command"]
+        and mode["executes_claims"]
+        for mode in post_env_runner_contract["modes"]
+    )
+    assert "execute_switch_required_for_claim_launch" in post_env_runner_contract["guards"]
+    assert "env_bundle_validate_only_passes_before_launch" in post_env_runner_contract["guards"]
+    assert post_env_runner_contract_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert post_env_runner_contract_schema["properties"]["schema_version"]["const"] == 1
+    assert (
+        post_env_runner_contract_schema["properties"]["artifact"]["const"]
+        == "validation-product-readiness-post-env-runner-contract"
+    )
+    assert "balanced_agent_spawn_commands" in post_env_runner_contract_schema["required"]
+    assert "env_bundle_runner_path" in post_env_runner_contract_schema["required"]
+    assert "runner_schema_path" in post_env_runner_contract_schema["required"]
+    assert "env_bundle_runner_schema_path" in post_env_runner_contract_schema["required"]
+    assert "env_bundle_runner_status_check_path" in post_env_runner_contract_schema["required"]
+    assert "env_bundle_dotenv_template_path" in post_env_runner_contract_schema["required"]
+    assert "package_validation_command" in post_env_runner_contract_schema["required"]
+    assert "recommended_next_action_id" in post_env_runner_contract_schema["required"]
+    assert "recommended_next_action" in post_env_runner_contract_schema["required"]
+    assert "executes_claims" in post_env_runner_contract_schema["properties"]["modes"]["items"]["required"]
+    assert "-UseBalancedAgents -Execute -RefreshClaimStatus" in post_env_runner_contract_markdown
+    assert "Recommended next action: `fill-env-bundle`" in post_env_runner_contract_markdown
+    assert "Product Readiness Post-Env Runner Contract" in post_env_runner_contract_markdown
+    assert release_gate_contract["artifact"] == "validation-product-readiness-release-gate-contract"
+    assert release_gate_contract["product_ready"] is False
+    assert release_gate_contract["external_claim_allowed"] is False
+    assert release_gate_contract["failed_count"] == 3
+    assert release_gate_contract["failed_ids"] == ["closure-gate", "required-env", "post-agent-status"]
+    assert release_gate_contract["required_env_count"] == 1
+    assert release_gate_contract["local_env_bundle_gate"]["exists"] is False
+    assert release_gate_contract["local_env_bundle_gate"]["complete"] is False
+    assert release_gate_contract["manual_claim_ids"] == ["claim-manual"]
+    assert release_gate_contract["ready_after_env_required_count"] == 1
+    assert release_gate_contract["ready_after_env_passed_count"] == 0
+    assert release_gate_contract["blocked_run_class_count"] == 1
+    assert release_gate_contract["recommended_next_action_id"] == "fill-env-bundle"
+    assert release_gate_contract["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert release_gate_contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert all(requirement["evidence_required"] for requirement in release_gate_contract["requirements"])
+    assert release_gate_contract_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert release_gate_contract_schema["properties"]["schema_version"]["const"] == 1
+    assert (
+        release_gate_contract_schema["properties"]["artifact"]["const"]
+        == "validation-product-readiness-release-gate-contract"
+    )
+    assert "requirements" in release_gate_contract_schema["required"]
+    assert "recommended_next_action_id" in release_gate_contract_schema["required"]
+    assert "recommended_next_action" in release_gate_contract_schema["required"]
+    assert "evidence_required" in release_gate_contract_schema["properties"]["requirements"]["items"]["required"]
+    assert "Product Readiness Release Gate Contract" in release_gate_contract_markdown
+    assert "Failed requirements: `3`" in release_gate_contract_markdown
+    assert "Recommended next action: `fill-env-bundle`" in release_gate_contract_markdown
+    assert "Local Env Bundle Gate" in release_gate_contract_markdown
+    assert "Complete: `false`" in release_gate_contract_markdown
+    assert "`post-agent-status`" in release_gate_contract_markdown
+    assert "every release-gate requirement" in release_gate_contract_markdown
+    assert claim_status_contract["artifact"] == "validation-product-readiness-claim-status-contract"
+    assert claim_status_contract["ready_after_env_required_count"] == 1
+    assert claim_status_contract["ready_after_env_passed_count"] == 0
+    assert claim_status_contract["ready_after_env_all_passed"] is False
+    assert claim_status_contract["required_agent_status_contract"]["status"] == "pass"
+    assert claim_status_contract["required_agent_status_contract"]["blocker_cleared"] is True
+    assert claim_status_contract["required_agent_status_contract"]["missing_profiles"] == []
+    assert claim_status_contract["claims"][0]["claim_id"] == "claim-wave-1"
+    assert claim_status_contract["claims"][0]["status_path"] == "runs/preflight.package-artifacts/wave-1/agent_status.json"
+    assert claim_status_contract["recommended_next_action_id"] == "fill-env-bundle"
+    assert claim_status_contract["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert claim_status_contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert claim_status_contract_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert (
+        claim_status_contract_schema["properties"]["artifact"]["const"]
+        == "validation-product-readiness-claim-status-contract"
+    )
+    assert "claims" in claim_status_contract_schema["required"]
+    assert "recommended_next_action_id" in claim_status_contract_schema["required"]
+    assert "recommended_next_action" in claim_status_contract_schema["required"]
+    assert "current_agent_status" in claim_status_contract_schema["properties"]["claims"]["items"]["required"]
+    assert "Product Readiness Claim Status Contract" in claim_status_contract_markdown
+    assert "Ready-after-env passed: `0/1`" in claim_status_contract_markdown
+    assert "Recommended next action: `fill-env-bundle`" in claim_status_contract_markdown
+    assert "blocker_cleared" in claim_status_contract_markdown
+    assert "missing_profiles" in claim_status_contract_markdown
+    assert "--refresh-claim-status-report" in claim_status_contract_markdown
+    assert blocked_run_classes_contract["artifact"] == "validation-product-readiness-blocked-run-classes-contract"
+    assert blocked_run_classes_contract["blocked_run_class_count"] == 1
+    assert blocked_run_classes_contract["env_blocked_count"] == 1
+    assert blocked_run_classes_contract["profile_or_lab_blocked_count"] == 0
+    assert blocked_run_classes_contract["classes"][0]["run_class"] == "windows-broad"
+    assert blocked_run_classes_contract["classes"][0]["resolution_class"] == "env_required"
+    assert blocked_run_classes_contract["recommended_next_action_id"] == "fill-env-bundle"
+    assert blocked_run_classes_contract["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert blocked_run_classes_contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert "allowed=true" in blocked_run_classes_contract["preflight_gate_required"]
+    assert blocked_run_classes_contract_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert (
+        blocked_run_classes_contract_schema["properties"]["artifact"]["const"]
+        == "validation-product-readiness-blocked-run-classes-contract"
+    )
+    assert "classes" in blocked_run_classes_contract_schema["required"]
+    assert "recommended_next_action_id" in blocked_run_classes_contract_schema["required"]
+    assert "recommended_next_action" in blocked_run_classes_contract_schema["required"]
+    assert "resolution_class" in blocked_run_classes_contract_schema["properties"]["classes"]["items"]["required"]
+    assert "Product Readiness Blocked Run Classes Contract" in blocked_run_classes_contract_markdown
+    assert "Blocked run classes: `1`" in blocked_run_classes_contract_markdown
+    assert "Recommended next action: `fill-env-bundle`" in blocked_run_classes_contract_markdown
+    assert "`windows-broad`" in blocked_run_classes_contract_markdown
+    assert "`env_required`" in blocked_run_classes_contract_markdown
+    assert "`blocked_run_classes=[]`" in blocked_run_classes_contract_markdown
+    assert runbook["artifact"] == "validation-product-readiness-runbook"
+    assert runbook["automation_state"] == "blocked_missing_env"
+    assert runbook["required_env_count"] == 1
+    assert runbook["ready_after_env_required_count"] == 1
+    assert runbook["blocked_run_class_count"] == 1
+    assert runbook["recommended_next_action_id"] == "fill-env-bundle"
+    assert runbook["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert runbook["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert [step["id"] for step in runbook["steps"]][:4] == [
+        "inspect-current-state",
+        "fill-env-bundle",
+        "validate-env-bundle",
+        "launch-ready-after-env-claims",
+    ]
+    assert "validation_product_readiness_env_bundle_local_env_init.ps1" in runbook["steps"][1]["command"]
+    assert "env_bundle_init -EnvFile" in runbook["steps"][1]["success_evidence"]
+    assert runbook["steps"][2]["command"].endswith("validation_product_readiness_env_bundle_runner.ps1 -Json")
+    assert "validation_product_readiness_env_bundle_runner.ps1" in runbook["steps"][3]["command"]
+    assert any(step["executes_claims"] for step in runbook["steps"])
+    assert runbook_schema["properties"]["artifact"]["const"] == "validation-product-readiness-runbook"
+    assert "steps" in runbook_schema["required"]
+    assert "executes_claims" in runbook_schema["properties"]["steps"]["items"]["required"]
+    assert "Product Readiness Runbook" in runbook_markdown
+    assert "Recommended next action: `fill-env-bundle`" in runbook_markdown
+    assert "validation_product_readiness_env_bundle_local_env_init.ps1" in runbook_markdown
+    assert "`launch-ready-after-env-claims`" in runbook_markdown
+    assert "-UseBalancedAgents -Execute -RefreshClaimStatus" in runbook_markdown
+    assert "must not be treated as completed" in runbook_markdown
+    assert remaining_work["artifact"] == "validation-product-readiness-remaining-work"
+    assert remaining_work["open_count"] == 3
+    assert remaining_work["failed_requirement_count"] == 3
+    assert remaining_work["recommended_next_action_id"] == "fill-env-bundle"
+    assert remaining_work["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert remaining_work["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert [item["id"] for item in remaining_work["items"]] == [
+        "provide-required-env-bundle",
+        "pass-ready-after-env-agent-status",
+        "rerun-closure-gate",
+    ]
+    assert remaining_work_schema["properties"]["artifact"]["const"] == "validation-product-readiness-remaining-work"
+    assert "items" in remaining_work_schema["required"]
+    assert "recommended_next_action_id" in remaining_work_schema["required"]
+    assert "recommended_next_action" in remaining_work_schema["required"]
+    assert "evidence_required" in remaining_work_schema["properties"]["items"]["items"]["required"]
+    assert "Recommended next action: `fill-env-bundle`" in remaining_work_markdown
+    assert "Product Readiness Remaining Work" in remaining_work_markdown
+    assert "`provide-required-env-bundle`" in remaining_work_markdown
+    assert "`pass-ready-after-env-agent-status`" in remaining_work_markdown
+    assert "listed evidence" in remaining_work_markdown
+    assert "Product Readiness Remaining Work Check" in remaining_work_check
+    assert "validation-product-readiness-remaining-work-check" in remaining_work_check
+    assert "ready_now_ids" in remaining_work_check
+    assert "blocked_by_dependency" in remaining_work_check
+    assert "exit 2" in remaining_work_check
+    assert (
+        remaining_work_check_schema["properties"]["artifact"]["const"]
+        == "validation-product-readiness-remaining-work-check"
+    )
+    assert "ready_now_ids" in remaining_work_check_schema["required"]
+    assert "blocked_by_dependency" in remaining_work_check_schema["required"]
+    remaining_work_check_json = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(remaining_work_check_path),
+            "-Json",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        text=True,
+        capture_output=True,
+    )
+    assert remaining_work_check_json.returncode == 2
+    remaining_work_check_payload = json.loads(remaining_work_check_json.stdout)
+    assert remaining_work_check_payload["artifact"] == "validation-product-readiness-remaining-work-check"
+    assert remaining_work_check_payload["open_count"] == 3
+    assert remaining_work_check_payload["ready_now_ids"] == [
+        "provide-required-env-bundle",
+        "pass-ready-after-env-agent-status",
+    ]
+    assert remaining_work_check_payload["next_open_item_id"] == "provide-required-env-bundle"
+    assert ready_now_fanout["artifact"] == "validation-product-readiness-ready-now-fanout"
+    assert ready_now_fanout["ready_now_count"] == 2
+    assert ready_now_fanout["blocked_by_dependency_count"] == 1
+    assert [item["id"] for item in ready_now_fanout["ready_now_items"]] == [
+        "provide-required-env-bundle",
+        "pass-ready-after-env-agent-status",
+    ]
+    assert ready_now_fanout_schema["properties"]["artifact"]["const"] == "validation-product-readiness-ready-now-fanout"
+    assert "lanes" in ready_now_fanout_schema["required"]
+    assert "Product Readiness Ready-Now Fanout" in ready_now_fanout_markdown
+    assert "`operator-input`" in ready_now_fanout_markdown
+    assert "`validation-agent`" in ready_now_fanout_markdown
+    assert "do not execute commands" in ready_now_fanout_markdown
+    assert "Product Readiness Ready-Now Fanout Check" in ready_now_fanout_check
+    assert "validation-product-readiness-ready-now-fanout-check" in ready_now_fanout_check
+    assert "fanout_contract_valid" in ready_now_fanout_check
+    assert ready_now_fanout_check_schema["properties"]["artifact"]["const"] == (
+        "validation-product-readiness-ready-now-fanout-check"
+    )
+    assert "lane_item_ids" in ready_now_fanout_check_schema["required"]
+    assert manual_claim_resolution["artifact"] == "validation-product-readiness-manual-claim-resolution"
+    assert manual_claim_resolution["runner_path"].endswith(
+        "validation_product_readiness_manual_claim_resolution_runner.ps1"
+    )
+    assert manual_claim_resolution_schema["properties"]["artifact"]["const"] == (
+        "validation-product-readiness-manual-claim-resolution"
+    )
+    assert "runner_path" in manual_claim_resolution_schema["required"]
+    assert "runner_execute_guard_env" in manual_claim_resolution_schema["required"]
+    assert "Product Readiness Manual Claim Resolution Runner" in manual_claim_resolution_runner
+    assert manual_claim_resolution["runner_execute_guard_env"] == "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION"
+    assert "execution requires explicit guard" in manual_claim_resolution_runner
+    assert manual_claim_resolution_runner_schema["properties"]["artifact"]["const"] == (
+        "validation-product-readiness-manual-claim-resolution-runner"
+    )
+    assert "execute_allowed" in manual_claim_resolution_runner_schema["required"]
+    assert "guarded_resolution_commands" in manual_claim_resolution_runner_schema["required"]
+    assert agent_handoff["artifact"] == "validation-product-readiness-agent-handoff"
+    assert agent_handoff["product_ready"] is False
+    assert agent_handoff["automation_state"] == "blocked_missing_env"
+    assert agent_handoff["counts"]["release_gate_failed"] == 3
+    assert agent_handoff["counts"]["required_env"] == 1
+    assert agent_handoff["counts"]["ready_after_env_claims"] == 1
+    assert agent_handoff["blocked_requirements"] == ["closure-gate", "required-env", "post-agent-status"]
+    assert agent_handoff["manual_claim_ids"] == ["claim-manual"]
+    assert agent_handoff["claim_status_required_fields"] == ["package_id", "claim_id"]
+    assert agent_handoff["blocked_run_class_resolution_counts"] == {
+        "env_required": 1,
+        "profile_or_lab_required": 0,
+    }
+    assert agent_handoff["runbook_step_count"] == 8
+    assert agent_handoff["remaining_work_open_count"] == 3
+    assert agent_handoff["ready_now_fanout_count"] == 2
+    assert agent_handoff["contracts"]["env_bundle_runner_schema"].endswith(
+        "validation_product_readiness_env_bundle_runner.schema.json"
+    )
+    assert agent_handoff["contracts"]["env_bundle_runner_status_check_schema"].endswith(
+        "validation_product_readiness_env_bundle_runner_status_check.schema.json"
+    )
+    assert agent_handoff["contracts"]["doctor_schema"].endswith(
+        "validation_product_readiness_doctor.schema.json"
+    )
+    assert agent_handoff["contracts"]["ready_now_fanout_check_schema"].endswith(
+        "validation_product_readiness_ready_now_fanout_check.schema.json"
+    )
+    assert agent_handoff["contracts"]["manual_claim_resolution_runner_schema"].endswith(
+        "validation_product_readiness_manual_claim_resolution_runner.schema.json"
+    )
+    assert agent_handoff["contracts"]["env_bundle_dotenv_template"].endswith(
+        "validation_product_readiness_env_bundle.template.env"
+    )
+    assert agent_handoff["contracts"]["env_bundle_dotenv_local"].endswith(
+        "validation_product_readiness_env_bundle.local.env"
+    )
+    assert agent_handoff["contracts"]["env_bundle_local_env_init_schema"].endswith(
+        "validation_product_readiness_env_bundle_local_env_init.schema.json"
+    )
+    assert agent_handoff["contracts"]["env_bundle_local_env_validate_schema"].endswith(
+        "validation_product_readiness_env_bundle_local_env_validate.schema.json"
+    )
+    assert agent_handoff["scripts"]["env_bundle_local_env_init"].endswith(
+        "validation_product_readiness_env_bundle_local_env_init.ps1"
+    )
+    assert agent_handoff["scripts"]["env_bundle_local_env_validate"].endswith(
+        "validation_product_readiness_env_bundle_local_env_validate.ps1"
+    )
+    assert agent_handoff["scripts"]["env_bundle_runner_status_check"].endswith(
+        "validation_product_readiness_env_bundle_runner_status_check.ps1"
+    )
+    assert agent_handoff["scripts"]["doctor"].endswith("validation_product_readiness_doctor.ps1")
+    assert agent_handoff["scripts"]["ready_now_fanout_check"].endswith(
+        "validation_product_readiness_ready_now_fanout_check.ps1"
+    )
+    assert agent_handoff["scripts"]["manual_claim_resolution_runner"].endswith(
+        "validation_product_readiness_manual_claim_resolution_runner.ps1"
+    )
+    assert "validation_product_readiness_env_bundle_init.ps1" in agent_handoff["commands"]["env_bundle_init"]
+    assert "-InitFromProcessEnv" in agent_handoff["commands"]["env_bundle_runner_from_process_env_dry_run"]
+    assert "validation_product_readiness_env_bundle.local.env -Force" in agent_handoff["commands"][
+        "env_bundle_init_from_env_file"
+    ]
+    assert "validation_product_readiness_env_bundle_local_env_init.ps1" in agent_handoff["commands"][
+        "env_bundle_local_env_init"
+    ]
+    assert "-Force" in agent_handoff["commands"][
+        "env_bundle_local_env_init_force"
+    ]
+    assert "validation_product_readiness_env_bundle_local_env_validate.ps1 -PrepareIfMissing -Json" in agent_handoff["commands"][
+        "env_bundle_local_env_validate_json"
+    ]
+    assert "-Json" in agent_handoff["commands"]["env_bundle_runner_json_status"]
+    assert "-InitFromProcessEnv -Json" in agent_handoff["commands"][
+        "env_bundle_runner_from_process_env_json_status"
+    ]
+    assert "-Json" in agent_handoff["commands"]["env_bundle_runner_status_check_json"]
+    assert "-Json" in agent_handoff["commands"]["post_env_runner_json_status"]
+    assert agent_handoff["contracts"]["post_env_bundle_runner_schema"].endswith(
+        "validation_product_readiness_post_env_bundle_runner.schema.json"
+    )
+    assert "-InitFromProcessEnv -Json" in agent_handoff["commands"][
+        "env_bundle_runner_status_check_from_process_env_json"
+    ]
+    assert "-Json" in agent_handoff["commands"]["doctor_json"]
+    assert "-InitFromProcessEnv -Json" in agent_handoff["commands"]["doctor_from_process_env_json"]
+    assert "-Json" in agent_handoff["commands"]["ready_now_fanout_check_json"]
+    assert "-Json" in agent_handoff["commands"]["manual_claim_resolution_runner_json"]
+    assert "-UseBalancedAgents -Execute -RefreshClaimStatus" in agent_handoff["commands"]["post_env_runner_balanced_execute"]
+    assert (
+        "-InitFromProcessEnv -UseBalancedAgents -Execute -RefreshClaimStatus"
+        in agent_handoff["commands"]["post_env_runner_process_env_balanced_execute"]
+    )
+    assert (
+        "-InitFromProcessEnv -UseBalancedAgents -Execute -RefreshClaimStatus -RefreshAuthority"
+        in agent_handoff["commands"]["post_env_runner_process_env_balanced_execute_refresh_authority"]
+    )
+    assert agent_handoff_schema["properties"]["artifact"]["const"] == "validation-product-readiness-agent-handoff"
+    assert "commands" in agent_handoff_schema["required"]
+    assert "Product Readiness Agent Handoff" in agent_handoff_markdown
+    assert "validation_product_readiness_claim_status_contract.json" in agent_handoff_markdown
+    assert "validation_product_readiness_blocked_run_classes.contract.json" in agent_handoff_markdown
+    assert "validation_product_readiness_runbook.json" in agent_handoff_markdown
+    assert "validation_product_readiness_env_bundle_init.ps1" in agent_handoff_markdown
+    assert "validation_product_readiness_remaining_work.json" in agent_handoff_markdown
+    assert "validation_product_readiness_remaining_work_check.ps1" in agent_handoff_markdown
+    assert "validation_product_readiness_ready_now_fanout.json" in agent_handoff_markdown
+    assert "does not claim product readiness" in agent_handoff_markdown
+    operator_schema = json.loads(operator_check_schema_path.read_text(encoding="utf-8"))
+    assert operator_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert operator_schema["properties"]["schema_version"]["const"] == 1
+    assert operator_schema["properties"]["artifact"]["const"] == "validation-product-readiness-operator-check"
+    assert "recommended_next_action_commands" in operator_schema["required"]
+    assert "product_release_gate" in operator_schema["required"]
+    assert "post_env_bundle_plan" in operator_schema["required"]
+    assert "post_agent_status_gate" in operator_schema["required"]
+    assert "blocked_missing_env" in operator_schema["properties"]["automation_state"]["enum"]
+    env_request_json = json.loads((tmp_path / "validation_product_readiness_env_request.json").read_text(encoding="utf-8"))
+    env_request_markdown = (tmp_path / "validation_product_readiness_env_request.md").read_text(encoding="utf-8")
+    env_request_schema = json.loads(
+        (tmp_path / "validation_product_readiness_env_request.schema.json").read_text(encoding="utf-8")
+    )
+    env_bundle_init_path = tmp_path / "validation_product_readiness_env_bundle_init.ps1"
+    env_bundle_init = env_bundle_init_path.read_text(encoding="utf-8")
+    env_bundle_init_schema = json.loads(
+        (tmp_path / "validation_product_readiness_env_bundle_init.schema.json").read_text(encoding="utf-8")
+    )
+    env_bundle_local_env_init_path = tmp_path / "validation_product_readiness_env_bundle_local_env_init.ps1"
+    env_bundle_local_env_init = env_bundle_local_env_init_path.read_text(encoding="utf-8")
+    env_bundle_local_env_init_schema = json.loads(
+        (tmp_path / "validation_product_readiness_env_bundle_local_env_init.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    env_bundle_local_env_validate_path = tmp_path / "validation_product_readiness_env_bundle_local_env_validate.ps1"
+    env_bundle_local_env_validate = env_bundle_local_env_validate_path.read_text(encoding="utf-8")
+    env_bundle_local_env_validate_schema = json.loads(
+        (tmp_path / "validation_product_readiness_env_bundle_local_env_validate.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    env_bundle_check_path = tmp_path / "validation_product_readiness_env_bundle_check.ps1"
+    env_bundle_check = env_bundle_check_path.read_text(encoding="utf-8")
+    env_bundle_runner = (tmp_path / "validation_product_readiness_env_bundle_runner.ps1").read_text(
+        encoding="utf-8"
+    )
+    env_bundle_runner_status_check_path = tmp_path / "validation_product_readiness_env_bundle_runner_status_check.ps1"
+    env_bundle_runner_status_check = env_bundle_runner_status_check_path.read_text(encoding="utf-8")
+    env_bundle_runner_schema = json.loads(
+        (tmp_path / "validation_product_readiness_env_bundle_runner.schema.json").read_text(encoding="utf-8")
+    )
+    env_bundle_runner_status_check_schema = json.loads(
+        (tmp_path / "validation_product_readiness_env_bundle_runner_status_check.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    env_bundle_check_schema = json.loads(
+        (tmp_path / "validation_product_readiness_env_bundle_check.schema.json").read_text(encoding="utf-8")
+    )
+    env_bundle_local_schema = json.loads(
+        (tmp_path / "validation_product_readiness_env_bundle.local.schema.json").read_text(encoding="utf-8")
+    )
+    env_bundle_template = json.loads(
+        (tmp_path / "validation_product_readiness_env_bundle.template.json").read_text(encoding="utf-8")
+    )
+    env_bundle_dotenv_template = (tmp_path / "validation_product_readiness_env_bundle.template.env").read_text(
+        encoding="utf-8"
+    )
+    assert env_request_json["artifact"] == "validation-product-readiness-env-request"
+    assert env_request_json["required_env_count"] == 1
+    assert env_request_json["secret_count"] == 1
+    assert env_request_json["entries"][0]["env"] == "TAMANDUA_SERVER_PASSWORD"
+    assert env_request_json["recommended_next_action_id"] == "fill-env-bundle"
+    assert env_request_json["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert env_request_json["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert env_request_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert env_request_schema["properties"]["schema_version"]["const"] == 1
+    assert env_request_schema["properties"]["artifact"]["const"] == "validation-product-readiness-env-request"
+    assert "entries" in env_request_schema["required"]
+    assert "copy_paste_powershell" in env_request_schema["required"]
+    assert "recommended_next_action_id" in env_request_schema["required"]
+    assert "recommended_next_action" in env_request_schema["required"]
+    assert "powershell_set_command" in env_request_schema["properties"]["entries"]["items"]["required"]
+    assert "Product Readiness Env Request" in env_request_markdown
+    assert "Recommended next action: `fill-env-bundle`" in env_request_markdown
+    assert "Copy/Paste PowerShell" in env_request_markdown
+    assert "Local Bundle Check" in env_request_markdown
+    assert "validation_product_readiness_env_bundle_init.ps1" in env_request_markdown
+    assert "validation_product_readiness_env_bundle_check.ps1 -Json" in env_request_markdown
+    assert "validation_product_readiness_env_bundle_local_env_init.ps1" in env_request_markdown
+    assert "validation_product_readiness_env_bundle.template.env" in env_request_markdown
+    assert "validation_product_readiness_env_bundle.local.env" in env_request_markdown
+    assert "-EnvFile docs/benchmarks/generated/validation_product_readiness_env_bundle.local.env -Force" in env_request_markdown
+    assert "<set-tamandua-server-password-secret>" in env_request_markdown
+    assert "Product Readiness Env Bundle Init" in env_bundle_init
+    assert "refusing to overwrite without -Force" in env_bundle_init
+    assert "[switch]$FromProcessEnv" in env_bundle_init
+    assert "[string]$EnvFile" in env_bundle_init
+    assert "Local env bundle initialized from env file" in env_bundle_init
+    assert "Process env is missing required names" in env_bundle_init
+    assert "No secret values were printed" in env_bundle_init
+    assert env_bundle_init_schema["properties"]["artifact"]["const"] == "validation-product-readiness-env-bundle-init"
+    assert "from_process_env" in env_bundle_init_schema["required"]
+    assert "from_env_file" in env_bundle_init_schema["required"]
+    assert "env-file" in env_bundle_init_schema["properties"]["mode"]["enum"]
+    assert "missing_env_names" in env_bundle_init_schema["required"]
+    assert "Product Readiness Env Bundle Local Env Init" in env_bundle_local_env_init
+    assert "validation-product-readiness-env-bundle-local-env-init" in env_bundle_local_env_init
+    assert "refusing to overwrite without -Force" in env_bundle_local_env_init
+    assert "No secret values were printed" in env_bundle_local_env_init
+    assert env_bundle_local_env_init_schema["properties"]["artifact"]["const"] == (
+        "validation-product-readiness-env-bundle-local-env-init"
+    )
+    assert "init_command" in env_bundle_local_env_init_schema["required"]
+    assert "Product Readiness Env Bundle Local Env Validate" in env_bundle_local_env_validate
+    assert "validation-product-readiness-env-bundle-local-env-validate" in env_bundle_local_env_validate
+    assert "[switch]$PrepareIfMissing" in env_bundle_local_env_validate
+    assert "validation_product_readiness_env_bundle_init.ps1" in env_bundle_local_env_validate
+    assert "validation_product_readiness_env_bundle_check.ps1" in env_bundle_local_env_validate
+    assert "validation_product_readiness_env_bundle_runner.ps1" in env_bundle_local_env_validate
+    assert "validation_product_readiness_doctor.ps1" in env_bundle_local_env_validate
+    assert "No secret values were printed" in env_bundle_local_env_validate
+    assert env_bundle_local_env_validate_schema["properties"]["artifact"]["const"] == (
+        "validation-product-readiness-env-bundle-local-env-validate"
+    )
+    assert "prepared_local_env" in env_bundle_local_env_validate_schema["required"]
+    assert "local_env_placeholder_names" in env_bundle_local_env_validate_schema["required"]
+    assert "can_launch_post_env" in env_bundle_local_env_validate_schema["required"]
+    assert "next_action_command" in env_bundle_local_env_validate_schema["required"]
+    assert "post_env_launch_command" in env_bundle_local_env_validate_schema["required"]
+    assert "Product Readiness Env Bundle Check" in env_bundle_check
+    assert "output intentionally omits secret values" in env_bundle_check
+    assert "validation-product-readiness-env-bundle-check" in env_bundle_check
+    assert "Product Readiness Env Bundle Runner" in env_bundle_runner
+    assert "validation_product_readiness_env_bundle_check.ps1" in env_bundle_runner
+    assert "validation_product_readiness_env_bundle_init.ps1" in env_bundle_runner
+    assert "validation_product_readiness_post_env_bundle_runner.ps1" in env_bundle_runner
+    assert "[switch]$InitFromProcessEnv" in env_bundle_runner
+    assert "[switch]$RefreshAuthority" in env_bundle_runner
+    assert "[switch]$Json" in env_bundle_runner
+    assert "refresh_validation_authority.py" in env_bundle_runner
+    assert "validation-product-readiness-env-bundle-runner" in env_bundle_runner
+    assert "JSON status mode does not import secret values" in env_bundle_runner
+    assert "ConvertTo-Json -Depth 12" in env_bundle_runner
+    assert "-FromProcessEnv -Force -Json" in env_bundle_runner
+    assert "[Environment]::SetEnvironmentVariable" in env_bundle_runner
+    assert "No secret values were printed" in env_bundle_runner
+    assert "-Execute" in env_bundle_runner
+    assert env_bundle_runner_schema["properties"]["artifact"]["const"] == (
+        "validation-product-readiness-env-bundle-runner"
+    )
+    assert "status_reason" in env_bundle_runner_schema["required"]
+    assert "ready_to_launch" in env_bundle_runner_schema["properties"]["status_reason"]["enum"]
+    assert "json_status_mode_refuses_launch_flags" in env_bundle_runner_schema["properties"]["status_reason"]["enum"]
+    assert "Product Readiness Env Bundle Runner Status Check" in env_bundle_runner_status_check
+    assert "validation-product-readiness-env-bundle-runner-status-check" in env_bundle_runner_status_check
+    assert "runner_contract_valid" in env_bundle_runner_status_check
+    assert "does not import secret values or launch claims" in env_bundle_runner_status_check
+    assert env_bundle_runner_status_check_schema["properties"]["artifact"]["const"] == (
+        "validation-product-readiness-env-bundle-runner-status-check"
+    )
+    assert "runner_contract_valid" in env_bundle_runner_status_check_schema["required"]
+    assert "runner_status_reason" in env_bundle_runner_status_check_schema["required"]
+    assert env_bundle_check_schema["properties"]["artifact"]["const"] == "validation-product-readiness-env-bundle-check"
+    assert env_bundle_local_schema["additionalProperties"] is False
+    assert env_bundle_local_schema["required"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert "TAMANDUA_SERVER_PASSWORD" in env_bundle_local_schema["properties"]
+    assert env_bundle_template == {
+        "TAMANDUA_SERVER_PASSWORD": "<set-tamandua-server-password-secret>",
+    }
+    assert "TAMANDUA_SERVER_PASSWORD='<set-tamandua-server-password-secret>'" in env_bundle_dotenv_template
+    assert "Copy this file to validation_product_readiness_env_bundle.local.env before editing." in env_bundle_dotenv_template
+    assert "unit-test-secret-value" not in env_bundle_dotenv_template
+    assert "validation_product_readiness_env_bundle.template.json" in env_request_markdown
+    env_bundle_local_env_init_result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_local_env_init_path),
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_local_env_init_result.returncode == 0
+    env_bundle_local_env_init_payload = json.loads(env_bundle_local_env_init_result.stdout)
+    assert env_bundle_local_env_init_payload["artifact"] == (
+        "validation-product-readiness-env-bundle-local-env-init"
+    )
+    assert env_bundle_local_env_init_payload["created"] is True
+    assert env_bundle_local_env_init_payload["overwrote"] is False
+    assert "validation_product_readiness_env_bundle.local.env" in env_bundle_local_env_init_payload["local_env"]
+    assert "validation_product_readiness_env_bundle_init.ps1" in env_bundle_local_env_init_payload["init_command"]
+    assert (tmp_path / "validation_product_readiness_env_bundle.local.env").exists()
+    assert "unit-test-secret-value" not in env_bundle_local_env_init_result.stdout
+    assert "unit-test-secret-value" not in env_bundle_local_env_init_result.stderr
+    env_bundle_local_env_init_refuse = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_local_env_init_path),
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_local_env_init_refuse.returncode == 2
+    env_bundle_local_env_init_refuse_payload = json.loads(env_bundle_local_env_init_refuse.stdout)
+    assert env_bundle_local_env_init_refuse_payload["created"] is False
+    assert env_bundle_local_env_init_refuse_payload["overwrote"] is False
+    env_bundle_local_env_validate_result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_local_env_validate_path),
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_local_env_validate_result.returncode == 2
+    env_bundle_local_env_validate_payload = json.loads(env_bundle_local_env_validate_result.stdout)
+    assert env_bundle_local_env_validate_payload["artifact"] == (
+        "validation-product-readiness-env-bundle-local-env-validate"
+    )
+    assert env_bundle_local_env_validate_payload["complete"] is False
+    assert env_bundle_local_env_validate_payload["can_launch_post_env"] is False
+    assert env_bundle_local_env_validate_payload["prepare_if_missing"] is False
+    assert env_bundle_local_env_validate_payload["prepared_local_env"] is False
+    assert "validation_product_readiness_env_bundle_local_env_validate.ps1" in env_bundle_local_env_validate_payload[
+        "next_action_command"
+    ]
+    assert "-PrepareIfMissing -Json" in env_bundle_local_env_validate_payload["next_action_command"]
+    assert "edit local dotenv placeholders" in env_bundle_local_env_validate_payload[
+        "next_action_description"
+    ]
+    assert "validation_product_readiness_env_bundle_runner.ps1" in env_bundle_local_env_validate_payload[
+        "post_env_launch_command"
+    ]
+    assert "-UseBalancedAgents -Execute -RefreshClaimStatus" in env_bundle_local_env_validate_payload[
+        "post_env_launch_command"
+    ]
+    assert "-RefreshAuthority" in env_bundle_local_env_validate_payload[
+        "post_env_launch_refresh_authority_command"
+    ]
+    assert env_bundle_local_env_validate_payload["local_env_present_names"] == []
+    assert env_bundle_local_env_validate_payload["local_env_placeholder_names"] == [
+        "TAMANDUA_SERVER_PASSWORD"
+    ]
+    assert env_bundle_local_env_validate_payload["local_env_missing_names"] == []
+    assert env_bundle_local_env_validate_payload["local_env_empty_names"] == []
+    assert env_bundle_local_env_validate_payload["placeholder_env_names"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert "unit-test-secret-value" not in env_bundle_local_env_validate_result.stdout
+    assert "unit-test-secret-value" not in env_bundle_local_env_validate_result.stderr
+    (tmp_path / "validation_product_readiness_env_bundle.local.env").unlink()
+    env_bundle_local_env_validate_prepare = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_local_env_validate_path),
+            "-PrepareIfMissing",
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_local_env_validate_prepare.returncode == 2
+    env_bundle_local_env_validate_prepare_payload = json.loads(env_bundle_local_env_validate_prepare.stdout)
+    assert env_bundle_local_env_validate_prepare_payload["prepare_if_missing"] is True
+    assert env_bundle_local_env_validate_prepare_payload["prepared_local_env"] is True
+    assert "validation_product_readiness_env_bundle_local_env_validate.ps1" in env_bundle_local_env_validate_prepare_payload[
+        "next_action_command"
+    ]
+    assert (tmp_path / "validation_product_readiness_env_bundle.local.env").exists()
+    assert env_bundle_local_env_validate_prepare_payload["local_env_present_names"] == []
+    assert env_bundle_local_env_validate_prepare_payload["local_env_placeholder_names"] == [
+        "TAMANDUA_SERVER_PASSWORD"
+    ]
+    assert env_bundle_local_env_validate_prepare_payload["local_env_missing_names"] == []
+    assert env_bundle_local_env_validate_prepare_payload["local_env_empty_names"] == []
+    assert env_bundle_local_env_validate_prepare_payload["placeholder_env_names"] == [
+        "TAMANDUA_SERVER_PASSWORD"
+    ]
+    assert "unit-test-secret-value" not in env_bundle_local_env_validate_prepare.stdout
+    assert "unit-test-secret-value" not in env_bundle_local_env_validate_prepare.stderr
+    env_bundle_init_result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_init_path),
+            "-Force",
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_init_result.returncode == 0
+    env_bundle_init_payload = json.loads(env_bundle_init_result.stdout)
+    assert env_bundle_init_payload["artifact"] == "validation-product-readiness-env-bundle-init"
+    assert env_bundle_init_payload["mode"] == "template"
+    assert env_bundle_init_payload["created"] is True
+    assert env_bundle_init_payload["overwrote"] is True
+    assert env_bundle_init_payload["from_process_env"] is False
+    assert env_bundle_init_payload["missing_env_names"] == []
+    local_bundle = tmp_path / "validation_product_readiness_env_bundle.local.json"
+    assert local_bundle.exists()
+    assert json.loads(local_bundle.read_text(encoding="utf-8")) == env_bundle_template
+    assert "<set-tamandua-server-password-secret>" not in env_bundle_init_result.stderr
+    env_bundle_init_again = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_init_path),
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_init_again.returncode == 2
+    env_bundle_init_again_payload = json.loads(env_bundle_init_again.stdout)
+    assert env_bundle_init_again_payload["created"] is False
+    env_bundle_runner_json_incomplete = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(tmp_path / "validation_product_readiness_env_bundle_runner.ps1"),
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_runner_json_incomplete.returncode == 2
+    env_bundle_runner_json_incomplete_payload = json.loads(env_bundle_runner_json_incomplete.stdout)
+    assert env_bundle_runner_json_incomplete_payload["artifact"] == (
+        "validation-product-readiness-env-bundle-runner"
+    )
+    assert env_bundle_runner_json_incomplete_payload["complete"] is False
+    assert env_bundle_runner_json_incomplete_payload["can_launch"] is False
+    assert env_bundle_runner_json_incomplete_payload["delegated_to_post_env_runner"] is False
+    assert env_bundle_runner_json_incomplete_payload["imported_env_names"] == []
+    assert env_bundle_runner_json_incomplete_payload["status_reason"] == "env_bundle_incomplete"
+    assert env_bundle_runner_json_incomplete_payload["check"]["placeholder_env_names"] == [
+        "TAMANDUA_SERVER_PASSWORD"
+    ]
+    env_bundle_runner_status_check_incomplete = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_runner_status_check_path),
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_runner_status_check_incomplete.returncode != 0
+    env_bundle_runner_status_check_incomplete_payload = json.loads(
+        env_bundle_runner_status_check_incomplete.stdout
+    )
+    assert env_bundle_runner_status_check_incomplete_payload["artifact"] == (
+        "validation-product-readiness-env-bundle-runner-status-check"
+    )
+    assert env_bundle_runner_status_check_incomplete_payload["runner_contract_valid"] is True
+    assert env_bundle_runner_status_check_incomplete_payload["runner_complete"] is False
+    assert env_bundle_runner_status_check_incomplete_payload["runner_status_reason"] == "env_bundle_incomplete"
+    assert env_bundle_runner_status_check_incomplete_payload["missing_schema_fields"] == []
+    doctor_incomplete = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(doctor_path),
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert doctor_incomplete.returncode != 0
+    doctor_incomplete_payload = json.loads(doctor_incomplete.stdout)
+    assert doctor_incomplete_payload["artifact"] == "validation-product-readiness-doctor"
+    assert doctor_incomplete_payload["doctor_contract_valid"] is True
+    assert doctor_incomplete_payload["env_bundle_contract_valid"] is True
+    assert doctor_incomplete_payload["env_bundle_complete"] is False
+    assert doctor_incomplete_payload["can_launch_post_env"] is False
+    assert doctor_incomplete_payload["recommended_next_action_id"] == "fill-env-bundle"
+    env_file = tmp_path / "fixture.env"
+    env_file.write_text(
+        "# fixture env file\nexport TAMANDUA_SERVER_PASSWORD='unit-test-secret-value'\n",
+        encoding="utf-8",
+    )
+    env_bundle_init_from_file = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_init_path),
+            "-EnvFile",
+            str(env_file),
+            "-Force",
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_init_from_file.returncode == 0
+    env_bundle_init_from_file_payload = json.loads(env_bundle_init_from_file.stdout)
+    assert env_bundle_init_from_file_payload["mode"] == "env-file"
+    assert env_bundle_init_from_file_payload["from_env_file"] is True
+    assert env_bundle_init_from_file_payload["missing_env_names"] == []
+    assert "unit-test-secret-value" not in env_bundle_init_from_file.stdout
+    assert "unit-test-secret-value" not in env_bundle_init_from_file.stderr
+    assert json.loads(local_bundle.read_text(encoding="utf-8")) == {
+        "TAMANDUA_SERVER_PASSWORD": "unit-test-secret-value",
+    }
+    from_process_env = os.environ.copy()
+    from_process_env["TAMANDUA_SERVER_PASSWORD"] = "unit-test-secret-value"
+    env_bundle_init_from_env = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_init_path),
+            "-FromProcessEnv",
+            "-Force",
+            "-Json",
+        ],
+        cwd=tmp_path,
+        env=from_process_env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_init_from_env.returncode == 0
+    env_bundle_init_from_env_payload = json.loads(env_bundle_init_from_env.stdout)
+    assert env_bundle_init_from_env_payload["mode"] == "process-env"
+    assert env_bundle_init_from_env_payload["from_process_env"] is True
+    assert env_bundle_init_from_env_payload["missing_env_names"] == []
+    assert env_bundle_init_from_env_payload["overwrote"] is True
+    assert "unit-test-secret-value" not in env_bundle_init_from_env.stdout
+    assert "unit-test-secret-value" not in env_bundle_init_from_env.stderr
+    assert json.loads(local_bundle.read_text(encoding="utf-8")) == {
+        "TAMANDUA_SERVER_PASSWORD": "unit-test-secret-value",
+    }
+    env_bundle_init_missing_env = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_init_path),
+            "-FromProcessEnv",
+            "-Force",
+            "-Json",
+        ],
+        cwd=tmp_path,
+        env={key: value for key, value in os.environ.items() if key != "TAMANDUA_SERVER_PASSWORD"},
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_init_missing_env.returncode == 2
+    env_bundle_init_missing_env_payload = json.loads(env_bundle_init_missing_env.stdout)
+    assert env_bundle_init_missing_env_payload["missing_env_names"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert env_bundle_init_missing_env_payload["created"] is False
+    assert env_bundle_init_missing_env_payload["overwrote"] is False
+    env_bundle_check_result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_check_path),
+            "-Json",
+        ],
+        cwd=tmp_path,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_check_result.returncode == 0
+    env_bundle_check_payload = json.loads(env_bundle_check_result.stdout)
+    assert env_bundle_check_payload["artifact"] == "validation-product-readiness-env-bundle-check"
+    assert env_bundle_check_payload["complete"] is True
+    assert env_bundle_check_payload["bundle_exists"] is True
+    assert env_bundle_check_payload["missing_env_names"] == []
+    assert env_bundle_check_payload["placeholder_env_names"] == []
+    assert "<set-tamandua-server-password-secret>" not in env_bundle_check_result.stdout
+    assert "unit-test-secret-value" not in env_bundle_check_result.stdout
+    env_bundle_runner_json_from_env = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(tmp_path / "validation_product_readiness_env_bundle_runner.ps1"),
+            "-InitFromProcessEnv",
+            "-Json",
+        ],
+        cwd=tmp_path,
+        env=from_process_env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_runner_json_from_env.returncode == 0
+    env_bundle_runner_json_from_env_payload = json.loads(env_bundle_runner_json_from_env.stdout)
+    assert env_bundle_runner_json_from_env_payload["init_from_process_env"] is True
+    assert env_bundle_runner_json_from_env_payload["complete"] is True
+    assert env_bundle_runner_json_from_env_payload["can_launch"] is True
+    assert env_bundle_runner_json_from_env_payload["delegated_to_post_env_runner"] is False
+    assert env_bundle_runner_json_from_env_payload["status_reason"] == "ready_to_launch"
+    assert env_bundle_runner_json_from_env_payload["check"]["present_env_count"] == 1
+    assert "unit-test-secret-value" not in env_bundle_runner_json_from_env.stdout
+    assert "unit-test-secret-value" not in env_bundle_runner_json_from_env.stderr
+    env_bundle_runner_status_check_from_env = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(env_bundle_runner_status_check_path),
+            "-InitFromProcessEnv",
+            "-Json",
+        ],
+        cwd=tmp_path,
+        env=from_process_env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_runner_status_check_from_env.returncode == 0
+    env_bundle_runner_status_check_from_env_payload = json.loads(env_bundle_runner_status_check_from_env.stdout)
+    assert env_bundle_runner_status_check_from_env_payload["runner_contract_valid"] is True
+    assert env_bundle_runner_status_check_from_env_payload["runner_complete"] is True
+    assert env_bundle_runner_status_check_from_env_payload["runner_can_launch"] is True
+    assert env_bundle_runner_status_check_from_env_payload["runner_status_reason"] == "ready_to_launch"
+    assert "unit-test-secret-value" not in env_bundle_runner_status_check_from_env.stdout
+    assert "unit-test-secret-value" not in env_bundle_runner_status_check_from_env.stderr
+    doctor_from_env = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(doctor_path),
+            "-InitFromProcessEnv",
+            "-Json",
+        ],
+        cwd=tmp_path,
+        env=from_process_env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert doctor_from_env.returncode != 0
+    doctor_from_env_payload = json.loads(doctor_from_env.stdout)
+    assert doctor_from_env_payload["doctor_contract_valid"] is True
+    assert doctor_from_env_payload["env_bundle_complete"] is True
+    assert doctor_from_env_payload["can_launch_post_env"] is True
+    assert doctor_from_env_payload["recommended_next_action_id"] == "launch-ready-after-env-claims"
+    assert "unit-test-secret-value" not in doctor_from_env.stdout
+    assert "unit-test-secret-value" not in doctor_from_env.stderr
+    (tmp_path / "env_bundle_ready_claims_launcher.ps1").write_text(
+        "param([switch]$ValidateOnly)\nWrite-Host 'fixture env bundle validation ok'\nexit 0\n",
+        encoding="utf-8",
+    )
+    env_bundle_runner_from_env = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(tmp_path / "validation_product_readiness_env_bundle_runner.ps1"),
+            "-InitFromProcessEnv",
+        ],
+        cwd=tmp_path,
+        env=from_process_env,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    assert env_bundle_runner_from_env.returncode == 0
+    assert "Env bundle initialized from process env" in env_bundle_runner_from_env.stdout
+    assert "Imported env bundle names into child process: TAMANDUA_SERVER_PASSWORD" in env_bundle_runner_from_env.stdout
+    assert "Execute not set; printing launch commands only." in env_bundle_runner_from_env.stdout
+    assert "unit-test-secret-value" not in env_bundle_runner_from_env.stdout
+    assert "unit-test-secret-value" not in env_bundle_runner_from_env.stderr
+
+
+def test_product_readiness_operator_check_reports_ready_fast_paths_from_current_env(tmp_path):
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "external_claim_allowed": False,
+        "scorecard_path": "scorecard.json",
+        "gates": {
+            "closure": {"run_id": "closure", "status": "fail", "coverage": "0/23"},
+            "preflight": {"run_id": "preflight", "status": "fail", "coverage": "5/8"},
+            "dispatch": {"run_id": "dispatch", "status": "fail", "coverage": "0/8"},
+        },
+        "product_release_gate": {
+            "passed": False,
+            "failed_count": 3,
+            "failed_ids": ["closure-gate", "required-env", "post-agent-status"],
+            "requirements": [
+                {"id": "closure-gate", "passed": False, "current": "0/23", "required": "closure gate pass"},
+                {"id": "required-env", "passed": False, "current": "1", "required": "0 missing required env values"},
+                {"id": "post-agent-status", "passed": False, "current": "0/1", "required": "agent statuses pass"},
+            ],
+            "claim_boundary": "product_ready and external_claim_allowed require every release gate requirement to pass",
+        },
+        "env_queue": {
+            "current_env_present_count": 0,
+            "current_env_missing_count": 1,
+            "current_env_missing_names": ["TAMANDUA_SERVER_PASSWORD"],
+            "all_env_powershell_set_commands": [
+                "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'"
+            ],
+            "env_bundle_validation_command": "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+            "post_env_bundle_launcher_commands": ["powershell -File env_bundle_ready_claims_launcher.ps1"],
+            "post_env_bundle_balanced_agent_spawn_commands": [
+                "powershell -File agent_spawn_launcher.ps1 -Provider balanced -Phase env-bundle -Execute -Parallel"
+            ],
+            "env_impact": [
+                {
+                    "env": "TAMANDUA_SERVER_PASSWORD",
+                    "claim_count": 1,
+                    "single_env_ready_claim_ids": ["claim-wave-1"],
+                    "immediate_claim_ids": ["claim-wave-1"],
+                    "dependency_claim_ids": [],
+                    "package_ids": ["wave-1"],
+                    "powershell_set_command": "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'",
+                }
+            ],
+            "ready_after_all_env_claim_ids": ["claim-wave-1"],
+            "still_blocked_after_all_env_claim_ids": [],
+        },
+        "env_details": {
+            "TAMANDUA_SERVER_PASSWORD": {
+                "env": "TAMANDUA_SERVER_PASSWORD",
+                "class": "secret",
+                "owner": "operator",
+                "placeholder": "<set-tamandua-server-password-secret>",
+                "description": "Tamandua backend password",
+            }
+        },
+        "handoff_artifacts": {},
+        "post_env_bundle_plan": {
+            "actionable": False,
+            "provider_mode": "balanced",
+            "phase": "env-bundle",
+            "ready_claim_count": 1,
+            "ready_batch_count": 1,
+            "still_blocked_claim_count": 0,
+            "ready_claim_ids": ["claim-wave-1"],
+            "still_blocked_claim_ids": [],
+            "ready_batches": [{"batch": 1, "claim_count": 1, "claim_ids": ["claim-wave-1"]}],
+            "agent_spawn_plan": "",
+            "validate_command": "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+            "package_launcher_commands": ["powershell -File env_bundle_ready_claims_launcher.ps1"],
+            "balanced_agent_spawn_commands": [
+                "powershell -File agent_spawn_launcher.ps1 -Provider balanced -Phase env-bundle -Execute -Parallel"
+            ],
+            "claim_boundary": "available only after the full env bundle validates",
+        },
+        "post_agent_status_gate": {
+            "report": "claim_status_report.json",
+            "markdown_report": "claim_status_report.md",
+            "refresh_command": "python tools/detection_validation/run_preflight_work_package.py --refresh-claim-status-report 'dispatch_manifest.json'",
+            "claim_count": 1,
+            "status_counts": {"not_run": 1},
+            "claim_state_counts": {"blocked_missing_env": 1},
+            "locked_claim_count": 0,
+            "invalid_lock_count": 0,
+            "ready_after_env_claim_ids": ["claim-wave-1"],
+            "ready_after_env_passed_claim_ids": [],
+            "ready_after_env_passed_count": 0,
+            "ready_after_env_required_count": 1,
+            "ready_after_env_all_passed": False,
+            "incomplete_ready_after_env_claims": [
+                {
+                    "claim_id": "claim-wave-1",
+                    "agent_status": "not_run",
+                    "agent_blocker_cleared": False,
+                    "missing_profiles": [],
+                    "status_path": "wave-1/agent_status.json",
+                }
+            ],
+            "required_agent_status_contract": {
+                "status": "pass",
+                "blocker_cleared": True,
+                "missing_profiles": [],
+                "required_fields": ["package_id", "claim_id"],
+            },
+            "claim_boundary": "refresh this report after agent fanout",
+        },
+        "claims": {
+            "claim_count": 1,
+            "ready_to_launch_count": 0,
+            "blocked_missing_env_count": 1,
+            "manual_claim_required_count": 0,
+            "not_run_count": 1,
+        },
+        "claim_queue": [
+            {
+                "claim_id": "claim-wave-1",
+                "package_id": "wave-1",
+                "wave": 1,
+                "owner": "operator",
+                "state": "blocked_missing_env",
+                "missing_effective_env": ["TAMANDUA_SERVER_PASSWORD"],
+                "next_action": "set env",
+            }
+        ],
+        "manual_claims": [],
+        "single_env_fast_paths": [
+            {
+                "env": "TAMANDUA_SERVER_PASSWORD",
+                "claim_ids": ["claim-wave-1"],
+                "package_ids": ["wave-1"],
+                "commands": [
+                    "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'",
+                    "powershell -File wave-1.ps1",
+                ],
+                "claim_boundary": "partial env fast path",
+            }
+        ],
+        "next_action_order": [],
+        "blocked_run_classes": [],
+        "claim_boundary": "derived only",
+    }
+    _json_path, _md_path, operator_check_path, _operator_check_schema_path = product_readiness.write_outputs(
+        summary,
+        tmp_path,
+    )
+    env = os.environ.copy()
+    env.pop("TAMANDUA_SERVER_PASSWORD", None)
+
+    missing = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(operator_check_path),
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+    missing_json = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(operator_check_path),
+            "-Json",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+    env["TAMANDUA_SERVER_PASSWORD"] = "real-secret-value"
+    ready = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(operator_check_path),
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+    ready_json = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(operator_check_path),
+            "-Json",
+        ],
+        cwd=Path(__file__).resolve().parents[2],
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert missing.returncode == 2
+    assert "Current env present: 0/1" in missing.stdout
+    assert "Single-env fast paths ready now: -" in missing.stdout
+    assert "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'" in missing.stdout
+    assert missing_json.returncode == 2
+    missing_payload = json.loads(missing_json.stdout)
+    assert missing_payload["schema_version"] == 1
+    assert missing_payload["artifact"] == "validation-product-readiness-operator-check"
+    assert missing_payload["current_env_present_count"] == 0
+    assert missing_payload["current_env_missing_names"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert missing_payload["missing_env_details"][0]["env"] == "TAMANDUA_SERVER_PASSWORD"
+    assert missing_payload["missing_env_details"][0]["class"] == "secret"
+    assert missing_payload["automation_state"] == "blocked_missing_env"
+    assert missing_payload["can_launch_now"] is False
+    assert missing_payload["needs_env_input"] is True
+    assert missing_payload["handoff_artifacts"] == {}
+    assert missing_payload["manual_claims"] == []
+    assert missing_payload["single_env_fast_path_count"] == 0
+    assert missing_payload["full_env_bundle_ready"] is False
+    assert missing_payload["recommended_next_action_id"] == "fill-env-bundle"
+    assert missing_payload["missing_set_commands"] == [
+        "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'"
+    ]
+    assert missing_payload["recommended_next_action_commands"] == [
+        (
+            "powershell -NoProfile -ExecutionPolicy Bypass -File "
+            "docs/benchmarks/generated/validation_product_readiness_env_bundle_local_env_validate.ps1 "
+            "-PrepareIfMissing -Json"
+        ),
+    ]
+    assert ready.returncode == 0
+    assert "Current env present: 1/1" in ready.stdout
+    assert "- TAMANDUA_SERVER_PASSWORD: claim-wave-1" in ready.stdout
+    assert "powershell -File wave-1.ps1" in ready.stdout
+    assert "Full env bundle ready now. Validate before launch:" in ready.stdout
+    assert ready_json.returncode == 0
+    ready_payload = json.loads(ready_json.stdout)
+    assert ready_payload["schema_version"] == 1
+    assert ready_payload["artifact"] == "validation-product-readiness-operator-check"
+    assert ready_payload["current_env_present_count"] == 1
+    assert ready_payload["current_env_missing_names"] == []
+    assert ready_payload["missing_env_details"] == []
+    assert ready_payload["automation_state"] == "full_env_bundle_ready"
+    assert ready_payload["can_launch_now"] is True
+    assert ready_payload["needs_env_input"] is False
+    assert ready_payload["handoff_artifacts"] == {}
+    assert ready_payload["manual_claims"] == []
+    assert ready_payload["single_env_fast_path_count"] == 1
+    assert ready_payload["single_env_fast_paths_ready"][0]["env"] == "TAMANDUA_SERVER_PASSWORD"
+    assert ready_payload["full_env_bundle_ready"] is True
+    assert ready_payload["launchable_claim_ids"] == ["claim-wave-1"]
+    assert ready_payload["recommended_next_action_id"] == "validate-env-bundle"
+    assert ready_payload["recommended_next_action_commands"] == [
+        "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly"
+    ]
+
+
+def test_status_consistency_accepts_current_product_readiness_summary_shape():
+    summary = {
+        "product_ready": False,
+        "external_claim_allowed": False,
+        "gates": {
+            "closure": {"run_id": "closure-run", "coverage": "0/23"},
+            "preflight": {"run_id": "preflight-run", "coverage": "5/8"},
+            "dispatch": {"run_id": "dispatch-run", "coverage": "1/8"},
+        },
+        "product_release_gate": {
+            "passed": False,
+                "failed_count": 7,
+                "failed_ids": [
+                    "closure-gate",
+                    "preflight-gate",
+                    "dispatch-gate",
+                    "required-env",
+                    "blocked-env-claims",
+                    "post-agent-status",
+                    "blocked-run-classes",
+                ],
+            "requirements": [
+                {"id": "closure-gate", "passed": False, "current": "0/23", "required": "closure gate pass"},
+                {"id": "preflight-gate", "passed": False, "current": "5/8", "required": "preflight gate pass"},
+                {"id": "dispatch-gate", "passed": False, "current": "1/8", "required": "dispatch gate pass"},
+                {"id": "required-env", "passed": False, "current": "14", "required": "0 missing required env values"},
+                {"id": "blocked-env-claims", "passed": False, "current": "7", "required": "0 claims blocked by missing env"},
+                {"id": "manual-claims", "passed": True, "current": "0", "required": "0 manual claims remaining"},
+                {"id": "post-agent-status", "passed": False, "current": "0/4", "required": "agent statuses pass"},
+                {"id": "blocked-run-classes", "passed": False, "current": "5", "required": "0 blocked run classes"},
+            ],
+            "claim_boundary": "product_ready and external_claim_allowed require every release gate requirement to pass",
+        },
+        "env_queue": {
+            "current_env_present_count": 0,
+            "current_env_missing_count": 14,
+            "current_env_missing_names": [
+                "CALDERA_AGENT_PAW",
+                "CALDERA_API_KEY",
+                "CALDERA_GROUP",
+                "TAMANDUA_FRESH_RESTORE",
+                "TAMANDUA_FRESH_RESTORE_AGENT_ID",
+                "TAMANDUA_FRESH_RESTORE_FINISHED_AT",
+                "TAMANDUA_FRESH_RESTORE_HOSTNAME",
+                "TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID",
+                "TAMANDUA_FRESH_RESTORE_SNAPSHOT_NAME",
+                "TAMANDUA_FRESH_RESTORE_STARTED_AT",
+                "TAMANDUA_FRESH_RESTORE_VMID",
+                "TAMANDUA_PROXMOX_PASSWORD",
+                "TAMANDUA_SERVER_PASSWORD",
+                "TAMANDUA_TOKEN",
+            ],
+            "all_env_powershell_set_commands": [f"$env:ENV_{index} = '<set-env-{index}>'" for index in range(14)],
+            "env_bundle_validation_command": "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+            "post_env_bundle_balanced_agent_spawn_commands": [
+                "powershell -File agent_spawn_launcher.ps1 -Provider balanced -Phase env-bundle -Execute -Parallel"
+            ],
+            "env_impact": [
+                {
+                    "env": "TAMANDUA_SERVER_PASSWORD",
+                    "claim_count": 4,
+                    "single_env_ready_claim_ids": ["claim-wave-1-restore-windows-backend-readiness"],
+                    "immediate_claim_ids": [
+                        "claim-wave-1-provide-required-preflight-env",
+                        "claim-wave-1-restore-windows-backend-readiness",
+                        "claim-wave-1-restore-windows-qga-readiness",
+                    ],
+                    "dependency_claim_ids": ["claim-wave-3-rerun-preflight-and-closure-gate"],
+                    "package_ids": [
+                        "wave-1-provide-required-preflight-env",
+                        "wave-1-restore-windows-backend-readiness",
+                        "wave-1-restore-windows-qga-readiness",
+                        "wave-3-rerun-preflight-and-closure-gate",
+                    ],
+                },
+                {"env": "TAMANDUA_TOKEN", "claim_count": 1},
+                {"env": "CALDERA_API_KEY", "claim_count": 3},
+                {"env": "TAMANDUA_PROXMOX_PASSWORD", "claim_count": 3},
+                {"env": "CALDERA_AGENT_PAW", "claim_count": 3},
+                {"env": "CALDERA_GROUP", "claim_count": 3},
+                {"env": "TAMANDUA_FRESH_RESTORE", "claim_count": 3},
+                {"env": "TAMANDUA_FRESH_RESTORE_AGENT_ID", "claim_count": 3},
+                {"env": "TAMANDUA_FRESH_RESTORE_FINISHED_AT", "claim_count": 3},
+                {"env": "TAMANDUA_FRESH_RESTORE_HOSTNAME", "claim_count": 3},
+                {"env": "TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID", "claim_count": 3},
+                {"env": "TAMANDUA_FRESH_RESTORE_SNAPSHOT_NAME", "claim_count": 3},
+                {"env": "TAMANDUA_FRESH_RESTORE_STARTED_AT", "claim_count": 3},
+                {"env": "TAMANDUA_FRESH_RESTORE_VMID", "claim_count": 3},
+            ],
+            "ready_after_all_env_claim_ids": [
+                "claim-wave-1-provide-required-preflight-env",
+                "claim-wave-1-restore-macos-backend-readiness",
+                "claim-wave-1-restore-windows-backend-readiness",
+                "claim-wave-1-restore-windows-qga-readiness",
+            ],
+            "still_blocked_after_all_env_claim_ids": [
+                "claim-wave-2-capture-fresh-restore-provenance",
+                "claim-wave-2-restore-caldera-readiness-repeatability",
+                "claim-wave-3-rerun-preflight-and-closure-gate",
+            ],
+        },
+        "env_details": {
+            env_name: {
+                "env": env_name,
+                "class": "secret" if any(marker in env_name for marker in ["KEY", "PASSWORD", "TOKEN"]) else "claim-metadata",
+                "owner": "operator-or-secret-holder",
+                "placeholder": (
+                    f"<set-{env_name.lower().replace('_', '-')}-secret>"
+                    if any(marker in env_name for marker in ["KEY", "PASSWORD", "TOKEN"])
+                    else f"<set-{env_name.lower().replace('_', '-')}>"
+                ),
+                "description": "CALDERA API key input" if env_name == "CALDERA_API_KEY" else f"{env_name} input",
+            }
+            for env_name in [
+                "CALDERA_AGENT_PAW",
+                "CALDERA_API_KEY",
+                "CALDERA_GROUP",
+                "TAMANDUA_FRESH_RESTORE",
+                "TAMANDUA_FRESH_RESTORE_AGENT_ID",
+                "TAMANDUA_FRESH_RESTORE_FINISHED_AT",
+                "TAMANDUA_FRESH_RESTORE_HOSTNAME",
+                "TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID",
+                "TAMANDUA_FRESH_RESTORE_SNAPSHOT_NAME",
+                "TAMANDUA_FRESH_RESTORE_STARTED_AT",
+                "TAMANDUA_FRESH_RESTORE_VMID",
+                "TAMANDUA_PROXMOX_PASSWORD",
+                "TAMANDUA_SERVER_PASSWORD",
+                "TAMANDUA_TOKEN",
+            ]
+        },
+        "handoff_artifacts": {
+            "dispatch_brief": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "dispatch_brief.md"
+            ),
+            "env_checklist": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_checklist.md"
+            ),
+            "env_template": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_template.ps1"
+            ),
+            "env_unblock_queue": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_unblock_queue.md"
+            ),
+            "env_unblock_queue_json": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_unblock_queue.json"
+            ),
+            "agent_claims": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "agent_claims.json"
+            ),
+            "agent_spawn_plan": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "agent_spawn_plan.json"
+            ),
+            "agent_spawn_launcher": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "agent_spawn_launcher.ps1"
+            ),
+            "env_bundle_ready_claims_launcher": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_bundle_ready_claims_launcher.ps1"
+            ),
+            "dispatch_prelaunch_validation": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "dispatch_prelaunch_validation.ps1"
+            ),
+            "dispatch_one_shot_runner": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "dispatch_one_shot_runner.ps1"
+            ),
+            "claim_status_report": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "claim_status_report.md"
+            ),
+            "claim_status_report_json": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "claim_status_report.json"
+            ),
+        },
+        "post_env_bundle_plan": {
+            "actionable": True,
+            "provider_mode": "balanced",
+            "phase": "env-bundle",
+            "ready_claim_count": 4,
+            "ready_batch_count": 2,
+            "still_blocked_claim_count": 3,
+            "ready_claim_ids": [
+                "claim-wave-1-provide-required-preflight-env",
+                "claim-wave-1-restore-macos-backend-readiness",
+                "claim-wave-1-restore-windows-backend-readiness",
+                "claim-wave-1-restore-windows-qga-readiness",
+            ],
+            "still_blocked_claim_ids": [
+                "claim-wave-2-capture-fresh-restore-provenance",
+                "claim-wave-2-restore-caldera-readiness-repeatability",
+                "claim-wave-3-rerun-preflight-and-closure-gate",
+            ],
+            "ready_batches": [
+                {
+                    "batch": 1,
+                    "claim_count": 3,
+                    "claim_ids": [
+                        "claim-wave-1-provide-required-preflight-env",
+                        "claim-wave-1-restore-macos-backend-readiness",
+                        "claim-wave-1-restore-windows-backend-readiness",
+                    ],
+                },
+                {
+                    "batch": 2,
+                    "claim_count": 1,
+                    "claim_ids": ["claim-wave-1-restore-windows-qga-readiness"],
+                },
+            ],
+            "agent_spawn_plan": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "agent_spawn_plan.json"
+            ),
+            "validate_command": "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+            "package_launcher_commands": ["powershell -File env_bundle_ready_claims_launcher.ps1"],
+            "balanced_agent_spawn_commands": [
+                "powershell -File agent_spawn_launcher.ps1 -Provider balanced -Phase env-bundle -Execute -Parallel"
+            ],
+            "claim_boundary": "available only after the full env bundle validates",
+        },
+        "post_agent_status_gate": {
+            "report": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "claim_status_report.json"
+            ),
+            "markdown_report": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "claim_status_report.md"
+            ),
+            "refresh_command": (
+                "python tools/detection_validation/run_preflight_work_package.py --refresh-claim-status-report "
+                "'docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "dispatch_manifest.json'"
+            ),
+            "claim_count": 8,
+            "status_counts": {"not_run": 7, "pass": 1},
+            "claim_state_counts": {"blocked_missing_env": 7, "manual_claim_required": 1},
+            "locked_claim_count": 0,
+            "invalid_lock_count": 0,
+            "ready_after_env_claim_ids": [
+                "claim-wave-1-provide-required-preflight-env",
+                "claim-wave-1-restore-macos-backend-readiness",
+                "claim-wave-1-restore-windows-backend-readiness",
+                "claim-wave-1-restore-windows-qga-readiness",
+            ],
+            "ready_after_env_passed_claim_ids": [],
+            "ready_after_env_passed_count": 0,
+            "ready_after_env_required_count": 4,
+            "ready_after_env_all_passed": False,
+            "incomplete_ready_after_env_claims": [
+                {"claim_id": "claim-wave-1-provide-required-preflight-env", "agent_status": "not_run"},
+                {"claim_id": "claim-wave-1-restore-macos-backend-readiness", "agent_status": "not_run"},
+                {"claim_id": "claim-wave-1-restore-windows-backend-readiness", "agent_status": "not_run"},
+                {"claim_id": "claim-wave-1-restore-windows-qga-readiness", "agent_status": "not_run"},
+            ],
+            "required_agent_status_contract": {
+                "status": "pass",
+                "blocker_cleared": True,
+                "missing_profiles": [],
+                "required_fields": ["package_id", "claim_id"],
+            },
+            "claim_boundary": "refresh this report after agent fanout",
+        },
+        "claims": {
+            "claim_count": 8,
+            "ready_to_launch_count": 0,
+            "blocked_missing_env_count": 7,
+            "manual_claim_required_count": 0,
+            "not_run_count": 7,
+        },
+        "claim_queue": [{"claim_id": f"claim-{index}"} for index in range(8)],
+        "manual_claims": [],
+        "single_env_fast_paths": [
+            {
+                "env": "TAMANDUA_SERVER_PASSWORD",
+                "claim_ids": ["claim-wave-1-restore-windows-backend-readiness"],
+                "package_ids": ["wave-1-restore-windows-backend-readiness"],
+                "commands": [
+                    "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'",
+                    "powershell -File wave-1-restore-windows-backend-readiness.ps1",
+                ],
+            },
+            {
+                "env": "TAMANDUA_TOKEN",
+                "claim_ids": ["claim-wave-1-restore-macos-backend-readiness"],
+                "package_ids": ["wave-1-restore-macos-backend-readiness"],
+                "commands": [
+                    "$env:TAMANDUA_TOKEN = '<set-tamandua-token-secret>'",
+                    "tamandua-ctl remote login --server http://192.168.12.146:4000 --token $env:TAMANDUA_TOKEN",
+                    "powershell -File wave-1-restore-macos-backend-readiness.ps1",
+                ],
+            },
+        ],
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 2,
+            "title": "Fill the complete redacted env bundle locally",
+            "claim_boundary": "operator input only; do not paste secret values into reports",
+            "commands": [],
+            "claim_ids": [],
+            "env": [
+                "CALDERA_AGENT_PAW",
+                "CALDERA_API_KEY",
+                "CALDERA_GROUP",
+                "TAMANDUA_FRESH_RESTORE",
+                "TAMANDUA_FRESH_RESTORE_AGENT_ID",
+                "TAMANDUA_FRESH_RESTORE_FINISHED_AT",
+                "TAMANDUA_FRESH_RESTORE_HOSTNAME",
+                "TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID",
+                "TAMANDUA_FRESH_RESTORE_SNAPSHOT_NAME",
+                "TAMANDUA_FRESH_RESTORE_STARTED_AT",
+                "TAMANDUA_FRESH_RESTORE_VMID",
+                "TAMANDUA_PROXMOX_PASSWORD",
+                "TAMANDUA_SERVER_PASSWORD",
+                "TAMANDUA_TOKEN",
+            ],
+        },
+        "next_action_order": [
+            {
+                "id": "check-current-env",
+                "commands": [
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "docs/benchmarks/generated/validation_product_readiness_operator_check.ps1 -Json"
+                ],
+            },
+            {"id": "fill-env-bundle"},
+            {"id": "validate-env-bundle"},
+            {"id": "launch-env-bundle-claims"},
+            {"id": "balanced-agent-fanout"},
+            {"id": "resolve-manual-claims"},
+            {"id": "resolve-still-blocked-after-env"},
+            {"id": "refresh-validation-authority"},
+        ],
+        "blocked_run_classes": [
+            {"run_class": "macos-server-backed-smoke"},
+            {"run_class": "windows-atomic-extended"},
+            {"run_class": "windows-broad"},
+            {"run_class": "windows-caldera-enterprise"},
+            {"run_class": "windows-p1-p2-rerun"},
+        ],
+    }
+    assert (
+        consistency.product_readiness_summary_matches_current_blockers(
+            summary,
+            "closure-run",
+            "preflight-run",
+            "dispatch-run",
+        )
+        is True
+    )
+
+
+def test_status_consistency_accepts_operator_check_json_shape():
+    payload = {
+        "_operator_check_returncode": 2,
+        "schema_version": 1,
+        "artifact": "validation-product-readiness-operator-check",
+        "product_ready": False,
+        "product_release_gate": {
+            "passed": False,
+            "failed_count": 8,
+            "failed_ids": [
+                "closure-gate",
+                "preflight-gate",
+                "dispatch-gate",
+                "required-env",
+                "blocked-env-claims",
+                "manual-claims",
+                "post-agent-status",
+                "blocked-run-classes",
+            ],
+            "requirements": [
+                {"id": "closure-gate", "passed": False, "current": "0/23", "required": "closure gate pass"},
+                {"id": "required-env", "passed": False, "current": "2", "required": "0 missing required env values"},
+                {"id": "post-agent-status", "passed": False, "current": "0/4", "required": "agent statuses pass"},
+            ],
+            "claim_boundary": "product_ready and external_claim_allowed require every release gate requirement to pass",
+        },
+        "automation_state": "blocked_missing_env",
+        "can_launch_now": False,
+        "needs_env_input": True,
+        "required_env_count": 2,
+        "current_env_present_count": 0,
+        "current_env_missing_names": ["TAMANDUA_SERVER_PASSWORD", "TAMANDUA_TOKEN"],
+        "missing_env_details": [
+            {
+                "env": "TAMANDUA_SERVER_PASSWORD",
+                "class": "secret",
+                "placeholder": "<set-tamandua-server-password-secret>",
+            },
+            {
+                "env": "TAMANDUA_TOKEN",
+                "class": "secret",
+                "placeholder": "<set-tamandua-token-secret>",
+            },
+        ],
+        "placeholder_env_names": [],
+        "single_env_fast_paths_ready": [],
+        "single_env_fast_path_count": 0,
+        "full_env_bundle_ready": False,
+        "env_bundle_validation_command": "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+        "handoff_artifacts": {
+            "dispatch_brief": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "dispatch_brief.md"
+            ),
+            "env_checklist": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_checklist.md"
+            ),
+            "env_template": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_template.ps1"
+            ),
+            "env_unblock_queue": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_unblock_queue.md"
+            ),
+            "env_unblock_queue_json": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_unblock_queue.json"
+            ),
+            "agent_claims": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "agent_claims.json"
+            ),
+            "agent_spawn_plan": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "agent_spawn_plan.json"
+            ),
+            "agent_spawn_launcher": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "agent_spawn_launcher.ps1"
+            ),
+            "env_bundle_ready_claims_launcher": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "env_bundle_ready_claims_launcher.ps1"
+            ),
+            "dispatch_prelaunch_validation": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "dispatch_prelaunch_validation.ps1"
+            ),
+            "dispatch_one_shot_runner": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "dispatch_one_shot_runner.ps1"
+            ),
+            "claim_status_report": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "claim_status_report.md"
+            ),
+            "claim_status_report_json": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "claim_status_report.json"
+            ),
+        },
+        "manual_claims": [
+            {
+                "claim_id": "claim-wave-1-resolve-atomic-extended-preconditions",
+                "next_action": "Use a WMI-capable disposable target or narrow the claim boundary for T1047 before rerunning Atomic extended.",
+            }
+        ],
+        "post_env_bundle_balanced_agent_spawn_commands": [
+            "$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'",
+            "$env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'",
+            "powershell -NoProfile -ExecutionPolicy Bypass -File 'agent_spawn_launcher.ps1' "
+            "-Provider balanced -Phase env-bundle -Execute -Parallel",
+        ],
+        "post_env_bundle_plan": {
+            "actionable": True,
+            "provider_mode": "balanced",
+            "phase": "env-bundle",
+            "ready_claim_count": 4,
+            "ready_batch_count": 2,
+            "still_blocked_claim_count": 3,
+            "ready_claim_ids": [
+                "claim-wave-1-provide-required-preflight-env",
+                "claim-wave-1-restore-macos-backend-readiness",
+                "claim-wave-1-restore-windows-backend-readiness",
+                "claim-wave-1-restore-windows-qga-readiness",
+            ],
+            "still_blocked_claim_ids": [
+                "claim-wave-2-capture-fresh-restore-provenance",
+                "claim-wave-2-restore-caldera-readiness-repeatability",
+                "claim-wave-3-rerun-preflight-and-closure-gate",
+            ],
+            "ready_batches": [
+                {"batch": 1, "claim_count": 3, "claim_ids": ["claim-wave-1-provide-required-preflight-env"]},
+                {"batch": 2, "claim_count": 1, "claim_ids": ["claim-wave-1-restore-windows-qga-readiness"]},
+            ],
+            "agent_spawn_plan": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "agent_spawn_plan.json"
+            ),
+            "validate_command": "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+            "package_launcher_commands": ["powershell -File env_bundle_ready_claims_launcher.ps1"],
+            "balanced_agent_spawn_commands": [
+                "powershell -NoProfile -ExecutionPolicy Bypass -File 'agent_spawn_launcher.ps1' "
+                "-Provider balanced -Phase env-bundle -Execute -Parallel"
+            ],
+            "claim_boundary": "available only after the full env bundle validates",
+        },
+        "post_agent_status_gate": {
+            "report": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "claim_status_report.json"
+            ),
+            "markdown_report": (
+                "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "claim_status_report.md"
+            ),
+            "refresh_command": (
+                "python tools/detection_validation/run_preflight_work_package.py --refresh-claim-status-report "
+                "'docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
+                "dispatch_manifest.json'"
+            ),
+            "claim_count": 8,
+            "status_counts": {"not_run": 8},
+            "claim_state_counts": {"blocked_missing_env": 7, "manual_claim_required": 1},
+            "locked_claim_count": 0,
+            "invalid_lock_count": 0,
+            "ready_after_env_claim_ids": [
+                "claim-wave-1-provide-required-preflight-env",
+                "claim-wave-1-restore-macos-backend-readiness",
+                "claim-wave-1-restore-windows-backend-readiness",
+                "claim-wave-1-restore-windows-qga-readiness",
+            ],
+            "ready_after_env_passed_claim_ids": [],
+            "ready_after_env_passed_count": 0,
+            "ready_after_env_required_count": 4,
+            "ready_after_env_all_passed": False,
+            "incomplete_ready_after_env_claims": [
+                {"claim_id": "claim-wave-1-provide-required-preflight-env", "agent_status": "not_run"},
+                {"claim_id": "claim-wave-1-restore-macos-backend-readiness", "agent_status": "not_run"},
+                {"claim_id": "claim-wave-1-restore-windows-backend-readiness", "agent_status": "not_run"},
+                {"claim_id": "claim-wave-1-restore-windows-qga-readiness", "agent_status": "not_run"},
+            ],
+            "required_agent_status_contract": {
+                "status": "pass",
+                "blocker_cleared": True,
+                "missing_profiles": [],
+                "required_fields": ["package_id", "claim_id"],
+            },
+            "claim_boundary": "refresh this report after agent fanout",
+        },
+        "missing_set_commands": [
+            "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'",
+            "$env:TAMANDUA_TOKEN = '<set-tamandua-token-secret>'",
+        ],
+        "launchable_claim_ids": [],
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action_commands": [
+            (
+                "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                "docs/benchmarks/generated/validation_product_readiness_env_bundle_local_env_validate.ps1 "
+                "-PrepareIfMissing -Json"
+            ),
+        ],
+    }
+    joined_commands = " ".join(payload["missing_set_commands"])
+
+    assert payload["_operator_check_returncode"] == 2
+    assert payload["schema_version"] == 1
+    assert payload["artifact"] == "validation-product-readiness-operator-check"
+    assert payload["product_ready"] is False
+    assert payload["product_release_gate"]["passed"] is False
+    assert payload["automation_state"] == "blocked_missing_env"
+    assert payload["can_launch_now"] is False
+    assert payload["needs_env_input"] is True
+    assert payload["required_env_count"] == 2
+    assert payload["current_env_present_count"] == 0
+    assert sorted(payload["current_env_missing_names"]) == ["TAMANDUA_SERVER_PASSWORD", "TAMANDUA_TOKEN"]
+    assert payload["single_env_fast_path_count"] == 0
+    assert payload["full_env_bundle_ready"] is False
+    assert payload["launchable_claim_ids"] == []
+    assert payload["recommended_next_action_id"] == "fill-env-bundle"
+    assert "validation_product_readiness_env_bundle_local_env_validate.ps1 -PrepareIfMissing -Json" in payload[
+        "recommended_next_action_commands"
+    ][0]
+    assert len(payload["missing_set_commands"]) == 2
+    assert all(env_name in joined_commands for env_name in ["TAMANDUA_SERVER_PASSWORD", "TAMANDUA_TOKEN"])
+    assert "-ValidateOnly" in payload["env_bundle_validation_command"]
+    assert any(
+        "-Provider balanced -Phase env-bundle -Execute -Parallel" in command
+        for command in payload["post_env_bundle_balanced_agent_spawn_commands"]
+    )
+
+    assert (
+        consistency.product_readiness_operator_check_json_blocker_reasons(
+            payload,
+            ["TAMANDUA_SERVER_PASSWORD", "TAMANDUA_TOKEN"],
+        )
+        == []
+    )
+    schema = product_readiness.operator_check_schema()
+    assert consistency.product_readiness_operator_schema_matches_payload(schema, payload) is True
+
+    relaxed_schema = copy.deepcopy(schema)
+    relaxed_schema["required"].remove("recommended_next_action_commands")
+    assert consistency.product_readiness_operator_schema_matches_payload(relaxed_schema, payload) is False
+
+
+def test_status_consistency_accepts_env_request_schema_shape():
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "product_release_gate": {"passed": False},
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 2,
+            "title": "Fill the complete redacted env bundle locally",
+            "claim_boundary": "operator input only; do not paste secret values into reports",
+            "commands": [],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "env_queue": {
+            "current_env_missing_names": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "env_details": {
+            "TAMANDUA_SERVER_PASSWORD": {
+                "env": "TAMANDUA_SERVER_PASSWORD",
+                "class": "secret",
+                "owner": "operator",
+                "description": "Tamandua backend password",
+                "placeholder": "<set-tamandua-server-password-secret>",
+                "powershell_set_command": "$env:TAMANDUA_SERVER_PASSWORD = '<set-tamandua-server-password-secret>'",
+                "claim_ids": ["claim-wave-1"],
+                "package_ids": ["wave-1"],
+            }
+        },
+    }
+    payload = product_readiness.env_request_payload(summary)
+    schema = product_readiness.env_request_schema()
+
+    assert consistency.product_readiness_env_request_schema_matches_payload(schema, payload) is True
+    assert payload["recommended_next_action_id"] == "fill-env-bundle"
+    assert payload["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert payload["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    template = {"TAMANDUA_SERVER_PASSWORD": "<set-tamandua-server-password-secret>"}
+    dotenv_template = "\n".join(
+        [
+            "# Product readiness env bundle dotenv template",
+            "# Replace placeholder values locally. Do not commit real values.",
+            "# Copy this file to validation_product_readiness_env_bundle.local.env before editing.",
+            "# Tamandua backend password",
+            "TAMANDUA_SERVER_PASSWORD='<set-tamandua-server-password-secret>'",
+            "",
+        ]
+    )
+    assert consistency.product_readiness_env_bundle_json_template_matches_env_request(template, payload) is True
+    assert (
+        consistency.product_readiness_env_bundle_dotenv_template_matches_env_request(dotenv_template, payload)
+        is True
+    )
+
+    relaxed_schema = copy.deepcopy(schema)
+    relaxed_schema["required"].remove("copy_paste_powershell")
+    assert consistency.product_readiness_env_request_schema_matches_payload(relaxed_schema, payload) is False
+    assert (
+        consistency.product_readiness_env_bundle_json_template_matches_env_request(
+            {"TAMANDUA_SERVER_PASSWORD": "real-value"},
+            payload,
+        )
+        is False
+    )
+    assert (
+        consistency.product_readiness_env_bundle_dotenv_template_matches_env_request(
+            "TAMANDUA_SERVER_PASSWORD='real-value'\n",
+            payload,
+        )
+        is False
+    )
+
+
+def test_status_consistency_accepts_post_env_runner_contract_shape():
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 2,
+            "title": "Fill the complete redacted env bundle locally",
+            "claim_boundary": "operator input only; do not paste secret values into reports",
+            "commands": [],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "env_queue": {
+            "current_env_missing_count": 1,
+            "current_env_missing_names": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "local_env_bundle_gate": {
+            "schema_version": 1,
+            "artifact": "validation-product-readiness-local-env-bundle-gate",
+            "bundle_path": "docs/benchmarks/generated/validation_product_readiness_env_bundle.local.json",
+            "exists": False,
+            "complete": False,
+            "required_env_count": 1,
+            "present_env_count": 0,
+            "missing_env_names": ["TAMANDUA_SERVER_PASSWORD"],
+            "empty_env_names": [],
+            "placeholder_env_names": [],
+            "unexpected_env_names": [],
+            "parse_error": "",
+            "claim_boundary": "local ignored env bundle status only; never includes secret values",
+        },
+        "post_env_bundle_plan": {
+            "ready_claim_count": 1,
+            "ready_claim_ids": ["claim-wave-1"],
+            "still_blocked_claim_count": 1,
+            "still_blocked_claim_ids": ["claim-wave-2"],
+            "validate_command": "powershell -File env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+            "package_launcher_commands": ["powershell -File env_bundle_ready_claims_launcher.ps1"],
+            "balanced_agent_spawn_commands": [
+                "powershell -File agent_spawn_launcher.ps1 -Provider balanced -Phase env-bundle -Execute -Parallel"
+            ],
+        },
+        "post_agent_status_gate": {
+            "refresh_command": (
+                "python tools/detection_validation/run_preflight_work_package.py "
+                "--refresh-claim-status-report dispatch_manifest.json"
+            )
+        },
+    }
+    contract = product_readiness.post_env_runner_contract_payload(summary)
+
+    assert consistency.product_readiness_post_env_runner_contract_matches_summary(contract, summary) is True
+    assert contract["runner_schema_path"].endswith(
+        "validation_product_readiness_post_env_bundle_runner.schema.json"
+    )
+    assert contract["recommended_next_action_id"] == "fill-env-bundle"
+    assert contract["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert (
+        consistency.contract_schema_matches_payload(
+            product_readiness.post_env_runner_contract_schema(),
+            contract,
+            "validation-product-readiness-post-env-runner-contract",
+        )
+        is True
+    )
+    runtime_payload = {
+        "schema_version": 1,
+        "artifact": "validation-product-readiness-post-env-bundle-runner",
+        "product_ready": False,
+        "execute_requested": False,
+        "execute_allowed": False,
+        "use_balanced_agents": False,
+        "refresh_claim_status_requested": False,
+        "full_env_bundle_ready": False,
+        "automation_state": "blocked_missing_env",
+        "missing_env_names": ["TAMANDUA_SERVER_PASSWORD"],
+        "ready_claim_ids": ["claim-wave-1"],
+        "launch_mode": "package-launcher",
+        "launch_commands": ["powershell -File env_bundle_ready_claims_launcher.ps1"],
+        "refresh_claim_status_command": (
+            "python tools/detection_validation/run_preflight_work_package.py "
+            "--refresh-claim-status-report dispatch_manifest.json"
+        ),
+        "operator_check_exit_code": 2,
+        "claim_boundary": (
+            "post-env runner JSON status only; it does not import secret values, "
+            "validate packages, or launch claims"
+        ),
+        "_post_env_runner_returncode": 2,
+    }
+    assert (
+        consistency.product_readiness_post_env_runner_json_matches_contract(runtime_payload, contract)
+        is True
+    )
+    assert (
+        consistency.product_readiness_post_env_runner_schema_matches_payload(
+            product_readiness.post_env_bundle_runner_schema(),
+            runtime_payload,
+        )
+        is True
+    )
+
+    stale_contract = copy.deepcopy(contract)
+    stale_contract["ready_claim_count"] = 2
+    assert consistency.product_readiness_post_env_runner_contract_matches_summary(stale_contract, summary) is False
+    stale_schema = copy.deepcopy(product_readiness.post_env_runner_contract_schema())
+    stale_schema["required"].remove("guards")
+    assert (
+        consistency.contract_schema_matches_payload(
+            stale_schema,
+            contract,
+            "validation-product-readiness-post-env-runner-contract",
+        )
+        is False
+    )
+
+
+def test_status_consistency_accepts_claim_status_contract_shape():
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 1,
+            "title": "Fill local env bundle",
+            "claim_boundary": "operator input only; agents must not infer or expose secrets",
+            "commands": ["pwsh -File docs/benchmarks/generated/validation_product_readiness_operator_check.ps1"],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "post_agent_status_gate": {
+            "refresh_command": (
+                "python tools/detection_validation/run_preflight_work_package.py "
+                "--refresh-claim-status-report dispatch_manifest.json"
+            ),
+            "ready_after_env_claim_ids": ["claim-wave-1"],
+            "ready_after_env_passed_claim_ids": [],
+            "ready_after_env_passed_count": 0,
+            "ready_after_env_required_count": 1,
+            "ready_after_env_all_passed": False,
+            "incomplete_ready_after_env_claims": [
+                {
+                    "claim_id": "claim-wave-1",
+                    "agent_status": "not_run",
+                    "agent_blocker_cleared": False,
+                    "missing_profiles": ["windows-qga"],
+                    "status_path": "wave-1/agent_status.json",
+                }
+            ],
+            "required_agent_status_contract": {
+                "status": "pass",
+                "blocker_cleared": True,
+                "missing_profiles": [],
+                "required_fields": ["package_id", "claim_id", "status", "blocker_cleared", "missing_profiles"],
+            },
+        },
+    }
+    contract = product_readiness.claim_status_contract_payload(summary)
+
+    assert consistency.product_readiness_claim_status_contract_matches_summary(contract, summary) is True
+    assert contract["recommended_next_action_id"] == "fill-env-bundle"
+    assert contract["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert (
+        consistency.contract_schema_matches_payload(
+            product_readiness.claim_status_contract_schema(),
+            contract,
+            "validation-product-readiness-claim-status-contract",
+        )
+        is True
+    )
+
+    stale_contract = copy.deepcopy(contract)
+    stale_contract["ready_after_env_passed_count"] = 1
+    assert consistency.product_readiness_claim_status_contract_matches_summary(stale_contract, summary) is False
+    stale_schema = copy.deepcopy(product_readiness.claim_status_contract_schema())
+    stale_schema["required"].remove("claims")
+    assert (
+        consistency.contract_schema_matches_payload(
+            stale_schema,
+            contract,
+            "validation-product-readiness-claim-status-contract",
+        )
+        is False
+    )
+
+
+def test_status_consistency_accepts_blocked_run_classes_contract_shape():
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 1,
+            "title": "Fill local env bundle",
+            "claim_boundary": "operator input only; agents must not infer or expose secrets",
+            "commands": ["pwsh -File docs/benchmarks/generated/validation_product_readiness_operator_check.ps1"],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "blocked_run_classes": [
+            {
+                "run_class": "windows-broad",
+                "allowed": False,
+                "roadmaps": ["A"],
+                "missing_env": ["TAMANDUA_SERVER_PASSWORD"],
+                "blocking_profiles": ["windows-agent-connection-stability-probe"],
+            },
+            {
+                "run_class": "macos-server-backed-smoke",
+                "allowed": False,
+                "roadmaps": ["E"],
+                "missing_env": [],
+                "blocking_profiles": ["macos-backend-readiness-probe"],
+            },
+        ],
+    }
+    contract = product_readiness.blocked_run_classes_contract_payload(summary)
+
+    assert consistency.product_readiness_blocked_run_classes_contract_matches_summary(contract, summary) is True
+    assert (
+        consistency.contract_schema_matches_payload(
+            product_readiness.blocked_run_classes_contract_schema(),
+            contract,
+            "validation-product-readiness-blocked-run-classes-contract",
+        )
+        is True
+    )
+    assert contract["blocked_run_class_count"] == 2
+    assert contract["env_blocked_count"] == 1
+    assert contract["profile_or_lab_blocked_count"] == 1
+    assert contract["recommended_next_action_id"] == "fill-env-bundle"
+    assert contract["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert {item["resolution_class"] for item in contract["classes"]} == {
+        "env_required",
+        "profile_or_lab_required",
+    }
+
+    stale_contract = copy.deepcopy(contract)
+    stale_contract["env_blocked_count"] = 2
+    assert consistency.product_readiness_blocked_run_classes_contract_matches_summary(stale_contract, summary) is False
+    stale_schema = copy.deepcopy(product_readiness.blocked_run_classes_contract_schema())
+    stale_schema["required"].remove("classes")
+    assert (
+        consistency.contract_schema_matches_payload(
+            stale_schema,
+            contract,
+            "validation-product-readiness-blocked-run-classes-contract",
+        )
+        is False
+    )
+
+
+def test_status_consistency_accepts_product_readiness_runbook_shape():
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 2,
+            "title": "Fill the complete redacted env bundle locally",
+            "claim_boundary": "operator input only; do not paste secret values into reports",
+            "commands": [],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+    }
+    env_request = {"required_env_count": 1}
+    post_env_contract = {
+        "modes": [
+            {
+                "id": "balanced-agent-fanout",
+                "command": (
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "docs/benchmarks/generated/validation_product_readiness_env_bundle_runner.ps1 "
+                    "-UseBalancedAgents -Execute -RefreshClaimStatus"
+                ),
+                "executes_claims": True,
+            }
+        ],
+        "validation_command": (
+            "powershell -NoProfile -ExecutionPolicy Bypass -File "
+            "docs/benchmarks/generated/validation_product_readiness_env_bundle_runner.ps1 -Json"
+        ),
+        "refresh_claim_status_command": "python refresh.py --refresh-claim-status-report dispatch_manifest.json",
+        "guards": ["execute_switch_required_for_claim_launch"],
+    }
+    claim_status_contract = {"ready_after_env_required_count": 1}
+    blocked_run_classes_contract = {"blocked_run_class_count": 2}
+    runbook = product_readiness.product_readiness_runbook_payload(
+        summary,
+        env_request,
+        post_env_contract,
+        claim_status_contract,
+        blocked_run_classes_contract,
+    )
+
+    assert (
+        consistency.product_readiness_runbook_matches_contracts(
+            runbook,
+            summary,
+            env_request,
+            post_env_contract,
+            claim_status_contract,
+            blocked_run_classes_contract,
+        )
+        is True
+    )
+    assert runbook["recommended_next_action_id"] == "fill-env-bundle"
+    assert runbook["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert runbook["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert (
+        consistency.contract_schema_matches_payload(
+            product_readiness.product_readiness_runbook_schema(),
+            runbook,
+            "validation-product-readiness-runbook",
+        )
+        is True
+    )
+
+    stale_runbook = copy.deepcopy(runbook)
+    stale_runbook["steps"][0]["id"] = "skip-inspection"
+    assert (
+        consistency.product_readiness_runbook_matches_contracts(
+            stale_runbook,
+            summary,
+            env_request,
+            post_env_contract,
+            claim_status_contract,
+            blocked_run_classes_contract,
+        )
+        is False
+    )
+    stale_schema = copy.deepcopy(product_readiness.product_readiness_runbook_schema())
+    stale_schema["required"].remove("steps")
+    assert (
+        consistency.contract_schema_matches_payload(
+            stale_schema,
+            runbook,
+            "validation-product-readiness-runbook",
+        )
+        is False
+    )
+
+
+def test_status_consistency_accepts_remaining_work_shape():
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 2,
+            "title": "Fill the complete redacted env bundle locally",
+            "claim_boundary": "operator input only; do not paste secret values into reports",
+            "commands": [],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "manual_claims": [
+            {
+                "claim_id": "claim-manual",
+                "prompt_path": "runs/wave-manual.agent.md",
+            }
+        ],
+    }
+    release_gate_contract = {
+        "failed_count": 4,
+        "failed_ids": ["required-env", "manual-claims", "post-agent-status", "blocked-run-classes"],
+        "manual_claim_ids": ["claim-manual"],
+        "requirements": [
+            {
+                "id": "required-env",
+                "passed": False,
+                "current": "1",
+                "required": "0 missing required env values",
+                "evidence_required": ["operator check reports current_env_missing_names=[]"],
+            },
+            {
+                "id": "manual-claims",
+                "passed": False,
+                "current": "1",
+                "required": "0 manual claims",
+                "evidence_required": ["manual claim resolved"],
+            },
+            {
+                "id": "post-agent-status",
+                "passed": False,
+                "current": "0/1",
+                "required": "agent statuses pass",
+                "evidence_required": ["ready-after-env claims have status=pass"],
+            },
+            {
+                "id": "blocked-run-classes",
+                "passed": False,
+                "current": "1",
+                "required": "0 blocked run classes",
+                "evidence_required": ["blocked_run_classes=[]"],
+            },
+        ],
+    }
+    env_request = {"required_env_count": 1}
+    claim_status_contract = {"ready_after_env_required_count": 1, "ready_after_env_passed_count": 0}
+    blocked_run_classes_contract = {"blocked_run_class_count": 1, "profile_or_lab_blocked_count": 1}
+    runbook = {"steps": [{"id": "inspect-current-state"}, {"id": "fill-env-bundle"}]}
+    remaining_work = product_readiness.remaining_work_payload(
+        summary,
+        release_gate_contract,
+        env_request,
+        claim_status_contract,
+        blocked_run_classes_contract,
+        runbook,
+    )
+
+    assert (
+        consistency.product_readiness_remaining_work_matches_contracts(
+            remaining_work,
+            summary,
+            release_gate_contract,
+            env_request,
+            claim_status_contract,
+            blocked_run_classes_contract,
+            runbook,
+        )
+        is True
+    )
+    assert (
+        consistency.contract_schema_matches_payload(
+            product_readiness.remaining_work_schema(),
+            remaining_work,
+            "validation-product-readiness-remaining-work",
+        )
+        is True
+    )
+    assert remaining_work["open_count"] == 4
+    assert remaining_work["recommended_next_action_id"] == "fill-env-bundle"
+    assert remaining_work["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert remaining_work["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert [item["id"] for item in remaining_work["items"]] == [
+        "provide-required-env-bundle",
+        "resolve-manual-claims",
+        "pass-ready-after-env-agent-status",
+        "clear-blocked-run-classes",
+    ]
+
+    stale_remaining_work = copy.deepcopy(remaining_work)
+    stale_remaining_work["items"][0]["id"] = "wrong"
+    assert (
+        consistency.product_readiness_remaining_work_matches_contracts(
+            stale_remaining_work,
+            summary,
+            release_gate_contract,
+            env_request,
+            claim_status_contract,
+            blocked_run_classes_contract,
+            runbook,
+        )
+        is False
+    )
+    stale_schema = copy.deepcopy(product_readiness.remaining_work_schema())
+    stale_schema["required"].remove("items")
+    assert (
+        consistency.contract_schema_matches_payload(
+            stale_schema,
+            remaining_work,
+            "validation-product-readiness-remaining-work",
+        )
+        is False
+    )
+
+
+def test_status_consistency_accepts_ready_now_fanout_shape():
+    remaining_work = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 1,
+            "title": "Fill local env bundle",
+            "claim_boundary": "operator input only; agents must not infer or expose secrets",
+            "commands": ["pwsh -File docs/benchmarks/generated/validation_product_readiness_operator_check.ps1"],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "open_count": 4,
+        "items": [
+            {
+                "id": "provide-required-env-bundle",
+                "status": "open",
+                "blocker_type": "env",
+                "source_requirement": "required-env",
+                "owner": "operator",
+                "next_artifact": "env_request.md",
+                "evidence_required": ["required_env_count=0"],
+                "depends_on": [],
+            },
+            {
+                "id": "resolve-manual-claims",
+                "status": "open",
+                "blocker_type": "manual",
+                "source_requirement": "manual-claims",
+                "owner": "validation-agent",
+                "next_artifact": "manual.agent.md",
+                "evidence_required": ["manual claim resolved"],
+                "depends_on": [],
+            },
+            {
+                "id": "pass-ready-after-env-agent-status",
+                "status": "open",
+                "blocker_type": "agent-status",
+                "source_requirement": "post-agent-status",
+                "owner": "operator-or-agent",
+                "next_artifact": "claim_status.md",
+                "evidence_required": ["ready_after_env_passed_count=4"],
+                "depends_on": ["clear-env-blocked-claims"],
+            },
+            {
+                "id": "clear-env-blocked-claims",
+                "status": "open",
+                "blocker_type": "claim-execution",
+                "source_requirement": "blocked-env-claims",
+                "owner": "operator-or-agent",
+                "next_artifact": "runner.ps1",
+                "evidence_required": ["zero blocked_missing_env"],
+                "depends_on": ["provide-required-env-bundle"],
+            },
+        ],
+    }
+    fanout = product_readiness.ready_now_fanout_payload(remaining_work)
+
+    assert consistency.product_readiness_ready_now_fanout_matches_remaining_work(fanout, remaining_work) is True
+    assert (
+        consistency.contract_schema_matches_payload(
+            product_readiness.ready_now_fanout_schema(),
+            fanout,
+            "validation-product-readiness-ready-now-fanout",
+        )
+        is True
+    )
+    assert [item["id"] for item in fanout["ready_now_items"]] == [
+        "provide-required-env-bundle",
+        "resolve-manual-claims",
+    ]
+    assert [item["item_id"] for item in fanout["lanes"]] == [
+        "provide-required-env-bundle",
+        "resolve-manual-claims",
+    ]
+    assert fanout["recommended_next_action_id"] == "fill-env-bundle"
+    assert fanout["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert fanout["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    check_payload = {
+        "schema_version": 1,
+        "artifact": "validation-product-readiness-ready-now-fanout-check",
+        "product_ready": False,
+        "can_claim_ready_now_fanout_complete": False,
+        "ready_now_count": 2,
+        "blocked_by_dependency_count": 2,
+        "lane_count": 2,
+        "lane_item_ids": ["provide-required-env-bundle", "resolve-manual-claims"],
+        "missing_lane_item_ids": [],
+        "unexpected_lane_item_ids": [],
+        "fanout_contract_valid": True,
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": fanout["recommended_next_action"],
+        "ready_now_fanout": fanout,
+        "claim_boundary": "no-execution ready-now fanout check; it does not execute commands",
+        "_ready_now_fanout_check_returncode": 2,
+    }
+    assert consistency.product_readiness_ready_now_fanout_check_json_matches_contract(check_payload, fanout) is True
+    assert (
+        consistency.product_readiness_ready_now_fanout_check_schema_matches_payload(
+            product_readiness.ready_now_fanout_check_schema(),
+            check_payload,
+        )
+        is True
+    )
+
+    stale_fanout = copy.deepcopy(fanout)
+    stale_fanout["ready_now_count"] = 1
+    assert consistency.product_readiness_ready_now_fanout_matches_remaining_work(stale_fanout, remaining_work) is False
+    stale_schema = copy.deepcopy(product_readiness.ready_now_fanout_schema())
+    stale_schema["required"].remove("lanes")
+    assert (
+        consistency.contract_schema_matches_payload(
+            stale_schema,
+            fanout,
+            "validation-product-readiness-ready-now-fanout",
+        )
+        is False
+    )
+
+
+def test_status_consistency_accepts_release_gate_contract_shape():
+    summary = {
+        "product_ready": False,
+        "external_claim_allowed": False,
+        "scorecard_path": "docs/benchmarks/generated/validation_roadmap_scorecard.json",
+        "product_release_gate": {
+            "passed": False,
+            "failed_count": 2,
+            "failed_ids": ["required-env", "post-agent-status"],
+            "requirements": [
+                {"id": "required-env", "passed": False, "current": "1", "required": "0 missing required env values"},
+                {"id": "post-agent-status", "passed": False, "current": "0/1", "required": "agent statuses pass"},
+            ],
+        },
+        "env_queue": {
+            "current_env_missing_count": 1,
+            "current_env_missing_names": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "local_env_bundle_gate": {
+            "schema_version": 1,
+            "artifact": "validation-product-readiness-local-env-bundle-gate",
+            "bundle_path": "docs/benchmarks/generated/validation_product_readiness_env_bundle.local.json",
+            "exists": False,
+            "complete": False,
+            "required_env_count": 1,
+            "present_env_count": 0,
+            "missing_env_names": ["TAMANDUA_SERVER_PASSWORD"],
+            "empty_env_names": [],
+            "placeholder_env_names": [],
+            "unexpected_env_names": [],
+            "parse_error": "",
+            "claim_boundary": "local ignored env bundle status only; never includes secret values",
+        },
+        "manual_claims": [],
+        "post_agent_status_gate": {
+            "ready_after_env_required_count": 1,
+            "ready_after_env_passed_count": 0,
+            "report": "claim_status_report.json",
+        },
+        "blocked_run_classes": [],
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 2,
+            "title": "Fill the complete redacted env bundle locally",
+            "claim_boundary": "operator input only; do not paste secret values into reports",
+            "commands": [],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "next_action_order": [],
+    }
+    contract = product_readiness.release_gate_contract_payload(summary)
+
+    assert consistency.product_readiness_release_gate_contract_matches_summary(contract, summary) is True
+    assert contract["recommended_next_action_id"] == "fill-env-bundle"
+    assert contract["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert (
+        consistency.contract_schema_matches_payload(
+            product_readiness.release_gate_contract_schema(),
+            contract,
+            "validation-product-readiness-release-gate-contract",
+        )
+        is True
+    )
+
+    stale_contract = copy.deepcopy(contract)
+    stale_contract["failed_count"] = 1
+    assert consistency.product_readiness_release_gate_contract_matches_summary(stale_contract, summary) is False
+    stale_schema = copy.deepcopy(product_readiness.release_gate_contract_schema())
+    stale_schema["required"].remove("next_action_order")
+    assert (
+        consistency.contract_schema_matches_payload(
+            stale_schema,
+            contract,
+            "validation-product-readiness-release-gate-contract",
+        )
+        is False
+    )
+
+
+def test_status_consistency_accepts_agent_handoff_manifest_shape():
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "external_claim_allowed": False,
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 2,
+            "title": "Fill the complete redacted env bundle locally",
+            "claim_boundary": "operator input only; do not paste secret values into reports",
+            "commands": [],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+    }
+    env_request = {
+        "required_env_count": 1,
+        "secret_count": 1,
+        "metadata_count": 0,
+        "entries": [{"env": "TAMANDUA_SERVER_PASSWORD"}],
+    }
+    post_env_contract = {
+        "ready_claim_count": 1,
+        "ready_claim_ids": ["claim-wave-1"],
+        "still_blocked_claim_count": 0,
+        "modes": [
+            {
+                "id": "dry-run",
+                "command": (
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "docs/benchmarks/generated/validation_product_readiness_env_bundle_runner.ps1"
+                ),
+                "executes_claims": False,
+            },
+            {
+                "id": "process-env-dry-run",
+                "command": (
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "docs/benchmarks/generated/validation_product_readiness_env_bundle_runner.ps1 "
+                    "-InitFromProcessEnv"
+                ),
+                "executes_claims": False,
+            },
+            {
+                "id": "balanced-agent-fanout",
+                "command": (
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "docs/benchmarks/generated/validation_product_readiness_env_bundle_runner.ps1 "
+                    "-UseBalancedAgents -Execute -RefreshClaimStatus"
+                ),
+                "executes_claims": True,
+            },
+            {
+                "id": "process-env-balanced-agent-fanout",
+                "command": (
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "docs/benchmarks/generated/validation_product_readiness_env_bundle_runner.ps1 "
+                    "-InitFromProcessEnv -UseBalancedAgents -Execute -RefreshClaimStatus"
+                ),
+                "executes_claims": True,
+            },
+            {
+                "id": "process-env-balanced-agent-fanout-refresh-authority",
+                "command": (
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "docs/benchmarks/generated/validation_product_readiness_env_bundle_runner.ps1 "
+                    "-InitFromProcessEnv -UseBalancedAgents -Execute -RefreshClaimStatus -RefreshAuthority"
+                ),
+                "executes_claims": True,
+            },
+        ],
+        "refresh_claim_status_command": "python refresh.py",
+    }
+    release_gate_contract = {
+        "failed_count": 1,
+        "failed_ids": ["required-env"],
+        "manual_claim_ids": [],
+        "blocked_run_class_count": 0,
+    }
+    claim_status_contract = {
+        "required_agent_status_contract": {
+            "required_fields": ["package_id", "claim_id", "status"],
+        },
+    }
+    blocked_run_classes_contract = {
+        "env_blocked_count": 1,
+        "profile_or_lab_blocked_count": 0,
+    }
+    runbook = {"steps": [{"id": "inspect-current-state"}, {"id": "fill-env-bundle"}]}
+    remaining_work = {"open_count": 2}
+    ready_now_fanout = {"ready_now_count": 1}
+    manual_claim_resolution = {
+        "unresolved_manual_claim_count": 0,
+    }
+    handoff = product_readiness.agent_handoff_manifest_payload(
+        summary,
+        env_request,
+        post_env_contract,
+        release_gate_contract,
+        claim_status_contract,
+        blocked_run_classes_contract,
+        runbook,
+        remaining_work,
+        ready_now_fanout,
+        manual_claim_resolution,
+    )
+
+    assert (
+        consistency.product_readiness_agent_handoff_matches_contracts(
+            handoff,
+            summary,
+            env_request,
+            post_env_contract,
+            release_gate_contract,
+            claim_status_contract,
+            blocked_run_classes_contract,
+            runbook,
+            remaining_work,
+            ready_now_fanout,
+            manual_claim_resolution,
+        )
+        is True
+    )
+    assert handoff["recommended_next_action_id"] == "fill-env-bundle"
+    assert handoff["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert handoff["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert handoff["contracts"]["manual_claim_resolution_runner_schema"].endswith(
+        "validation_product_readiness_manual_claim_resolution_runner.schema.json"
+    )
+    assert handoff["scripts"]["manual_claim_resolution_runner"].endswith(
+        "validation_product_readiness_manual_claim_resolution_runner.ps1"
+    )
+    assert "-Json" in handoff["commands"]["manual_claim_resolution_runner_json"]
+    assert (
+        consistency.contract_schema_matches_payload(
+            product_readiness.agent_handoff_manifest_schema(),
+            handoff,
+            "validation-product-readiness-agent-handoff",
+        )
+        is True
+    )
+
+    stale_handoff = copy.deepcopy(handoff)
+    stale_handoff["counts"]["required_env"] = 2
+    assert (
+        consistency.product_readiness_agent_handoff_matches_contracts(
+            stale_handoff,
+            summary,
+            env_request,
+            post_env_contract,
+            release_gate_contract,
+            claim_status_contract,
+            blocked_run_classes_contract,
+            runbook,
+            remaining_work,
+            ready_now_fanout,
+            manual_claim_resolution,
+        )
+        is False
+    )
+
+
+def test_status_consistency_accepts_manual_claim_resolution_contract_shape():
+    summary = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": {
+            "id": "fill-env-bundle",
+            "step": 1,
+            "title": "Fill local env bundle",
+            "claim_boundary": "operator input only; agents must not infer or expose secrets",
+            "commands": ["pwsh -File docs/benchmarks/generated/validation_product_readiness_operator_check.ps1"],
+            "claim_ids": [],
+            "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "manual_claims": [
+            {
+                "claim_id": "claim-wave-1-resolve-atomic-extended-preconditions",
+                "package_id": "wave-1-resolve-atomic-extended-preconditions",
+                "wave": 1,
+                "owner": "validation-agent",
+                "prompt_path": "docs/benchmarks/runs/preflight.package-artifacts/manual.agent.md",
+                "script_path": "docs/benchmarks/runs/preflight.package-artifacts/manual.ps1",
+                "command": "powershell -File manual.ps1",
+                "next_action": "Use a WMI-capable disposable target or narrow the claim boundary for T1047 before rerunning Atomic extended.",
+                "claim_boundary": "manual operator decision required before automation can claim this blocker",
+            }
+        ],
+        "post_agent_status_gate": {"report": "claim_status_report.json"},
+    }
+    payload = product_readiness.manual_claim_resolution_payload(summary)
+
+    assert consistency.product_readiness_manual_claim_resolution_matches_summary(payload, summary) is True
+    assert (
+        consistency.contract_schema_matches_payload(
+            product_readiness.manual_claim_resolution_schema(),
+            payload,
+            "validation-product-readiness-manual-claim-resolution",
+        )
+        is True
+    )
+    assert payload["unresolved_manual_claim_count"] == 1
+    assert payload["can_claim_manual_resolution"] is False
+    assert payload["claims"][0]["prompt_path"].endswith(".agent.md")
+    assert payload["claims"][0]["guard_env"] == "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION"
+    assert payload["claims"][0]["guarded_resolution_command"] == "powershell -File manual.ps1"
+    assert "atomic_t1047_lab_capability_probe.py" in payload["claims"][0]["check_only_command"]
+    assert payload["runner_path"].endswith("validation_product_readiness_manual_claim_resolution_runner.ps1")
+    assert payload["runner_execute_guard_env"] == "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION"
+    assert payload["runner_execute_guard_value"] == "1"
+    assert payload["recommended_next_action_id"] == "fill-env-bundle"
+    assert payload["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert payload["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+
+    check_payload = {
+        "schema_version": 1,
+        "artifact": "validation-product-readiness-manual-claim-resolution-check",
+        "product_ready": False,
+        "can_claim_manual_resolution": False,
+        "unresolved_manual_claim_count": 1,
+        "claim_ids": ["claim-wave-1-resolve-atomic-extended-preconditions"],
+        "missing_prompt_paths": [],
+        "missing_script_paths": [],
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": payload["recommended_next_action"],
+        "manual_claim_resolution": payload,
+        "claim_boundary": "no-execution manual claim check; does not close claims or claim product readiness",
+        "_manual_claim_resolution_check_returncode": 2,
+    }
+    assert (
+        consistency.product_readiness_manual_claim_resolution_check_json_matches_contract(
+            check_payload,
+            payload,
+        )
+        is True
+    )
+    assert (
+        consistency.product_readiness_manual_claim_resolution_check_schema_matches_payload(
+            product_readiness.manual_claim_resolution_check_schema(),
+            check_payload,
+        )
+        is True
+    )
+
+    runner_payload = {
+        "schema_version": 1,
+        "artifact": "validation-product-readiness-manual-claim-resolution-runner",
+        "product_ready": False,
+        "execute_requested": False,
+        "execute_allowed": False,
+        "unresolved_manual_claim_count": 1,
+        "claim_ids": ["claim-wave-1-resolve-atomic-extended-preconditions"],
+        "check_only_commands": [payload["claims"][0]["check_only_command"]],
+        "guarded_resolution_commands": [payload["claims"][0]["guarded_resolution_command"]],
+        "guard_env": "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION",
+        "guard_required_value": "1",
+        "recommended_next_action_id": "fill-env-bundle",
+        "recommended_next_action": payload["recommended_next_action"],
+        "claim_boundary": (
+            "manual resolution runner; execution requires explicit guard and may close manual claims only "
+            "after refreshed evidence"
+        ),
+    }
+    assert (
+        consistency.product_readiness_manual_claim_resolution_runner_json_matches_contract(
+            runner_payload,
+            payload,
+        )
+        is True
+    )
+    assert (
+        consistency.product_readiness_manual_claim_resolution_runner_schema_matches_payload(
+            product_readiness.manual_claim_resolution_runner_schema(),
+            runner_payload,
+        )
+        is True
+    )
+
 
 FRESH_RESTORE_MODULE_PATH = Path(__file__).with_name("fresh_restore_provenance_probe.py")
 FRESH_RESTORE_SPEC = importlib.util.spec_from_file_location(
@@ -175,6 +4078,26 @@ assert WINDOWS_CONNECTION_STABILITY_SPEC.loader is not None
 sys.modules[WINDOWS_CONNECTION_STABILITY_SPEC.name] = windows_connection_stability
 WINDOWS_CONNECTION_STABILITY_SPEC.loader.exec_module(windows_connection_stability)
 
+AGENT_PLATFORM_LIVE_MODULE_PATH = Path(__file__).with_name("agent_platform_capabilities_live_api_probe.py")
+AGENT_PLATFORM_LIVE_SPEC = importlib.util.spec_from_file_location(
+    "agent_platform_capabilities_live_api_probe",
+    AGENT_PLATFORM_LIVE_MODULE_PATH,
+)
+agent_platform_live = importlib.util.module_from_spec(AGENT_PLATFORM_LIVE_SPEC)
+assert AGENT_PLATFORM_LIVE_SPEC.loader is not None
+sys.modules[AGENT_PLATFORM_LIVE_SPEC.name] = agent_platform_live
+AGENT_PLATFORM_LIVE_SPEC.loader.exec_module(agent_platform_live)
+
+FLEET_INVENTORY_MODULE_PATH = Path(__file__).with_name("fleet_inventory_probe.py")
+FLEET_INVENTORY_SPEC = importlib.util.spec_from_file_location(
+    "fleet_inventory_probe",
+    FLEET_INVENTORY_MODULE_PATH,
+)
+fleet_inventory = importlib.util.module_from_spec(FLEET_INVENTORY_SPEC)
+assert FLEET_INVENTORY_SPEC.loader is not None
+sys.modules[FLEET_INVENTORY_SPEC.name] = fleet_inventory
+FLEET_INVENTORY_SPEC.loader.exec_module(fleet_inventory)
+
 
 def test_repeatability_roadmap_requires_all_profiles_pass():
     rows = [
@@ -187,11 +4110,113 @@ def test_repeatability_roadmap_requires_all_profiles_pass():
 
 def test_repeatability_roadmap_passes_after_all_profiles_pass_and_repeatability_met():
     rows = [
-        {"status": "pass", "consecutive_latest_passes": 3},
-        {"status": "pass", "consecutive_latest_passes": 1},
+        {"status": "pass", "latest_pass": {"run_id": "pass-1"}, "consecutive_latest_passes": 3},
+        {"status": "pass", "latest_pass": {"run_id": "pass-2"}, "consecutive_latest_passes": 1},
     ]
 
     assert scorecard.roadmap_status(rows, required_passes=3) == "pass"
+
+
+def test_scorecard_roadmap_pass_requires_latest_not_fail_after_pass():
+    rows = [
+        {
+            "status": "pass",
+            "latest": {
+                "run_id": "20260604T011002Z-windows-agent-connection-stability-probe",
+                "quality_gate_passed": False,
+                "complete_profile_scope": False,
+            },
+            "latest_pass": {
+                "run_id": "20260603T133052Z-windows-agent-connection-stability-probe",
+            },
+            "consecutive_latest_passes": 0,
+        }
+    ]
+
+    assert scorecard.latest_fail_after_pass(rows[0])
+    assert scorecard.roadmap_status(rows, required_passes=1) == "partial"
+
+
+def test_scorecard_roadmap_pass_requires_latest_pass_for_every_profile():
+    rows = [
+        {
+            "status": "pass",
+            "latest": {
+                "run_id": "20260602T051300Z-windows-roadmap-300-p1-batch-02",
+                "quality_gate_passed": False,
+            },
+            "latest_pass": None,
+            "consecutive_latest_passes": 0,
+        }
+    ]
+
+    assert not scorecard.has_latest_pass(rows[0])
+    assert scorecard.roadmap_status(rows, required_passes=1) == "partial"
+
+
+def test_scorecard_repeatability_pass_requires_latest_not_fail_after_pass():
+    rows = [
+        {
+            "status": "pass",
+            "latest": {
+                "run_id": "20260603T220215Z-caldera-api-shape-probe",
+                "quality_gate_passed": False,
+                "complete_profile_scope": True,
+            },
+            "latest_pass": {"run_id": "20260602T222254Z-caldera-api-shape-probe"},
+            "consecutive_latest_passes": 3,
+        },
+        {
+            "status": "pass",
+            "latest": {
+                "run_id": "20260604T004356Z-caldera-repeatability-probe",
+                "quality_gate_passed": True,
+                "complete_profile_scope": True,
+            },
+            "latest_pass": {"run_id": "20260604T004356Z-caldera-repeatability-probe"},
+            "consecutive_latest_passes": 1,
+        },
+    ]
+
+    assert scorecard.roadmap_status(rows, required_passes=3) == "needs-repeatability"
+
+
+def test_scorecard_open_full_scope_note_prevents_pass():
+    assert scorecard.note_declares_open_full_scope(
+        "Static/source evidence validates shape. VM evidence is still required for lifecycle."
+    )
+    assert scorecard.note_declares_open_full_scope(
+        "The fixture is green. Full Roadmap K still requires production FIM collector events."
+    )
+    assert not scorecard.note_declares_open_full_scope("All required runtime evidence is present.")
+
+
+def test_scorecard_roadmap_r_note_keeps_analyst_ux_partial_scope():
+    roadmap_r = next(item for item in scorecard.ROADMAPS if item.key == "R")
+
+    assert "Full Roadmap R still requires" in roadmap_r.note
+    assert "collector-observed telemetry" in roadmap_r.note
+    assert scorecard.note_declares_open_full_scope(roadmap_r.note)
+
+
+def test_scorecard_response_and_enterprise_eval_notes_keep_partial_scope():
+    roadmap_f = next(item for item in scorecard.ROADMAPS if item.key == "F")
+    roadmap_i = next(item for item in scorecard.ROADMAPS if item.key == "I")
+
+    assert "Full Roadmap F still requires" in roadmap_f.note
+    assert "RBAC/approval" in roadmap_f.note
+    assert scorecard.note_declares_open_full_scope(roadmap_f.note)
+    assert "Full Roadmap I still requires" in roadmap_i.note
+    assert "endpoint-sensor evidence" in roadmap_i.note
+    assert scorecard.note_declares_open_full_scope(roadmap_i.note)
+
+
+def test_scorecard_roadmap_b2_note_keeps_p2_partial_scope():
+    roadmap_b2 = next(item for item in scorecard.ROADMAPS if item.key == "B2")
+
+    assert "Full Roadmap B2 still requires" in roadmap_b2.note
+    assert "endpoint-sensor evidence" in roadmap_b2.note
+    assert scorecard.note_declares_open_full_scope(roadmap_b2.note)
 
 
 def test_scorecard_roadmap_b_note_requires_true_fresh_restore_and_timing_order():
@@ -200,6 +4225,68 @@ def test_scorecard_roadmap_b_note_requires_true_fresh_restore_and_timing_order()
     assert "fresh_restore=true" in roadmap_b.note
     assert "valid restore timing order" in roadmap_b.note
     assert "hostname" in roadmap_b.note
+
+
+def test_scorecard_roadmap_c_note_requires_real_upstream_atomic():
+    roadmap_c = next(item for item in scorecard.ROADMAPS if item.key == "C")
+
+    assert "Invoke-AtomicTest" in roadmap_c.note
+    assert "--require-upstream" in roadmap_c.note
+    assert "Fallback-backed" in roadmap_c.note
+
+
+def test_roadmap_closure_gate_roadmap_c_action_requires_upstream_atomic():
+    action = closure_gate.roadmap_action_text("C", [], [])
+
+    assert "Invoke-AtomicTest" in action
+    assert "--require-upstream" in action
+    assert "fallback-backed" in action
+
+
+def test_scorecard_roadmap_j_includes_live_windows_benign_baseline_gate():
+    roadmap_j = next(item for item in scorecard.ROADMAPS if item.key == "J")
+    profile_ids = [rule.profile_id for rule in roadmap_j.profiles]
+
+    assert "windows-benign-baseline" in profile_ids
+    assert "Windows benign baseline remains a closure gate" in roadmap_j.note
+
+
+def test_benign_registry_read_scopes_registry_key_to_registry_event():
+    profile_path = Path(__file__).with_name("profiles") / "windows_benign_baseline.json"
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    test = next(item for item in profile["tests"] if item["id"] == "benign-registry-read")
+
+    assert "registry_key" not in test["expected_fields"]
+    assert test["expected_fields_by_event_type"] == {"registry_query": ["registry_key"]}
+
+
+def test_atomic_t1112_scopes_registry_key_to_registry_set_value_event():
+    profile_path = Path(__file__).with_name("profiles") / "windows_atomic_upstream_smoke.json"
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    test = next(item for item in profile["tests"] if item["id"] == "atomic-upstream-T1112-registry-modification")
+
+    assert "registry_key" not in test["expected_fields"]
+    assert test["expected_fields_by_event_type"] == {"registry_set_value": ["registry_key"]}
+
+
+def test_atomic_t1082_fallback_avoids_slow_systeminfo():
+    profile_path = Path(__file__).with_name("profiles") / "windows_atomic_upstream_smoke.json"
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    test = next(item for item in profile["tests"] if item["id"] == "atomic-upstream-T1082-system-info")
+    command = test["fallback_command"].lower()
+
+    assert "systeminfo" not in command
+    assert "reg.exe query" in command
+
+
+def test_benign_scheduled_task_query_avoids_pager():
+    profile_path = Path(__file__).with_name("profiles") / "windows_benign_baseline.json"
+    profile = json.loads(profile_path.read_text(encoding="utf-8"))
+    test = next(item for item in profile["tests"] if item["id"] == "benign-scheduled-task-query")
+    command = test["fallback_command"].lower()
+
+    assert "more" not in command
+    assert "/tn" in command
 
 
 def test_scorecard_profile_evidence_uses_aggregate_pass_source_run_id():
@@ -265,6 +4352,150 @@ def test_scorecard_profile_evidence_uses_aggregate_pass_source_run_id():
     assert "`20260603T134808Z-windows-proxmox-qga-readiness-probe` | `0` | -" in markdown
 
 
+def test_scorecard_markdown_summary_matches_payload():
+    payload = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "source": {"artifact_count": 2, "profile_count": 1},
+        "roadmaps": [],
+        "profiles": [],
+        "contradictions": [],
+        "manual_claim_review": [],
+    }
+    markdown = scorecard.render_markdown(payload)
+
+    assert scorecard.markdown_summary_matches_payload(markdown, payload)
+    assert not scorecard.markdown_summary_matches_payload(markdown.replace("`2`", "`3`", 1), payload)
+
+
+def test_scorecard_source_summary_matches_payload_profiles():
+    payload = {
+        "source": {"artifact_count": 2, "profile_count": 2, "profiles": ["profile-a", "profile-b"]},
+        "profiles": [{"profile_id": "profile-a"}, {"profile_id": "profile-b"}],
+    }
+
+    assert scorecard.source_summary_matches_payload(payload)
+
+    payload["source"]["profiles"] = ["profile-b", "profile-a"]
+    assert not scorecard.source_summary_matches_payload(payload)
+
+    payload["source"]["profiles"] = ["profile-a", "profile-a"]
+    assert not scorecard.source_summary_matches_payload(payload)
+
+    payload["source"]["profiles"] = ["profile-a", "profile-b"]
+    payload["source"]["profile_count"] = 1
+    assert not scorecard.source_summary_matches_payload(payload)
+
+    payload["source"]["profile_count"] = 2
+    payload["profiles"][1]["profile_id"] = "profile-c"
+    assert not scorecard.source_summary_matches_payload(payload)
+
+
+def test_scorecard_roadmap_keys_match_rules():
+    payload = {"roadmaps": [{"key": rule.key} for rule in scorecard.ROADMAPS]}
+
+    assert scorecard.roadmap_keys_match_rules(payload)
+
+    payload["roadmaps"][0]["key"] = payload["roadmaps"][1]["key"]
+    assert not scorecard.roadmap_keys_match_rules(payload)
+
+    payload = {"roadmaps": [{"key": rule.key} for rule in scorecard.ROADMAPS[1:]]}
+    assert not scorecard.roadmap_keys_match_rules(payload)
+
+    payload = {"roadmaps": [{"key": rule.key} for rule in reversed(scorecard.ROADMAPS)]}
+    assert not scorecard.roadmap_keys_match_rules(payload)
+
+
+def test_scorecard_roadmap_rows_are_well_formed():
+    row = {
+        "key": "A",
+        "title": "Roadmap A",
+        "owner_area": "Windows",
+        "status": "partial",
+        "required_passes": 1,
+        "note": "Needs runtime evidence.",
+        "profiles": [],
+        "static_evidence": [],
+    }
+
+    assert scorecard.roadmap_rows_are_well_formed({"roadmaps": [row]})
+
+    missing_field = dict(row)
+    missing_field.pop("note")
+    assert not scorecard.roadmap_rows_are_well_formed({"roadmaps": [missing_field]})
+
+    invalid_status = dict(row, status="ready")
+    assert not scorecard.roadmap_rows_are_well_formed({"roadmaps": [invalid_status]})
+
+    invalid_profiles = dict(row, profiles="profile-a")
+    assert not scorecard.roadmap_rows_are_well_formed({"roadmaps": [invalid_profiles]})
+
+
+def test_scorecard_profile_rows_are_well_formed():
+    row = {
+        "profile_id": "profile-a",
+        "status": "pass",
+        "latest": {"run_id": "run-a"},
+        "latest_pass": {"run_id": "run-a"},
+        "latest_fail": None,
+        "latest_diagnostic_fail": None,
+        "best_pass": {"run_id": "run-a"},
+        "aggregate": {
+            "complete": True,
+            "covered": 1,
+            "expected": 1,
+            "covered_test_ids": ["test-a"],
+            "raw_gate_failures": 0,
+            "latest_raw_gate_pass": {"run_id": "run-a"},
+            "partial_contributor_count": 0,
+            "partial_contributor_ids": [],
+        },
+        "passing_artifacts": 1,
+        "failing_artifacts": 0,
+        "diagnostic_failing_artifacts": 0,
+        "consecutive_latest_passes": 1,
+    }
+
+    assert scorecard.profile_rows_are_well_formed({"profiles": [row]})
+
+    unknown_expected = dict(row)
+    unknown_expected["aggregate"] = dict(row["aggregate"], expected=None)
+    assert scorecard.profile_rows_are_well_formed({"profiles": [unknown_expected]})
+
+    invalid_status = dict(row, status="partial")
+    assert not scorecard.profile_rows_are_well_formed({"profiles": [invalid_status]})
+
+    missing_field = dict(row)
+    missing_field.pop("aggregate")
+    assert not scorecard.profile_rows_are_well_formed({"profiles": [missing_field]})
+
+    negative_count = dict(row, passing_artifacts=-1)
+    assert not scorecard.profile_rows_are_well_formed({"profiles": [negative_count]})
+
+    bad_aggregate = dict(row)
+    bad_aggregate["aggregate"] = dict(row["aggregate"], complete="true")
+    assert not scorecard.profile_rows_are_well_formed({"profiles": [bad_aggregate]})
+
+    bad_aggregate = dict(row)
+    bad_aggregate["aggregate"] = dict(row["aggregate"], expected=-1)
+    assert not scorecard.profile_rows_are_well_formed({"profiles": [bad_aggregate]})
+
+    bad_aggregate = dict(row)
+    bad_aggregate["aggregate"] = dict(row["aggregate"], expected="1")
+    assert not scorecard.profile_rows_are_well_formed({"profiles": [bad_aggregate]})
+
+    bad_aggregate = dict(row)
+    bad_aggregate["aggregate"] = dict(row["aggregate"], raw_gate_failures=-1)
+    assert not scorecard.profile_rows_are_well_formed({"profiles": [bad_aggregate]})
+
+    bad_aggregate = dict(row)
+    bad_aggregate["aggregate"] = dict(row["aggregate"], raw_gate_failures=[])
+    assert not scorecard.profile_rows_are_well_formed({"profiles": [bad_aggregate]})
+
+    bad_aggregate = dict(row)
+    bad_aggregate["aggregate"] = dict(row["aggregate"], covered_test_ids="test-a")
+    assert not scorecard.profile_rows_are_well_formed({"profiles": [bad_aggregate]})
+
+
 def test_scorecard_status_consistency_profile_does_not_aggregate_historical_checks():
     latest_report = {
         "_run_id": "20260603T172105Z-validation-status-consistency-probe",
@@ -294,6 +4525,57 @@ def test_scorecard_status_consistency_profile_does_not_aggregate_historical_chec
 
     assert row["aggregate"]["covered"] == 1
     assert row["aggregate"]["covered_test_ids"] == ["status-consistency-new-minimum"]
+
+
+def test_scorecard_markdown_renders_dry_run_profiles_as_not_executed():
+    payload = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "source": {"artifact_count": 1, "profile_count": 1},
+        "roadmaps": [],
+        "profiles": [
+            {
+                "profile_id": "windows-release-readiness-dry-run",
+                "status": "dry-run",
+                "latest": {
+                    "run_id": "dryrun-windows-release-readiness-report-only",
+                    "raw_quality_gate_passed": True,
+                    "complete_profile_scope": True,
+                    "covered": 0,
+                    "tests": 4,
+                    "partial": 0,
+                    "missed": 0,
+                    "execution_failed": 0,
+                    "quality_gate_failures": ["not_executed"],
+                },
+                "latest_pass": {},
+                "latest_fail": {},
+                "aggregate": {
+                    "complete": False,
+                    "covered": 0,
+                    "expected": 4,
+                    "partial_contributor_count": 0,
+                },
+                "diagnostic_failing_artifacts": 0,
+            }
+        ],
+        "contradictions": [],
+        "manual_claim_review": [],
+    }
+
+    markdown = scorecard.render_markdown(payload)
+
+    assert (
+        "| `windows-release-readiness-dry-run` | `dryrun-windows-release-readiness-report-only` | "
+        "`not-executed` | `not-executed` |"
+    ) in markdown
+
+
+def test_benchmark_summary_preserves_caldera_repeatability_claim_boundary():
+    rendered = benchmark_summary.render_report([], ["windows-caldera-smoke"])
+
+    assert "CALDERA smoke selected-profile evidence is claim-scoped only" in rendered
+    assert "repeatability and product claims still require the CALDERA repeatability gate to pass" in rendered
+    assert "CALDERA smoke is claimable only" not in rendered
 
 
 def test_scorecard_manual_claim_review_includes_dispatch_manual_claims(tmp_path):
@@ -334,6 +4616,10 @@ def test_scorecard_manual_claim_review_includes_dispatch_manual_claims(tmp_path)
                     {
                         "package_id": "wave-1-qga",
                         "manual_reason": "resource overlap: windows-lab",
+                        "action": (
+                            "Verify Proxmox credentials, then rerun QGA diagnostics with the "
+                            "operator-provided password and preserve the full remediation text for handoff."
+                        ),
                     }
                 ],
             }
@@ -355,9 +4641,573 @@ def test_scorecard_manual_claim_review_includes_dispatch_manual_claims(tmp_path)
     assert len(review) == 1
     assert review[0]["kind"] == "dispatch-claim"
     assert review[0]["id"] == "claim-wave-1-qga"
+    assert review[0]["package_id"] == "wave-1-qga"
     assert review[0]["polarity"] == "manual"
+    assert review[0]["owner"] == "operator-or-secret-holder"
+    assert review[0]["manual_reason"] == "resource overlap: windows-lab"
+    assert review[0]["missing_env"] == ["TAMANDUA_PROXMOX_PASSWORD"]
+    assert (
+        review[0]["action"]
+        == "Verify Proxmox credentials, then rerun QGA diagnostics with the operator-provided password and preserve the full remediation text for handoff."
+    )
+    assert review[0]["prompt_path"] == "docs/benchmarks/runs/dispatch/handoffs/wave-1-qga.agent.md"
     assert "resource overlap: windows-lab" in review[0]["snippet"]
     assert "TAMANDUA_PROXMOX_PASSWORD" in review[0]["snippet"]
+    assert "preserve the full remediation text for handoff." in review[0]["snippet"]
+
+
+def test_scorecard_payload_manual_claim_review_is_dispatch_only(monkeypatch, tmp_path):
+    dispatch_review = [
+        {
+            "kind": "dispatch-claim",
+            "id": "claim-wave-1-qga",
+            "package_id": "wave-1-qga",
+            "generated_status": "blocked_missing_env",
+        }
+    ]
+    monkeypatch.setattr(
+        scorecard,
+        "find_manual_claim_review",
+        lambda payload: [
+            {
+                "kind": "roadmap",
+                "id": "O",
+                "generated_status": "generated",
+            }
+        ],
+    )
+    monkeypatch.setattr(scorecard, "dispatch_manual_claim_review", lambda latest: dispatch_review)
+
+    payload = scorecard.build_payload([], tmp_path)
+
+    assert payload["manual_claim_review"] == dispatch_review
+
+
+def test_scorecard_manual_claim_review_markdown_exposes_structured_dispatch_fields():
+    payload = {
+        "generated_at": "2026-06-12T00:00:00Z",
+        "source": {"artifact_count": 1, "profile_count": 1},
+        "roadmaps": [],
+        "profiles": [],
+        "contradictions": [],
+        "manual_claim_review": [
+            {
+                "kind": "dispatch-claim",
+                "id": "claim-wave-1-qga",
+                "package_id": "wave-1-qga",
+                "generated_status": "blocked_missing_env",
+                "polarity": "manual",
+                "owner": "operator-or-secret-holder",
+                "missing_env": ["TAMANDUA_PROXMOX_PASSWORD", "TAMANDUA_SERVER_PASSWORD"],
+                "action": "Verify Proxmox credentials, then rerun QGA diagnostics.",
+                "prompt_path": "docs/benchmarks/runs/dispatch/wave-1-qga.agent.md",
+                "doc": "docs/benchmarks/runs/dispatch/agent_claims.json",
+                "line": "-",
+                "snippet": "wave-1-qga: owner=operator-or-secret-holder; action=Verify Proxmox credentials.",
+            }
+        ],
+    }
+
+    markdown = scorecard.render_markdown(payload)
+
+    assert "| Entity | Package | Generated Status | Manual Wording | Owner | Missing Env | Action | Prompt | Location | Snippet |" in markdown
+    assert "`wave-1-qga`" in markdown
+    assert "`operator-or-secret-holder`" in markdown
+    assert "`TAMANDUA_PROXMOX_PASSWORD, TAMANDUA_SERVER_PASSWORD`" in markdown
+    assert "Verify Proxmox credentials, then rerun QGA diagnostics." in markdown
+    assert "`docs/benchmarks/runs/dispatch/wave-1-qga.agent.md`" in markdown
+
+
+def test_status_consistency_requires_structured_manual_claim_review_markdown(tmp_path):
+    scorecard_md = tmp_path / "validation_roadmap_scorecard.md"
+    scorecard_payload = {
+        "manual_claim_review": [
+            {
+                "kind": "dispatch-claim",
+                "id": "claim-wave-1-qga",
+                "package_id": "wave-1-qga",
+                "generated_status": "blocked_missing_env",
+                "polarity": "manual",
+                "owner": "operator-or-secret-holder",
+                "missing_env": ["TAMANDUA_PROXMOX_PASSWORD"],
+                "action": "Verify credentials.",
+                "prompt_path": "docs/benchmarks/runs/dispatch/wave-1-qga.agent.md",
+                "doc": "docs/benchmarks/runs/dispatch/agent_claims.json",
+                "line": "-",
+                "snippet": "snippet",
+            }
+        ]
+    }
+    scorecard_md.write_text(
+        "\n".join(
+            [
+                "## Manual Claim Review",
+                "",
+                "| Entity | Package | Generated Status | Manual Wording | Owner | Missing Env | Action | Prompt | Location | Snippet |",
+                "|--------|---------|------------------|----------------|-------|-------------|--------|--------|----------|---------|",
+                "| `dispatch-claim:claim-wave-1-qga` | `wave-1-qga` | `blocked_missing_env` | `manual` | `operator-or-secret-holder` | `TAMANDUA_PROXMOX_PASSWORD` | Verify credentials. | `docs/benchmarks/runs/dispatch/wave-1-qga.agent.md` | `docs/benchmarks/runs/dispatch/agent_claims.json:-` | snippet |",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    assert consistency.scorecard_markdown_exposes_structured_manual_claim_review(scorecard_md)
+    assert consistency.scorecard_markdown_matches_manual_claim_review(scorecard_payload, scorecard_md)
+    scorecard_md.write_text(
+        scorecard_md.read_text(encoding="utf-8")
+        + "\n| `dispatch-claim:claim-extra` | `wave-extra` | `manual_claim_required` | `manual` | `validation-agent` | `-` | Extra. | `docs/benchmarks/runs/dispatch/extra.agent.md` | `docs/benchmarks/runs/dispatch/agent_claims.json:-` | extra |",
+        encoding="utf-8",
+    )
+    assert not consistency.scorecard_markdown_matches_manual_claim_review(scorecard_payload, scorecard_md)
+    scorecard_md.write_text(
+        "\n".join(
+            [
+                "## Manual Claim Review",
+                "",
+                "| Entity | Package | Generated Status | Manual Wording | Owner | Missing Env | Action | Prompt | Location | Snippet |",
+                "|--------|---------|------------------|----------------|-------|-------------|--------|--------|----------|---------|",
+                "| `dispatch-claim:claim-wave-1-qga` | `wave-1-qga` | `blocked_missing_env` | `manual` | `validation-agent` | `TAMANDUA_PROXMOX_PASSWORD` | Verify credentials. | `docs/benchmarks/runs/dispatch/wave-1-qga.agent.md` | `docs/benchmarks/runs/dispatch/agent_claims.json:-` | snippet |",
+            ]
+        ),
+        encoding="utf-8",
+    )
+    assert not consistency.scorecard_markdown_matches_manual_claim_review(scorecard_payload, scorecard_md)
+    scorecard_md.write_text(
+        "| Entity | Generated Status | Manual Wording | Location | Snippet |\n",
+        encoding="utf-8",
+    )
+    assert not consistency.scorecard_markdown_exposes_structured_manual_claim_review(scorecard_md)
+    assert not consistency.scorecard_markdown_matches_manual_claim_review(scorecard_payload, scorecard_md)
+
+
+def test_status_consistency_requires_manual_claim_review_to_cover_agent_claims(tmp_path):
+    dispatch_dir = tmp_path / "docs" / "benchmarks" / "runs" / "dispatch"
+    dispatch_dir.mkdir(parents=True)
+    manifest = dispatch_dir / "dispatch_manifest.json"
+    claims = dispatch_dir / "agent_claims.json"
+    manifest.write_text(
+        json.dumps(
+            {
+                "agent_claims_json_path": "docs/benchmarks/runs/dispatch/agent_claims.json",
+            }
+        ),
+        encoding="utf-8",
+    )
+    claims.write_text(
+        json.dumps(
+            {
+                "claims": [
+                    {
+                        "claim_id": "claim-wave-1-qga",
+                        "claim_state": "blocked_missing_env",
+                        "blocked_reasons": ["missing_effective_env", "manual_launch_required"],
+                        "package_id": "wave-1-qga",
+                    },
+                    {
+                        "claim_id": "claim-wave-1-atomic",
+                        "claim_state": "manual_claim_required",
+                        "blocked_reasons": ["manual_launch_required"],
+                        "package_id": "wave-1-atomic",
+                    },
+                    {
+                        "claim_id": "claim-wave-1-ready",
+                        "claim_state": "ready",
+                        "blocked_reasons": [],
+                        "package_id": "wave-1-ready",
+                    },
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    payload = {
+        "manual_claim_review": [
+            {
+                "kind": "dispatch-claim",
+                "id": "claim-wave-1-qga",
+                "package_id": "wave-1-qga",
+                "generated_status": "blocked_missing_env",
+            },
+            {
+                "kind": "dispatch-claim",
+                "id": "claim-wave-1-atomic",
+                "package_id": "wave-1-atomic",
+                "generated_status": "manual_claim_required",
+            },
+        ]
+    }
+    dispatch_artifact = {
+        "dispatch_manifest": "docs/benchmarks/runs/dispatch/dispatch_manifest.json",
+    }
+    old_root = consistency.ROOT
+    consistency.ROOT = tmp_path
+    try:
+        assert consistency.scorecard_dispatch_manual_claim_review_covers_agent_claims(
+            payload, dispatch_artifact
+        )
+        payload["manual_claim_review"].pop()
+        assert not consistency.scorecard_dispatch_manual_claim_review_covers_agent_claims(
+            payload, dispatch_artifact
+        )
+    finally:
+        consistency.ROOT = old_root
+
+
+def test_scorecard_manual_claim_review_ignores_roadmap_scope_caveat_for_profile_pass(tmp_path):
+    doc = tmp_path / "status.md"
+    doc.write_text(
+        "| Fleet | Roadmap S is partial overall; inventory evidence is green: "
+        "`fleet-scale-inventory-api-probe` is `5/5`. |\n",
+        encoding="utf-8",
+    )
+    payload = {
+        "roadmaps": [
+            {"key": "S", "title": "Fleet Scale", "status": "partial", "profiles": []}
+        ],
+        "profiles": [
+            {"profile_id": "fleet-scale-inventory-api-probe", "status": "pass"}
+        ],
+    }
+    old_root = scorecard.ROOT
+    scorecard.ROOT = tmp_path
+    try:
+        review = scorecard.find_manual_claim_review(payload, docs=(doc,))
+    finally:
+        scorecard.ROOT = old_root
+
+    assert review == []
+
+
+def test_preflight_current_next_action_fallback_preserves_partial_artifact_action():
+    package = {
+        "action": "Refresh CALDERA readiness before repeatability.",
+    }
+    action = preflight_work_package.package_current_next_action_or_task(
+        package,
+        {"required_env": ["CALDERA_API_KEY"]},
+    )
+
+    assert action == {
+        "required_env": ["CALDERA_API_KEY"],
+        "action": "Refresh CALDERA readiness before repeatability.",
+    }
+
+
+def test_status_consistency_rejects_manual_review_roadmap_or_profile_prompts(tmp_path):
+    claims_path = tmp_path / "docs" / "benchmarks" / "runs" / "dispatch" / "agent_claims.json"
+    prompt_path = tmp_path / "docs" / "benchmarks" / "runs" / "dispatch" / "wave-1-qga.agent.md"
+    claims_path.parent.mkdir(parents=True)
+    prompt_path.write_text("handoff", encoding="utf-8")
+    claims_path.write_text("{}", encoding="utf-8")
+    claims_ref = "docs/benchmarks/runs/dispatch/agent_claims.json"
+    prompt_ref = "docs/benchmarks/runs/dispatch/wave-1-qga.agent.md"
+    actionable_dispatch_review = {
+        "manual_claim_review": [
+            {
+                "kind": "dispatch-claim",
+                "id": "claim-wave-1-qga",
+                "package_id": "wave-1-qga",
+                "generated_status": "blocked_missing_env",
+                "polarity": "manual",
+                "doc": claims_ref,
+                "owner": "operator-or-secret-holder",
+                "missing_env": ["TAMANDUA_PROXMOX_PASSWORD"],
+                "action": "Verify credentials, then rerun QGA.",
+                "prompt_path": prompt_ref,
+                "snippet": (
+                    "wave-1-qga: resource overlap: windows-lab; owner=operator-or-secret-holder; "
+                    "missing_env=TAMANDUA_PROXMOX_PASSWORD; action=Verify credentials, then rerun QGA.; "
+                    f"prompt={prompt_ref}"
+                ),
+            }
+        ]
+    }
+    old_root = consistency.ROOT
+    consistency.ROOT = tmp_path
+    try:
+        assert consistency.scorecard_manual_claim_review_has_only_dispatch_claims(actionable_dispatch_review)
+        assert consistency.scorecard_dispatch_manual_claim_review_is_actionable(actionable_dispatch_review)
+    finally:
+        consistency.ROOT = old_root
+    assert not consistency.scorecard_manual_claim_review_has_only_dispatch_claims(
+        {
+            "manual_claim_review": [
+                {
+                    "kind": "dispatch-claim",
+                    "id": "claim-wave-1-qga",
+                    "polarity": "manual",
+                },
+                {
+                    "kind": "roadmap",
+                    "id": "J",
+                    "polarity": "positive",
+                },
+            ]
+        }
+    )
+    missing_prompt_review = copy.deepcopy(actionable_dispatch_review)
+    missing_prompt_review["manual_claim_review"][0]["prompt_path"] = "docs/benchmarks/runs/dispatch/missing.agent.md"
+    missing_prompt_review["manual_claim_review"][0]["snippet"] = missing_prompt_review["manual_claim_review"][0][
+        "snippet"
+    ].replace(prompt_ref, "docs/benchmarks/runs/dispatch/missing.agent.md")
+    old_root = consistency.ROOT
+    consistency.ROOT = tmp_path
+    try:
+        assert not consistency.scorecard_dispatch_manual_claim_review_is_actionable(missing_prompt_review)
+    finally:
+        consistency.ROOT = old_root
+
+    assert not consistency.scorecard_dispatch_manual_claim_review_is_actionable(
+        {
+            "manual_claim_review": [
+                {
+                    "kind": "dispatch-claim",
+                "id": "claim-wave-1-qga",
+                "package_id": "wave-1-qga",
+                "generated_status": "blocked_missing_env",
+                    "polarity": "manual",
+                    "owner": "operator-or-secret-holder",
+                    "missing_env": ["TAMANDUA_PROXMOX_PASSWORD"],
+                    "action": "Verify credentials.",
+                    "prompt_path": "handoff.md",
+                    "snippet": "wave-1-qga: missing_env=TAMANDUA_PROXMOX_PASSWORD; action=Verify credentials...",
+                }
+            ]
+        }
+    )
+    assert not consistency.scorecard_dispatch_manual_claim_review_is_actionable(
+        {
+            "manual_claim_review": [
+                {
+                    "kind": "dispatch-claim",
+                "id": "claim-wave-1-qga",
+                "package_id": "wave-1-qga",
+                "generated_status": "blocked_missing_env",
+                    "polarity": "manual",
+                    "owner": "operator-or-secret-holder",
+                    "missing_env": ["TAMANDUA_PROXMOX_PASSWORD"],
+                    "action": "",
+                    "prompt_path": "handoff.md",
+                    "snippet": "wave-1-qga: missing_env=TAMANDUA_PROXMOX_PASSWORD; prompt=handoff.md",
+                }
+            ]
+        }
+    )
+    assert not consistency.scorecard_manual_claim_review_has_only_dispatch_claims(
+        {
+            "manual_claim_review": [
+                {
+                    "kind": "profile",
+                    "id": "windows-benign-baseline",
+                    "polarity": "positive",
+                }
+            ]
+        }
+    )
+
+
+def test_status_consistency_validates_ai_model_scanner_claim_boundary():
+    assert consistency.ai_model_scanner_scorecard_preserves_claim_boundary(
+        "Small corpus establishes a minimum viable baseline, not production-ready performance.\n"
+        "WeightAnalyzer: Tuning is ready for larger-corpus validation."
+    )
+    assert not consistency.ai_model_scanner_scorecard_preserves_claim_boundary(
+        "Small corpus establishes a minimum viable baseline, not production-ready performance.\n"
+        "WeightAnalyzer: Tuning is **production-ready**."
+    )
+    assert not consistency.ai_model_scanner_scorecard_preserves_claim_boundary(
+        "WeightAnalyzer: Tuning is ready for larger-corpus validation."
+    )
+
+
+def test_status_consistency_validates_benchmark_results_caldera_claim_boundary():
+    assert consistency.benchmark_results_review_preserves_caldera_claim_boundary(
+        "CALDERA smoke selected-profile evidence is claim-scoped only; "
+        "repeatability and product claims still require the CALDERA repeatability gate to pass."
+    )
+    assert not consistency.benchmark_results_review_preserves_caldera_claim_boundary(
+        "CALDERA smoke is claimable only after excluding stale agents."
+    )
+    assert not consistency.benchmark_results_review_preserves_caldera_claim_boundary(
+        "CALDERA smoke selected-profile evidence is claim-scoped only."
+    )
+
+
+def test_status_consistency_validates_benchmark_results_windows_p0_boundary():
+    assert consistency.benchmark_results_review_preserves_windows_p0_deterministic_boundary(
+        "Windows P0 safe expansion is closed only by accumulated deterministic evidence: "
+        "the full 31 profile ran."
+    )
+    assert not consistency.benchmark_results_review_preserves_windows_p0_deterministic_boundary(
+        "Windows P0 safe expansion is closed by accumulated deterministic evidence: "
+        "the full 31 profile ran."
+    )
+
+
+def test_status_consistency_validates_windows_p0_closure_boundary():
+    assert consistency.windows_p0_closure_preserves_deterministic_slice_boundary(
+        "The Windows 31-scenario P0 safe deterministic slice is now closed by accumulated evidence. "
+        "These results do not close Atomic/CALDERA provenance or cross-platform parity."
+    )
+    assert not consistency.windows_p0_closure_preserves_deterministic_slice_boundary(
+        "The Windows 31-scenario P0 safe expansion is now closed by accumulated evidence."
+    )
+
+
+def test_status_consistency_rejects_p1_roadmap_overclaim():
+    assert consistency.coordination_docs_avoid_p1_roadmap_overclaim(
+        "Run after selected P1 deterministic evidence is green, unless a P2 case blocks a product fix."
+    )
+    assert not consistency.coordination_docs_avoid_p1_roadmap_overclaim(
+        "Run after P1 is green, unless a P2 case blocks a product fix."
+    )
+    assert not consistency.coordination_docs_avoid_p1_roadmap_overclaim(
+        "Execute P2 batches only after P1 is stable."
+    )
+
+
+def test_status_consistency_rejects_stale_cross_platform_boundaries():
+    assert consistency.roadmap_plans_preserve_current_cross_platform_boundary(
+        "Linux has broad deterministic evidence. macOS backend-backed parity remains open."
+    )
+    assert not consistency.roadmap_plans_preserve_current_cross_platform_boundary(
+        "Linux: `300` scenarios, `107` P0, all planned."
+    )
+    assert not consistency.roadmap_plans_preserve_current_cross_platform_boundary(
+        "These artifacts are dry-runs only. They prove profile/runner shape."
+    )
+
+
+def test_status_consistency_validates_linux_sensor_boundary():
+    assert consistency.parallel_board_preserves_linux_sensor_boundary(
+        "Linux P0 sensor-contract smoke remains green in current evidence."
+    )
+    assert not consistency.parallel_board_preserves_linux_sensor_boundary(
+        "Do not claim parity until Linux sensor-contract evidence is closed."
+    )
+
+
+def test_status_consistency_requires_scorecard_consistency_coverage_to_match_artifact():
+    assert consistency.consistency_scorecard_coverage_matches_artifact(
+        {"covered": 395, "expected_profile_tests": 395},
+        {"summary": {"passed": 395, "total_checks": 395}},
+    )
+    assert consistency.consistency_scorecard_coverage_matches_artifact(
+        {"covered": 395, "tests": 396},
+        {"summary": {"covered": 395, "tests": 396}},
+    )
+    assert not consistency.consistency_scorecard_coverage_matches_artifact(
+        {"covered": 389, "expected_profile_tests": 389},
+        {"summary": {"passed": 395, "total_checks": 395}},
+    )
+    assert not consistency.consistency_scorecard_coverage_matches_artifact(
+        {"covered": 395, "expected_profile_tests": 395},
+        {"summary": {"passed": 395, "total_checks": 100}},
+    )
+
+
+def test_status_consistency_rejects_pass_roadmap_with_newer_fail_after_pass():
+    assert not consistency.scorecard_pass_roadmaps_have_no_newer_fail_after_pass(
+        {
+            "roadmaps": [
+                {
+                    "key": "A",
+                    "status": "pass",
+                    "profiles": [
+                        {
+                            "profile_id": "windows-agent-connection-stability-probe",
+                            "latest": {
+                                "quality_gate_passed": False,
+                                "complete_profile_scope": False,
+                            },
+                            "latest_pass": {"run_id": "20260603T133052Z-pass"},
+                        }
+                    ],
+                }
+            ]
+        }
+    )
+    assert consistency.scorecard_pass_roadmaps_have_no_newer_fail_after_pass(
+        {
+            "roadmaps": [
+                {
+                    "key": "A",
+                    "status": "partial",
+                    "profiles": [
+                        {
+                            "profile_id": "windows-agent-connection-stability-probe",
+                            "latest": {
+                                "quality_gate_passed": False,
+                                "complete_profile_scope": False,
+                            },
+                            "latest_pass": {"run_id": "20260603T133052Z-pass"},
+                        }
+                    ],
+                }
+            ]
+        }
+    )
+
+
+def test_status_consistency_rejects_pass_roadmap_without_latest_profile_pass():
+    assert not consistency.scorecard_pass_roadmaps_have_latest_pass_for_every_profile(
+        {
+            "roadmaps": [
+                {
+                    "key": "B1",
+                    "status": "pass",
+                    "profiles": [
+                        {
+                            "profile_id": "windows-roadmap-300-p1-batch-02",
+                            "latest": {"run_id": "20260602T051300Z-fail"},
+                            "latest_pass": None,
+                        }
+                    ],
+                }
+            ]
+        }
+    )
+    assert consistency.scorecard_pass_roadmaps_have_latest_pass_for_every_profile(
+        {
+            "roadmaps": [
+                {
+                    "key": "B2",
+                    "status": "pass",
+                    "profiles": [
+                        {
+                            "profile_id": "windows-roadmap-300-p2-batch-01",
+                            "latest": {"run_id": "exec-pass"},
+                            "latest_pass": {"run_id": "exec-pass"},
+                        }
+                    ],
+                }
+            ]
+        }
+    )
+
+
+def test_status_consistency_rejects_pass_roadmap_with_open_full_scope_note():
+    assert not consistency.scorecard_pass_roadmaps_have_no_open_full_scope_notes(
+        {
+            "roadmaps": [
+                {
+                    "key": "L",
+                    "status": "pass",
+                    "note": "Static evidence validates shape. VM evidence is still required for lifecycle.",
+                }
+            ]
+        }
+    )
+    assert consistency.scorecard_pass_roadmaps_have_no_open_full_scope_notes(
+        {
+            "roadmaps": [
+                {
+                    "key": "L",
+                    "status": "partial",
+                    "note": "Static evidence validates shape. VM evidence is still required for lifecycle.",
+                }
+            ]
+        }
+    )
 
 
 def test_closure_gate_collects_nested_required_input_envs():
@@ -433,6 +5283,55 @@ def test_closure_gate_roadmap_test_result_includes_next_action():
     assert "CALDERA_API_KEY" in action["action"]
 
 
+def test_closure_gate_derives_open_roadmaps_from_scorecard():
+    scorecard = {
+        "roadmaps": [
+            {"key": "A", "owner_area": "Windows P0", "status": "partial", "profiles": []},
+            {"key": "B1", "owner_area": "Windows P1", "status": "partial", "profiles": []},
+            {"key": "O", "owner_area": "Generated scorecard", "status": "generated", "profiles": []},
+            {"key": "Q", "owner_area": "Generated but gated", "status": "generated", "profiles": []},
+            {"key": "Z", "owner_area": "Closed", "status": "pass", "profiles": []},
+        ]
+    }
+
+    rows = closure_gate.gated_roadmap_items(scorecard)
+
+    assert [(key, title) for key, title, _ in rows] == [
+        ("A", "Windows P0"),
+        ("B1", "Windows P1"),
+        ("Q", "Generated but gated"),
+    ]
+
+
+def test_closure_gate_records_only_explicitly_excluded_roadmaps():
+    scorecard = {
+        "roadmaps": [
+            {"key": "O", "owner_area": "Generated scorecard", "status": "generated", "profiles": []},
+            {"key": "Q", "owner_area": "Generated but gated", "status": "generated", "profiles": []},
+        ]
+    }
+
+    assert closure_gate.excluded_roadmap_items(scorecard) == [
+        {
+            "roadmap": "O",
+            "title": "Generated scorecard",
+            "status": "generated",
+            "reason": "generated_scorecard_automation_not_product_gate",
+        }
+    ]
+
+
+def test_closure_gate_generated_status_does_not_close_gated_roadmap():
+    result = closure_gate.test_result(
+        "Q",
+        "Detection Content Governance",
+        {"key": "Q", "title": "Detection Content Governance", "status": "generated", "profiles": []},
+    )
+
+    assert result["status"] == "missed"
+    assert result["missing_expected_fields"] == ["roadmap_status_pass"]
+
+
 def test_closure_gate_roadmap_e_prioritizes_macos_auth():
     action = closure_gate.roadmap_action_text(
         "E",
@@ -450,6 +5349,13 @@ def test_closure_gate_markdown_renders_next_actions(tmp_path):
         "quality_gate": {"status": "fail"},
         "scorecard_generated_at": "2026-06-04T00:00:00Z",
         "gated_roadmaps": ["D"],
+        "excluded_roadmaps": [
+            {
+                "roadmap": "O",
+                "status": "generated",
+                "reason": "generated_scorecard_automation_not_product_gate",
+            }
+        ],
         "roadmap_next_actions": [
             {
                 "roadmap": "D",
@@ -483,6 +5389,8 @@ def test_closure_gate_markdown_renders_next_actions(tmp_path):
     assert "caldera-api-shape-probe" in markdown
     assert "CALDERA_API_KEY" in markdown
     assert "Provide CALDERA_API_KEY" in markdown
+    assert "## Excluded Roadmaps" in markdown
+    assert "generated_scorecard_automation_not_product_gate" in markdown
 
 
 def test_fresh_restore_required_inputs_include_boolean_env():
@@ -657,6 +5565,108 @@ def test_status_consistency_collects_nested_required_env_lists():
     assert "TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID" in values
 
 
+def test_env_unblock_queue_reports_current_env_readiness():
+    claims_payload = {
+        "artifact": "validation-agent-claims",
+        "blocked_claim_count": 3,
+        "claims": [
+            {
+                "claim_id": "claim-caldera",
+                "package_id": "wave-1-caldera",
+                "owner": "operator-or-secret-holder",
+                "wave": 1,
+                "blocked_reasons": ["missing_effective_env"],
+                "missing_effective_env": ["CALDERA_API_KEY", "CALDERA_AGENT_PAW"],
+            },
+            {
+                "claim_id": "claim-macos",
+                "package_id": "wave-1-macos",
+                "owner": "validation-agent",
+                "wave": 1,
+                "blocked_reasons": ["missing_effective_env"],
+                "missing_effective_env": ["TAMANDUA_TOKEN"],
+            },
+            {
+                "claim_id": "claim-wave-3",
+                "package_id": "wave-3-closure",
+                "owner": "validation-agent",
+                "wave": 3,
+                "blocked_reasons": ["missing_effective_env", "depends_on_prior_waves"],
+                "missing_effective_env": ["TAMANDUA_SERVER_PASSWORD"],
+            },
+        ],
+    }
+
+    queue = preflight_work_package.build_env_unblock_queue_json(
+        claims_payload,
+        environ={
+            "CALDERA_API_KEY": "set",
+            "CALDERA_AGENT_PAW": "set",
+            "TAMANDUA_TOKEN": "<set-tamandua-token-secret>",
+        },
+    )
+    markdown = preflight_work_package.render_env_unblock_queue(queue)
+
+    assert queue["current_env_present_names"] == ["CALDERA_AGENT_PAW", "CALDERA_API_KEY"]
+    assert queue["current_env_missing_names"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert queue["current_env_placeholder_names"] == ["TAMANDUA_TOKEN"]
+    assert queue["current_env_present_count"] == 2
+    assert queue["current_env_missing_count"] == 1
+    assert queue["current_env_placeholder_count"] == 1
+    assert queue["ready_with_current_env_claim_ids"] == ["claim-caldera"]
+    assert queue["still_blocked_with_current_env_claim_ids"] == ["claim-macos", "claim-wave-3"]
+    assert queue["ready_after_all_env_claim_ids"] == ["claim-caldera", "claim-macos"]
+    assert queue["still_blocked_after_all_env_claim_ids"] == ["claim-wave-3"]
+    assert "Claims ready with current env: `claim-caldera`" in markdown
+    assert "Claims still blocked with current env: `claim-macos, claim-wave-3`" in markdown
+    assert "Current env placeholders: `1`" in markdown
+
+
+def test_env_unblock_queue_splits_direct_and_indirect_next_actions():
+    claims_payload = {
+        "artifact": "validation-agent-claims",
+        "blocked_claim_count": 2,
+        "claims": [
+            {
+                "claim_id": "claim-server",
+                "package_id": "wave-1-server",
+                "owner": "validation-agent",
+                "wave": 1,
+                "blocked_reasons": ["missing_effective_env"],
+                "missing_effective_env": ["TAMANDUA_SERVER_PASSWORD"],
+                "current_next_action": {
+                    "required_env": ["TAMANDUA_SERVER_PASSWORD"],
+                    "action": "Set TAMANDUA_SERVER_PASSWORD, then rerun connection stability.",
+                },
+            },
+            {
+                "claim_id": "claim-qga",
+                "package_id": "wave-1-qga",
+                "owner": "operator-or-secret-holder",
+                "wave": 1,
+                "blocked_reasons": ["missing_effective_env", "manual_launch_required"],
+                "missing_effective_env": ["TAMANDUA_SERVER_PASSWORD", "TAMANDUA_PROXMOX_PASSWORD"],
+                "current_next_action": {
+                    "action": "Verify Proxmox credentials, then rerun QGA diagnostics.",
+                },
+            },
+        ],
+    }
+
+    queue = preflight_work_package.build_env_unblock_queue_json(claims_payload, environ={})
+    server_entry = next(entry for entry in queue["entries"] if entry["env"] == "TAMANDUA_SERVER_PASSWORD")
+    markdown = preflight_work_package.render_env_unblock_queue(queue)
+
+    assert server_entry["direct_next_action_summaries"] == [
+        "claim-server: action=Set TAMANDUA_SERVER_PASSWORD, then rerun connection stability."
+    ]
+    assert server_entry["indirect_next_action_summaries"] == [
+        "claim-qga: action=Verify Proxmox credentials, then rerun QGA diagnostics."
+    ]
+    assert "Direct claim next actions: claim-server: action=Set TAMANDUA_SERVER_PASSWORD" in markdown
+    assert "Other affected claim next actions: claim-qga: action=Verify Proxmox credentials" in markdown
+
+
 def test_status_consistency_normalizes_artifact_refs():
     assert consistency.normalize_artifact_ref(r"docs\benchmarks\runs\artifact.json") == (
         "docs/benchmarks/runs/artifact.json"
@@ -667,10 +5677,151 @@ def test_status_consistency_normalizes_artifact_refs():
 def test_status_consistency_requires_scorecard_indexed_minimum_checks():
     minimum = consistency.MIN_SCORECARD_CONSISTENCY_CHECKS
 
+    assert minimum >= 360
     assert consistency.scorecard_consistency_latest_meets_minimum({"covered": minimum, "tests": minimum})
     assert not consistency.scorecard_consistency_latest_meets_minimum(
         {"covered": minimum - 1, "tests": minimum - 1}
     )
+    assert consistency.consistency_artifact_meets_minimum(
+        {"summary": {"covered": minimum, "tests": minimum}}
+    )
+    assert consistency.consistency_artifact_meets_minimum(
+        {"summary": {"covered": minimum, "total": minimum}}
+    )
+    assert not consistency.consistency_artifact_meets_minimum(
+        {"summary": {"covered": minimum - 1, "tests": minimum}}
+    )
+
+
+def test_status_consistency_refresh_scorecard_between_run_artifact_passes(monkeypatch, tmp_path, capsys):
+    calls = []
+    output_dir = tmp_path / "generated"
+    run_output_dir = tmp_path / "runs"
+    scorecard_json = output_dir / "validation_roadmap_scorecard.json"
+    run_id = "20260611T223310Z-validation-status-consistency-probe"
+    payload = {
+        "checks": [],
+        "latest": {},
+        "summary": {"failed": 0, "passed": 1, "total_checks": 1},
+    }
+
+    def fake_build_payload(scorecard_path, status_docs, expected_run_id):
+        calls.append(("build", Path(scorecard_path), expected_run_id))
+        return dict(payload)
+
+    def fake_write_outputs(payload_arg, output_path):
+        calls.append(("write_outputs", Path(output_path)))
+        return Path(output_path) / "validation_status_consistency.json", Path(output_path) / "validation_status_consistency.md"
+
+    def fake_write_run_artifacts(payload_arg, output_path, expected_run_id):
+        calls.append(("write_run", Path(output_path), expected_run_id))
+        return (
+            Path(output_path) / f"{expected_run_id}.json",
+            Path(output_path) / f"{expected_run_id}.md",
+            Path(output_path) / f"{expected_run_id}.comparison.json",
+        )
+
+    def fake_refresh_scorecard(runs_dir, generated_dir):
+        calls.append(("refresh_scorecard", Path(runs_dir), Path(generated_dir)))
+
+    monkeypatch.setattr(consistency, "build_payload", fake_build_payload)
+    monkeypatch.setattr(consistency, "write_outputs", fake_write_outputs)
+    monkeypatch.setattr(consistency, "write_run_artifacts", fake_write_run_artifacts)
+    monkeypatch.setattr(consistency, "refresh_scorecard", fake_refresh_scorecard)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "validation_status_consistency.py",
+            "--scorecard-json",
+            str(scorecard_json),
+            "--output-dir",
+            str(output_dir),
+            "--run-output-dir",
+            str(run_output_dir),
+            "--run-id",
+            run_id,
+            "--refresh-scorecard",
+        ],
+    )
+
+    assert consistency.main() == 0
+    assert calls == [
+        ("build", scorecard_json, run_id),
+        ("write_outputs", output_dir),
+        ("write_run", run_output_dir, run_id),
+        ("refresh_scorecard", run_output_dir, output_dir),
+        ("build", scorecard_json, run_id),
+        ("write_outputs", output_dir),
+        ("write_run", run_output_dir, run_id),
+    ]
+    assert "validation_status_consistency=True" in capsys.readouterr().out
+
+
+def test_status_consistency_refreshes_scorecard_by_default_when_writing_run_artifact(
+    monkeypatch, tmp_path, capsys
+):
+    calls = []
+    output_dir = tmp_path / "generated"
+    run_output_dir = tmp_path / "runs"
+    scorecard_json = output_dir / "validation_roadmap_scorecard.json"
+    run_id = "20260612T070100Z-validation-status-consistency-probe"
+    payload = {
+        "checks": [],
+        "latest": {},
+        "summary": {"failed": 0, "passed": 1, "total_checks": 1},
+    }
+
+    def fake_build_payload(scorecard_path, status_docs, expected_run_id):
+        calls.append(("build", Path(scorecard_path), expected_run_id))
+        return dict(payload)
+
+    def fake_write_outputs(payload_arg, output_path):
+        calls.append(("write_outputs", Path(output_path)))
+        return Path(output_path) / "validation_status_consistency.json", Path(output_path) / "validation_status_consistency.md"
+
+    def fake_write_run_artifacts(payload_arg, output_path, expected_run_id):
+        calls.append(("write_run", Path(output_path), expected_run_id))
+        return (
+            Path(output_path) / f"{expected_run_id}.json",
+            Path(output_path) / f"{expected_run_id}.md",
+            Path(output_path) / f"{expected_run_id}.comparison.json",
+        )
+
+    def fake_refresh_scorecard(runs_dir, generated_dir):
+        calls.append(("refresh_scorecard", Path(runs_dir), Path(generated_dir)))
+
+    monkeypatch.setattr(consistency, "build_payload", fake_build_payload)
+    monkeypatch.setattr(consistency, "write_outputs", fake_write_outputs)
+    monkeypatch.setattr(consistency, "write_run_artifacts", fake_write_run_artifacts)
+    monkeypatch.setattr(consistency, "refresh_scorecard", fake_refresh_scorecard)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "validation_status_consistency.py",
+            "--scorecard-json",
+            str(scorecard_json),
+            "--output-dir",
+            str(output_dir),
+            "--run-output-dir",
+            str(run_output_dir),
+            "--run-id",
+            run_id,
+        ],
+    )
+
+    assert consistency.main() == 0
+    assert calls == [
+        ("build", scorecard_json, run_id),
+        ("write_outputs", output_dir),
+        ("write_run", run_output_dir, run_id),
+        ("refresh_scorecard", run_output_dir, output_dir),
+        ("build", scorecard_json, run_id),
+        ("write_outputs", output_dir),
+        ("write_run", run_output_dir, run_id),
+    ]
+    assert "validation_status_consistency=True" in capsys.readouterr().out
 
 
 def test_status_consistency_compares_latest_run_id_timestamps():
@@ -756,6 +5907,31 @@ def test_status_consistency_prospective_run_accepts_pre_aligned_doc_checks(tmp_p
     ]
     assert len(fail_doc_checks) == len(consistency.STATUS_DOCS)
     assert {item["status"] for item in fail_doc_checks} == {"PASS"}
+    no_stale_fail_doc_checks = [
+        item
+        for item in payload["checks"]
+        if item["name"].endswith("has no stale latest consistency fail references")
+    ]
+    assert len(no_stale_fail_doc_checks) == len(consistency.STATUS_DOCS)
+    assert {item["status"] for item in no_stale_fail_doc_checks} == {"PASS"}
+
+    status_docs[0].write_text(
+        f"latest consistency run {prospective_run}\n"
+        f"latest superseded consistency fail {latest_fail}\n"
+        "latest consistency fail 20260604T185533Z-validation-status-consistency-probe\n",
+        encoding="utf-8",
+    )
+    stale_payload = consistency.build_payload(
+        consistency.SCORECARD_JSON,
+        status_docs,
+        prospective_run,
+    )
+    stale_checks = [
+        item
+        for item in stale_payload["checks"]
+        if item["name"].endswith("has no stale latest consistency fail references")
+    ]
+    assert any(item["status"] == "FAIL" for item in stale_checks)
 
 
 def test_status_consistency_detects_self_indexed_latest_artifact():
@@ -850,6 +6026,7 @@ def test_status_consistency_validates_dispatch_self_contained_paths(tmp_path):
                 "Owner role: validation-agent",
                 "Roadmaps: A",
                 "Required env: -",
+                "Declared package env: -",
                 "Next-action env: TAMANDUA_SERVER_PASSWORD",
                 "Depends on waves: -",
                 "Resource tags: windows-lab",
@@ -1426,7 +6603,7 @@ def test_status_consistency_validates_dispatch_package_summaries_against_artifac
         "| | | | | | evidence | `required_env` |\n"
         "| | | | | | evidence | `hostname=WIN-TEMPLATE; status=offline; health=unknown` |\n"
         "| | | | | | `windows-agent-connection-stability-probe` next action | "
-        "`server_log_access, telemetry_batches; Set TAMANDUA_SERVER_PASSWORD.` |\n",
+        "`missing=server_log_access, telemetry_batches; action=Set TAMANDUA_SERVER_PASSWORD.` |\n",
         encoding="utf-8",
     )
     old_root = consistency.ROOT
@@ -1581,6 +6758,41 @@ def test_status_consistency_validates_dispatch_package_summaries_against_artifac
         original_dispatch_markdown = dispatch_md.read_text(encoding="utf-8")
         dispatch_md.write_text(original_dispatch_markdown + "\nD:/treant/tamandua/tmp/dispatch/artifact.json\n", encoding="utf-8")
         assert not consistency.dispatch_markdown_matches_package_summaries(artifact)
+        dispatch_md.write_text(original_dispatch_markdown, encoding="utf-8")
+        missing_package_artifact = json.loads(json.dumps(artifact))
+        missing_package_artifact["packages"][0]["artifact_path"] = None
+        missing_package_artifact["packages"][0]["status"] = "invalid"
+        missing_package_artifact["packages"][0]["failures"] = [
+            "missing_expected_profile_artifact",
+            "missing_package_artifact",
+        ]
+        missing_package_artifact["packages"][0]["first_gap"] = None
+        missing_package_artifact["packages"][0]["evidence_excerpt"] = {
+            "missing_package": {
+                "missing_expected_profiles": ["windows-proxmox-qga-readiness-probe"],
+                "required_env": ["TAMANDUA_PROXMOX_PASSWORD"],
+                "manual_reason": "resource overlap: windows-lab",
+            },
+            "next_action": {
+                "action": "Verify Proxmox credentials before rerunning QGA diagnostics.",
+            },
+        }
+        missing_markdown = (
+            original_dispatch_markdown
+            .replace("| `wave-1` | 1 | true | `fail` | ", "| `wave-1` | 1 | true | `invalid` | ")
+            .replace(
+                f"`docs/benchmarks/runs/{run_id}.package-artifacts/packages/wave-1/"
+                "20260603T180000Z-example-probe.json` | `target_offline` | `target-offline` |",
+                "`-` | `target_offline` | `-` |\n"
+                "| | | | | | missing package | `required_env=TAMANDUA_PROXMOX_PASSWORD; "
+                "missing_profiles=windows-proxmox-qga-readiness-probe; manual_reason=resource overlap: windows-lab; "
+                "next_action=action=Verify Proxmox credentials before rerunning QGA diagnostics.` |",
+            )
+        )
+        dispatch_md.write_text(missing_markdown, encoding="utf-8")
+        assert consistency.dispatch_markdown_matches_package_summaries(missing_package_artifact)
+        dispatch_md.write_text(missing_markdown.replace("next_action=action=", "next_action_removed=action="), encoding="utf-8")
+        assert not consistency.dispatch_markdown_matches_package_summaries(missing_package_artifact)
         dispatch_md.write_text(original_dispatch_markdown, encoding="utf-8")
         assert consistency.dispatch_package_evidence_excerpt_is_actionable(artifact)
         assert consistency.dispatch_windows_connection_next_action(artifact) == {
@@ -1745,6 +6957,24 @@ def test_status_consistency_validates_macos_auth_handoff_command():
     ]
     assert consistency.dispatch_macos_auth_handoff(artifact)["login_command"] == login_command
     assert consistency.dispatch_macos_auth_handoff(artifact)["token_login_command"] == token_login_command
+
+
+def test_status_consistency_next_action_summary_keeps_action_with_token_login():
+    summary = consistency.render_current_next_action_summary(
+        {
+            "missing_readiness": ["tamandua_ctl_auth"],
+            "login_command": "tamandua-ctl remote login --server http://192.168.12.146:4000 --no-browser",
+            "token_login_command": (
+                "tamandua-ctl remote login --server http://192.168.12.146:4000 "
+                "--token $env:TAMANDUA_TOKEN"
+            ),
+            "action": "Refresh tamandua-ctl authentication for the target server, then rerun the readiness probe.",
+        }
+    )
+
+    assert "missing=tamandua_ctl_auth" in summary
+    assert "token_login_command=tamandua-ctl remote login" in summary
+    assert "action=Refresh tamandua-ctl authentication" in summary
 
 
 def test_status_consistency_validates_dispatch_manifest_against_source_preflight(tmp_path):
@@ -1938,7 +7168,8 @@ def test_status_consistency_validates_dispatch_handoff_execution_guards(tmp_path
         "}\n"
         "$RequiredEnv = @('CALDERA_API_KEY')\n"
         "$MissingEnv = @($RequiredEnv | Where-Object { -not [Environment]::GetEnvironmentVariable($_) })\n"
-        "if ($MissingEnv.Count -gt 0) { Write-Error 'Missing effective env for package'; Write-AgentStatus 'blocked' 2 @('missing_effective_env: CALDERA_API_KEY'); exit 2 }\n",
+        "if ($MissingEnv.Count -gt 0) { Write-Error 'Missing effective env for package'; Write-AgentStatus 'blocked' 2 @('missing_effective_env: CALDERA_API_KEY'); exit 2 }\n"
+        "Write-Error 'Missing claim lock helper for direct package execution.'\n",
         encoding="utf-8",
     )
     launcher_path.write_text(
@@ -1978,6 +7209,24 @@ def test_status_consistency_validates_dispatch_handoff_execution_guards(tmp_path
             "if ($LASTEXITCODE -ne $null -and $LASTEXITCODE -ne 0) { exit $LASTEXITCODE }\n",
             encoding="utf-8",
         )
+        script_path.write_text(
+            script_path.read_text(encoding="utf-8").replace(
+                "$RequiredEnv = @('CALDERA_API_KEY')\n",
+                "Write-Error 'Missing claim lock helper for direct package execution.'\n"
+                "$RequiredEnv = @('CALDERA_API_KEY')\n",
+            ),
+            encoding="utf-8",
+        )
+        assert not consistency.dispatch_archived_handoff_execution_guards_present(artifact)
+        script_path.write_text(
+            script_path.read_text(encoding="utf-8").replace(
+                "Write-Error 'Missing claim lock helper for direct package execution.'\n"
+                "$RequiredEnv = @('CALDERA_API_KEY')\n",
+                "$RequiredEnv = @('CALDERA_API_KEY')\n",
+                1,
+            ),
+            encoding="utf-8",
+        )
         script_path.write_text("Write-Output 'missing guard'\n", encoding="utf-8")
         assert not consistency.dispatch_archived_handoff_execution_guards_present(artifact)
     finally:
@@ -1994,6 +7243,7 @@ def test_status_consistency_validates_dependent_launcher_evidence_guards(tmp_pat
         "# Wave: 2\n"
         "# DependsOnWaves: 1\n"
         "$AllowDependentWaveLaunch = [Environment]::GetEnvironmentVariable('TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH')\n"
+        "Write-Error 'AgentId may only contain letters, digits, underscore, dot, or dash. Source: TAMANDUA_WAVE_LAUNCHER_AGENT_ID.'\n"
         "$LauncherDir = Split-Path -Parent $MyInvocation.MyCommand.Path\n"
         "$ManifestPath = Join-Path $LauncherDir 'dispatch_manifest.json'\n"
         "$ManifestPath = Join-Path (Split-Path -Parent $LauncherDir) 'dispatch_manifest.json'\n"
@@ -2077,6 +7327,7 @@ def test_status_consistency_validates_one_shot_runner_guard(tmp_path):
         "$AllowOneShot = [Environment]::GetEnvironmentVariable('TAMANDUA_ALLOW_ONE_SHOT_DISPATCH')\n"
         "$env:TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH = '1'\n"
         "$DispatchAgentId = [Environment]::GetEnvironmentVariable('TAMANDUA_DISPATCH_AGENT_ID')\n"
+        "Write-Error 'AgentId may only contain letters, digits, underscore, dot, or dash. Source: TAMANDUA_DISPATCH_AGENT_ID.'\n"
         "$env:TAMANDUA_AGENT_CLAIM_ID = $ClaimId\n"
         "$env:TAMANDUA_AGENT_ID = $script:DispatchAgentId\n"
         "$DispatchFailures = @()\n"
@@ -2124,7 +7375,25 @@ def test_status_consistency_validates_one_shot_runner_guard(tmp_path):
             runner_path.read_text(encoding="utf-8").replace("Write-DispatchSkippedWaveStatuses", "Write-DispatchBlockedWaveStatuses"),
             encoding="utf-8",
         )
-        runner_path.write_text(runner_path.read_text(encoding="utf-8").replace("--promote-dispatch-results", ""), encoding="utf-8")
+        runner_path.write_text(
+            runner_path.read_text(encoding="utf-8").replace("--promote-dispatch-results", ""),
+            encoding="utf-8",
+        )
+        assert not consistency.dispatch_archived_one_shot_runner_guard_present(artifact)
+        runner_path.write_text(
+            runner_path.read_text(encoding="utf-8").replace(
+                "python tools/detection_validation/run_preflight_work_package.py  dispatch_manifest.json",
+                "python tools/detection_validation/run_preflight_work_package.py --promote-dispatch-results dispatch_manifest.json",
+            ),
+            encoding="utf-8",
+        )
+        runner_path.write_text(
+            runner_path.read_text(encoding="utf-8").replace(
+                "python tools/detection_validation/validation_status_consistency.py",
+                "python tools/detection_validation/validation_status_consistency.py --refresh-scorecard",
+            ),
+            encoding="utf-8",
+        )
         assert not consistency.dispatch_archived_one_shot_runner_guard_present(artifact)
     finally:
         consistency.ROOT = old_root
@@ -2445,6 +7714,9 @@ def test_status_consistency_validates_owner_launch_plan_json_matches_manifest(tm
                                 "current_artifacts": [],
                                 "current_missing_profiles": ["caldera-api-shape-probe"],
                                 "current_blocker_cleared": False,
+                                "current_next_action": {
+                                    "action": "Provide CALDERA_API_KEY before rerunning the API shape probe."
+                                },
                             }
                         ],
                     }
@@ -2527,6 +7799,7 @@ def test_status_consistency_validates_owner_launch_plan_json_matches_manifest(tm
     queue = preflight_work_package.build_env_unblock_queue_json(
         claims,
         Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/env_bundle_ready_claims_launcher.ps1"),
+        Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1"),
     )
     queue_json_path.write_text(json.dumps(queue), encoding="utf-8")
     queue_path.write_text(preflight_work_package.render_env_unblock_queue(queue), encoding="utf-8")
@@ -2550,25 +7823,39 @@ def test_status_consistency_validates_owner_launch_plan_json_matches_manifest(tm
             Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/ready_claims_parallel_launcher.ps1"),
             Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/env_bundle_ready_claims_launcher.ps1"),
             Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/claim_lock_helper.ps1"),
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/env_unblock_queue.json"),
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_plan.json"),
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/agent_claims.json"),
+            None,
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/dispatch_manifest.json"),
         ),
         encoding="utf-8",
     )
     brief_path = archive_root / "dispatch_brief.md"
     brief_path.write_text(
         "\n".join(
-            [
-                "# Validation Dispatch Brief",
-                "",
-                "## Recommended Launch Sequence",
-                "",
+                [
+                    "# Validation Dispatch Brief",
+                    "",
+                    f"Env unblock queue: `docs/benchmarks/runs/{run_id}.package-artifacts/env_unblock_queue.md`",
+                    (
+                        "Env unblock queue handoff: includes copy/paste `Direct claim next actions:`, "
+                        "`Other affected claim next actions:`, and compatibility `Affected claim next actions:` context per env."
+                    ),
+                    "",
+                    "## Recommended Launch Sequence",
+                    "",
                 f"1. Dispatch prelaunch validation: `powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/dispatch_prelaunch_validation.ps1'`",
-                "   This runs no-execution checks for spawn dry-run, ready launchers, and claim-lock listing.",
+                "   This runs no-execution checks for env queue shape, spawn dry-run, ready launchers, and claim-lock listing.",
                 f"   Wrapped agent spawn dry run: `powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1' -Provider all -Phase all -ShowBlocked`",
                 "   This prints Codex/Claude spawn commands and blocked-claim context; it does not execute package scripts.",
-                f"1a. Optional Codex parallel agent execution: `$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1' -Provider codex -Phase ready -Execute -Parallel`",
-                f"1b. Optional Claude parallel agent execution: `$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1' -Provider claude -Phase ready -Execute -Parallel`",
-                f"1c. Optional env-bundle prelaunch validation after env fill: `powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/dispatch_prelaunch_validation.ps1' -ValidateEnvBundle`",
+                "1a. Current-env agent execution is not multi-agent actionable: `current_env_multi_agent_actionable=false`; use env-bundle fan-out after the complete bundle validates.",
+                f"1b. Optional env-bundle prelaunch validation after env fill: `powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/dispatch_prelaunch_validation.ps1' -ValidateEnvBundle`",
+                f"1c. Optional Codex env-bundle agent execution after complete env fill: `$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; $env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1' -Provider codex -Phase env-bundle -Execute -Parallel`",
+                f"1d. Optional Claude env-bundle agent execution after complete env fill: `$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; $env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1' -Provider claude -Phase env-bundle -Execute -Parallel`",
+                f"1e. Preferred balanced Codex/Claude env-bundle agent execution after complete env fill: `$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; $env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1' -Provider balanced -Phase env-bundle -Execute -Parallel`",
                 "   Use one provider per claim; this acquires claim locks inline before spawning agents.",
+                "   Env-bundle agent execution refuses missing, placeholder, or malformed `env_unblock_queue.json` values before printing spawn commands.",
                 "   Duplicate-provider execution requires both `-AllowDuplicateProviderPerClaim` and `TAMANDUA_ALLOW_DUPLICATE_PROVIDER_PER_CLAIM=1`; override launches emit `[duplicate-provider-override]`.",
                 f"2. Ready package claims: `$env:TAMANDUA_ALLOW_READY_CLAIMS_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/ready_claims_parallel_launcher.ps1'`",
                 f"   Validate first without launching: `powershell -NoProfile -ExecutionPolicy Bypass -File 'docs/benchmarks/runs/{run_id}.package-artifacts/ready_claims_parallel_launcher.ps1' -ValidateOnly`",
@@ -2635,12 +7922,32 @@ def test_status_consistency_validates_owner_launch_plan_json_matches_manifest(tm
         assert consistency.dispatch_archived_env_bundle_ready_claims_launcher_matches_agent_claims(artifact)
         assert consistency.dispatch_archived_prelaunch_validation_matches_manifest(artifact)
         assert consistency.dispatch_archived_brief_recommended_launch_sequence_matches_manifest(artifact)
+        assert consistency.dispatch_brief_exposes_env_unblock_next_action_handoff(artifact)
+        assert any(entry.get("next_action_summaries") for entry in queue["entries"])
+        queue["entries"][0]["next_action_summaries"] = []
+        queue_json_path.write_text(json.dumps(queue), encoding="utf-8")
+        assert not consistency.dispatch_archived_env_unblock_queue_matches_agent_claims(artifact)
+        queue = preflight_work_package.build_env_unblock_queue_json(
+            claims,
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/env_bundle_ready_claims_launcher.ps1"),
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1"),
+        )
+        queue_json_path.write_text(json.dumps(queue), encoding="utf-8")
+        queue_path.write_text(preflight_work_package.render_env_unblock_queue(queue), encoding="utf-8")
+        queue_markdown = queue_path.read_text(encoding="utf-8")
+        queue_path.write_text(
+            queue_markdown.replace("Affected claim next actions:", "Affected claim actions omitted:"),
+            encoding="utf-8",
+        )
+        assert not consistency.dispatch_archived_env_unblock_queue_matches_agent_claims(artifact)
+        queue_path.write_text(preflight_work_package.render_env_unblock_queue(queue), encoding="utf-8")
         queue["entries"][0]["claim_count"] = 99
         queue_json_path.write_text(json.dumps(queue), encoding="utf-8")
         assert not consistency.dispatch_archived_env_unblock_queue_matches_agent_claims(artifact)
         queue = preflight_work_package.build_env_unblock_queue_json(
             claims,
             Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/env_bundle_ready_claims_launcher.ps1"),
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1"),
         )
         queue_json_path.write_text(json.dumps(queue), encoding="utf-8")
         queue["entries"][0]["copy_paste_unblock_prompt"] = queue["entries"][0]["copy_paste_unblock_prompt"].replace(
@@ -2653,6 +7960,22 @@ def test_status_consistency_validates_owner_launch_plan_json_matches_manifest(tm
         queue = preflight_work_package.build_env_unblock_queue_json(
             claims,
             Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/env_bundle_ready_claims_launcher.ps1"),
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1"),
+        )
+        queue_json_path.write_text(json.dumps(queue), encoding="utf-8")
+        queue_path.write_text(preflight_work_package.render_env_unblock_queue(queue), encoding="utf-8")
+        queue["current_env_present_names"] = ["CALDERA_API_KEY"]
+        queue["current_env_missing_names"] = ["CALDERA_AGENT_PAW"]
+        queue["current_env_present_count"] = 1
+        queue["current_env_missing_count"] = 1
+        queue["ready_with_current_env_claim_ids"] = ["claim-wave-1-caldera"]
+        queue_json_path.write_text(json.dumps(queue), encoding="utf-8")
+        queue_path.write_text(preflight_work_package.render_env_unblock_queue(queue), encoding="utf-8")
+        assert not consistency.dispatch_archived_env_unblock_queue_matches_agent_claims(artifact)
+        queue = preflight_work_package.build_env_unblock_queue_json(
+            claims,
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/env_bundle_ready_claims_launcher.ps1"),
+            Path(f"docs/benchmarks/runs/{run_id}.package-artifacts/agent_spawn_launcher.ps1"),
         )
         queue_json_path.write_text(json.dumps(queue), encoding="utf-8")
         queue_path.write_text(preflight_work_package.render_env_unblock_queue(queue), encoding="utf-8")
@@ -2857,6 +8180,29 @@ def test_status_consistency_validates_owner_launch_plan_json_matches_manifest(tm
             ),
             encoding="utf-8",
         )
+        brief_path.write_text(
+            brief_path.read_text(encoding="utf-8").replace(
+                (
+                    "Env unblock queue handoff: includes copy/paste `Direct claim next actions:`, "
+                    "`Other affected claim next actions:`, and compatibility `Affected claim next actions:` context per env."
+                ),
+                "Env unblock queue handoff omitted.",
+            ),
+            encoding="utf-8",
+        )
+        assert not consistency.dispatch_archived_brief_recommended_launch_sequence_matches_manifest(artifact)
+        assert not consistency.dispatch_brief_exposes_env_unblock_next_action_handoff(artifact)
+        brief_path.write_text(
+            brief_path.read_text(encoding="utf-8").replace(
+                "Env unblock queue handoff omitted.",
+                (
+                    "Env unblock queue handoff: includes copy/paste `Direct claim next actions:`, "
+                    "`Other affected claim next actions:`, and compatibility `Affected claim next actions:` context per env."
+                ),
+            ),
+            encoding="utf-8",
+        )
+        assert consistency.dispatch_brief_exposes_env_unblock_next_action_handoff(artifact)
         matrix["rows"][0]["current_status"] = "pass"
         matrix_json_path.write_text(json.dumps(matrix), encoding="utf-8")
         assert not consistency.dispatch_archived_execution_matrix_matches_owner_plan(artifact)
@@ -2943,6 +8289,7 @@ def test_agent_spawn_and_parallel_launchers_surface_current_next_action(tmp_path
         "login_command": login_command,
         "token_env": "TAMANDUA_TOKEN",
         "token_login_command": token_login_command,
+        "action": "Refresh tamandua-ctl authentication for the target server, then rerun the readiness probe.",
     }
     claims_payload = {
         "artifact": "validation-agent-claims",
@@ -2997,20 +8344,1099 @@ def test_agent_spawn_and_parallel_launchers_surface_current_next_action(tmp_path
     assert "next_action=" in launcher
     assert "token_login_command" in launcher
     assert (
-        f"# Next action: missing=tamandua_ctl_auth; login_command={login_command}; token_login_command={token_login_command}"
+        f"# Next action: missing=tamandua_ctl_auth; login_command={login_command}; "
+        f"token_login_command={token_login_command}; action=Refresh tamandua-ctl authentication "
+        "for the target server, then rerun the readiness probe."
         in parallel_launcher
     )
+    assert "action=Refresh tamandua-ctl authentication" in markdown
     assert env_queue["next_action_env_count"] == 1
     assert env_queue["next_action_entries"][0]["env"] == "TAMANDUA_TOKEN"
     assert env_queue["next_action_entries"][0]["claim_ids"] == [
         "claim-wave-1-blocked",
         "claim-wave-1-macos",
     ]
+    token_env_entry = next(entry for entry in env_queue["entries"] if entry["env"] == "TAMANDUA_TOKEN")
+    assert token_env_entry["next_action_summaries"] == [
+        (
+            "claim-wave-1-blocked: missing=tamandua_ctl_auth; "
+            f"login_command={login_command}; token_login_command={token_login_command}; "
+            "action=Refresh tamandua-ctl authentication for the target server, then rerun the readiness probe."
+        )
+    ]
+    assert "Affected claim next actions: claim-wave-1-blocked: missing=tamandua_ctl_auth;" in (
+        token_env_entry["copy_paste_unblock_prompt"]
+    )
     assert env_queue["next_action_entries"][0]["token_login_commands"] == [token_login_command]
     assert "$env:TAMANDUA_TOKEN = '<set-tamandua-token-secret>'" in env_queue["next_action_env_powershell_set_commands"]
     assert "## Copy/Paste Next-Action Env Commands" in env_queue_markdown
     assert "## Next-Action Env Follow-Ups" in env_queue_markdown
     assert token_login_command in env_queue_markdown
+    assert "Affected claim next actions: claim-wave-1-blocked: missing=tamandua_ctl_auth;" in env_queue_markdown
+
+
+def test_agent_spawn_launcher_dry_run_surfaces_env_bundle_readiness(tmp_path, monkeypatch):
+    present_env = "TAMANDUA_TEST_AGENT_SPAWN_PRESENT"
+    missing_env = "TAMANDUA_TEST_AGENT_SPAWN_MISSING"
+    monkeypatch.setenv(present_env, "ready")
+    monkeypatch.delenv(missing_env, raising=False)
+
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [],
+                "env_bundle_ready_batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-env-bundle",
+                                "agent_spawn_command_templates": {
+                                    "codex": "codex --agent <agent-id> run claim-env-bundle",
+                                    "claude": "claude --agent <agent-id> run claim-env-bundle",
+                                },
+                                "current_next_action": {
+                                    "token_env": present_env,
+                                },
+                            }
+                        ],
+                    }
+                ],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(valid_env_unblock_queue_for([present_env, missing_env], ["claim-env-bundle"]), indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env[present_env] = "ready"
+    env.pop(missing_env, None)
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode == 0
+    assert f"[env-bundle-readiness] present=1/2 missing={missing_env}" in result.stdout
+    assert "[env-bundle][codex][claim-env-bundle]" in result.stdout
+    assert "Dry run only. Pass -Execute and set TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH=1 to run commands." in result.stdout
+
+
+def test_agent_spawn_launcher_dry_run_allows_multi_provider_planning(tmp_path):
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-ready",
+                                "agent_spawn_command_templates": {
+                                    "codex": "codex --agent <agent-id> run claim-ready",
+                                    "claude": "claude --agent <agent-id> run claim-ready",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "env_bundle_ready_batches": [],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "all",
+            "-Phase",
+            "ready",
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "[ready][codex][claim-ready]" in result.stdout
+    assert "[ready][claude][claim-ready]" in result.stdout
+    assert "Refusing to execute multiple providers for the same claim" not in output
+    assert "Dry run only. Pass -Execute and set TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH=1 to run commands." in result.stdout
+
+
+def test_agent_spawn_launcher_balanced_provider_splits_claims_without_duplicates(tmp_path):
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-ready-a",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'codex-a'",
+                                    "claude": "Write-Output 'claude-a'",
+                                },
+                                "current_next_action": {},
+                            },
+                            {
+                                "claim_id": "claim-ready-b",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'codex-b'",
+                                    "claude": "Write-Output 'claude-b'",
+                                },
+                                "current_next_action": {},
+                            },
+                        ],
+                    }
+                ],
+                "env_bundle_ready_batches": [],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    dry_run = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "balanced",
+            "-Phase",
+            "ready",
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    env = os.environ.copy()
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    executed = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "balanced",
+            "-Phase",
+            "ready",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    dry_output = dry_run.stdout + dry_run.stderr
+    execute_output = executed.stdout + executed.stderr
+    assert dry_run.returncode == 0
+    assert "[ready][codex][claim-ready-a]" in dry_output
+    assert "[ready][claude][claim-ready-b]" in dry_output
+    assert "[ready][claude][claim-ready-a]" not in dry_output
+    assert "[ready][codex][claim-ready-b]" not in dry_output
+    assert executed.returncode == 0
+    assert "codex-a" in execute_output
+    assert "claude-b" in execute_output
+    assert "Refusing to execute multiple providers for the same claim" not in execute_output
+
+
+def test_agent_spawn_launcher_execute_refuses_multi_provider_without_override(tmp_path):
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-ready",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'should-not-spawn-codex'",
+                                    "claude": "Write-Output 'should-not-spawn-claude'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "env_bundle_ready_batches": [],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "all",
+            "-Phase",
+            "ready",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Refusing to execute multiple providers for the same claim without -AllowDuplicateProviderPerClaim: claim-ready" in output
+    assert "should-not-spawn-codex" not in output
+    assert "should-not-spawn-claude" not in output
+
+
+def test_agent_spawn_launcher_execute_refuses_duplicate_override_without_env(tmp_path):
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-ready",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'should-not-spawn-codex'",
+                                    "claude": "Write-Output 'should-not-spawn-claude'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "env_bundle_ready_batches": [],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    env.pop("TAMANDUA_ALLOW_DUPLICATE_PROVIDER_PER_CLAIM", None)
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "all",
+            "-Phase",
+            "ready",
+            "-Execute",
+            "-AllowDuplicateProviderPerClaim",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Refusing duplicate provider execution without TAMANDUA_ALLOW_DUPLICATE_PROVIDER_PER_CLAIM=1: claim-ready" in output
+    assert "should-not-spawn-codex" not in output
+    assert "should-not-spawn-claude" not in output
+
+
+def test_agent_spawn_launcher_execute_allows_duplicate_override_with_env(tmp_path):
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-ready",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'spawned-codex'",
+                                    "claude": "Write-Output 'spawned-claude'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "env_bundle_ready_batches": [],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    env["TAMANDUA_ALLOW_DUPLICATE_PROVIDER_PER_CLAIM"] = "1"
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "all",
+            "-Phase",
+            "ready",
+            "-Execute",
+            "-AllowDuplicateProviderPerClaim",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "[duplicate-provider-override] claims=claim-ready" in result.stdout
+    assert "[ready][codex][claim-ready]" in result.stdout
+    assert "[ready][claude][claim-ready]" in result.stdout
+    assert "spawned-codex" in output
+    assert "spawned-claude" in output
+
+
+def test_agent_spawn_launcher_execute_refuses_incomplete_env_bundle(tmp_path, monkeypatch):
+    present_env = "TAMANDUA_TEST_AGENT_SPAWN_PRESENT"
+    missing_env = "TAMANDUA_TEST_AGENT_SPAWN_MISSING"
+    monkeypatch.setenv(present_env, "ready")
+    monkeypatch.delenv(missing_env, raising=False)
+
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [],
+                "env_bundle_ready_batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-env-bundle",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'should-not-spawn'",
+                                    "claude": "Write-Output 'should-not-spawn'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(valid_env_unblock_queue_for([present_env, missing_env], ["claim-env-bundle"]), indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env[present_env] = "ready"
+    env.pop(missing_env, None)
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    env["TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH"] = "1"
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert f"Refusing env-bundle spawn while env values are missing: {missing_env}" in output
+    assert "should-not-spawn" not in output
+
+
+def test_agent_spawn_launcher_execute_refuses_placeholder_env_bundle(tmp_path, monkeypatch):
+    placeholder_env = "TAMANDUA_TEST_AGENT_SPAWN_PLACEHOLDER"
+    monkeypatch.setenv(placeholder_env, "<set-tamandua-test-agent-spawn-placeholder>")
+
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [],
+                "env_bundle_ready_batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-env-bundle",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'should-not-spawn'",
+                                    "claude": "Write-Output 'should-not-spawn'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(valid_env_unblock_queue_for([placeholder_env], ["claim-env-bundle"]), indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env[placeholder_env] = "<set-tamandua-test-agent-spawn-placeholder>"
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    env["TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH"] = "1"
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert f"Refusing env-bundle spawn while placeholder env values remain: {placeholder_env}" in output
+    assert "should-not-spawn" not in output
+
+
+def test_agent_spawn_launcher_execute_refuses_missing_env_bundle_queue(tmp_path):
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [],
+                "env_bundle_ready_batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-env-bundle",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'should-not-spawn'",
+                                    "claude": "Write-Output 'should-not-spawn'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    env["TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH"] = "1"
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "env bundle queue not found:" in output
+    assert "should-not-spawn" not in output
+
+
+def test_agent_spawn_launcher_execute_refuses_invalid_env_bundle_queue(tmp_path):
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [],
+                "env_bundle_ready_batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-env-bundle",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'should-not-spawn'",
+                                    "claude": "Write-Output 'should-not-spawn'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "env_unblock_queue.json").write_text("{not-json", encoding="utf-8")
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    env["TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH"] = "1"
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "env bundle queue invalid:" in output
+    assert "should-not-spawn" not in output
+
+
+def test_agent_spawn_launcher_execute_refuses_malformed_env_bundle_queue_entries(tmp_path):
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [],
+                "env_bundle_ready_batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-env-bundle",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'should-not-spawn'",
+                                    "claude": "Write-Output 'should-not-spawn'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(
+            {
+                "entries": [
+                    {"env": "TAMANDUA_TEST_DUPLICATE_ENV"},
+                    {"env": "TAMANDUA_TEST_DUPLICATE_ENV"},
+                ]
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_TEST_DUPLICATE_ENV"] = "ready"
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    env["TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH"] = "1"
+    duplicate = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps({"entries": [{"env": ""}]}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    empty = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(
+            {
+                "entries": [{"env": "TAMANDUA_TEST_DUPLICATE_ENV"}],
+                "ready_after_all_env_claim_ids": ["claim-env-bundle"],
+                "still_blocked_after_all_env_claim_ids": [],
+                "all_env_powershell_set_commands": [
+                    "$env:TAMANDUA_TEST_DUPLICATE_ENV = '<set-tamandua-test-duplicate-env>'"
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    missing_required_names = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(
+            {
+                "entries": [{"env": "TAMANDUA_TEST_DUPLICATE_ENV"}],
+                "required_env_names": ["TAMANDUA_TEST_DUPLICATE_ENV"],
+                "still_blocked_after_all_env_claim_ids": [],
+                "all_env_powershell_set_commands": [
+                    "$env:TAMANDUA_TEST_DUPLICATE_ENV = '<set-tamandua-test-duplicate-env>'"
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    missing_ready_claims = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(
+            {
+                "entries": [{"env": "TAMANDUA_TEST_DUPLICATE_ENV"}],
+                "required_env_names": ["TAMANDUA_TEST_DUPLICATE_ENV"],
+                "ready_after_all_env_claim_ids": ["claim-env-bundle"],
+                "all_env_powershell_set_commands": [
+                    "$env:TAMANDUA_TEST_DUPLICATE_ENV = '<set-tamandua-test-duplicate-env>'"
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    missing_still_blocked_claims = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert duplicate.returncode != 0
+    assert "Env unblock queue contains duplicate env entries: TAMANDUA_TEST_DUPLICATE_ENV" in (
+        duplicate.stdout + duplicate.stderr
+    )
+    assert "should-not-spawn" not in (duplicate.stdout + duplicate.stderr)
+    assert empty.returncode != 0
+    assert "Env unblock queue contains an entry without env." in (empty.stdout + empty.stderr)
+    assert "should-not-spawn" not in (empty.stdout + empty.stderr)
+    assert missing_required_names.returncode != 0
+    assert "Env unblock queue missing required_env_names." in (
+        missing_required_names.stdout + missing_required_names.stderr
+    )
+    assert "should-not-spawn" not in (missing_required_names.stdout + missing_required_names.stderr)
+    assert missing_ready_claims.returncode != 0
+    assert "Env unblock queue missing ready_after_all_env_claim_ids." in (
+        missing_ready_claims.stdout + missing_ready_claims.stderr
+    )
+    assert "should-not-spawn" not in (missing_ready_claims.stdout + missing_ready_claims.stderr)
+    assert missing_still_blocked_claims.returncode != 0
+    assert "Env unblock queue missing still_blocked_after_all_env_claim_ids." in (
+        missing_still_blocked_claims.stdout + missing_still_blocked_claims.stderr
+    )
+    assert "should-not-spawn" not in (
+        missing_still_blocked_claims.stdout + missing_still_blocked_claims.stderr
+    )
+
+
+def test_agent_spawn_launcher_execute_allows_complete_env_bundle(tmp_path, monkeypatch):
+    ready_env = "TAMANDUA_TEST_AGENT_SPAWN_READY"
+    monkeypatch.setenv(ready_env, "real-value")
+
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [],
+                "env_bundle_ready_batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-env-bundle",
+                                "agent_spawn_command_templates": {
+                                    "codex": "Write-Output 'spawned-env-bundle'",
+                                    "claude": "Write-Output 'unused-claude'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(valid_env_unblock_queue_for([ready_env], ["claim-env-bundle"]), indent=2) + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env[ready_env] = "real-value"
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    env["TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH"] = "1"
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert "[env-bundle-readiness] present=1/1 missing=-" in result.stdout
+    assert "[env-bundle][codex][claim-env-bundle]" in result.stdout
+    assert "spawned-env-bundle" in output
+    assert "unused-claude" not in output
+
+
+def test_agent_spawn_launcher_parallel_execute_uses_caller_working_directory(tmp_path, monkeypatch):
+    ready_env = "TAMANDUA_TEST_AGENT_SPAWN_PARALLEL_READY"
+    monkeypatch.setenv(ready_env, "real-value")
+
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    launcher_path = tmp_path / "agent_spawn_launcher.ps1"
+    (tmp_path / "spawn-target.ps1").write_text(
+        "Set-Content -Path .\\spawn-result.txt -Value 'spawned-from-relative-path'\n",
+        encoding="utf-8",
+    )
+    plan_path.write_text(
+        json.dumps(
+            {
+                "batches": [],
+                "env_bundle_ready_batches": [
+                    {
+                        "wave": 1,
+                        "batch": 1,
+                        "claims": [
+                            {
+                                "claim_id": "claim-env-bundle",
+                                "agent_spawn_command_templates": {
+                                    "codex": (
+                                        "powershell -NoProfile -ExecutionPolicy Bypass "
+                                        "-File .\\spawn-target.ps1"
+                                    ),
+                                    "claude": "Write-Output 'unused-claude'",
+                                },
+                                "current_next_action": {},
+                            }
+                        ],
+                    }
+                ],
+                "blocked_or_manual_claims": [],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(valid_env_unblock_queue_for([ready_env], ["claim-env-bundle"]), indent=2) + "\n",
+        encoding="utf-8",
+    )
+    launcher_path.write_text(preflight_work_package.render_agent_spawn_launcher(plan_path), encoding="utf-8")
+
+    env = os.environ.copy()
+    env[ready_env] = "real-value"
+    env["TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH"] = "1"
+    env["TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH"] = "1"
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-Provider",
+            "codex",
+            "-Phase",
+            "env-bundle",
+            "-Execute",
+            "-Parallel",
+        ],
+        cwd=tmp_path,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode == 0, output
+    assert "[spawn-execute][env-bundle][codex][claim-env-bundle]" in result.stdout
+    assert (tmp_path / "spawn-result.txt").read_text(encoding="utf-8").strip() == "spawned-from-relative-path"
+    assert "unused-claude" not in output
 
 
 def test_owner_launch_plan_blocks_current_macos_token_next_action(tmp_path, monkeypatch):
@@ -3162,6 +9588,11 @@ def test_preflight_claim_lock_helper_creates_atomic_claim_lock(tmp_path):
                 "claim_id": "claim-ready",
                 "package_id": "pkg-ready",
                 "claim_state": "ready_to_claim",
+            },
+            {
+                "claim_id": "claim-agent",
+                "package_id": "pkg-agent",
+                "claim_state": "ready_to_claim",
             }
         ]
     }
@@ -3215,6 +9646,23 @@ def test_preflight_claim_lock_helper_creates_atomic_claim_lock(tmp_path):
             "claim-missing",
             "-AgentId",
             "agent-c",
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+    invalid_agent = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(helper_path),
+            "-ClaimId",
+            "claim-agent",
+            "-AgentId",
+            "agent with spaces",
         ],
         cwd=repo_root,
         text=True,
@@ -3288,6 +9736,9 @@ def test_preflight_claim_lock_helper_creates_atomic_claim_lock(tmp_path):
     assert first.returncode == 0
     assert second.returncode == 3
     assert unknown.returncode == 2
+    assert invalid_agent.returncode == 2
+    assert "AgentId may only contain letters" in invalid_agent.stdout
+    assert not (tmp_path / "claim_locks" / "claim-agent.claim-lock.json").exists()
     assert list_locks.returncode == 0
     assert '"claim_id"' in list_locks.stdout
     assert '"claim-ready"' in list_locks.stdout
@@ -3317,17 +9768,7 @@ def test_preflight_env_bundle_launcher_validate_only_checks_env_without_launch_g
     launcher_path.write_text(preflight_work_package.render_env_bundle_ready_claims_launcher(claims_payload), encoding="utf-8")
     (tmp_path / "claim_lock_helper.ps1").write_text("# placeholder for validate-only path guard\n", encoding="utf-8")
     (tmp_path / "env_unblock_queue.json").write_text(
-        json.dumps(
-            {
-                "entries": [
-                    {
-                        "env": "TAMANDUA_TEST_ENV_BUNDLE_VALUE",
-                        "placeholder": "<set-tamandua-test-env-bundle-value>",
-                    }
-                ]
-            },
-            indent=2,
-        )
+        json.dumps(valid_env_unblock_queue_for(["TAMANDUA_TEST_ENV_BUNDLE_VALUE"], ["claim-env"]), indent=2)
         + "\n",
         encoding="utf-8",
     )
@@ -3367,11 +9808,2853 @@ def test_preflight_env_bundle_launcher_validate_only_checks_env_without_launch_g
         text=True,
         capture_output=True,
     )
+    env["TAMANDUA_TEST_ENV_BUNDLE_VALUE"] = "<set-tamandua-test-env-bundle-value>"
+    placeholder = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-ValidateOnly",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
 
     assert missing.returncode != 0
     assert "Missing env bundle values: TAMANDUA_TEST_ENV_BUNDLE_VALUE" in (missing.stdout + missing.stderr)
+    assert "Env bundle missing set commands:" in missing.stdout
+    assert "$env:TAMANDUA_TEST_ENV_BUNDLE_VALUE = '<set-tamandua-test-env-bundle-value>'" in missing.stdout
     assert valid.returncode == 0
-    assert "Env bundle validation passed. Ready claims: claim-env" in valid.stdout
+    assert "Env bundle current env present: 1/1" in valid.stdout
+    assert "Env bundle current env missing: -" in valid.stdout
+    assert "Env bundle validation passed. Ready claims after complete env bundle: claim-env" in valid.stdout
+    assert placeholder.returncode != 0
+    assert "Placeholder env bundle values must be replaced before launch: TAMANDUA_TEST_ENV_BUNDLE_VALUE" in (
+        placeholder.stdout + placeholder.stderr
+    )
+
+
+def test_preflight_env_bundle_launcher_validate_only_accepts_still_blocked_after_env_claims(tmp_path):
+    claims_payload = {
+        "claims": [
+            {
+                "claim_id": "claim-env-ready",
+                "package_id": "pkg-env-ready",
+                "claim_state": "blocked_or_manual",
+                "wave": 1,
+                "resource_tags": ["operator-env"],
+                "script_path": "pkg-env-ready.ps1",
+                "missing_effective_env": ["TAMANDUA_TEST_ENV_BUNDLE_VALUE"],
+                "blocked_reasons": ["missing_effective_env"],
+            },
+            {
+                "claim_id": "claim-env-still-blocked",
+                "package_id": "pkg-env-still-blocked",
+                "claim_state": "blocked_or_manual",
+                "wave": 1,
+                "resource_tags": ["operator-env"],
+                "script_path": "pkg-env-still-blocked.ps1",
+                "missing_effective_env": ["TAMANDUA_TEST_ENV_BUNDLE_VALUE"],
+                "blocked_reasons": ["missing_effective_env", "manual_launch_required"],
+            },
+        ]
+    }
+    launcher_text = preflight_work_package.render_env_bundle_ready_claims_launcher(claims_payload)
+    launcher_path = tmp_path / "env_bundle_ready_claims_launcher.ps1"
+    launcher_path.write_text(launcher_text, encoding="utf-8")
+    (tmp_path / "claim_lock_helper.ps1").write_text("# placeholder for validate-only path guard\n", encoding="utf-8")
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(
+            valid_env_unblock_queue_for(
+                ["TAMANDUA_TEST_ENV_BUNDLE_VALUE"],
+                ["claim-env-ready"],
+                ["claim-env-still-blocked"],
+            ),
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_TEST_ENV_BUNDLE_VALUE"] = "real-value"
+    env.pop("TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH", None)
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-ValidateOnly",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode == 0
+    assert "claim-env-still-blocked" in launcher_text
+    assert "Env bundle validation passed. Ready claims after complete env bundle: claim-env-ready" in result.stdout
+
+
+def test_preflight_env_bundle_launcher_resolves_package_local_claim_scripts(tmp_path):
+    claims_payload = {
+        "claims": [
+            {
+                "claim_id": "claim-env",
+                "package_id": "pkg-env",
+                "claim_state": "blocked_or_manual",
+                "wave": 1,
+                "resource_tags": ["operator-env"],
+                "script_path": "docs/benchmarks/runs/example.package-artifacts/pkg-env.ps1",
+                "missing_effective_env": ["TAMANDUA_TEST_ENV_BUNDLE_VALUE"],
+                "blocked_reasons": ["missing_effective_env"],
+            }
+        ]
+    }
+    launcher_path = tmp_path / "env_bundle_ready_claims_launcher.ps1"
+    launcher_path.write_text(preflight_work_package.render_env_bundle_ready_claims_launcher(claims_payload), encoding="utf-8")
+    (tmp_path / "claim_lock_helper.ps1").write_text("exit 0\n", encoding="utf-8")
+    (tmp_path / "pkg-env.ps1").write_text("exit 0\n", encoding="utf-8")
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(valid_env_unblock_queue_for(["TAMANDUA_TEST_ENV_BUNDLE_VALUE"], ["claim-env"]), indent=2)
+        + "\n",
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_TEST_ENV_BUNDLE_VALUE"] = "real-value"
+    env["TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH"] = "1"
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "[env-bundle-claim] claim-env (pkg-env)" in result.stdout
+
+
+def test_preflight_env_bundle_launcher_validate_only_rejects_missing_env_queue(tmp_path):
+    claims_payload = {
+        "claims": [
+            {
+                "claim_id": "claim-env",
+                "package_id": "pkg-env",
+                "claim_state": "blocked_or_manual",
+                "wave": 1,
+                "resource_tags": ["operator-env"],
+                "script_path": "pkg-env.ps1",
+                "missing_effective_env": ["TAMANDUA_TEST_ENV_BUNDLE_VALUE"],
+                "blocked_reasons": ["missing_effective_env"],
+            }
+        ]
+    }
+    launcher_path = tmp_path / "env_bundle_ready_claims_launcher.ps1"
+    launcher_path.write_text(preflight_work_package.render_env_bundle_ready_claims_launcher(claims_payload), encoding="utf-8")
+    (tmp_path / "claim_lock_helper.ps1").write_text("# placeholder for validate-only path guard\n", encoding="utf-8")
+    repo_root = Path(__file__).resolve().parents[2]
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-ValidateOnly",
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "Missing env unblock queue JSON:" in (result.stdout + result.stderr)
+
+
+def test_preflight_env_bundle_launcher_validate_only_rejects_invalid_env_queue(tmp_path):
+    claims_payload = {
+        "claims": [
+            {
+                "claim_id": "claim-env",
+                "package_id": "pkg-env",
+                "claim_state": "blocked_or_manual",
+                "wave": 1,
+                "resource_tags": ["operator-env"],
+                "script_path": "pkg-env.ps1",
+                "missing_effective_env": ["TAMANDUA_TEST_ENV_BUNDLE_VALUE"],
+                "blocked_reasons": ["missing_effective_env"],
+            }
+        ]
+    }
+    launcher_path = tmp_path / "env_bundle_ready_claims_launcher.ps1"
+    launcher_path.write_text(preflight_work_package.render_env_bundle_ready_claims_launcher(claims_payload), encoding="utf-8")
+    (tmp_path / "claim_lock_helper.ps1").write_text("# placeholder for validate-only path guard\n", encoding="utf-8")
+    (tmp_path / "env_unblock_queue.json").write_text("{not-json", encoding="utf-8")
+    repo_root = Path(__file__).resolve().parents[2]
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-ValidateOnly",
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "Unable to parse env unblock queue JSON:" in (result.stdout + result.stderr)
+
+
+def test_preflight_env_bundle_launcher_validate_only_rejects_malformed_env_queue_entries(tmp_path):
+    claims_payload = {
+        "claims": [
+            {
+                "claim_id": "claim-env",
+                "package_id": "pkg-env",
+                "claim_state": "blocked_or_manual",
+                "wave": 1,
+                "resource_tags": ["operator-env"],
+                "script_path": "pkg-env.ps1",
+                "missing_effective_env": ["TAMANDUA_TEST_ENV_BUNDLE_VALUE"],
+                "blocked_reasons": ["missing_effective_env"],
+            }
+        ]
+    }
+    launcher_path = tmp_path / "env_bundle_ready_claims_launcher.ps1"
+    launcher_path.write_text(preflight_work_package.render_env_bundle_ready_claims_launcher(claims_payload), encoding="utf-8")
+    (tmp_path / "claim_lock_helper.ps1").write_text("# placeholder for validate-only path guard\n", encoding="utf-8")
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_TEST_ENV_BUNDLE_VALUE"] = "ready"
+
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(
+            {
+                "entries": [
+                    {"env": "TAMANDUA_TEST_ENV_BUNDLE_VALUE"},
+                    {"env": "TAMANDUA_TEST_ENV_BUNDLE_VALUE"},
+                ]
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    duplicate = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-ValidateOnly",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps({"entries": [{"env": ""}]}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    empty = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-ValidateOnly",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(
+            {
+                "entries": [{"env": "TAMANDUA_TEST_ENV_BUNDLE_VALUE"}],
+                "ready_after_all_env_claim_ids": ["claim-env"],
+                "still_blocked_after_all_env_claim_ids": [],
+                "all_env_powershell_set_commands": [
+                    "$env:TAMANDUA_TEST_ENV_BUNDLE_VALUE = '<set-tamandua-test-env-bundle-value>'"
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    missing_required_names = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-ValidateOnly",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(
+            {
+                "entries": [{"env": "TAMANDUA_TEST_ENV_BUNDLE_VALUE"}],
+                "required_env_names": ["TAMANDUA_TEST_ENV_BUNDLE_VALUE"],
+                "still_blocked_after_all_env_claim_ids": [],
+                "all_env_powershell_set_commands": [
+                    "$env:TAMANDUA_TEST_ENV_BUNDLE_VALUE = '<set-tamandua-test-env-bundle-value>'"
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    missing_ready_claims = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-ValidateOnly",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    (tmp_path / "env_unblock_queue.json").write_text(
+        json.dumps(
+            {
+                "entries": [{"env": "TAMANDUA_TEST_ENV_BUNDLE_VALUE"}],
+                "required_env_names": ["TAMANDUA_TEST_ENV_BUNDLE_VALUE"],
+                "ready_after_all_env_claim_ids": ["claim-env"],
+                "all_env_powershell_set_commands": [
+                    "$env:TAMANDUA_TEST_ENV_BUNDLE_VALUE = '<set-tamandua-test-env-bundle-value>'"
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    missing_still_blocked_claims = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+            "-ValidateOnly",
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert duplicate.returncode != 0
+    assert "Env unblock queue contains duplicate env entries: TAMANDUA_TEST_ENV_BUNDLE_VALUE" in (
+        duplicate.stdout + duplicate.stderr
+    )
+    assert empty.returncode != 0
+    assert "Env unblock queue contains an entry without env." in (empty.stdout + empty.stderr)
+    assert missing_required_names.returncode != 0
+    assert "Env unblock queue missing required_env_names." in (
+        missing_required_names.stdout + missing_required_names.stderr
+    )
+    assert missing_ready_claims.returncode != 0
+    assert "Env unblock queue missing ready_after_all_env_claim_ids." in (
+        missing_ready_claims.stdout + missing_ready_claims.stderr
+    )
+    assert missing_still_blocked_claims.returncode != 0
+    assert "Env unblock queue missing still_blocked_after_all_env_claim_ids." in (
+        missing_still_blocked_claims.stdout + missing_still_blocked_claims.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_malformed_env_queue_shape(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "entries": [
+                    {"env": "TAMANDUA_TEST_PRELAUNCH_ENV"},
+                    {"env": "TAMANDUA_TEST_PRELAUNCH_ENV"},
+                ]
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    duplicate = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    queue_path.write_text(json.dumps({"entries": [{"env": ""}]}, indent=2) + "\n", encoding="utf-8")
+    empty = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert duplicate.returncode != 0
+    assert "env unblock queue shape duplicate env entries: TAMANDUA_TEST_PRELAUNCH_ENV" in (
+        duplicate.stdout + duplicate.stderr
+    )
+    assert empty.returncode != 0
+    assert "env unblock queue shape entry without env" in (empty.stdout + empty.stderr)
+
+
+def test_dispatch_prelaunch_validation_rejects_scalar_env_queue_entries(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "entries": {"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"},
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "env unblock queue shape entries is not a list" in (result.stdout + result.stderr)
+
+
+def test_dispatch_prelaunch_validation_reports_valid_env_queue_shape(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "required_env_names": [
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+                ],
+                "all_env_powershell_set_commands": [
+                    "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a>'",
+                    "$env:TAMANDUA_TEST_PRELAUNCH_ENV_B = '<set-b>'",
+                ],
+                "current_env_present_count": 0,
+                "current_env_present_names": [],
+                "current_env_missing_count": 2,
+                "current_env_missing_names": [
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+                ],
+                "current_env_placeholder_count": 0,
+                "current_env_placeholder_names": [],
+                "ready_with_current_env_claim_ids": [],
+                "still_blocked_with_current_env_claim_ids": ["claim-env"],
+                "ready_after_all_env_claim_ids": ["claim-env"],
+                "still_blocked_after_all_env_claim_ids": [],
+                "blocked_claim_count": 1,
+                "entries": [
+                    {
+                        "env": "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                        "claim_ids": ["claim-env"],
+                        "powershell_set_command": "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a>'",
+                        "direct_next_action_summaries": [],
+                        "indirect_next_action_summaries": [],
+                    },
+                    {
+                        "env": "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+                        "claim_ids": ["claim-env"],
+                        "powershell_set_command": "$env:TAMANDUA_TEST_PRELAUNCH_ENV_B = '<set-b>'",
+                        "direct_next_action_summaries": [],
+                        "indirect_next_action_summaries": [],
+                    },
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode == 0
+    assert "[prelaunch] env unblock queue shape valid: entries=2" in result.stdout
+
+
+def test_dispatch_prelaunch_validation_rejects_existing_claim_locks(tmp_path):
+    claim_lock_helper_path = tmp_path / "claim_lock_helper.ps1"
+    claim_lock_helper_path.write_text(
+        preflight_work_package.render_claim_lock_helper({"claims": [{"claim_id": "claim-ready"}]}),
+        encoding="utf-8",
+    )
+    lock_dir = tmp_path / "claim_locks"
+    lock_dir.mkdir()
+    (lock_dir / "claim-ready.claim-lock.json").write_text(
+        json.dumps({"claim_id": "claim-ready", "agent_id": "agent-a"}) + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            claim_lock_helper_path=claim_lock_helper_path
+        ),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "claim lock prelaunch found existing locks: claim-ready.claim-lock.json" in output
+
+
+def test_dispatch_prelaunch_validation_rejects_invalid_claim_status_report_shape(tmp_path):
+    report_path = tmp_path / "claim_status_report.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            claim_status_report_json_path=report_path
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    def run_with_payload(payload):
+        report_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid_payload = {
+        "schema_version": 1,
+        "artifact": "validation-claim-status-report",
+        "claims": [
+            {"claim_id": "claim-a", "claim_state": "ready_to_claim", "lock_state": "unlocked"},
+            {"claim_id": "claim-b", "claim_state": "blocked_missing_env", "lock_state": "locked"},
+            {"claim_id": "claim-c", "claim_state": "manual_claim_required", "lock_state": "invalid"},
+        ],
+        "claim_count": 3,
+        "ready_to_claim_count": 1,
+        "blocked_claim_count": 1,
+        "manual_claim_count": 1,
+        "locked_claim_count": 1,
+        "invalid_lock_count": 1,
+    }
+    valid = run_with_payload(valid_payload)
+    missing_claims = run_with_payload(
+        {
+            "schema_version": 1,
+            "artifact": "validation-claim-status-report",
+            "claim_count": 0,
+            "ready_to_claim_count": 0,
+            "blocked_claim_count": 0,
+            "manual_claim_count": 0,
+            "locked_claim_count": 0,
+            "invalid_lock_count": 0,
+        }
+    )
+    duplicate = dict(valid_payload)
+    duplicate["claims"] = [
+        {"claim_id": "claim-a", "claim_state": "ready_to_claim", "lock_state": "unlocked"},
+        {"claim_id": "claim-a", "claim_state": "blocked_missing_env", "lock_state": "unlocked"},
+    ]
+    duplicate["claim_count"] = 2
+    duplicate["ready_to_claim_count"] = 1
+    duplicate["blocked_claim_count"] = 1
+    duplicate["manual_claim_count"] = 0
+    duplicate["locked_claim_count"] = 0
+    duplicate["invalid_lock_count"] = 0
+    duplicate_result = run_with_payload(duplicate)
+    invalid_artifact = dict(valid_payload)
+    invalid_artifact["artifact"] = "other-report"
+    invalid_artifact_result = run_with_payload(invalid_artifact)
+    invalid_count = dict(valid_payload)
+    invalid_count["claim_count"] = "three"
+    invalid_count_result = run_with_payload(invalid_count)
+    state_count_mismatch = dict(valid_payload)
+    state_count_mismatch["blocked_claim_count"] = 0
+    state_count_mismatch_result = run_with_payload(state_count_mismatch)
+    count_mismatch = dict(valid_payload)
+    count_mismatch["locked_claim_count"] = 0
+    count_mismatch_result = run_with_payload(count_mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] claim status report shape valid: claims=3" in valid.stdout
+    assert missing_claims.returncode != 0
+    assert "claim status report shape missing claims" in (missing_claims.stdout + missing_claims.stderr)
+    assert duplicate_result.returncode != 0
+    assert "claim status report shape duplicate claim_id: claim-a" in (
+        duplicate_result.stdout + duplicate_result.stderr
+    )
+    assert invalid_artifact_result.returncode != 0
+    assert "claim status report shape invalid artifact: other-report" in (
+        invalid_artifact_result.stdout + invalid_artifact_result.stderr
+    )
+    assert invalid_count_result.returncode != 0
+    assert "claim status report shape invalid claim_count: three" in (
+        invalid_count_result.stdout + invalid_count_result.stderr
+    )
+    assert state_count_mismatch_result.returncode != 0
+    assert "claim status report shape blocked_claim_count mismatch: count=0 claims=1" in (
+        state_count_mismatch_result.stdout + state_count_mismatch_result.stderr
+    )
+    assert count_mismatch_result.returncode != 0
+    assert "claim status report shape locked_claim_count mismatch: count=0 claims=1" in (
+        count_mismatch_result.stdout + count_mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_invalid_agent_spawn_plan_shape(tmp_path):
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            agent_spawn_plan_json_path=plan_path
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    def run_with_payload(payload):
+        plan_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid_payload = {
+        "schema_version": 1,
+        "artifact": "validation-agent-spawn-plan",
+        "source_artifact": "validation-agent-claims",
+        "ready_batch_count": 1,
+        "ready_claim_count": 1,
+        "env_bundle_ready_batch_count": 1,
+        "env_bundle_ready_claim_count": 1,
+        "env_bundle_still_blocked_claim_count": 1,
+        "blocked_or_manual_claim_count": 1,
+        "batches": [{"claim_count": 1, "claims": [{"claim_id": "claim-ready"}]}],
+        "env_bundle_ready_batches": [{"claim_count": 1, "claims": [{"claim_id": "claim-env"}]}],
+        "env_bundle_still_blocked_claims": [{"claim_id": "claim-still-blocked"}],
+        "blocked_or_manual_claims": [{"claim_id": "claim-blocked"}],
+    }
+    valid = run_with_payload(valid_payload)
+    missing_batches = dict(valid_payload)
+    missing_batches.pop("batches")
+    missing_batches_result = run_with_payload(missing_batches)
+    invalid_artifact = dict(valid_payload)
+    invalid_artifact["artifact"] = "other-plan"
+    invalid_artifact_result = run_with_payload(invalid_artifact)
+    invalid_count = dict(valid_payload)
+    invalid_count["ready_claim_count"] = "one"
+    invalid_count_result = run_with_payload(invalid_count)
+    batch_count_mismatch = dict(valid_payload)
+    batch_count_mismatch["ready_batch_count"] = 2
+    batch_count_mismatch_result = run_with_payload(batch_count_mismatch)
+    claim_count_mismatch = dict(valid_payload)
+    claim_count_mismatch["batches"] = [{"claim_count": 2, "claims": [{"claim_id": "claim-ready"}]}]
+    claim_count_mismatch["ready_claim_count"] = 2
+    claim_count_mismatch_result = run_with_payload(claim_count_mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] agent spawn plan shape valid: ready_claims=1 env_bundle_ready_claims=1" in valid.stdout
+    assert missing_batches_result.returncode != 0
+    assert "agent spawn plan shape missing batches" in (
+        missing_batches_result.stdout + missing_batches_result.stderr
+    )
+    assert invalid_artifact_result.returncode != 0
+    assert "agent spawn plan shape invalid artifact: other-plan" in (
+        invalid_artifact_result.stdout + invalid_artifact_result.stderr
+    )
+    assert invalid_count_result.returncode != 0
+    assert "agent spawn plan shape invalid ready_claim_count: one" in (
+        invalid_count_result.stdout + invalid_count_result.stderr
+    )
+    assert batch_count_mismatch_result.returncode != 0
+    assert "agent spawn plan shape ready_batch_count mismatch: count=2 batches=1" in (
+        batch_count_mismatch_result.stdout + batch_count_mismatch_result.stderr
+    )
+    assert claim_count_mismatch_result.returncode != 0
+    assert "agent spawn plan shape batch claim_count mismatch in batches: count=2 claims=1" in (
+        claim_count_mismatch_result.stdout + claim_count_mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_invalid_dispatch_manifest_shape(tmp_path):
+    manifest_path = tmp_path / "dispatch_manifest.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            dispatch_manifest_path=manifest_path
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    path_fields = [
+        "owner_launch_plan_path",
+        "owner_launch_plan_json_path",
+        "execution_matrix_path",
+        "execution_matrix_json_path",
+        "agent_claims_json_path",
+        "agent_spawn_plan_json_path",
+        "agent_spawn_launcher_path",
+        "claim_status_report_json_path",
+        "claim_lock_helper_path",
+        "env_unblock_queue_json_path",
+        "ready_claims_launcher_path",
+        "ready_claims_parallel_launcher_path",
+        "env_bundle_ready_claims_launcher_path",
+    ]
+    path_values = {"output_dir": str(tmp_path), "dispatch_prelaunch_validation_path": str(prelaunch_path)}
+    for field in path_fields:
+        artifact_path = tmp_path / field
+        artifact_path.write_text("{}\n", encoding="utf-8")
+        path_values[field] = str(artifact_path)
+    launcher_path = tmp_path / "wave-1-parallel-launcher.ps1"
+    staged_launcher_path = tmp_path / "wave-1-staged-launcher.ps1"
+    roster_path = tmp_path / "agent_roster.md"
+    runner_path = tmp_path / "dispatch_one_shot_runner.ps1"
+    launcher_path.write_text("Write-Host launcher\n", encoding="utf-8")
+    staged_launcher_path.write_text("Write-Host staged\n", encoding="utf-8")
+    roster_path.write_text("# roster\n", encoding="utf-8")
+    runner_path.write_text(
+        "\n".join(
+            [
+                "$AllowOneShot = [Environment]::GetEnvironmentVariable('TAMANDUA_ALLOW_ONE_SHOT_DISPATCH')",
+                "$env:TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH = '1'",
+                "$DispatchManifestPath = '" + str(manifest_path) + "'",
+                "Write-Error ('Missing claim lock helper: ' + $ClaimLockHelperPath)",
+                "$script:DispatchFailures += ($Label + ' claim lock exit ' + [string]$LASTEXITCODE)",
+                "Write-Error ('Dispatch one-shot completed with failures: ' + ($DispatchFailures -join ', '))",
+                "Invoke-DispatchStep 'wave 1 staged launcher' '" + str(staged_launcher_path) + "' 1",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    source_preflight_path = tmp_path / "source_preflight.json"
+    source_preflight_path.write_text(
+        json.dumps({"profile_id": "validation-execution-preflight-probe"}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    package_dirs = {}
+    for package_id in ("wave-a", "wave-b"):
+        package_dir = tmp_path / "packages" / package_id
+        handoff_dir = tmp_path / "handoffs" / package_id
+        package_dir.mkdir(parents=True)
+        handoff_dir.mkdir(parents=True)
+        script_path = handoff_dir / f"{package_id}.ps1"
+        prompt_path = handoff_dir / f"{package_id}.agent.md"
+        script_path.write_text("Write-Host ok\n", encoding="utf-8")
+        prompt_path.write_text("# prompt\n", encoding="utf-8")
+        package_dirs[package_id] = {
+            "output_dir": str(package_dir),
+            "script_path": str(script_path),
+            "prompt_path": str(prompt_path),
+            "status_path": str(package_dir / "agent_status.json"),
+        }
+
+    def run_with_payload(payload):
+        manifest_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid_payload = {
+        **path_values,
+        "agent_roster_path": str(roster_path),
+        "dispatch_runner_path": str(runner_path),
+        "profile_id": "validation-execution-preflight-probe",
+        "source_preflight": str(source_preflight_path),
+        "expected_package_ids": ["wave-a", "wave-b"],
+        "expected_waves": [1, 2],
+        "launcher_paths": [str(launcher_path)],
+        "staged_launcher_paths": [str(staged_launcher_path)],
+        "packages": [
+            {"package_id": "wave-a", "wave": 1, **package_dirs["wave-a"]},
+            {"package_id": "wave-b", "wave": 2, **package_dirs["wave-b"]},
+        ],
+    }
+    valid = run_with_payload(valid_payload)
+    missing_packages = dict(valid_payload)
+    missing_packages.pop("packages")
+    missing_packages_result = run_with_payload(missing_packages)
+    duplicate = dict(valid_payload)
+    duplicate["packages"] = [
+        {"package_id": "wave-a", "wave": 1, **package_dirs["wave-a"]},
+        {"package_id": "wave-a", "wave": 2, **package_dirs["wave-b"]},
+    ]
+    duplicate_result = run_with_payload(duplicate)
+    mismatch = dict(valid_payload)
+    mismatch["expected_package_ids"] = ["wave-a", "wave-c"]
+    mismatch_result = run_with_payload(mismatch)
+    invalid_profile = dict(valid_payload)
+    invalid_profile["profile_id"] = "other-probe"
+    invalid_profile_result = run_with_payload(invalid_profile)
+    invalid_source_profile_path = tmp_path / "invalid_source_preflight.json"
+    invalid_source_profile_path.write_text(json.dumps({"profile_id": "other-probe"}) + "\n", encoding="utf-8")
+    invalid_source_profile = dict(valid_payload)
+    invalid_source_profile["source_preflight"] = str(invalid_source_profile_path)
+    invalid_source_profile_result = run_with_payload(invalid_source_profile)
+    missing_source_preflight = dict(valid_payload)
+    missing_source_preflight["source_preflight"] = str(tmp_path / "missing-source-preflight.json")
+    missing_source_preflight_result = run_with_payload(missing_source_preflight)
+    wave_mismatch = dict(valid_payload)
+    wave_mismatch["expected_waves"] = [1, 3]
+    wave_mismatch_result = run_with_payload(wave_mismatch)
+    missing_path = dict(valid_payload)
+    missing_path["agent_claims_json_path"] = str(tmp_path / "missing-agent-claims.json")
+    missing_path_result = run_with_payload(missing_path)
+    missing_launcher = dict(valid_payload)
+    missing_launcher["launcher_paths"] = [str(tmp_path / "missing-launcher.ps1")]
+    missing_launcher_result = run_with_payload(missing_launcher)
+    invalid_staged_launcher_list = dict(valid_payload)
+    invalid_staged_launcher_list["staged_launcher_paths"] = "not-a-list"
+    invalid_staged_launcher_list_result = run_with_payload(invalid_staged_launcher_list)
+    missing_package_script = dict(valid_payload)
+    missing_package_script["packages"] = [
+        {
+            "package_id": "wave-a",
+            "wave": 1,
+            **package_dirs["wave-a"],
+            "script_path": str(tmp_path / "missing-package-script.ps1"),
+        },
+        {"package_id": "wave-b", "wave": 2, **package_dirs["wave-b"]},
+    ]
+    missing_package_script_result = run_with_payload(missing_package_script)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] dispatch manifest shape valid: packages=2" in valid.stdout
+    assert missing_packages_result.returncode != 0
+    assert "dispatch manifest shape missing packages" in (
+        missing_packages_result.stdout + missing_packages_result.stderr
+    )
+    assert duplicate_result.returncode != 0
+    assert "dispatch manifest shape duplicate package_id: wave-a" in (
+        duplicate_result.stdout + duplicate_result.stderr
+    )
+    assert mismatch_result.returncode != 0
+    assert "dispatch manifest shape expected_package_ids mismatch:" in (
+        mismatch_result.stdout + mismatch_result.stderr
+    )
+    assert invalid_profile_result.returncode != 0
+    assert "dispatch manifest shape invalid profile_id: other-probe" in (
+        invalid_profile_result.stdout + invalid_profile_result.stderr
+    )
+    assert invalid_source_profile_result.returncode != 0
+    assert "dispatch manifest shape source_preflight invalid profile_id: other-probe" in (
+        invalid_source_profile_result.stdout + invalid_source_profile_result.stderr
+    )
+    assert missing_source_preflight_result.returncode != 0
+    assert "dispatch manifest shape source_preflight missing:" in (
+        missing_source_preflight_result.stdout + missing_source_preflight_result.stderr
+    )
+    assert wave_mismatch_result.returncode != 0
+    assert "dispatch manifest shape expected_waves mismatch:" in (
+        wave_mismatch_result.stdout + wave_mismatch_result.stderr
+    )
+    assert missing_path_result.returncode != 0
+    assert "dispatch manifest shape path missing agent_claims_json_path:" in (
+        missing_path_result.stdout + missing_path_result.stderr
+    )
+    assert missing_launcher_result.returncode != 0
+    assert "dispatch manifest shape launcher path missing launcher_paths:" in (
+        missing_launcher_result.stdout + missing_launcher_result.stderr
+    )
+    assert invalid_staged_launcher_list_result.returncode != 0
+    assert "dispatch manifest shape staged_launcher_paths is not a list" in (
+        invalid_staged_launcher_list_result.stdout + invalid_staged_launcher_list_result.stderr
+    )
+    assert missing_package_script_result.returncode != 0
+    assert "Dispatch prelaunch validation failed:" in (
+        missing_package_script_result.stdout + missing_package_script_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_invalid_owner_launch_plan_shape(tmp_path):
+    owner_plan_path = tmp_path / "owner_launch_plan.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            owner_launch_plan_json_path=owner_plan_path
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    def run_with_payload(payload):
+        owner_plan_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid_payload = {
+        "artifact": "validation-owner-launch-plan",
+        "owner_count": 1,
+        "package_count": 2,
+        "launchable_package_count": 1,
+        "blocked_package_count": 1,
+        "owners": [
+            {
+                "owner": "validation-agent",
+                "packages": [
+                    {"package_id": "wave-a", "ready_to_launch": True},
+                    {"package_id": "wave-b", "ready_to_launch": False},
+                ],
+            }
+        ],
+    }
+    valid = run_with_payload(valid_payload)
+    duplicate = json.loads(json.dumps(valid_payload))
+    duplicate["owners"][0]["packages"][1]["package_id"] = "wave-a"
+    duplicate_result = run_with_payload(duplicate)
+    mismatch = dict(valid_payload)
+    mismatch["package_count"] = 3
+    mismatch_result = run_with_payload(mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] owner launch plan shape valid: packages=2" in valid.stdout
+    assert duplicate_result.returncode != 0
+    assert "owner launch plan shape duplicate package_id: wave-a" in (
+        duplicate_result.stdout + duplicate_result.stderr
+    )
+    assert mismatch_result.returncode != 0
+    assert "owner launch plan shape package_count mismatch:" in (
+        mismatch_result.stdout + mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_invalid_execution_matrix_shape(tmp_path):
+    matrix_path = tmp_path / "execution_matrix.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            execution_matrix_json_path=matrix_path
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    def run_with_payload(payload):
+        matrix_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid_payload = {
+        "artifact": "validation-execution-matrix",
+        "source_artifact": "validation-owner-launch-plan",
+        "package_count": 2,
+        "ready_to_launch_count": 1,
+        "blocked_count": 1,
+        "rows": [
+            {"package_id": "wave-a", "ready_to_launch": True},
+            {"package_id": "wave-b", "ready_to_launch": False},
+        ],
+    }
+    valid = run_with_payload(valid_payload)
+    invalid_source = dict(valid_payload)
+    invalid_source["source_artifact"] = "other-artifact"
+    invalid_source_result = run_with_payload(invalid_source)
+    mismatch = dict(valid_payload)
+    mismatch["ready_to_launch_count"] = 2
+    mismatch_result = run_with_payload(mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] execution matrix shape valid: rows=2" in valid.stdout
+    assert invalid_source_result.returncode != 0
+    assert "execution matrix shape invalid source_artifact: other-artifact" in (
+        invalid_source_result.stdout + invalid_source_result.stderr
+    )
+    assert mismatch_result.returncode != 0
+    assert "execution matrix shape ready_to_launch_count mismatch:" in (
+        mismatch_result.stdout + mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_owner_plan_execution_matrix_mismatch(tmp_path):
+    owner_plan_path = tmp_path / "owner_launch_plan.json"
+    matrix_path = tmp_path / "execution_matrix.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            owner_launch_plan_json_path=owner_plan_path,
+            execution_matrix_json_path=matrix_path,
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    owner_plan = {
+        "artifact": "validation-owner-launch-plan",
+        "owner_count": 1,
+        "package_count": 2,
+        "launchable_package_count": 1,
+        "blocked_package_count": 1,
+        "owners": [
+            {
+                "owner": "validation-agent",
+                "packages": [
+                    {"package_id": "wave-a", "ready_to_launch": True},
+                    {"package_id": "wave-b", "ready_to_launch": False},
+                ],
+            }
+        ],
+    }
+    matrix = {
+        "artifact": "validation-execution-matrix",
+        "source_artifact": "validation-owner-launch-plan",
+        "package_count": 2,
+        "ready_to_launch_count": 1,
+        "blocked_count": 1,
+        "rows": [
+            {"package_id": "wave-a", "ready_to_launch": True},
+            {"package_id": "wave-b", "ready_to_launch": False},
+        ],
+    }
+
+    def run_with_payloads(owner_payload, matrix_payload):
+        owner_plan_path.write_text(json.dumps(owner_payload, indent=2) + "\n", encoding="utf-8")
+        matrix_path.write_text(json.dumps(matrix_payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid = run_with_payloads(owner_plan, matrix)
+    id_mismatch_matrix = json.loads(json.dumps(matrix))
+    id_mismatch_matrix["rows"][1]["package_id"] = "wave-c"
+    id_mismatch_result = run_with_payloads(owner_plan, id_mismatch_matrix)
+    ready_mismatch_matrix = json.loads(json.dumps(matrix))
+    ready_mismatch_matrix["rows"][0]["ready_to_launch"] = False
+    ready_mismatch_matrix["rows"][1]["ready_to_launch"] = True
+    ready_mismatch_result = run_with_payloads(owner_plan, ready_mismatch_matrix)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] owner plan execution matrix alignment valid: packages=2" in valid.stdout
+    assert id_mismatch_result.returncode != 0
+    assert "owner plan execution matrix alignment package_ids mismatch:" in (
+        id_mismatch_result.stdout + id_mismatch_result.stderr
+    )
+    assert ready_mismatch_result.returncode != 0
+    assert "owner plan execution matrix alignment ready_to_launch mismatch: wave-a" in (
+        ready_mismatch_result.stdout + ready_mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_manifest_plan_package_mismatch(tmp_path):
+    manifest_path = tmp_path / "dispatch_manifest.json"
+    owner_plan_path = tmp_path / "owner_launch_plan.json"
+    matrix_path = tmp_path / "execution_matrix.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            dispatch_manifest_path=manifest_path,
+            owner_launch_plan_json_path=owner_plan_path,
+            execution_matrix_json_path=matrix_path,
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    source_preflight_path = tmp_path / "source_preflight.json"
+    source_preflight_path.write_text(
+        json.dumps({"profile_id": "validation-execution-preflight-probe"}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    path_values = {"output_dir": str(tmp_path), "dispatch_prelaunch_validation_path": str(prelaunch_path)}
+    for field in [
+        "owner_launch_plan_path",
+        "execution_matrix_path",
+        "agent_claims_json_path",
+        "agent_spawn_plan_json_path",
+        "agent_spawn_launcher_path",
+        "claim_status_report_json_path",
+        "claim_lock_helper_path",
+        "env_unblock_queue_json_path",
+        "ready_claims_launcher_path",
+        "ready_claims_parallel_launcher_path",
+        "env_bundle_ready_claims_launcher_path",
+    ]:
+        artifact_path = tmp_path / field
+        artifact_path.write_text("{}\n", encoding="utf-8")
+        path_values[field] = str(artifact_path)
+    path_values["owner_launch_plan_json_path"] = str(owner_plan_path)
+    path_values["execution_matrix_json_path"] = str(matrix_path)
+    package_dirs = {}
+    for package_id in ("wave-a", "wave-b"):
+        package_dir = tmp_path / "packages" / package_id
+        handoff_dir = tmp_path / "handoffs" / package_id
+        package_dir.mkdir(parents=True)
+        handoff_dir.mkdir(parents=True)
+        script_path = handoff_dir / f"{package_id}.ps1"
+        prompt_path = handoff_dir / f"{package_id}.agent.md"
+        script_path.write_text("Write-Host ok\n", encoding="utf-8")
+        prompt_path.write_text("# prompt\n", encoding="utf-8")
+        package_dirs[package_id] = {
+            "output_dir": str(package_dir),
+            "script_path": str(script_path),
+            "prompt_path": str(prompt_path),
+            "status_path": str(package_dir / "agent_status.json"),
+        }
+
+    manifest = {
+        **path_values,
+        "profile_id": "validation-execution-preflight-probe",
+        "source_preflight": str(source_preflight_path),
+        "expected_package_ids": ["wave-a", "wave-b"],
+        "expected_waves": [1],
+        "packages": [
+            {"package_id": "wave-a", "wave": 1, **package_dirs["wave-a"]},
+            {"package_id": "wave-b", "wave": 1, **package_dirs["wave-b"]},
+        ],
+    }
+    owner_plan = {
+        "artifact": "validation-owner-launch-plan",
+        "owner_count": 1,
+        "package_count": 2,
+        "launchable_package_count": 1,
+        "blocked_package_count": 1,
+        "owners": [
+            {
+                "owner": "validation-agent",
+                "packages": [
+                    {"package_id": "wave-a", "ready_to_launch": True},
+                    {"package_id": "wave-b", "ready_to_launch": False},
+                ],
+            }
+        ]
+    }
+    matrix = {
+        "artifact": "validation-execution-matrix",
+        "source_artifact": "validation-owner-launch-plan",
+        "package_count": 2,
+        "ready_to_launch_count": 1,
+        "blocked_count": 1,
+        "rows": [
+            {"package_id": "wave-a", "ready_to_launch": True},
+            {"package_id": "wave-b", "ready_to_launch": False},
+        ]
+    }
+
+    def run_with_payloads(manifest_payload, owner_payload, matrix_payload):
+        manifest_path.write_text(json.dumps(manifest_payload, indent=2) + "\n", encoding="utf-8")
+        owner_plan_path.write_text(json.dumps(owner_payload, indent=2) + "\n", encoding="utf-8")
+        matrix_path.write_text(json.dumps(matrix_payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid = run_with_payloads(manifest, owner_plan, matrix)
+    owner_mismatch = json.loads(json.dumps(owner_plan))
+    owner_mismatch["owners"][0]["packages"][1]["package_id"] = "wave-c"
+    owner_mismatch_result = run_with_payloads(manifest, owner_mismatch, matrix)
+    matrix_mismatch = json.loads(json.dumps(matrix))
+    matrix_mismatch["rows"][1]["package_id"] = "wave-c"
+    matrix_mismatch_result = run_with_payloads(manifest, owner_plan, matrix_mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] dispatch manifest plan alignment valid: packages=2" in valid.stdout
+    assert owner_mismatch_result.returncode != 0
+    assert "dispatch manifest plan alignment owner package_ids mismatch:" in (
+        owner_mismatch_result.stdout + owner_mismatch_result.stderr
+    )
+    assert matrix_mismatch_result.returncode != 0
+    assert "dispatch manifest plan alignment matrix package_ids mismatch:" in (
+        matrix_mismatch_result.stdout + matrix_mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_manifest_agent_claims_mismatch(tmp_path):
+    manifest_path = tmp_path / "dispatch_manifest.json"
+    claims_path = tmp_path / "agent_claims.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            dispatch_manifest_path=manifest_path,
+            agent_claims_json_path=claims_path,
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    source_preflight_path = tmp_path / "source_preflight.json"
+    source_preflight_path.write_text(
+        json.dumps({"profile_id": "validation-execution-preflight-probe"}, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    path_values = {"output_dir": str(tmp_path), "dispatch_prelaunch_validation_path": str(prelaunch_path)}
+    for field in [
+        "owner_launch_plan_path",
+        "owner_launch_plan_json_path",
+        "execution_matrix_path",
+        "execution_matrix_json_path",
+        "agent_spawn_plan_json_path",
+        "agent_spawn_launcher_path",
+        "claim_status_report_json_path",
+        "claim_lock_helper_path",
+        "env_unblock_queue_json_path",
+        "ready_claims_launcher_path",
+        "ready_claims_parallel_launcher_path",
+        "env_bundle_ready_claims_launcher_path",
+    ]:
+        artifact_path = tmp_path / field
+        artifact_path.write_text("{}\n", encoding="utf-8")
+        path_values[field] = str(artifact_path)
+    path_values["agent_claims_json_path"] = str(claims_path)
+    package_dirs = {}
+    for package_id in ("wave-a", "wave-b"):
+        package_dir = tmp_path / "packages" / package_id
+        handoff_dir = tmp_path / "handoffs" / package_id
+        package_dir.mkdir(parents=True)
+        handoff_dir.mkdir(parents=True)
+        script_path = handoff_dir / f"{package_id}.ps1"
+        prompt_path = handoff_dir / f"{package_id}.agent.md"
+        script_path.write_text("Write-Host ok\n", encoding="utf-8")
+        prompt_path.write_text("# prompt\n", encoding="utf-8")
+        package_dirs[package_id] = {
+            "output_dir": str(package_dir),
+            "script_path": str(script_path),
+            "prompt_path": str(prompt_path),
+            "status_path": str(package_dir / "agent_status.json"),
+        }
+    manifest = {
+        **path_values,
+        "profile_id": "validation-execution-preflight-probe",
+        "source_preflight": str(source_preflight_path),
+        "expected_package_ids": ["wave-a", "wave-b"],
+        "expected_waves": [1],
+        "packages": [
+            {"package_id": "wave-a", "wave": 1, **package_dirs["wave-a"]},
+            {"package_id": "wave-b", "wave": 1, **package_dirs["wave-b"]},
+        ],
+    }
+    claims = {
+        "schema_version": 1,
+        "artifact": "validation-agent-claims",
+        "claim_count": 2,
+        "ready_to_claim_count": 1,
+        "blocked_claim_count": 1,
+        "manual_claim_count": 0,
+        "claims": [
+            {"claim_id": "claim-wave-a", "package_id": "wave-a", "claim_state": "ready_to_claim"},
+            {"claim_id": "claim-wave-b", "package_id": "wave-b", "claim_state": "blocked_missing_env"},
+        ],
+    }
+
+    def run_with_payloads(manifest_payload, claims_payload):
+        manifest_path.write_text(json.dumps(manifest_payload, indent=2) + "\n", encoding="utf-8")
+        claims_path.write_text(json.dumps(claims_payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid = run_with_payloads(manifest, claims)
+    package_mismatch = json.loads(json.dumps(claims))
+    package_mismatch["claims"][1]["package_id"] = "wave-c"
+    package_mismatch["claims"][1]["claim_id"] = "claim-wave-c"
+    package_mismatch_result = run_with_payloads(manifest, package_mismatch)
+    claim_id_mismatch = json.loads(json.dumps(claims))
+    claim_id_mismatch["claims"][0]["claim_id"] = "claim-other"
+    claim_id_mismatch_result = run_with_payloads(manifest, claim_id_mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] dispatch manifest agent claims alignment valid: packages=2" in valid.stdout
+    assert package_mismatch_result.returncode != 0
+    assert "dispatch manifest agent claims alignment package_ids mismatch:" in (
+        package_mismatch_result.stdout + package_mismatch_result.stderr
+    )
+    assert claim_id_mismatch_result.returncode != 0
+    assert "dispatch manifest agent claims alignment claim_id mismatch: wave-a=claim-other" in (
+        claim_id_mismatch_result.stdout + claim_id_mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_claim_lock_helper_claim_mismatch(tmp_path):
+    claims_path = tmp_path / "agent_claims.json"
+    helper_path = tmp_path / "claim_lock_helper.ps1"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            agent_claims_json_path=claims_path,
+            claim_lock_helper_path=helper_path,
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    claims = {
+        "schema_version": 1,
+        "artifact": "validation-agent-claims",
+        "claim_count": 2,
+        "ready_to_claim_count": 1,
+        "blocked_claim_count": 1,
+        "manual_claim_count": 0,
+        "claims": [
+            {"claim_id": "claim-wave-a", "package_id": "wave-a", "claim_state": "ready_to_claim"},
+            {"claim_id": "claim-wave-b", "package_id": "wave-b", "claim_state": "blocked_missing_env"},
+        ],
+    }
+
+    def run_with_helper(helper_claim_ids):
+        helper_payload = {"claims": [{"claim_id": claim_id} for claim_id in helper_claim_ids]}
+        claims_path.write_text(json.dumps(claims, indent=2) + "\n", encoding="utf-8")
+        helper_path.write_text(preflight_work_package.render_claim_lock_helper(helper_payload), encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid = run_with_helper(["claim-wave-a", "claim-wave-b"])
+    missing_claim = run_with_helper(["claim-wave-a"])
+    extra_claim = run_with_helper(["claim-wave-a", "claim-wave-b", "claim-wave-c"])
+
+    assert valid.returncode == 0
+    assert "[prelaunch] claim lock helper agent claims alignment valid: claims=2" in valid.stdout
+    assert missing_claim.returncode != 0
+    assert "claim lock helper agent claims alignment claim_ids mismatch:" in (
+        missing_claim.stdout + missing_claim.stderr
+    )
+    assert extra_claim.returncode != 0
+    assert "claim lock helper agent claims alignment claim_ids mismatch:" in (
+        extra_claim.stdout + extra_claim.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_ready_launcher_claim_mismatch(tmp_path):
+    claims_path = tmp_path / "agent_claims.json"
+    ready_launcher_path = tmp_path / "ready_claims_launcher.ps1"
+    ready_parallel_launcher_path = tmp_path / "ready_claims_parallel_launcher.ps1"
+    env_bundle_launcher_path = tmp_path / "env_bundle_ready_claims_launcher.ps1"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            agent_claims_json_path=claims_path,
+            ready_claims_launcher_path=ready_launcher_path,
+            ready_claims_parallel_launcher_path=ready_parallel_launcher_path,
+            env_bundle_ready_claims_launcher_path=env_bundle_launcher_path,
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    claims = {
+        "schema_version": 1,
+        "artifact": "validation-agent-claims",
+        "claim_count": 3,
+        "ready_to_claim_count": 1,
+        "blocked_claim_count": 1,
+        "manual_claim_count": 1,
+        "claims": [
+            {
+                "claim_id": "claim-wave-ready",
+                "package_id": "wave-ready",
+                "claim_state": "ready_to_claim",
+                "script_path": "docs/benchmarks/runs/test/handoffs/wave-ready/wave-ready.ps1",
+                "blocked_reasons": [],
+                "missing_effective_env": [],
+            },
+            {
+                "claim_id": "claim-wave-env",
+                "package_id": "wave-env",
+                "claim_state": "blocked_missing_env",
+                "script_path": "docs/benchmarks/runs/test/handoffs/wave-env/wave-env.ps1",
+                "blocked_reasons": ["missing_effective_env"],
+                "missing_effective_env": ["TAMANDUA_TEST_ENV"],
+            },
+            {
+                "claim_id": "claim-wave-manual",
+                "package_id": "wave-manual",
+                "claim_state": "manual_claim_required",
+                "script_path": "docs/benchmarks/runs/test/handoffs/wave-manual/wave-manual.ps1",
+                "blocked_reasons": ["manual_launch_required"],
+                "missing_effective_env": [],
+            },
+        ],
+    }
+
+    def write_launchers(payload):
+        claims_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        ready_launcher_path.write_text(preflight_work_package.render_ready_claims_launcher(payload), encoding="utf-8")
+        ready_parallel_launcher_path.write_text(
+            preflight_work_package.render_ready_claims_parallel_launcher(payload),
+            encoding="utf-8",
+        )
+        env_bundle_launcher_path.write_text(
+            preflight_work_package.render_env_bundle_ready_claims_launcher(payload),
+            encoding="utf-8",
+        )
+
+    def run_prelaunch():
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    write_launchers(claims)
+    valid = run_prelaunch()
+    ready_stale = ready_launcher_path.read_text(encoding="utf-8").replace(
+        "'wave-ready'",
+        "'wave-other'",
+        1,
+    )
+    ready_launcher_path.write_text(ready_stale, encoding="utf-8")
+    ready_mismatch = run_prelaunch()
+    write_launchers(claims)
+    env_stale = env_bundle_launcher_path.read_text(encoding="utf-8").replace(
+        "'claim-wave-env'",
+        "'claim-wave-manual'",
+    )
+    env_bundle_launcher_path.write_text(env_stale, encoding="utf-8")
+    env_mismatch = run_prelaunch()
+
+    assert valid.returncode == 0
+    assert "[prelaunch] ready launchers agent claims alignment valid: ready=1 env_bundle=1" in valid.stdout
+    assert ready_mismatch.returncode != 0
+    assert "ready launchers agent claims alignment ready package_id mismatch: claim-wave-ready" in (
+        ready_mismatch.stdout + ready_mismatch.stderr
+    )
+    assert env_mismatch.returncode != 0
+    assert "ready launchers agent claims alignment env-bundle claim_ids mismatch:" in (
+        env_mismatch.stdout + env_mismatch.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_dispatch_runner_manifest_mismatch(tmp_path):
+    manifest_path = tmp_path / "dispatch_manifest.json"
+    runner_path = tmp_path / "dispatch_one_shot_runner.ps1"
+    staged_launcher_path = tmp_path / "launchers" / "wave-1-staged-launcher.ps1"
+    staged_launcher_path.parent.mkdir()
+    staged_launcher_path.write_text("# staged launcher\n", encoding="utf-8")
+    source_preflight_path = tmp_path / "source_preflight.json"
+    source_preflight_path.write_text(
+        json.dumps({"profile_id": "validation-execution-preflight-probe"}) + "\n",
+        encoding="utf-8",
+    )
+    required_paths = {
+        "output_dir": tmp_path / "outputs",
+        "owner_launch_plan_path": tmp_path / "owner_launch_plan.md",
+        "owner_launch_plan_json_path": tmp_path / "owner_launch_plan.json",
+        "execution_matrix_path": tmp_path / "execution_matrix.md",
+        "execution_matrix_json_path": tmp_path / "execution_matrix.json",
+        "agent_claims_json_path": tmp_path / "agent_claims.json",
+        "agent_spawn_plan_json_path": tmp_path / "agent_spawn_plan.json",
+        "agent_spawn_launcher_path": tmp_path / "agent_spawn_launcher.ps1",
+        "claim_status_report_json_path": tmp_path / "claim_status_report.json",
+        "claim_lock_helper_path": tmp_path / "claim_lock_helper.ps1",
+        "env_unblock_queue_json_path": tmp_path / "env_unblock_queue.json",
+        "ready_claims_launcher_path": tmp_path / "ready_claims_launcher.ps1",
+        "ready_claims_parallel_launcher_path": tmp_path / "ready_claims_parallel_launcher.ps1",
+        "env_bundle_ready_claims_launcher_path": tmp_path / "env_bundle_ready_claims_launcher.ps1",
+        "dispatch_prelaunch_validation_path": tmp_path / "dispatch_prelaunch_validation.ps1",
+    }
+    required_paths["output_dir"].mkdir()
+    for path in required_paths.values():
+        if path.is_dir():
+            continue
+        path.write_text("{}\n", encoding="utf-8")
+    direct_package_dir = tmp_path / "packages" / "wave-2-direct"
+    direct_package_dir.mkdir(parents=True)
+    direct_script_path = tmp_path / "handoffs" / "wave-2-direct" / "wave-2-direct.ps1"
+    direct_prompt_path = tmp_path / "handoffs" / "wave-2-direct" / "wave-2-direct.agent.md"
+    direct_script_path.parent.mkdir(parents=True)
+    direct_script_path.write_text("exit 0\n", encoding="utf-8")
+    direct_prompt_path.write_text("prompt\n", encoding="utf-8")
+    staged_package_dir = tmp_path / "packages" / "wave-1-staged"
+    staged_package_dir.mkdir(parents=True)
+    staged_script_path = tmp_path / "handoffs" / "wave-1-staged" / "wave-1-staged.ps1"
+    staged_prompt_path = tmp_path / "handoffs" / "wave-1-staged" / "wave-1-staged.agent.md"
+    staged_script_path.parent.mkdir(parents=True)
+    staged_script_path.write_text("exit 0\n", encoding="utf-8")
+    staged_prompt_path.write_text("prompt\n", encoding="utf-8")
+    manifest = {
+        "profile_id": "validation-execution-preflight-probe",
+        "source_preflight": str(source_preflight_path),
+        "dispatch_runner_path": str(runner_path),
+        "staged_launcher_paths": [str(staged_launcher_path)],
+        "launcher_paths": [],
+        "packages": [
+            {
+                "package_id": "wave-1-staged",
+                "wave": 1,
+                "staged_launcher_selected": True,
+                "output_dir": str(staged_package_dir),
+                "script_path": str(staged_script_path),
+                "prompt_path": str(staged_prompt_path),
+                "status_path": str(staged_package_dir / "agent_status.json"),
+            },
+            {
+                "package_id": "wave-2-direct",
+                "wave": 2,
+                "staged_launcher_selected": False,
+                "output_dir": str(direct_package_dir),
+                "script_path": str(direct_script_path),
+                "prompt_path": str(direct_prompt_path),
+                "status_path": str(direct_package_dir / "agent_status.json"),
+            },
+        ],
+        "expected_package_ids": ["wave-1-staged", "wave-2-direct"],
+        "expected_waves": [1, 2],
+        **{key: str(path) for key, path in required_paths.items()},
+    }
+
+    def write_runner(staged_path: str, direct_path: str):
+        runner_path.write_text(
+            "\n".join(
+                [
+                    "$AllowOneShot = [Environment]::GetEnvironmentVariable('TAMANDUA_ALLOW_ONE_SHOT_DISPATCH')",
+                    "$env:TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH = '1'",
+                    "$DispatchManifestPath = '" + str(manifest_path) + "'",
+                    "Write-Error ('Missing claim lock helper: ' + $ClaimLockHelperPath)",
+                    "$script:DispatchFailures += ($Label + ' claim lock exit ' + [string]$LASTEXITCODE)",
+                    "Write-Error ('Dispatch one-shot completed with failures: ' + ($DispatchFailures -join ', '))",
+                    "Invoke-DispatchStep 'wave 1 staged launcher' '" + staged_path + "' 1",
+                    "Invoke-DispatchStep 'wave 2 package wave-2-direct' '" + direct_path + "' 2 'claim-wave-2-direct'",
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+
+    prelaunch_path = required_paths["dispatch_prelaunch_validation_path"]
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(dispatch_manifest_path=manifest_path),
+        encoding="utf-8",
+    )
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    repo_root = Path(__file__).resolve().parents[2]
+
+    write_runner(str(staged_launcher_path), str(direct_script_path))
+    valid = subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(prelaunch_path)],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+    write_runner(str(staged_launcher_path), "missing-direct.ps1")
+    direct_mismatch = subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(prelaunch_path)],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+    write_runner("missing-staged.ps1", str(direct_script_path))
+    staged_mismatch = subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(prelaunch_path)],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+    missing_staged_launcher_paths_manifest = json.loads(json.dumps(manifest))
+    missing_staged_launcher_paths_manifest.pop("staged_launcher_paths")
+    manifest_path.write_text(
+        json.dumps(missing_staged_launcher_paths_manifest, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    write_runner(str(staged_launcher_path), str(direct_script_path))
+    missing_staged_launcher_paths = subprocess.run(
+        ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(prelaunch_path)],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert valid.returncode == 0
+    assert "[prelaunch] dispatch runner manifest alignment valid:" in valid.stdout
+    assert direct_mismatch.returncode != 0
+    assert "dispatch runner manifest alignment" in (
+        direct_mismatch.stdout + direct_mismatch.stderr
+    )
+    assert staged_mismatch.returncode != 0
+    assert "dispatch runner manifest alignment missing staged launcher:" in (
+        staged_mismatch.stdout + staged_mismatch.stderr
+    )
+    assert missing_staged_launcher_paths.returncode != 0
+    assert "dispatch manifest shape missing staged_launcher_paths" in (
+        missing_staged_launcher_paths.stdout + missing_staged_launcher_paths.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_agent_claims_status_report_mismatch(tmp_path):
+    claims_path = tmp_path / "agent_claims.json"
+    report_path = tmp_path / "claim_status_report.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            agent_claims_json_path=claims_path,
+            claim_status_report_json_path=report_path,
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    claims = {
+        "schema_version": 1,
+        "artifact": "validation-agent-claims",
+        "claim_count": 2,
+        "ready_to_claim_count": 1,
+        "blocked_claim_count": 1,
+        "manual_claim_count": 0,
+        "claims": [
+            {"claim_id": "claim-wave-a", "package_id": "wave-a", "claim_state": "ready_to_claim"},
+            {"claim_id": "claim-wave-b", "package_id": "wave-b", "claim_state": "blocked_missing_env"},
+        ],
+    }
+    report = {
+        "schema_version": 1,
+        "artifact": "validation-claim-status-report",
+        "claim_count": 2,
+        "ready_to_claim_count": 1,
+        "blocked_claim_count": 1,
+        "manual_claim_count": 0,
+        "locked_claim_count": 0,
+        "invalid_lock_count": 0,
+        "claims": [
+            {
+                "claim_id": "claim-wave-a",
+                "package_id": "wave-a",
+                "claim_state": "ready_to_claim",
+                "lock_state": "unlocked",
+            },
+            {
+                "claim_id": "claim-wave-b",
+                "package_id": "wave-b",
+                "claim_state": "blocked_missing_env",
+                "lock_state": "unlocked",
+            },
+        ],
+    }
+    claim_extras = {
+        "claim-wave-a": {
+            "owner": "validation-agent",
+            "wave": 1,
+            "stage": 1,
+            "ready_to_launch": True,
+            "script_path": "docs/benchmarks/runs/test/handoffs/wave-a/wave-a.ps1",
+            "prompt_path": "docs/benchmarks/runs/test/handoffs/wave-a/wave-a.agent.md",
+            "status_path": "docs/benchmarks/runs/test/packages/wave-a/agent_status.json",
+            "command": "powershell -File wave-a.ps1",
+            "missing_effective_env": [],
+            "blocked_reasons": [],
+            "resource_tags": ["windows-lab"],
+            "lock_path": "docs/benchmarks/runs/test/claim_locks/claim-wave-a.claim-lock.json",
+        },
+        "claim-wave-b": {
+            "owner": "operator-or-secret-holder",
+            "wave": 1,
+            "stage": 2,
+            "ready_to_launch": False,
+            "script_path": "docs/benchmarks/runs/test/handoffs/wave-b/wave-b.ps1",
+            "prompt_path": "docs/benchmarks/runs/test/handoffs/wave-b/wave-b.agent.md",
+            "status_path": "docs/benchmarks/runs/test/packages/wave-b/agent_status.json",
+            "command": "powershell -File wave-b.ps1",
+            "missing_effective_env": ["TAMANDUA_TEST_ENV"],
+            "blocked_reasons": ["missing_effective_env"],
+            "resource_tags": ["operator-env"],
+            "lock_path": "docs/benchmarks/runs/test/claim_locks/claim-wave-b.claim-lock.json",
+        },
+    }
+    for payload in (claims, report):
+        for claim in payload["claims"]:
+            claim.update(claim_extras[claim["claim_id"]])
+
+    def run_with_payloads(claims_payload, report_payload):
+        claims_path.write_text(json.dumps(claims_payload, indent=2) + "\n", encoding="utf-8")
+        report_path.write_text(json.dumps(report_payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid = run_with_payloads(claims, report)
+    claim_id_mismatch = json.loads(json.dumps(report))
+    claim_id_mismatch["claims"][1]["claim_id"] = "claim-wave-c"
+    claim_id_mismatch_result = run_with_payloads(claims, claim_id_mismatch)
+    state_mismatch = json.loads(json.dumps(report))
+    state_mismatch["claims"][0]["claim_state"] = "blocked_missing_env"
+    state_mismatch["ready_to_claim_count"] = 0
+    state_mismatch["blocked_claim_count"] = 2
+    state_mismatch_result = run_with_payloads(claims, state_mismatch)
+    status_path_mismatch = json.loads(json.dumps(report))
+    status_path_mismatch["claims"][0]["status_path"] = "docs/benchmarks/runs/test/packages/other/agent_status.json"
+    status_path_mismatch_result = run_with_payloads(claims, status_path_mismatch)
+    missing_env_mismatch = json.loads(json.dumps(report))
+    missing_env_mismatch["claims"][1]["missing_effective_env"] = ["TAMANDUA_OTHER_ENV"]
+    missing_env_mismatch_result = run_with_payloads(claims, missing_env_mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] agent claims status report alignment valid: claims=2" in valid.stdout
+    assert claim_id_mismatch_result.returncode != 0
+    assert "agent claims status report alignment claim_ids mismatch:" in (
+        claim_id_mismatch_result.stdout + claim_id_mismatch_result.stderr
+    )
+    assert state_mismatch_result.returncode != 0
+    assert "agent claims status report alignment claim_state mismatch: claim-wave-a" in (
+        state_mismatch_result.stdout + state_mismatch_result.stderr
+    )
+    assert status_path_mismatch_result.returncode != 0
+    assert "agent claims status report alignment status_path mismatch: claim-wave-a" in (
+        status_path_mismatch_result.stdout + status_path_mismatch_result.stderr
+    )
+    assert missing_env_mismatch_result.returncode != 0
+    assert "agent claims status report alignment missing_effective_env mismatch: claim-wave-b" in (
+        missing_env_mismatch_result.stdout + missing_env_mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_agent_claims_spawn_plan_mismatch(tmp_path):
+    claims_path = tmp_path / "agent_claims.json"
+    plan_path = tmp_path / "agent_spawn_plan.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            agent_claims_json_path=claims_path,
+            agent_spawn_plan_json_path=plan_path,
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    claims = {
+        "schema_version": 1,
+        "artifact": "validation-agent-claims",
+        "claim_count": 2,
+        "ready_to_claim_count": 1,
+        "blocked_claim_count": 1,
+        "manual_claim_count": 0,
+        "claims": [
+            {"claim_id": "claim-wave-a", "package_id": "wave-a", "claim_state": "ready_to_claim"},
+            {"claim_id": "claim-wave-b", "package_id": "wave-b", "claim_state": "blocked_missing_env"},
+        ],
+    }
+    plan = {
+        "schema_version": 1,
+        "artifact": "validation-agent-spawn-plan",
+        "source_artifact": "validation-agent-claims",
+        "ready_batch_count": 1,
+        "ready_claim_count": 1,
+        "env_bundle_ready_batch_count": 0,
+        "env_bundle_ready_claim_count": 0,
+        "env_bundle_still_blocked_claim_count": 0,
+        "blocked_or_manual_claim_count": 1,
+        "batches": [
+            {
+                "claim_count": 1,
+                "claims": [
+                    {"claim_id": "claim-wave-a", "package_id": "wave-a", "claim_state": "ready_to_claim"}
+                ],
+            }
+        ],
+        "env_bundle_ready_batches": [],
+        "env_bundle_still_blocked_claims": [],
+        "blocked_or_manual_claims": [
+            {"claim_id": "claim-wave-b", "package_id": "wave-b", "claim_state": "blocked_missing_env"}
+        ],
+    }
+
+    def run_with_payloads(claims_payload, plan_payload):
+        claims_path.write_text(json.dumps(claims_payload, indent=2) + "\n", encoding="utf-8")
+        plan_path.write_text(json.dumps(plan_payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid = run_with_payloads(claims, plan)
+    claim_id_mismatch = json.loads(json.dumps(plan))
+    claim_id_mismatch["blocked_or_manual_claims"][0]["claim_id"] = "claim-wave-c"
+    claim_id_mismatch_result = run_with_payloads(claims, claim_id_mismatch)
+    state_mismatch = json.loads(json.dumps(plan))
+    state_mismatch["batches"][0]["claims"][0]["claim_state"] = "blocked_missing_env"
+    state_mismatch_result = run_with_payloads(claims, state_mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] agent claims spawn plan alignment valid: claims=2" in valid.stdout
+    assert claim_id_mismatch_result.returncode != 0
+    assert "agent claims spawn plan alignment claim_ids mismatch:" in (
+        claim_id_mismatch_result.stdout + claim_id_mismatch_result.stderr
+    )
+    assert state_mismatch_result.returncode != 0
+    assert "agent claims spawn plan alignment claim_state mismatch: claim-wave-a" in (
+        state_mismatch_result.stdout + state_mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_env_queue_agent_claims_mismatch(tmp_path):
+    claims_path = tmp_path / "agent_claims.json"
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            env_unblock_queue_json_path=queue_path,
+            agent_claims_json_path=claims_path,
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    claims = {
+        "schema_version": 1,
+        "artifact": "validation-agent-claims",
+        "claim_count": 3,
+        "ready_to_claim_count": 0,
+        "blocked_claim_count": 2,
+        "manual_claim_count": 1,
+        "claims": [
+            {
+                "claim_id": "claim-wave-a",
+                "package_id": "wave-a",
+                "claim_state": "blocked_missing_env",
+                "blocked_reasons": ["missing_effective_env"],
+                "missing_effective_env": ["TAMANDUA_TEST_ENV_A"],
+            },
+            {
+                "claim_id": "claim-wave-b",
+                "package_id": "wave-b",
+                "claim_state": "blocked_missing_env",
+                "blocked_reasons": ["missing_effective_env", "manual_launch_required"],
+                "missing_effective_env": ["TAMANDUA_TEST_ENV_A", "TAMANDUA_TEST_ENV_B"],
+            },
+            {
+                "claim_id": "claim-wave-c",
+                "package_id": "wave-c",
+                "claim_state": "manual_claim_required",
+                "blocked_reasons": ["manual_launch_required"],
+                "missing_effective_env": [],
+            },
+        ],
+    }
+    queue = preflight_work_package.build_env_unblock_queue_json(claims, environ={})
+
+    def run_with_payloads(claims_payload, queue_payload):
+        claims_path.write_text(json.dumps(claims_payload, indent=2) + "\n", encoding="utf-8")
+        queue_path.write_text(json.dumps(queue_payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid = run_with_payloads(claims, queue)
+    package_mismatch = json.loads(json.dumps(queue))
+    package_mismatch["entries"][0]["package_ids"] = ["wave-other"]
+    package_mismatch_result = run_with_payloads(claims, package_mismatch)
+    readiness_mismatch = json.loads(json.dumps(queue))
+    readiness_mismatch["ready_after_all_env_claim_ids"] = []
+    readiness_mismatch_result = run_with_payloads(claims, readiness_mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] env unblock queue agent claims alignment valid: envs=2 claims=3" in valid.stdout
+    assert package_mismatch_result.returncode != 0
+    assert "env unblock queue agent claims alignment package_ids mismatch:" in (
+        package_mismatch_result.stdout + package_mismatch_result.stderr
+    )
+    assert readiness_mismatch_result.returncode != 0
+    assert "env unblock queue agent claims alignment ready_after_all_env_claim_ids mismatch:" in (
+        readiness_mismatch_result.stdout + readiness_mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_invalid_agent_claims_shape(tmp_path):
+    claims_path = tmp_path / "agent_claims.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(
+            agent_claims_json_path=claims_path
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    def run_with_payload(payload):
+        claims_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    valid_payload = {
+        "schema_version": 1,
+        "artifact": "validation-agent-claims",
+        "claims": [
+            {"claim_id": "claim-a", "claim_state": "ready_to_claim"},
+            {"claim_id": "claim-b", "claim_state": "blocked_missing_env"},
+            {"claim_id": "claim-c", "claim_state": "manual_claim_required"},
+        ],
+        "claim_count": 3,
+        "ready_to_claim_count": 1,
+        "blocked_claim_count": 1,
+        "manual_claim_count": 1,
+    }
+    valid = run_with_payload(valid_payload)
+    missing_claims = run_with_payload(
+        {
+            "schema_version": 1,
+            "artifact": "validation-agent-claims",
+            "claim_count": 0,
+            "ready_to_claim_count": 0,
+            "blocked_claim_count": 0,
+            "manual_claim_count": 0,
+        }
+    )
+    duplicate = dict(valid_payload)
+    duplicate["claims"] = [
+        {"claim_id": "claim-a", "claim_state": "ready_to_claim"},
+        {"claim_id": "claim-a", "claim_state": "blocked_missing_env"},
+    ]
+    duplicate["claim_count"] = 2
+    duplicate["ready_to_claim_count"] = 1
+    duplicate["blocked_claim_count"] = 1
+    duplicate["manual_claim_count"] = 0
+    duplicate_result = run_with_payload(duplicate)
+    invalid_artifact = dict(valid_payload)
+    invalid_artifact["artifact"] = "other-claims"
+    invalid_artifact_result = run_with_payload(invalid_artifact)
+    invalid_count = dict(valid_payload)
+    invalid_count["claim_count"] = "three"
+    invalid_count_result = run_with_payload(invalid_count)
+    state_count_mismatch = dict(valid_payload)
+    state_count_mismatch["blocked_claim_count"] = 0
+    state_count_mismatch_result = run_with_payload(state_count_mismatch)
+
+    assert valid.returncode == 0
+    assert "[prelaunch] agent claims shape valid: claims=3" in valid.stdout
+    assert missing_claims.returncode != 0
+    assert "agent claims shape missing claims" in (missing_claims.stdout + missing_claims.stderr)
+    assert duplicate_result.returncode != 0
+    assert "agent claims shape duplicate claim_id: claim-a" in (
+        duplicate_result.stdout + duplicate_result.stderr
+    )
+    assert invalid_artifact_result.returncode != 0
+    assert "agent claims shape invalid artifact: other-claims" in (
+        invalid_artifact_result.stdout + invalid_artifact_result.stderr
+    )
+    assert invalid_count_result.returncode != 0
+    assert "agent claims shape invalid claim_count: three" in (
+        invalid_count_result.stdout + invalid_count_result.stderr
+    )
+    assert state_count_mismatch_result.returncode != 0
+    assert "agent claims shape blocked_claim_count mismatch: count=0 claims=1" in (
+        state_count_mismatch_result.stdout + state_count_mismatch_result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_env_queue_count_mismatch(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "env_count": 3,
+                "required_env_names": [
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+                ],
+                "entries": [
+                    {"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"},
+                    {"env": "TAMANDUA_TEST_PRELAUNCH_ENV_B"},
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "env unblock queue shape env_count mismatch: env_count=3 entries=2" in (
+        result.stdout + result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_invalid_env_queue_count(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "env_count": "two",
+                "required_env_names": [
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+                ],
+                "entries": [
+                    {"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"},
+                    {"env": "TAMANDUA_TEST_PRELAUNCH_ENV_B"},
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    non_numeric = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    queue_path.write_text(
+        json.dumps(
+            {
+                "env_count": -1,
+                "required_env_names": ["TAMANDUA_TEST_PRELAUNCH_ENV_A"],
+                "entries": [{"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"}],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    negative = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert non_numeric.returncode != 0
+    assert "env unblock queue shape invalid env_count: two" in (non_numeric.stdout + non_numeric.stderr)
+    assert negative.returncode != 0
+    assert "env unblock queue shape invalid env_count: -1" in (negative.stdout + negative.stderr)
+
+
+def test_dispatch_prelaunch_validation_rejects_required_env_names_mismatch(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "env_count": 2,
+                "required_env_names": [
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                    "TAMANDUA_TEST_PRELAUNCH_ENV_C",
+                ],
+                "entries": [
+                    {"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"},
+                    {"env": "TAMANDUA_TEST_PRELAUNCH_ENV_B"},
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    output = result.stdout + result.stderr
+    assert "env unblock queue shape required_env_names mismatch:" in output
+    assert "required_env_names=TAMANDUA_TEST_PRELAUNCH_ENV_A,TAMANDUA_TEST_PRELAUNCH_ENV_C" in output
+    assert "entries=TAMANDUA_TEST_PRELAUNCH_ENV_A,TAMANDUA_TEST_PRELAUNCH_ENV_B" in output
+
+
+def test_dispatch_prelaunch_validation_rejects_missing_required_env_names(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "env_count": 1,
+                "entries": [{"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"}],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "env unblock queue shape missing required_env_names" in (result.stdout + result.stderr)
+
+
+def test_dispatch_prelaunch_validation_rejects_scalar_required_env_names(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "env_count": 1,
+                "required_env_names": "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                "entries": [{"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"}],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "env unblock queue shape required_env_names is not a list" in (
+        result.stdout + result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_empty_required_env_name(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "env_count": 1,
+                "required_env_names": ["TAMANDUA_TEST_PRELAUNCH_ENV_A", ""],
+                "entries": [{"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"}],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "env unblock queue shape required_env_names contains empty value" in (
+        result.stdout + result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_missing_env_set_commands(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    queue_path.write_text(
+        json.dumps(
+            {
+                "env_count": 1,
+                "required_env_names": ["TAMANDUA_TEST_PRELAUNCH_ENV_A"],
+                "entries": [
+                    {
+                        "env": "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                        "powershell_set_command": "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a>'",
+                    }
+                ],
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+
+    repo_root = Path(__file__).resolve().parents[2]
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(prelaunch_path),
+        ],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "env unblock queue shape missing all_env_powershell_set_commands" in (
+        result.stdout + result.stderr
+    )
+
+
+def test_dispatch_prelaunch_validation_rejects_malformed_env_set_commands(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    def run_with_queue(payload):
+        queue_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    base_entries = [
+        {"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"},
+        {"env": "TAMANDUA_TEST_PRELAUNCH_ENV_B"},
+    ]
+    scalar = run_with_queue(
+        {
+            "entries": base_entries,
+            "required_env_names": [
+                "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+            ],
+            "all_env_powershell_set_commands": "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a>'",
+        }
+    )
+    empty = run_with_queue(
+        {
+            "entries": base_entries,
+            "required_env_names": [
+                "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+            ],
+            "all_env_powershell_set_commands": [""],
+        }
+    )
+    invalid = run_with_queue(
+        {
+            "entries": base_entries,
+            "required_env_names": [
+                "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+            ],
+            "all_env_powershell_set_commands": ["Set-Item Env:TAMANDUA_TEST_PRELAUNCH_ENV_A '<set-a>'"],
+        }
+    )
+    duplicate = run_with_queue(
+        {
+            "entries": base_entries,
+            "required_env_names": [
+                "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+            ],
+            "all_env_powershell_set_commands": [
+                "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a>'",
+                "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a-again>'",
+            ],
+        }
+    )
+    mismatch = run_with_queue(
+        {
+            "entries": base_entries,
+            "required_env_names": [
+                "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+            ],
+            "all_env_powershell_set_commands": [
+                "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a>'",
+                "$env:TAMANDUA_TEST_PRELAUNCH_ENV_C = '<set-c>'",
+            ],
+        }
+    )
+
+    assert scalar.returncode != 0
+    assert "env unblock queue shape all_env_powershell_set_commands is not a list" in (
+        scalar.stdout + scalar.stderr
+    )
+    assert empty.returncode != 0
+    assert "env unblock queue shape all_env_powershell_set_commands contains empty value" in (
+        empty.stdout + empty.stderr
+    )
+    assert invalid.returncode != 0
+    assert "env unblock queue shape invalid env set command: Set-Item Env:TAMANDUA_TEST_PRELAUNCH_ENV_A" in (
+        invalid.stdout + invalid.stderr
+    )
+    assert duplicate.returncode != 0
+    assert "env unblock queue shape duplicate env set commands: TAMANDUA_TEST_PRELAUNCH_ENV_A" in (
+        duplicate.stdout + duplicate.stderr
+    )
+    assert mismatch.returncode != 0
+    output = mismatch.stdout + mismatch.stderr
+    assert "env unblock queue shape env set commands mismatch:" in output
+    assert "commands=TAMANDUA_TEST_PRELAUNCH_ENV_A,TAMANDUA_TEST_PRELAUNCH_ENV_C" in output
+    assert "entries=TAMANDUA_TEST_PRELAUNCH_ENV_A,TAMANDUA_TEST_PRELAUNCH_ENV_B" in output
+
+
+def test_dispatch_prelaunch_validation_rejects_env_set_command_text_drift(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    def run_with_queue(payload):
+        queue_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    missing_entry_command = run_with_queue(
+        {
+            "entries": [{"env": "TAMANDUA_TEST_PRELAUNCH_ENV_A"}],
+            "required_env_names": ["TAMANDUA_TEST_PRELAUNCH_ENV_A"],
+            "all_env_powershell_set_commands": ["$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a>'"],
+        }
+    )
+    text_drift = run_with_queue(
+        {
+            "entries": [
+                    {
+                        "env": "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                        "powershell_set_command": "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a-from-entry>'",
+                        "direct_next_action_summaries": [],
+                        "indirect_next_action_summaries": [],
+                    }
+                ],
+            "required_env_names": ["TAMANDUA_TEST_PRELAUNCH_ENV_A"],
+            "all_env_powershell_set_commands": ["$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a-from-list>'"],
+        }
+    )
+
+    assert missing_entry_command.returncode != 0
+    assert "env unblock queue shape entry missing powershell_set_command" in (
+        missing_entry_command.stdout + missing_entry_command.stderr
+    )
+    assert text_drift.returncode != 0
+    assert "env unblock queue shape env set command text mismatch" in (text_drift.stdout + text_drift.stderr)
+
+
+def test_dispatch_prelaunch_validation_rejects_invalid_current_env_snapshot(tmp_path):
+    queue_path = tmp_path / "env_unblock_queue.json"
+    prelaunch_path = tmp_path / "dispatch_prelaunch_validation.ps1"
+    prelaunch_path.write_text(
+        preflight_work_package.render_dispatch_prelaunch_validation(env_unblock_queue_json_path=queue_path),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+
+    def base_payload():
+        return {
+            "entries": [
+                {
+                    "env": "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                    "powershell_set_command": "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a>'",
+                    "direct_next_action_summaries": [],
+                    "indirect_next_action_summaries": [],
+                },
+                {
+                    "env": "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+                    "powershell_set_command": "$env:TAMANDUA_TEST_PRELAUNCH_ENV_B = '<set-b>'",
+                    "direct_next_action_summaries": [],
+                    "indirect_next_action_summaries": [],
+                },
+            ],
+            "required_env_names": [
+                "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+            ],
+            "all_env_powershell_set_commands": [
+                "$env:TAMANDUA_TEST_PRELAUNCH_ENV_A = '<set-a>'",
+                "$env:TAMANDUA_TEST_PRELAUNCH_ENV_B = '<set-b>'",
+            ],
+            "current_env_present_count": 0,
+            "current_env_present_names": [],
+            "current_env_missing_count": 2,
+            "current_env_missing_names": [
+                "TAMANDUA_TEST_PRELAUNCH_ENV_A",
+                "TAMANDUA_TEST_PRELAUNCH_ENV_B",
+            ],
+            "current_env_placeholder_count": 0,
+            "current_env_placeholder_names": [],
+            "ready_with_current_env_claim_ids": [],
+            "still_blocked_with_current_env_claim_ids": ["claim-env"],
+            "ready_after_all_env_claim_ids": ["claim-env"],
+            "still_blocked_after_all_env_claim_ids": [],
+            "blocked_claim_count": 1,
+        }
+
+    def run_with_payload(payload):
+        queue_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        return subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                str(prelaunch_path),
+            ],
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+        )
+
+    missing_names = base_payload()
+    missing_names.pop("current_env_present_names")
+    scalar_names = base_payload()
+    scalar_names["current_env_missing_names"] = "TAMANDUA_TEST_PRELAUNCH_ENV_A"
+    overlap = base_payload()
+    overlap["current_env_present_count"] = 1
+    overlap["current_env_present_names"] = ["TAMANDUA_TEST_PRELAUNCH_ENV_A"]
+    mismatch = base_payload()
+    mismatch["current_env_missing_count"] = 1
+    mismatch["current_env_missing_names"] = ["TAMANDUA_TEST_PRELAUNCH_ENV_A"]
+    invalid_count = base_payload()
+    invalid_count["current_env_missing_count"] = "two"
+    count_mismatch = base_payload()
+    count_mismatch["current_env_missing_count"] = 1
+    missing_ready_current = base_payload()
+    missing_ready_current.pop("ready_with_current_env_claim_ids")
+    scalar_still_current = base_payload()
+    scalar_still_current["still_blocked_with_current_env_claim_ids"] = "claim-env"
+    empty_after_all = base_payload()
+    empty_after_all["ready_after_all_env_claim_ids"] = [""]
+    duplicate_after_all = base_payload()
+    duplicate_after_all["ready_after_all_env_claim_ids"] = ["claim-env", "claim-env"]
+    current_claim_overlap = base_payload()
+    current_claim_overlap["ready_with_current_env_claim_ids"] = ["claim-env"]
+    after_all_claim_overlap = base_payload()
+    after_all_claim_overlap["still_blocked_after_all_env_claim_ids"] = ["claim-env"]
+    missing_blocked_claim_count = base_payload()
+    missing_blocked_claim_count.pop("blocked_claim_count")
+    invalid_blocked_claim_count = base_payload()
+    invalid_blocked_claim_count["blocked_claim_count"] = "one"
+    low_blocked_claim_count = base_payload()
+    low_blocked_claim_count["blocked_claim_count"] = 0
+
+    missing_names_result = run_with_payload(missing_names)
+    scalar_names_result = run_with_payload(scalar_names)
+    overlap_result = run_with_payload(overlap)
+    mismatch_result = run_with_payload(mismatch)
+    invalid_count_result = run_with_payload(invalid_count)
+    count_mismatch_result = run_with_payload(count_mismatch)
+    missing_ready_current_result = run_with_payload(missing_ready_current)
+    scalar_still_current_result = run_with_payload(scalar_still_current)
+    empty_after_all_result = run_with_payload(empty_after_all)
+    duplicate_after_all_result = run_with_payload(duplicate_after_all)
+    current_claim_overlap_result = run_with_payload(current_claim_overlap)
+    after_all_claim_overlap_result = run_with_payload(after_all_claim_overlap)
+    missing_blocked_claim_count_result = run_with_payload(missing_blocked_claim_count)
+    invalid_blocked_claim_count_result = run_with_payload(invalid_blocked_claim_count)
+    low_blocked_claim_count_result = run_with_payload(low_blocked_claim_count)
+
+    assert missing_names_result.returncode != 0
+    assert "env unblock queue shape missing current_env_present_names" in (
+        missing_names_result.stdout + missing_names_result.stderr
+    )
+    assert scalar_names_result.returncode != 0
+    assert "env unblock queue shape current_env_missing_names is not a list" in (
+        scalar_names_result.stdout + scalar_names_result.stderr
+    )
+    assert overlap_result.returncode != 0
+    assert "env unblock queue shape current env state overlap: TAMANDUA_TEST_PRELAUNCH_ENV_A" in (
+        overlap_result.stdout + overlap_result.stderr
+    )
+    assert mismatch_result.returncode != 0
+    assert "env unblock queue shape current env state mismatch:" in (
+        mismatch_result.stdout + mismatch_result.stderr
+    )
+    assert invalid_count_result.returncode != 0
+    assert "env unblock queue shape invalid current_env_missing_count: two" in (
+        invalid_count_result.stdout + invalid_count_result.stderr
+    )
+    assert count_mismatch_result.returncode != 0
+    assert "env unblock queue shape current_env_missing_count mismatch: count=1 names=2" in (
+        count_mismatch_result.stdout + count_mismatch_result.stderr
+    )
+    assert missing_ready_current_result.returncode != 0
+    assert "env unblock queue shape missing ready_with_current_env_claim_ids" in (
+        missing_ready_current_result.stdout + missing_ready_current_result.stderr
+    )
+    assert scalar_still_current_result.returncode != 0
+    assert "env unblock queue shape still_blocked_with_current_env_claim_ids is not a list" in (
+        scalar_still_current_result.stdout + scalar_still_current_result.stderr
+    )
+    assert empty_after_all_result.returncode != 0
+    assert "env unblock queue shape claim readiness ids contain empty value" in (
+        empty_after_all_result.stdout + empty_after_all_result.stderr
+    )
+    assert duplicate_after_all_result.returncode != 0
+    assert "env unblock queue shape duplicate claim readiness ids in ready_after_all_env_claim_ids: claim-env" in (
+        duplicate_after_all_result.stdout + duplicate_after_all_result.stderr
+    )
+    assert current_claim_overlap_result.returncode != 0
+    assert "env unblock queue shape current claim readiness overlap: claim-env" in (
+        current_claim_overlap_result.stdout + current_claim_overlap_result.stderr
+    )
+    assert after_all_claim_overlap_result.returncode != 0
+    assert "env unblock queue shape after-all claim readiness overlap: claim-env" in (
+        after_all_claim_overlap_result.stdout + after_all_claim_overlap_result.stderr
+    )
+    assert missing_blocked_claim_count_result.returncode != 0
+    assert "env unblock queue shape missing blocked_claim_count" in (
+        missing_blocked_claim_count_result.stdout + missing_blocked_claim_count_result.stderr
+    )
+    assert invalid_blocked_claim_count_result.returncode != 0
+    assert "env unblock queue shape invalid blocked_claim_count: one" in (
+        invalid_blocked_claim_count_result.stdout + invalid_blocked_claim_count_result.stderr
+    )
+    assert low_blocked_claim_count_result.returncode != 0
+    assert "env unblock queue shape blocked_claim_count below referenced claims: count=0 referenced=1" in (
+        low_blocked_claim_count_result.stdout + low_blocked_claim_count_result.stderr
+    )
 
 
 def test_preflight_ready_parallel_launcher_validate_only_does_not_require_launch_guard(tmp_path):
@@ -3415,6 +12698,52 @@ def test_preflight_ready_parallel_launcher_validate_only_does_not_require_launch
     assert "Ready claims validation passed. Ready claims: claim-ready" in result.stdout
 
 
+def test_preflight_ready_parallel_launcher_execute_requires_launch_guard_before_running_packages(tmp_path):
+    marker_path = tmp_path / "package-ran.txt"
+    package_path = tmp_path / "pkg-ready.ps1"
+    package_path.write_text(f"Set-Content -Path '{marker_path}' -Value 'ran'\n", encoding="utf-8")
+    claims_payload = {
+        "claims": [
+            {
+                "claim_id": "claim-ready",
+                "package_id": "pkg-ready",
+                "claim_state": "ready_to_claim",
+                "wave": 1,
+                "stage": 1,
+                "resource_tags": ["windows-lab"],
+                "script_path": str(package_path),
+                "current_next_action": {},
+            }
+        ]
+    }
+    launcher_path = tmp_path / "ready_claims_parallel_launcher.ps1"
+    launcher_path.write_text(preflight_work_package.render_ready_claims_parallel_launcher(claims_payload), encoding="utf-8")
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env.pop("TAMANDUA_ALLOW_READY_CLAIMS_LAUNCH", None)
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "Set TAMANDUA_ALLOW_READY_CLAIMS_LAUNCH=1 only after reviewing agent_claims.json." in (
+        result.stdout + result.stderr
+    )
+    assert not marker_path.exists()
+
+
 def test_preflight_ready_launcher_validate_only_does_not_require_launch_guard(tmp_path):
     claims_payload = {
         "claims": [
@@ -3452,6 +12781,141 @@ def test_preflight_ready_launcher_validate_only_does_not_require_launch_guard(tm
 
     assert result.returncode == 0
     assert "Ready claims validation passed. Ready claims: claim-ready" in result.stdout
+
+
+def test_preflight_ready_launcher_execute_requires_launch_guard_before_running_packages(tmp_path):
+    marker_path = tmp_path / "package-ran.txt"
+    package_path = tmp_path / "pkg-ready.ps1"
+    package_path.write_text(f"Set-Content -Path '{marker_path}' -Value 'ran'\n", encoding="utf-8")
+    claims_payload = {
+        "claims": [
+            {
+                "claim_id": "claim-ready",
+                "package_id": "pkg-ready",
+                "claim_state": "ready_to_claim",
+                "wave": 1,
+                "stage": 1,
+                "script_path": str(package_path),
+            }
+        ]
+    }
+    launcher_path = tmp_path / "ready_claims_launcher.ps1"
+    launcher_path.write_text(preflight_work_package.render_ready_claims_launcher(claims_payload), encoding="utf-8")
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env.pop("TAMANDUA_ALLOW_READY_CLAIMS_LAUNCH", None)
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "Set TAMANDUA_ALLOW_READY_CLAIMS_LAUNCH=1 only after reviewing agent_claims.json." in (
+        result.stdout + result.stderr
+    )
+    assert not marker_path.exists()
+
+
+def test_preflight_ready_launcher_rejects_invalid_agent_id_before_running_packages(tmp_path):
+    marker_path = tmp_path / "package-ran.txt"
+    package_path = tmp_path / "pkg-ready.ps1"
+    package_path.write_text(f"Set-Content -Path '{marker_path}' -Value 'ran'\n", encoding="utf-8")
+    claims_payload = {
+        "claims": [
+            {
+                "claim_id": "claim-ready",
+                "package_id": "pkg-ready",
+                "claim_state": "ready_to_claim",
+                "wave": 1,
+                "stage": 1,
+                "script_path": str(package_path),
+            }
+        ]
+    }
+    launcher_path = tmp_path / "ready_claims_launcher.ps1"
+    launcher_path.write_text(preflight_work_package.render_ready_claims_launcher(claims_payload), encoding="utf-8")
+    (tmp_path / "claim_lock_helper.ps1").write_text("# placeholder; should not be reached\n", encoding="utf-8")
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env["TAMANDUA_ALLOW_READY_CLAIMS_LAUNCH"] = "1"
+    env["TAMANDUA_READY_CLAIMS_AGENT_ID"] = "agent with spaces"
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "AgentId may only contain letters" in (result.stdout + result.stderr)
+    assert not marker_path.exists()
+
+
+def test_preflight_dispatch_one_shot_runner_execute_requires_launch_guard_before_running_packages(tmp_path):
+    marker_path = tmp_path / "package-ran.txt"
+    package_path = tmp_path / "wave-1-ready.ps1"
+    package_path.write_text(f"Set-Content -Path '{marker_path}' -Value 'ran'\n", encoding="utf-8")
+    runner_path = tmp_path / "dispatch_one_shot_runner.ps1"
+    packages = [
+        {
+            "package_id": "wave-1-ready",
+            "wave": 1,
+            "expected_profile_ids": ["profile-ready"],
+            "output_dir": str(tmp_path / "wave-1-ready" / "outputs"),
+        }
+    ]
+    runner_path.write_text(
+        preflight_work_package.render_dispatch_runner(
+            packages,
+            {"wave-1-ready": package_path},
+            manifest_path=tmp_path / "dispatch_manifest.json",
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env.pop("TAMANDUA_ALLOW_ONE_SHOT_DISPATCH", None)
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(runner_path),
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    assert result.returncode != 0
+    assert "Set TAMANDUA_ALLOW_ONE_SHOT_DISPATCH=1 only after reviewing dispatch_brief.md and env_checklist.md." in (
+        result.stdout + result.stderr
+    )
+    assert not marker_path.exists()
 
 
 def test_preflight_claim_status_report_includes_claim_locks(tmp_path):
@@ -3726,11 +13190,6 @@ def test_status_consistency_validates_dispatch_launcher_membership(tmp_path):
         staged_launcher_path.write_text(good_staged_launcher + "# Package: selected resources=windows-lab\n", encoding="utf-8")
         assert not consistency.dispatch_archived_staged_launcher_stage_membership_matches_manifest(artifact)
         staged_launcher_path.write_text(good_staged_launcher, encoding="utf-8")
-        launcher_path.write_text(good_launcher.replace("resources=windows-lab", "resources=macos-agent"), encoding="utf-8")
-        assert not consistency.dispatch_archived_launcher_selected_metadata_matches_manifest(artifact)
-        launcher_path.write_text(good_launcher.replace("Start-Job -Name 'selected'", "Start-Job -Name 'other'"), encoding="utf-8")
-        assert not consistency.dispatch_archived_launcher_selected_metadata_matches_manifest(artifact)
-        launcher_path.write_text(good_launcher, encoding="utf-8")
         launcher_path.write_text(f"powershell.exe -File '{selected_script}'\n", encoding="utf-8")
         assert not consistency.dispatch_archived_launcher_manual_reasons_match_manifest(artifact)
         launcher_path.write_text(
@@ -3877,6 +13336,12 @@ def test_status_consistency_validates_closure_next_actions():
                 "action": "Run fresh restore batches.",
             },
             {
+                "roadmap": "C",
+                "blocking_profiles": ["windows-atomic-upstream-smoke"],
+                "required_env": [],
+                "action": "Install Invoke-AtomicTest and rerun with --require-upstream.",
+            },
+            {
                 "roadmap": "D",
                 "blocking_profiles": ["caldera-api-shape-probe"],
                 "required_env": consistency.EXPECTED_CLOSURE_NEXT_ACTION_REQUIRED_ENVS["D"],
@@ -3904,7 +13369,7 @@ def test_status_consistency_validates_closure_next_actions():
         "required_env": ["CALDERA_AGENT_PAW", "CALDERA_API_KEY", "CALDERA_GROUP"],
         "has_action": True,
     }
-    assert consistency.closure_next_actions_valid(artifact)
+    assert consistency.closure_next_actions_valid(artifact, ["A", "B", "C", "D", "E", "M"])
 
 
 def test_status_consistency_rejects_closure_next_actions_missing_required_env():
@@ -3916,11 +13381,11 @@ def test_status_consistency_rejects_closure_next_actions_missing_required_env():
                 "required_env": [],
                 "action": f"Close roadmap {roadmap}.",
             }
-            for roadmap in consistency.EXPECTED_CLOSURE_NEXT_ACTION_ROADMAPS
+            for roadmap in ["A", "B", "C", "D", "E", "M"]
         ]
     }
 
-    assert not consistency.closure_next_actions_valid(artifact)
+    assert not consistency.closure_next_actions_valid(artifact, ["A", "B", "C", "D", "E", "M"])
 
 
 def test_status_consistency_validates_preflight_roadmap_next_actions():
@@ -3937,6 +13402,12 @@ def test_status_consistency_validates_preflight_roadmap_next_actions():
                 "blocking_profiles": ["fresh-restore-provenance-probe"],
                 "required_env": consistency.EXPECTED_CLOSURE_NEXT_ACTION_REQUIRED_ENVS["B"],
                 "action": "Run fresh restore batches.",
+            },
+            {
+                "roadmap": "C",
+                "blocking_profiles": ["windows-atomic-upstream-smoke"],
+                "required_env": [],
+                "action": "Install Invoke-AtomicTest and rerun with --require-upstream.",
             },
             {
                 "roadmap": "D",
@@ -3959,7 +13430,7 @@ def test_status_consistency_validates_preflight_roadmap_next_actions():
         ]
     }
 
-    assert consistency.preflight_roadmap_next_actions_valid(artifact)
+    assert consistency.preflight_roadmap_next_actions_valid(artifact, ["A", "B", "C", "D", "E", "M"])
 
 
 def test_status_consistency_extracts_caldera_repeatability_next_actions():
@@ -3989,6 +13460,21 @@ def test_status_consistency_extracts_caldera_repeatability_next_actions():
             "required_env": ["CALDERA_API_KEY", "CALDERA_GROUP", "CALDERA_AGENT_PAW"],
         }
     }
+
+
+def test_status_consistency_proxy_safe_source_helpers_detect_raw_urlopen():
+    assert consistency.raw_urlopen_call_count("urllib.request.urlopen(request)") == 1
+    assert not consistency.proxy_safe_urllib_source("urllib.request.urlopen(request)")
+    assert consistency.proxy_safe_urllib_source(
+        "opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))"
+    )
+
+
+def test_status_consistency_proxy_safe_requests_helper_requires_trust_env_false():
+    assert not consistency.proxy_safe_requests_source("session = requests.Session()")
+    assert consistency.proxy_safe_requests_source(
+        "session = requests.Session()\nsession.trust_env = False\n"
+    )
 
 
 def test_status_consistency_extracts_macos_backend_best_candidate_action():
@@ -4150,11 +13636,172 @@ def test_status_consistency_formats_scorecard_coverage_string():
     assert consistency.scorecard_coverage_string({"covered": 4}) == ""
 
 
+def test_status_consistency_formats_scorecard_artifact_marker():
+    scorecard = {"source": {"artifact_count": 2088, "profile_count": 149}}
+
+    assert consistency.scorecard_artifact_marker(scorecard) == "`2088` artifacts across `149` profiles"
+
+
+def test_status_consistency_validates_current_scorecard_wording():
+    assert consistency.engine_maturity_uses_current_scorecard_wording(
+        "based on the current generated scorecard, which reads `2088` artifacts"
+    )
+    assert not consistency.engine_maturity_uses_current_scorecard_wording(
+        "based on the generated scorecard from `2026-06-12T09:44:26Z`, which read `2088` artifacts"
+    )
+
+
+def test_status_consistency_accepts_product_readiness_gitignore_tracking_boundary():
+    gitignore_text = "\n".join(
+        [
+            "docs/benchmarks/runs/*",
+            "docs/benchmarks/generated/*",
+            *[
+                f"!{path}"
+                for path in consistency.PRODUCT_READINESS_TRACKED_GENERATED_PATHS
+            ],
+        ]
+    )
+
+    assert consistency.product_readiness_gitignore_preserves_generated_artifact_tracking_boundary(
+        gitignore_text
+    )
+    assert not consistency.product_readiness_gitignore_preserves_generated_artifact_tracking_boundary(
+        gitignore_text.replace(
+            "!docs/benchmarks/generated/validation_product_readiness_ready_now_fanout_check.ps1\n",
+            "",
+        )
+    )
+    assert not consistency.product_readiness_gitignore_preserves_generated_artifact_tracking_boundary(
+        gitignore_text
+        + "\n!docs/benchmarks/generated/validation_product_readiness_env_bundle.local.env\n"
+    )
+
+
+def test_status_consistency_rejects_obsolete_consistency_fail_reference():
+    assert consistency.active_status_doc_avoids_obsolete_consistency_fail(
+        "latest consistency pass superseding consistency fail `20260612T092200Z-validation-status-consistency-probe`"
+    )
+    assert not consistency.active_status_doc_avoids_obsolete_consistency_fail(
+        "latest consistency pass superseding consistency fail `20260612T092100Z-validation-status-consistency-probe`"
+    )
+
+
+def test_status_consistency_rejects_stale_dispatch_scorecard_coverage():
+    assert consistency.active_status_doc_avoids_stale_dispatch_scorecard_coverage(
+        "coordination-only boundary, dispatch `0/8` package coverage"
+    )
+    assert not consistency.active_status_doc_avoids_stale_dispatch_scorecard_coverage(
+        "coordination-only boundary, scorecard `1/8` coverage"
+    )
+
+
+def test_status_consistency_generated_markdown_summary_matches_payload():
+    payload = {
+        "summary": {"passed": 2, "failed": 1, "total_checks": 3},
+        "generated_at": "2026-06-12T00:00:00Z",
+        "git": {"commit_short": "abc123", "dirty": False},
+        "latest": {},
+        "claim_boundary": "local audit",
+        "checks": [],
+    }
+    markdown = consistency.render_markdown(payload)
+
+    assert consistency.markdown_summary_matches_payload(markdown, payload)
+    assert not consistency.markdown_summary_matches_payload(markdown.replace("2/3", "3/3"), payload)
+
+
+def test_status_consistency_summary_matches_checks():
+    payload = {
+        "summary": {"passed": 2, "failed": 1, "total_checks": 3},
+        "checks": [
+            {"status": "PASS"},
+            {"status": "FAIL"},
+            {"status": "PASS"},
+        ],
+    }
+
+    assert consistency.consistency_summary_matches_checks(payload)
+
+    payload["summary"]["passed"] = 3
+    assert not consistency.consistency_summary_matches_checks(payload)
+
+    payload = {"summary": {"passed": 0, "failed": 0, "total_checks": 1}, "checks": [{"status": "SKIP"}]}
+    assert not consistency.consistency_summary_matches_checks(payload)
+
+    payload = {"summary": {"passed": 0, "failed": 0, "total_checks": 1}, "checks": ["PASS"]}
+    assert not consistency.consistency_summary_matches_checks(payload)
+
+
+def test_status_consistency_run_markdown_summary_matches_report():
+    report = {
+        "run_id": "20260612T000000Z-validation-status-consistency-probe",
+        "quality_gate": {"status": "pass"},
+        "summary": {"covered": 2, "tests": 3},
+        "latest": {},
+        "claim_boundary": "local audit",
+        "checks": [],
+    }
+    markdown = consistency.render_run_markdown(report)
+
+    assert consistency.run_markdown_summary_matches_report(markdown, report)
+    assert not consistency.run_markdown_summary_matches_report(markdown.replace("`2/3`", "`3/3`"), report)
+
+
+def test_status_consistency_comparison_matches_report():
+    report = {
+        "run_id": "20260612T000000Z-validation-status-consistency-probe",
+        "quality_gate": {"passed": True, "status": "pass", "failures": []},
+        "summary": {
+            "tests": 2,
+            "total": 2,
+            "covered": 2,
+            "missed": 0,
+            "partial": 0,
+            "execution_failed": 0,
+            "category_coverage": {
+                "validation_status_consistency": {"covered": 2, "missed": 0}
+            },
+        },
+    }
+    comparison_payload = consistency.comparison(report["run_id"], report)
+
+    assert consistency.comparison_matches_report(comparison_payload, report)
+
+    comparison_payload["summary"]["covered"] = 1
+    assert not consistency.comparison_matches_report(comparison_payload, report)
+
+
 def test_status_consistency_extracts_roadmap_note():
     payload = {"roadmaps": [{"key": "B", "note": "fresh_restore=true required"}]}
 
     assert consistency.roadmap_note(payload, "B") == "fresh_restore=true required"
     assert consistency.roadmap_note(payload, "A") == ""
+
+
+def test_status_consistency_requires_actionable_notes_for_open_roadmaps():
+    assert consistency.scorecard_open_roadmaps_have_actionable_notes(
+        {"roadmaps": [{"key": "C", "status": "partial", "note": "Closure requires Invoke-AtomicTest."}]}
+    )
+    assert not consistency.scorecard_open_roadmaps_have_actionable_notes(
+        {"roadmaps": [{"key": "C", "status": "partial", "note": ""}]}
+    )
+    assert not consistency.scorecard_open_roadmaps_have_actionable_notes(
+        {"roadmaps": [{"key": "C", "status": "partial", "note": "Helpful context only."}]}
+    )
+
+
+def test_status_consistency_requires_dry_run_markdown_to_show_not_executed():
+    payload = {"profiles": [{"profile_id": "dry-profile", "status": "dry-run"}]}
+
+    assert consistency.scorecard_markdown_renders_dry_runs_as_not_executed(
+        payload,
+        "| `dry-profile` | `dryrun-id` | `not-executed` | `not-executed` | `0` | `0/4` |\n",
+    )
+    assert not consistency.scorecard_markdown_renders_dry_runs_as_not_executed(
+        payload,
+        "| `dry-profile` | `dryrun-id` | `pass` | `complete` | `0` | `0/4` |\n",
+    )
 
 
 def test_status_consistency_finds_needles_on_same_line():
@@ -4197,6 +13844,110 @@ def test_status_consistency_extracts_open_roadmaps_and_blocked_run_classes():
         "macos-server-backed-smoke": [],
         "windows-broad": ["TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID"],
     }
+
+
+def test_status_consistency_scorecard_open_roadmaps_only_excludes_roadmap_o_generated():
+    scorecard = {
+        "roadmaps": [
+            {"key": "A", "status": "partial"},
+            {"key": "O", "status": "generated"},
+            {"key": "Q", "status": "generated"},
+            {"key": "Z", "status": "pass"},
+        ]
+    }
+
+    assert consistency.scorecard_open_roadmaps(scorecard) == ["A", "Q"]
+
+
+def test_status_consistency_validates_closure_excluded_roadmaps_against_scorecard():
+    scorecard = {
+        "roadmaps": [
+            {"key": "O", "title": "Evidence Index and Scorecard Automation", "status": "generated"},
+            {"key": "Q", "title": "Detection Content Governance", "status": "generated"},
+        ]
+    }
+    closure_artifact = {
+        "excluded_roadmaps": [
+            {
+                "roadmap": "O",
+                "title": "Evidence Index and Scorecard Automation",
+                "status": "generated",
+                "reason": "generated_scorecard_automation_not_product_gate",
+            }
+        ]
+    }
+
+    assert consistency.closure_excluded_roadmaps_valid(closure_artifact, scorecard)
+
+    wrong_reason = {
+        "excluded_roadmaps": [
+            dict(closure_artifact["excluded_roadmaps"][0], reason="generated_status")
+        ]
+    }
+    assert not consistency.closure_excluded_roadmaps_valid(wrong_reason, scorecard)
+
+    unexpected_exclusion = {
+        "excluded_roadmaps": [
+            *closure_artifact["excluded_roadmaps"],
+            {
+                "roadmap": "Q",
+                "title": "Detection Content Governance",
+                "status": "generated",
+                "reason": "generated_scorecard_automation_not_product_gate",
+            },
+        ]
+    }
+    assert not consistency.closure_excluded_roadmaps_valid(unexpected_exclusion, scorecard)
+
+
+def test_status_consistency_validates_closure_excluded_roadmaps_markdown():
+    closure_artifact = {
+        "excluded_roadmaps": [
+            {
+                "roadmap": "O",
+                "status": "generated",
+                "reason": "generated_scorecard_automation_not_product_gate",
+            }
+        ]
+    }
+    markdown = (
+        "## Excluded Roadmaps\n\n"
+        "| Roadmap | Status | Reason |\n"
+        "|---------|--------|--------|\n"
+        "| `O` | `generated` | generated_scorecard_automation_not_product_gate |\n"
+    )
+
+    assert consistency.closure_excluded_roadmaps_markdown_valid(closure_artifact, markdown)
+    assert not consistency.closure_excluded_roadmaps_markdown_valid(closure_artifact, "")
+    assert not consistency.closure_excluded_roadmaps_markdown_valid(
+        closure_artifact,
+        markdown.replace("generated_scorecard_automation_not_product_gate", "generated_status"),
+    )
+    assert consistency.closure_excluded_roadmaps_markdown_valid({"excluded_roadmaps": []}, "")
+
+
+def test_status_consistency_validates_preflight_preserves_closure_excluded_roadmaps():
+    excluded = [
+        {
+            "roadmap": "O",
+            "title": "Evidence Index and Scorecard Automation",
+            "status": "generated",
+            "reason": "generated_scorecard_automation_not_product_gate",
+        }
+    ]
+
+    assert consistency.preflight_preserves_closure_excluded_roadmaps(
+        {"excluded_roadmaps": excluded},
+        {"excluded_roadmaps": excluded},
+    )
+    assert not consistency.preflight_preserves_closure_excluded_roadmaps(
+        {"excluded_roadmaps": []},
+        {"excluded_roadmaps": excluded},
+    )
+    assert not consistency.preflight_preserves_closure_excluded_roadmaps(
+        {},
+        {"excluded_roadmaps": excluded},
+    )
 
 
 def test_status_consistency_extracts_unblock_sequence_ids_and_priorities():
@@ -4407,12 +14158,43 @@ def test_preflight_collects_closure_roadmap_next_actions():
     ]
 
 
+def test_preflight_collects_closure_excluded_roadmaps():
+    closure_gate = {
+        "excluded_roadmaps": [
+            {
+                "roadmap": "O",
+                "title": "Evidence Index and Scorecard Automation",
+                "status": "generated",
+                "reason": "generated_scorecard_automation_not_product_gate",
+            },
+            {"roadmap": "", "status": "generated", "reason": "ignored"},
+        ]
+    }
+
+    assert preflight.collect_excluded_roadmaps(closure_gate) == [
+        {
+            "roadmap": "O",
+            "title": "Evidence Index and Scorecard Automation",
+            "status": "generated",
+            "reason": "generated_scorecard_automation_not_product_gate",
+        }
+    ]
+
+
 def test_preflight_markdown_renders_roadmap_next_actions(tmp_path):
     report = {
         "run_id": "20260604T000000Z-validation-execution-preflight-probe",
         "quality_gate": {"status": "fail"},
         "closure_gate_run_id": "20260604T000000Z-roadmap-closure-gate-probe",
         "claim_boundary": "Local read-only scheduling preflight only.",
+        "excluded_roadmaps": [
+            {
+                "roadmap": "O",
+                "title": "Evidence Index and Scorecard Automation",
+                "status": "generated",
+                "reason": "generated_scorecard_automation_not_product_gate",
+            }
+        ],
         "roadmap_next_actions": [
             {
                 "roadmap": "D",
@@ -4499,6 +14281,8 @@ def test_preflight_markdown_renders_roadmap_next_actions(tmp_path):
     assert "## Roadmap Next Actions" in markdown
     assert "caldera-api-shape-probe" in markdown
     assert "Provide CALDERA_API_KEY" in markdown
+    assert "## Excluded Roadmaps" in markdown
+    assert "generated_scorecard_automation_not_product_gate" in markdown
 
 
 def test_preflight_blocks_windows_transport_run_classes_for_readiness_gap():
@@ -4795,6 +14579,154 @@ def test_preflight_work_package_renders_safe_command_script(tmp_path):
     assert "expected_profiles = @($ExpectedProfiles)" in script_text
     assert "windows_lab_execution_readiness_probe.py --output-dir" in script_text
     assert "exit $LASTEXITCODE" in script_text
+
+
+def test_preflight_package_script_blocks_missing_env_before_claim_lock_helper_or_commands(tmp_path):
+    preflight_path = tmp_path / "20260603T110000Z-validation-execution-preflight-probe.json"
+    output_dir = tmp_path / "wave-1-env" / "outputs"
+    package = {
+        "package_id": "wave-1-env",
+        "title": "Env blocked package",
+        "wave": 1,
+        "recommended_owner_role": "operator-or-secret-holder",
+        "required_env": ["TAMANDUA_TEST_PACKAGE_REQUIRED_ENV"],
+        "expected_profile_ids": ["env-profile"],
+        "safe_commands": [
+            "python tools/detection_validation/caldera_api_shape_probe.py --output-dir $Out",
+        ],
+    }
+    script_path = tmp_path / "wave-1-env.ps1"
+    script_path.write_text(
+        preflight_work_package.render_package_script(package, preflight_path, package_output_dir=output_dir),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env.pop("TAMANDUA_TEST_PACKAGE_REQUIRED_ENV", None)
+    env.pop("TAMANDUA_CLAIM_LOCK_ACQUIRED", None)
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script_path),
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    status = json.loads((tmp_path / "wave-1-env" / "agent_status.json").read_text(encoding="utf-8-sig"))
+    output = result.stdout + result.stderr
+    assert result.returncode == 2
+    assert "Missing effective env for package: TAMANDUA_TEST_PACKAGE_REQUIRED_ENV" in output
+    assert "Missing claim lock helper for direct package execution" not in output
+    assert status["status"] == "blocked"
+    assert status["exit_code"] == 2
+    assert status["notes"] == ["missing_effective_env: TAMANDUA_TEST_PACKAGE_REQUIRED_ENV"]
+    assert status["missing_profiles"] == ["env-profile"]
+    assert list(output_dir.glob("*.json")) == []
+
+
+def test_refresh_dispatch_handoff_artifacts_rewrites_package_scripts(tmp_path):
+    run_id = "20260603T182929Z-validation-dispatch-results-probe"
+    archive_root = tmp_path / "docs" / "benchmarks" / "runs" / f"{run_id}.package-artifacts"
+    handoff_dir = archive_root / "handoffs" / "wave-1-env"
+    package_dir = archive_root / "packages" / "wave-1-env"
+    handoff_dir.mkdir(parents=True)
+    script_path = handoff_dir / "wave-1-env.ps1"
+    prompt_path = handoff_dir / "wave-1-env.agent.md"
+    preflight_path = tmp_path / "docs" / "benchmarks" / "runs" / f"{run_id.replace('dispatch-results', 'execution-preflight')}.json"
+    preflight_path.parent.mkdir(parents=True, exist_ok=True)
+    preflight_path.write_text(
+        json.dumps(
+            {
+                "profile_id": "validation-execution-preflight-probe",
+                "claim_boundary": "Local read-only scheduling preflight only.",
+                "parallel_work_packages": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    script_path.write_text(
+        "Write-Error 'Missing claim lock helper for direct package execution.'\n"
+        "Write-Host 'Missing effective env for package: CALDERA_API_KEY'\n",
+        encoding="utf-8",
+    )
+    manifest_path = archive_root / "dispatch_manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "source_preflight": str(preflight_path),
+                "output_dir": str(archive_root),
+                "packages": [
+                    {
+                        "package_id": "wave-1-env",
+                        "title": "Env package",
+                        "wave": 1,
+                        "recommended_owner_role": "operator-or-secret-holder",
+                        "script_path": str(script_path),
+                        "prompt_path": str(prompt_path),
+                        "output_dir": str(package_dir),
+                        "effective_required_env": ["CALDERA_API_KEY"],
+                        "required_env": ["CALDERA_API_KEY"],
+                        "expected_profile_ids": ["caldera-api-shape-probe"],
+                        "safe_commands": [
+                            "python tools/detection_validation/caldera_api_shape_probe.py --output-dir $Out",
+                        ],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    refreshed = preflight_work_package.refresh_dispatch_handoff_artifacts_from_manifest(manifest_path)
+
+    script_text = script_path.read_text(encoding="utf-8")
+    missing_env_index = script_text.index("Missing effective env for package")
+    lock_index = script_text.index("Missing claim lock helper for direct package execution")
+    assert missing_env_index < lock_index
+    assert "$RequiredEnv = @('CALDERA_API_KEY')" in script_text
+    assert preflight_work_package.stable_path(script_path) in refreshed["package_scripts"]
+    assert prompt_path.exists()
+
+
+def test_refresh_dispatch_handoff_artifacts_keeps_repo_paths_self_contained(tmp_path):
+    manifest_path = Path(
+        "docs/benchmarks/runs/20260611T185805Z-validation-dispatch-results-probe.package-artifacts/dispatch_manifest.json"
+    )
+    manifest = preflight_work_package.load_json(manifest_path)
+    package = next(
+        item
+        for item in manifest["packages"]
+        if item["package_id"] == "wave-1-provide-required-preflight-env"
+    )
+    script_path = Path(package["script_path"])
+    original_text = script_path.read_text(encoding="utf-8")
+    try:
+        script_path.write_text(original_text.replace("SourcePreflight:", "SourcePreflight: stale "), encoding="utf-8")
+
+        preflight_work_package.refresh_dispatch_handoff_artifacts_from_manifest(manifest_path)
+
+        script_text = script_path.read_text(encoding="utf-8")
+        assert (
+            "SourcePreflight: docs/benchmarks/runs/20260611T185701Z-validation-execution-preflight-probe.json"
+            in script_text
+        )
+        normalized_script_text = script_text.replace("\\", "/")
+        assert (
+            "$Out = 'docs/benchmarks/runs/20260611T185805Z-validation-dispatch-results-probe.package-artifacts/"
+            "packages/wave-1-provide-required-preflight-env'"
+        ) in normalized_script_text
+        assert "D:/treant/tamandua" not in script_text
+        assert "D:\\treant\\tamandua" not in script_text
+    finally:
+        script_path.write_text(original_text, encoding="utf-8")
 
 
 def test_preflight_work_package_prompt_and_manifest_include_roadmap_next_actions(tmp_path):
@@ -5152,8 +15084,9 @@ def test_preflight_work_package_main_writes_wave_prompts_and_launcher(tmp_path):
     prompt_text = (output_dir / "wave-1-beta.agent.md").read_text(encoding="utf-8")
     roster_text = (output_dir / "agent_roster.md").read_text(encoding="utf-8")
     checklist_text = (output_dir / "env_checklist.md").read_text(encoding="utf-8")
-    launcher_text = (output_dir / "wave-1-parallel-launcher.ps1").read_text(encoding="utf-8")
-    assert "Required env: CALDERA_API_KEY" in prompt_text
+    assert not (output_dir / "wave-1-parallel-launcher.ps1").exists()
+    assert "Required env: CALDERA_API_KEY, CALDERA_AGENT_PAW, CALDERA_GROUP" in prompt_text
+    assert "Declared package env: CALDERA_API_KEY, CALDERA_AGENT_PAW" in prompt_text
     assert "Resource tags: caldera" in prompt_text
     assert "docs/benchmarks/CALDERA_PAW_RECOVERY_RUNBOOK.md" in prompt_text
     assert "Manual prerequisites:" in prompt_text
@@ -5171,17 +15104,55 @@ def test_preflight_work_package_main_writes_wave_prompts_and_launcher(tmp_path):
     assert "`CALDERA_API_KEY` | `no` | `secret`" in checklist_text
     assert "`CALDERA_GROUP` | `no` | `claim-metadata` | `next-action` | `--caldera-group` | set to tamandua-lab" in checklist_text
     assert "`wave-1-alpha`" not in checklist_text
-    assert "Start-Job" in launcher_text
-    assert "TAMANDUA_WAVE_LAUNCHER_AGENT_ID" in launcher_text
-    assert "$env:TAMANDUA_AGENT_CLAIM_ID = $ClaimId" in launcher_text
-    assert "$env:TAMANDUA_AGENT_ID = $AgentId" in launcher_text
-    assert "claim-wave-1-alpha" in launcher_text
-    assert "claim-wave-1-beta" in launcher_text
-    assert "if ($LASTEXITCODE -ne $null -and $LASTEXITCODE -ne 0) { exit $LASTEXITCODE }" in launcher_text
-    assert "wave-1-alpha.ps1" in launcher_text
-    assert "wave-1-beta.ps1" in launcher_text
-    assert "resources=windows-lab" in launcher_text
-    assert "resources=caldera" in launcher_text
+
+
+def test_preflight_env_checklist_describes_token_env_from_current_next_action():
+    packages = [
+        {
+            "package_id": "wave-1-macos",
+            "wave": 1,
+            "recommended_owner_role": "validation-agent",
+            "current_next_action": {
+                "token_env": "TAMANDUA_TOKEN",
+                "target_server": "http://192.168.12.146:4000",
+                "token_login_command": (
+                    "tamandua-ctl remote login --server http://192.168.12.146:4000 "
+                    "--token $env:TAMANDUA_TOKEN"
+                ),
+            },
+        }
+    ]
+
+    checklist_text = preflight_work_package.render_env_checklist(packages, environ={})
+    template_text = preflight_work_package.render_env_template(packages)
+
+    assert (
+        "`TAMANDUA_TOKEN` | `no` | `secret` | `next-action` | `-` | "
+        "Tamandua API token used for non-interactive tamandua-ctl remote login "
+        "for http://192.168.12.146:4000"
+    ) in checklist_text
+    assert (
+        "# Flag: -; Description: Tamandua API token used for non-interactive tamandua-ctl "
+        "remote login for http://192.168.12.146:4000"
+    ) in template_text
+
+
+def test_preflight_next_action_summary_keeps_action_with_token_login():
+    summary = preflight_work_package.render_current_next_action_summary(
+        {
+            "missing_readiness": ["tamandua_ctl_auth"],
+            "login_command": "tamandua-ctl remote login --server http://192.168.12.146:4000 --no-browser",
+            "token_login_command": (
+                "tamandua-ctl remote login --server http://192.168.12.146:4000 "
+                "--token $env:TAMANDUA_TOKEN"
+            ),
+            "action": "Refresh tamandua-ctl authentication for the target server, then rerun the readiness probe.",
+        }
+    )
+
+    assert "missing=tamandua_ctl_auth" in summary
+    assert "token_login_command=tamandua-ctl remote login" in summary
+    assert "action=Refresh tamandua-ctl authentication" in summary
 
 
 def test_preflight_work_package_execute_requires_explicit_artifact_and_env(tmp_path, monkeypatch):
@@ -5408,19 +15379,103 @@ def test_preflight_work_package_dependent_wave_launcher_requires_explicit_ack(tm
     }
 
     launcher_paths = preflight_work_package.write_wave_launchers(packages, script_paths, tmp_path)
-    launcher_text = launcher_paths[0].read_text(encoding="utf-8")
+    staged_paths = preflight_work_package.write_staged_wave_launchers(packages, script_paths, tmp_path)
 
-    assert "# DependsOnWaves: 1" in launcher_text
-    assert "TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH" in launcher_text
-    assert "Wave 2 depends on completed waves: 1" in launcher_text
-    assert "dispatch_manifest.json" in launcher_text
-    assert "Dependent wave evidence missing" in launcher_text
-    assert "missing_json_output" in launcher_text
-    assert "expected_profile_ids" in launcher_text
-    assert "quality_gate_not_passed" in launcher_text
-    assert "staged_launcher_selected" in launcher_text
-    assert "Split-Path -Parent $LauncherDir" in launcher_text
-    assert "exit 2" in launcher_text
+    assert launcher_paths == []
+    assert staged_paths == []
+
+
+def test_preflight_dependent_wave_launcher_execute_requires_ack_before_lock_helper_or_packages(tmp_path):
+    marker_path = tmp_path / "package-ran.txt"
+    package_path = tmp_path / "wave-2-ready.ps1"
+    package_path.write_text(f"Set-Content -Path '{marker_path}' -Value 'ran'\n", encoding="utf-8")
+    launcher_path = tmp_path / "wave-2-parallel-launcher.ps1"
+    package = {
+        "package_id": "wave-2-ready",
+        "wave": 2,
+        "parallelizable_in_wave": True,
+        "depends_on_waves": [1],
+        "blocking_profiles": ["profile-ready"],
+    }
+    launcher_path.write_text(
+        preflight_work_package.render_wave_launcher(
+            2,
+            [(package, package_path)],
+            [],
+            depends_on_waves=[1],
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env.pop("TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH", None)
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Wave 2 depends on completed waves: 1. Set TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH=1" in output
+    assert "Missing claim lock helper" not in output
+    assert not marker_path.exists()
+
+
+def test_preflight_dependent_staged_launcher_execute_requires_ack_before_lock_helper_or_packages(tmp_path):
+    marker_path = tmp_path / "package-ran.txt"
+    package_path = tmp_path / "wave-2-ready.ps1"
+    package_path.write_text(f"Set-Content -Path '{marker_path}' -Value 'ran'\n", encoding="utf-8")
+    launcher_path = tmp_path / "wave-2-staged-launcher.ps1"
+    package = {
+        "package_id": "wave-2-ready",
+        "wave": 2,
+        "parallelizable_in_wave": True,
+        "depends_on_waves": [1],
+        "blocking_profiles": ["profile-ready"],
+    }
+    launcher_path.write_text(
+        preflight_work_package.render_staged_wave_launcher(
+            2,
+            [[(package, package_path)]],
+            depends_on_waves=[1],
+        ),
+        encoding="utf-8",
+    )
+    repo_root = Path(__file__).resolve().parents[2]
+    env = os.environ.copy()
+    env.pop("TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH", None)
+
+    result = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(launcher_path),
+        ],
+        cwd=repo_root,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+
+    output = result.stdout + result.stderr
+    assert result.returncode != 0
+    assert "Wave 2 depends on completed waves: 1. Set TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH=1" in output
+    assert "Missing claim lock helper" not in output
+    assert not marker_path.exists()
 
 
 def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
@@ -5437,6 +15492,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
         '{"package_id":"wave-1-windows-low","wave":1,"parallelizable_in_wave":true,'
         '"recommended_owner_role":"validation-agent","title":"Windows low",'
         '"blocking_profiles":["windows-c"],'
+        '"action":"Use a WMI-capable disposable target, then rerun Atomic extended.",'
         '"safe_commands":["python tools/detection_validation/atomic_t1047_lab_capability_probe.py --output-dir $Out"]},'
         '{"package_id":"wave-1-caldera","wave":1,"parallelizable_in_wave":true,'
         '"recommended_owner_role":"operator-or-secret-holder","title":"Caldera",'
@@ -5445,6 +15501,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
         '"operator_inputs":[{"name":"caldera_agent_paw","env":"CALDERA_AGENT_PAW",'
         '"flag":"--caldera-agent-paw","description":"fresh target PAW"}],'
         '"manual_prerequisites":["Use a disposable lab VM."],'
+        '"roadmap_next_actions":[{"action":"Refresh CALDERA API and PAW readiness before repeatability."}],'
         '"safe_commands":["python tools/detection_validation/caldera_api_shape_probe.py --output-dir $Out"]}'
         "]}",
         encoding="utf-8",
@@ -5483,7 +15540,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
         "wave-1-windows-high",
         "wave-1-windows-low",
     ]
-    assert manifest["launcher_paths"]
+    assert manifest["launcher_paths"] == []
     assert manifest["staged_launcher_paths"]
     assert manifest["agent_roster_path"].endswith("agent_roster.md")
     assert manifest["env_checklist_path"].endswith("env_checklist.md")
@@ -5508,6 +15565,13 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert manifest["dispatch_prelaunch_validation_path"].endswith("dispatch_prelaunch_validation.ps1")
     assert manifest["dispatch_brief_path"].endswith("dispatch_brief.md")
     assert manifest["dispatch_runner_path"].endswith("dispatch_one_shot_runner.ps1")
+    assert by_id["wave-1-windows-low"]["current_next_action"] == {
+        "action": "Use a WMI-capable disposable target, then rerun Atomic extended."
+    }
+    assert by_id["wave-1-caldera"]["current_next_action"]["action"] == (
+        "CALDERA API shape is readable; continue with PAW readiness and repeatability probes."
+    )
+    assert by_id["wave-1-caldera"]["current_next_action"]["missing_endpoints"] == []
     assert Path(manifest["agent_roster_path"]).is_absolute()
     assert Path(manifest["env_checklist_path"]).is_absolute()
     assert Path(manifest["env_template_path"]).is_absolute()
@@ -5531,6 +15595,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert Path(manifest["dispatch_prelaunch_validation_path"]).is_absolute()
     assert Path(manifest["dispatch_brief_path"]).is_absolute()
     assert Path(manifest["dispatch_runner_path"]).is_absolute()
+    assert all(Path(package["output_dir"]).is_dir() for package in manifest["packages"])
     brief_text = Path(manifest["dispatch_brief_path"]).read_text(encoding="utf-8")
     template_text = Path(manifest["env_template_path"]).read_text(encoding="utf-8")
     owner_plan_text = Path(manifest["owner_launch_plan_path"]).read_text(encoding="utf-8")
@@ -5555,12 +15620,11 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     dispatch_prelaunch_validation_text = Path(
         manifest["dispatch_prelaunch_validation_path"]
     ).read_text(encoding="utf-8")
-    wave_launcher_text = Path(manifest["launcher_paths"][0]).read_text(encoding="utf-8")
     staged_launcher_text = Path(manifest["staged_launcher_paths"][0]).read_text(encoding="utf-8")
     dispatch_runner_text = Path(manifest["dispatch_runner_path"]).read_text(encoding="utf-8")
     runner_text = Path(manifest["dispatch_runner_path"]).read_text(encoding="utf-8")
     assert "# Validation Dispatch Brief" in brief_text
-    assert "Launcher command:" in brief_text
+    assert "Launcher command:" not in brief_text
     assert "Env template:" in brief_text
     assert "Owner launch plan:" in brief_text
     assert "Owner launch plan JSON:" in brief_text
@@ -5573,14 +15637,25 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "Agent spawn launcher:" in brief_text
     assert "Agent spawn launcher command:" in brief_text
     assert "Agent spawn launcher dry-run all command:" in brief_text
-    assert "Agent spawn launcher Codex parallel execute command:" in brief_text
-    assert "Agent spawn launcher Claude parallel execute command:" in brief_text
+    assert "Agent spawn launcher Codex parallel execute command:" not in brief_text
+    assert "Agent spawn launcher Claude parallel execute command:" not in brief_text
+    assert "Agent spawn launcher current-env parallel status:" in brief_text
+    assert "current_env_multi_agent_actionable=false" in brief_text
+    assert "Agent spawn launcher Codex env-bundle execute command:" in brief_text
+    assert "Agent spawn launcher Claude env-bundle execute command:" in brief_text
+    assert "Agent spawn launcher preferred env-bundle balanced execute command:" not in brief_text
+    assert "Agent spawn env-bundle guard:" in brief_text
     assert "Agent spawn duplicate-provider override guard:" in brief_text
     assert "TAMANDUA_ALLOW_DUPLICATE_PROVIDER_PER_CLAIM=1" in brief_text
     assert "[duplicate-provider-override]" in brief_text
     assert "-Provider all -Phase all -ShowBlocked" in brief_text
-    assert "-Provider codex -Phase ready -Execute -Parallel" in brief_text
-    assert "-Provider claude -Phase ready -Execute -Parallel" in brief_text
+    assert "-Provider codex -Phase ready -Execute -Parallel" not in brief_text
+    assert "-Provider claude -Phase ready -Execute -Parallel" not in brief_text
+    assert "-Provider balanced -Phase ready -Execute -Parallel" not in brief_text
+    assert "-Provider codex -Phase env-bundle -Execute -Parallel" in brief_text
+    assert "-Provider claude -Phase env-bundle -Execute -Parallel" in brief_text
+    assert "-Provider balanced -Phase env-bundle -Execute -Parallel" in brief_text
+    assert "refuses missing, placeholder, or malformed `env_unblock_queue.json` values" in brief_text
     assert "Claim status report:" in brief_text
     assert "Claim status report JSON:" in brief_text
     assert "Claim status refresh command:" in brief_text
@@ -5595,6 +15670,11 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "Claim lock command:" in caldera_prompt_text
     assert "-ClaimId claim-wave-1-caldera" in caldera_prompt_text
     assert "Env unblock queue:" in brief_text
+    assert (
+        "Env unblock queue handoff: includes copy/paste `Direct claim next actions:`, "
+        "`Other affected claim next actions:`, and compatibility `Affected claim next actions:` context per env."
+        in brief_text
+    )
     assert "Env unblock queue JSON:" in brief_text
     assert "Ready claims launcher:" in brief_text
     assert "Ready claims sequential validation command:" in brief_text
@@ -5613,11 +15693,13 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "Dispatch prelaunch env-bundle validation command:" in brief_text
     assert "## Recommended Launch Sequence" in brief_text
     assert "1. Dispatch prelaunch validation:" in brief_text
-    assert "This runs no-execution checks" in brief_text
-    assert "1c. Optional env-bundle prelaunch validation after env fill:" in brief_text
+    assert "This runs no-execution checks for env queue shape" in brief_text
+    assert "1a. Current-env agent execution is not multi-agent actionable:" in brief_text
+    assert "1b. Optional env-bundle prelaunch validation after env fill:" in brief_text
+    assert "1c. Optional Codex env-bundle agent execution after complete env fill:" in brief_text
+    assert "1d. Optional Claude env-bundle agent execution after complete env fill:" in brief_text
+    assert "1e. Preferred balanced Codex/Claude env-bundle agent execution after complete env fill:" in brief_text
     assert "This prints Codex/Claude spawn commands" in brief_text
-    assert "1a. Optional Codex parallel agent execution:" in brief_text
-    assert "1b. Optional Claude parallel agent execution:" in brief_text
     assert "Use one provider per claim" in brief_text
     assert "Duplicate-provider execution requires both `-AllowDuplicateProviderPerClaim`" in brief_text
     assert "2. Ready package claims:" in brief_text
@@ -5662,6 +15744,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "--refresh-dispatch-handoff-artifacts" in runner_text
     assert "--promote-dispatch-results" in runner_text
     assert "validation_status_consistency.py" in runner_text
+    assert "--refresh-scorecard" not in runner_text
     assert "# Validation env handoff template" in template_text
     assert "$env:CALDERA_API_KEY = '<set-caldera-api-key-secret>'" in template_text
     assert "$env:CALDERA_AGENT_PAW = '<set-caldera-agent-paw>'" in template_text
@@ -5670,7 +15753,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "powershell -NoProfile -ExecutionPolicy Bypass -File" in owner_plan_text
     assert owner_plan_json["artifact"] == "validation-owner-launch-plan"
     assert owner_plan_json["package_count"] == 3
-    assert owner_plan_json["launchable_package_count"] >= 1
+    assert owner_plan_json["launchable_package_count"] == 0
     assert owner_plan_json["blocked_package_count"] >= 1
     assert any(owner["owner"] == "operator-or-secret-holder" for owner in owner_plan_json["owners"])
     caldera_owner = next(owner for owner in owner_plan_json["owners"] if owner["owner"] == "operator-or-secret-holder")
@@ -5689,8 +15772,10 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert any(claim["claim_id"] == "claim-wave-1-caldera" for claim in agent_claims_json["claims"])
     assert "# Validation Agent Spawn Plan" in agent_spawn_plan_text
     assert agent_spawn_plan_json["artifact"] == "validation-agent-spawn-plan"
-    assert agent_spawn_plan_json["ready_claim_count"] == 1
+    assert agent_spawn_plan_json["ready_claim_count"] == 0
+    assert agent_spawn_plan_json["current_env_multi_agent_actionable"] is False
     assert agent_spawn_plan_json["env_bundle_ready_claim_count"] == 1
+    assert agent_spawn_plan_json["post_env_bundle_multi_agent_actionable"] is False
     assert agent_spawn_plan_json["env_bundle_still_blocked_claim_count"] == 0
     assert agent_spawn_plan_json["execute_policy"] == {
         "one_provider_per_claim": True,
@@ -5699,15 +15784,24 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
         "parallel_switch": "-Parallel",
     }
     assert agent_spawn_plan_json["not_multi_agent_actionable_reason"] == "fewer than two ready claims"
+    assert (
+        agent_spawn_plan_json["post_env_bundle_not_multi_agent_actionable_reason"]
+        == "fewer than two env-bundle ready claims"
+    )
+    assert "Current-env multi-agent actionable: `false`" in agent_spawn_plan_text
+    assert "Post-env-bundle multi-agent actionable: `false`" in agent_spawn_plan_text
     assert "claim-wave-1-windows-high" in agent_spawn_plan_text
     assert "Execute policy: one provider per claim" in agent_spawn_plan_text
     assert "Ready After Env Bundle" in agent_spawn_plan_text
     assert "Copy/Paste Env-Bundle Spawn Prompts" in agent_spawn_plan_text
-    assert "Copy/Paste Spawn Prompts" in agent_spawn_plan_text
+    assert "Copy/Paste Spawn Prompts" not in agent_spawn_plan_text
     assert "Codex spawn template:" in agent_spawn_plan_text
     assert "Claude spawn template:" in agent_spawn_plan_text
     assert "# Validation Agent Spawn Launcher" in agent_spawn_launcher_text
-    assert "[ValidateSet('codex','claude','all')]" in agent_spawn_launcher_text
+    assert "[ValidateSet('codex','claude','all','balanced')]" in agent_spawn_launcher_text
+    assert "$BalancedProviderIndex = 0" in agent_spawn_launcher_text
+    assert "$Provider -eq 'balanced'" in agent_spawn_launcher_text
+    assert "$BalancedProvider = if (($script:BalancedProviderIndex % 2) -eq 0) { 'codex' } else { 'claude' }" in agent_spawn_launcher_text
     assert "[ValidateSet('ready','env-bundle','all')]" in agent_spawn_launcher_text
     assert "[switch]$ShowBlocked" in agent_spawn_launcher_text
     assert "[switch]$AllowDuplicateProviderPerClaim" in agent_spawn_launcher_text
@@ -5725,29 +15819,31 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "produced no result" in agent_spawn_launcher_text
     assert "Agent spawn sequential execution failed" in agent_spawn_launcher_text
     assert "Show-BlockedClaims" in agent_spawn_launcher_text
+    assert "Show-EnvBundleReadiness" in agent_spawn_launcher_text
+    assert "Get-EnvBundleRequiredEnv" in agent_spawn_launcher_text
+    assert "Assert-EnvBundleReadyForExecution" in agent_spawn_launcher_text
+    assert "[env-bundle-readiness] present=" in agent_spawn_launcher_text
+    assert "env_unblock_queue.json" in agent_spawn_launcher_text
+    assert "Env unblock queue contains an entry without env." in agent_spawn_launcher_text
+    assert "Env unblock queue contains duplicate env entries:" in agent_spawn_launcher_text
+    assert "Env unblock queue missing ready_after_all_env_claim_ids." in agent_spawn_launcher_text
+    assert "Env unblock queue ready_after_all_env_claim_ids mismatch:" in agent_spawn_launcher_text
+    assert "Env unblock queue missing still_blocked_after_all_env_claim_ids." in agent_spawn_launcher_text
+    assert "Env unblock queue still_blocked_after_all_env_claim_ids mismatch:" in agent_spawn_launcher_text
+    assert "Env unblock queue missing required_env_names." in agent_spawn_launcher_text
+    assert "Env unblock queue missing all_env_powershell_set_commands." in agent_spawn_launcher_text
+    assert "Env unblock queue env set commands mismatch:" in agent_spawn_launcher_text
     assert "$Plan.blocked_or_manual_claims" in agent_spawn_launcher_text
     assert "[blocked][" in agent_spawn_launcher_text
     assert "TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH" in agent_spawn_launcher_text
     assert "TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH" in agent_spawn_launcher_text
     assert "Refusing to execute env-bundle spawn commands without TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH=1" in agent_spawn_launcher_text
+    assert "Refusing env-bundle spawn while env values are missing" in agent_spawn_launcher_text
+    assert "Refusing env-bundle spawn while placeholder env values remain" in agent_spawn_launcher_text
     assert "Dry run only" in agent_spawn_launcher_text
     assert "Invoke-Expression $Row.command" in agent_spawn_launcher_text
-    assert agent_spawn_plan_json["batches"][0]["claims"][0]["claim_id"] == "claim-wave-1-windows-high"
+    assert agent_spawn_plan_json["batches"] == []
     assert agent_spawn_plan_json["env_bundle_ready_batches"][0]["claims"][0]["claim_id"] == "claim-wave-1-caldera"
-    spawn_claim = agent_spawn_plan_json["batches"][0]["claims"][0]
-    assert spawn_claim["cwd"] == "."
-    assert spawn_claim["claim_id_env"] == "TAMANDUA_AGENT_CLAIM_ID=claim-wave-1-windows-high"
-    assert spawn_claim["agent_id_env"] == "TAMANDUA_AGENT_ID=<agent-id>"
-    assert "claim-wave-1-windows-high" in spawn_claim["agent_spawn_command_templates"]["codex"]
-    assert "claim-wave-1-windows-high" in spawn_claim["agent_spawn_command_templates"]["claude"]
-    assert spawn_claim["prompt_path"] in spawn_claim["agent_spawn_command_templates"]["codex"]
-    assert spawn_claim["prompt_path"] in spawn_claim["agent_spawn_command_templates"]["claude"]
-    assert "claim_lock_helper.ps1" in spawn_claim["agent_spawn_command_templates"]["codex"]
-    assert "claim_lock_helper.ps1" in spawn_claim["agent_spawn_command_templates"]["claude"]
-    assert "TAMANDUA_CLAIM_LOCK_ACQUIRED='1'" in spawn_claim["agent_spawn_command_templates"]["codex"]
-    assert "TAMANDUA_CLAIM_LOCK_ACQUIRED='1'" in spawn_claim["agent_spawn_command_templates"]["claude"]
-    assert spawn_claim["prompt_text"]
-    assert spawn_claim["copy_paste_prompt"] in agent_spawn_plan_text
     assert any(claim["claim_id"] == "claim-wave-1-caldera" for claim in agent_spawn_plan_json["blocked_or_manual_claims"])
     assert "--refresh-claim-status-report" in agent_spawn_plan_text
     assert "# Validation Claim Status Report" in claim_status_report_text
@@ -5755,6 +15851,19 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert claim_status_report_json["claim_count"] == 3
     assert claim_status_report_json["locked_claim_count"] == 0
     assert claim_status_report_json["invalid_lock_count"] == 0
+    assert any(
+        claim["package_id"] == "wave-1-windows-low"
+        and claim["current_next_action"] == {
+            "action": "Use a WMI-capable disposable target, then rerun Atomic extended."
+        }
+        for claim in agent_claims_json["claims"]
+    )
+    assert any(
+        claim["package_id"] == "wave-1-caldera"
+        and claim["current_next_action"]["action"]
+        == "CALDERA API shape is readable; continue with PAW readiness and repeatability probes."
+        for claim in agent_claims_json["claims"]
+    )
     assert "Locked claims: `0`" in claim_status_report_text
     assert "Lock agent" in claim_status_report_text
     assert "Agent claim" in claim_status_report_text
@@ -5766,23 +15875,43 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "[string]$ResetClaimId" in claim_lock_helper_text
     assert "[switch]$ResetAll" in claim_lock_helper_text
     assert "Refusing to reset claim lock without -Force" in claim_lock_helper_text
+    assert "AgentId may only contain letters" in claim_lock_helper_text
     assert "claim-wave-1-caldera" in claim_lock_helper_text
     assert "# Validation Env Unblock Queue" in env_unblock_queue_text
     assert env_unblock_queue_json["artifact"] == "validation-env-unblock-queue"
     assert env_unblock_queue_json["env_count"] >= 1
+    assert env_unblock_queue_json["required_env_names"] == sorted(
+        entry["env"] for entry in env_unblock_queue_json["entries"]
+    )
     caldera_unblock_entry = next(entry for entry in env_unblock_queue_json["entries"] if entry["env"] == "CALDERA_API_KEY")
     assert caldera_unblock_entry["placeholder"] == "<set-caldera-api-key-secret>"
     assert caldera_unblock_entry["powershell_set_command"] == "$env:CALDERA_API_KEY = '<set-caldera-api-key-secret>'"
     assert caldera_unblock_entry["single_env_ready_claim_ids"] == []
     assert caldera_unblock_entry["single_env_still_blocked_claim_ids"] == ["claim-wave-1-caldera"]
     assert caldera_unblock_entry["remaining_env_after_setting"] == {"claim-wave-1-caldera": ["CALDERA_AGENT_PAW"]}
+    assert caldera_unblock_entry["next_action_summaries"] == [
+        "claim-wave-1-caldera: action=CALDERA API shape is readable; continue with PAW readiness and "
+        "repeatability probes."
+    ]
     assert "Immediate claims unlocked by this env:" in caldera_unblock_entry["copy_paste_unblock_prompt"]
     assert "Claims ready after setting only this env:" in caldera_unblock_entry["copy_paste_unblock_prompt"]
+    assert (
+        "Affected claim next actions: claim-wave-1-caldera: action=CALDERA API shape is readable"
+        in caldera_unblock_entry["copy_paste_unblock_prompt"]
+    )
     assert env_unblock_queue_json["ready_after_all_env_claim_ids"] == ["claim-wave-1-caldera"]
     assert env_unblock_queue_json["still_blocked_after_all_env_claim_ids"] == []
     assert env_unblock_queue_json["post_env_bundle_launcher_commands"] == [
         "$env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'",
         f"powershell -NoProfile -ExecutionPolicy Bypass -File '{manifest['env_bundle_ready_claims_launcher_path']}'",
+    ]
+    assert env_unblock_queue_json["post_env_bundle_balanced_agent_spawn_commands"] == [
+        "$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'",
+        "$env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'",
+        (
+            f"powershell -NoProfile -ExecutionPolicy Bypass -File '{manifest['agent_spawn_launcher_path']}' "
+            "-Provider balanced -Phase env-bundle -Execute -Parallel"
+        ),
     ]
     assert (
         env_unblock_queue_json["env_bundle_validation_command"]
@@ -5796,27 +15925,37 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "Copy/Paste Env-Bundle Validation" in env_unblock_queue_text
     assert "-ValidateOnly" in env_unblock_queue_text
     assert "Copy/Paste Post-Env-Bundle Launcher" in env_unblock_queue_text
+    assert "Copy/Paste Post-Env-Bundle Balanced Agent Spawn" in env_unblock_queue_text
+    assert "-Provider balanced -Phase env-bundle -Execute -Parallel" in env_unblock_queue_text
+    assert "TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH" in env_unblock_queue_text
     assert "TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH" in env_unblock_queue_text
     assert "env_bundle_ready_claims_launcher.ps1" in env_unblock_queue_text
     assert "Claims ready after all envs:" in env_unblock_queue_text
+    assert (
+        "Affected claim next actions: claim-wave-1-caldera: action=CALDERA API shape is readable"
+        in env_unblock_queue_text
+    )
     assert "$env:CALDERA_API_KEY = '<set-caldera-api-key-secret>'" in env_unblock_queue_text
     assert "# Validation Ready Claims Launcher" in ready_claims_launcher_text
     assert "[switch]$ValidateOnly" in ready_claims_launcher_text
     assert "Ready claims validation passed. Ready claims:" in ready_claims_launcher_text
     assert "TAMANDUA_ALLOW_READY_CLAIMS_LAUNCH" in ready_claims_launcher_text
     assert "TAMANDUA_READY_CLAIMS_AGENT_ID" in ready_claims_launcher_text
+    assert "AgentId may only contain letters" in ready_claims_launcher_text
     assert "$env:TAMANDUA_AGENT_CLAIM_ID = $ClaimId" in ready_claims_launcher_text
     assert "$env:TAMANDUA_AGENT_ID = $script:ReadyClaimAgentId" in ready_claims_launcher_text
     assert "$env:TAMANDUA_CLAIM_LOCK_ACQUIRED = '1'" in ready_claims_launcher_text
     assert "claim_lock_helper.ps1" in ready_claims_launcher_text
     assert "Invoke-ClaimStatusRefresh" in ready_claims_launcher_text
     assert "--refresh-claim-status-report" in ready_claims_launcher_text
-    assert "claim-wave-1-windows-high" in ready_claims_launcher_text
+    assert "[ready-claim] no ready_to_claim packages found" in ready_claims_launcher_text
+    assert "claim-wave-1-windows-high" not in ready_claims_launcher_text
     assert "claim-wave-1-caldera" not in ready_claims_launcher_text
     assert "# Validation Ready Claims Parallel Launcher" in ready_claims_parallel_launcher_text
     assert "[switch]$ValidateOnly" in ready_claims_parallel_launcher_text
     assert "Ready claims validation passed. Ready claims:" in ready_claims_parallel_launcher_text
     assert "TAMANDUA_READY_CLAIMS_AGENT_ID" in ready_claims_parallel_launcher_text
+    assert "AgentId may only contain letters" in ready_claims_parallel_launcher_text
     assert "$env:TAMANDUA_AGENT_CLAIM_ID = $InnerClaimId" in ready_claims_parallel_launcher_text
     assert "$env:TAMANDUA_AGENT_ID = $InnerAgentId" in ready_claims_parallel_launcher_text
     assert "$env:TAMANDUA_CLAIM_LOCK_ACQUIRED = '1'" in ready_claims_parallel_launcher_text
@@ -5828,13 +15967,18 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "--refresh-claim-status-report" in ready_claims_parallel_launcher_text
     assert "Start-Job" in ready_claims_parallel_launcher_text
     assert "Wait-ReadyClaimBatch" in ready_claims_parallel_launcher_text
-    assert "claim-wave-1-windows-high" in ready_claims_parallel_launcher_text
+    assert "[ready-claim] no ready_to_claim packages found" in ready_claims_parallel_launcher_text
+    assert "claim-wave-1-windows-high" not in ready_claims_parallel_launcher_text
     assert "claim-wave-1-caldera" not in ready_claims_parallel_launcher_text
     assert "# Validation Env-Bundle Ready Claims Launcher" in env_bundle_ready_claims_launcher_text
     assert "[switch]$ValidateOnly" in env_bundle_ready_claims_launcher_text
-    assert "Env bundle validation passed. Ready claims:" in env_bundle_ready_claims_launcher_text
+    assert "Env bundle current env present:" in env_bundle_ready_claims_launcher_text
+    assert "Env bundle current env missing:" in env_bundle_ready_claims_launcher_text
+    assert "Env bundle missing set commands:" in env_bundle_ready_claims_launcher_text
+    assert "Env bundle validation passed. Ready claims after complete env bundle:" in env_bundle_ready_claims_launcher_text
     assert "TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH" in env_bundle_ready_claims_launcher_text
     assert "TAMANDUA_ENV_BUNDLE_CLAIMS_AGENT_ID" in env_bundle_ready_claims_launcher_text
+    assert "AgentId may only contain letters" in env_bundle_ready_claims_launcher_text
     assert "$env:TAMANDUA_AGENT_CLAIM_ID = $InnerClaimId" in env_bundle_ready_claims_launcher_text
     assert "$env:TAMANDUA_AGENT_ID = $InnerAgentId" in env_bundle_ready_claims_launcher_text
     assert "$env:TAMANDUA_CLAIM_LOCK_ACQUIRED = '1'" in env_bundle_ready_claims_launcher_text
@@ -5843,6 +15987,15 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "Placeholder env bundle values must be replaced before launch" in env_bundle_ready_claims_launcher_text
     assert "$PlaceholderEnv" in env_bundle_ready_claims_launcher_text
     assert "^<set-.+>$" in env_bundle_ready_claims_launcher_text
+    assert "Env unblock queue contains an entry without env." in env_bundle_ready_claims_launcher_text
+    assert "Env unblock queue contains duplicate env entries:" in env_bundle_ready_claims_launcher_text
+    assert "Env unblock queue missing ready_after_all_env_claim_ids." in env_bundle_ready_claims_launcher_text
+    assert "Env unblock queue ready_after_all_env_claim_ids mismatch:" in env_bundle_ready_claims_launcher_text
+    assert "Env unblock queue missing still_blocked_after_all_env_claim_ids." in env_bundle_ready_claims_launcher_text
+    assert "Env unblock queue still_blocked_after_all_env_claim_ids mismatch:" in env_bundle_ready_claims_launcher_text
+    assert "Env unblock queue missing required_env_names." in env_bundle_ready_claims_launcher_text
+    assert "Env unblock queue missing all_env_powershell_set_commands." in env_bundle_ready_claims_launcher_text
+    assert "Env unblock queue env set commands mismatch:" in env_bundle_ready_claims_launcher_text
     assert "claim_lock_helper.ps1" in env_bundle_ready_claims_launcher_text
     assert "Invoke-ClaimStatusRefresh" in env_bundle_ready_claims_launcher_text
     assert "--refresh-claim-status-report" in env_bundle_ready_claims_launcher_text
@@ -5855,8 +16008,286 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "claim-wave-1-windows-high" not in env_bundle_ready_claims_launcher_text
     assert "# Validation Dispatch Prelaunch Validation" in dispatch_prelaunch_validation_text
     assert "[switch]$ValidateEnvBundle" in dispatch_prelaunch_validation_text
+    assert "function Invoke-DispatchManifestShapeValidation" in dispatch_prelaunch_validation_text
+    assert "function Invoke-OwnerLaunchPlanShapeValidation" in dispatch_prelaunch_validation_text
+    assert "owner launch plan shape missing artifact" in dispatch_prelaunch_validation_text
+    assert "owner launch plan shape invalid artifact:" in dispatch_prelaunch_validation_text
+    assert "owner launch plan shape missing owners" in dispatch_prelaunch_validation_text
+    assert "owner launch plan shape owners is not a list" in dispatch_prelaunch_validation_text
+    assert "owner launch plan shape duplicate package_id:" in dispatch_prelaunch_validation_text
+    assert "owner launch plan shape package_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "owner launch plan shape valid: packages=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-ExecutionMatrixShapeValidation" in dispatch_prelaunch_validation_text
+    assert "execution matrix shape missing artifact" in dispatch_prelaunch_validation_text
+    assert "execution matrix shape invalid artifact:" in dispatch_prelaunch_validation_text
+    assert "execution matrix shape invalid source_artifact:" in dispatch_prelaunch_validation_text
+    assert "execution matrix shape missing rows" in dispatch_prelaunch_validation_text
+    assert "execution matrix shape rows is not a list" in dispatch_prelaunch_validation_text
+    assert "execution matrix shape duplicate package_id:" in dispatch_prelaunch_validation_text
+    assert "execution matrix shape ready_to_launch_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "execution matrix shape valid: rows=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-OwnerPlanExecutionMatrixAlignmentValidation" in dispatch_prelaunch_validation_text
+    assert "owner plan execution matrix alignment package_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "owner plan execution matrix alignment ready_to_launch mismatch:" in dispatch_prelaunch_validation_text
+    assert "owner plan execution matrix alignment valid: packages=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-DispatchManifestPlanAlignmentValidation" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest plan alignment owner package_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest plan alignment matrix package_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest plan alignment valid: packages=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-DispatchManifestAgentClaimsAlignmentValidation" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest agent claims alignment package_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest agent claims alignment claim_id mismatch:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest agent claims alignment valid: packages=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-ClaimLockHelperAgentClaimsAlignmentValidation" in dispatch_prelaunch_validation_text
+    assert "claim lock helper agent claims alignment missing helper marker:" in dispatch_prelaunch_validation_text
+    assert "claim lock helper agent claims alignment missing KnownClaims list" in dispatch_prelaunch_validation_text
+    assert "claim lock helper agent claims alignment claim_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "claim lock helper agent claims alignment valid: claims=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-AgentClaimsStatusReportAlignmentValidation" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment claim_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment package_id mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment claim_state mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment owner mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment wave mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment stage mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment ready_to_launch mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment script_path mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment prompt_path mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment status_path mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment command mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment missing_effective_env mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment blocked_reasons mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment resource_tags mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment invalid lock_state:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment lock_path mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims status report alignment valid: claims=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-AgentClaimsSpawnPlanAlignmentValidation" in dispatch_prelaunch_validation_text
+    assert "agent claims spawn plan alignment claim_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims spawn plan alignment package_id mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims spawn plan alignment claim_state mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims spawn plan alignment valid: claims=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-EnvQueueAgentClaimsAlignmentValidation" in dispatch_prelaunch_validation_text
+    assert "env unblock queue agent claims alignment required_env_names mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue agent claims alignment unknown claim_id:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue agent claims alignment package_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue agent claims alignment env not in claim missing_effective_env:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue agent claims alignment remaining_env_after_setting mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue agent claims alignment ready_after_all_env_claim_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue agent claims alignment still_blocked_after_all_env_claim_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue agent claims alignment valid: envs=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-ReadyLaunchersAgentClaimsAlignmentValidation" in dispatch_prelaunch_validation_text
+    assert "ready launchers agent claims alignment ready claim_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "ready launchers agent claims alignment ready-parallel claim_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "ready launchers agent claims alignment env-bundle claim_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "ready launchers agent claims alignment ready package_id mismatch:" in dispatch_prelaunch_validation_text
+    assert "ready launchers agent claims alignment ready script_path mismatch:" in dispatch_prelaunch_validation_text
+    assert "ready launchers agent claims alignment valid:" in dispatch_prelaunch_validation_text
+    assert "function Invoke-DispatchRunnerManifestAlignmentValidation" in dispatch_prelaunch_validation_text
+    assert "dispatch runner manifest alignment missing runner marker:" in dispatch_prelaunch_validation_text
+    assert "dispatch runner manifest alignment manifest path mismatch:" in dispatch_prelaunch_validation_text
+    assert "dispatch runner manifest alignment missing staged launcher:" in dispatch_prelaunch_validation_text
+    assert "dispatch runner manifest alignment missing direct script:" in dispatch_prelaunch_validation_text
+    assert "dispatch runner manifest alignment missing direct claim:" in dispatch_prelaunch_validation_text
+    assert "dispatch runner manifest alignment valid:" in dispatch_prelaunch_validation_text
+    assert "dispatch_manifest.json" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape missing" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape invalid JSON:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape missing packages" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape missing profile_id" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape invalid profile_id:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape missing source_preflight" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape empty source_preflight" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape source_preflight missing:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape source_preflight invalid JSON:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape source_preflight invalid profile_id:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape packages is not a list" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape missing expected_package_ids" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape expected_package_ids is not a list" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape missing expected_waves" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape expected_waves is not a list" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape launcher_paths is not a list" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape launcher_paths contains empty value" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape launcher path missing launcher_paths:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape missing staged_launcher_paths" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape staged_launcher_paths is not a list" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape staged_launcher_paths contains empty value" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape launcher path missing staged_launcher_paths:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape empty agent_roster_path" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape path missing agent_roster_path:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape empty dispatch_runner_path" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape path missing dispatch_runner_path:" in dispatch_prelaunch_validation_text
+    assert "owner_launch_plan_path" in dispatch_prelaunch_validation_text
+    assert "owner_launch_plan_json_path" in dispatch_prelaunch_validation_text
+    assert "execution_matrix_path" in dispatch_prelaunch_validation_text
+    assert "execution_matrix_json_path" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape package without package_id" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape package missing script_path:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape package empty script_path:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape package path missing script_path:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape package status parent missing:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape package missing wave:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape package invalid wave:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape duplicate package_id:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape expected_package_ids contains empty value" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape expected_package_ids mismatch:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape expected_waves contains empty value" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape expected_waves mismatch:" in dispatch_prelaunch_validation_text
+    assert "dispatch manifest shape valid: packages=" in dispatch_prelaunch_validation_text
+    assert "Invoke-EnvQueueShapeValidation" in dispatch_prelaunch_validation_text
+    assert "env_unblock_queue.json" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape invalid JSON" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing entries" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape entries is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape entry without env" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape duplicate env entries:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape invalid env_count:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape env_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape required_env_names is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing required_env_names" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape required_env_names contains empty value" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape required_env_names mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing all_env_powershell_set_commands" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape all_env_powershell_set_commands is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape all_env_powershell_set_commands contains empty value" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape invalid env set command:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape duplicate env set commands:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape env set commands mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape entry missing powershell_set_command" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape env set command text mismatch" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape entry missing direct_next_action_summaries" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape entry direct_next_action_summaries is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape direct_next_action_summaries contains empty value" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape entry missing indirect_next_action_summaries" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape entry indirect_next_action_summaries is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape indirect_next_action_summaries contains empty value" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing current_env_present_names" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current_env_present_names is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing current_env_missing_names" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current_env_missing_names is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing current_env_placeholder_names" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current_env_placeholder_names is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing current_env_present_count" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing current_env_missing_count" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing current_env_placeholder_count" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current env names contain empty value" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current env state overlap:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current env state mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape invalid current_env_present_count:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape invalid current_env_missing_count:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape invalid current_env_placeholder_count:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current_env_present_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current_env_missing_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current_env_placeholder_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing ready_with_current_env_claim_ids" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape ready_with_current_env_claim_ids is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing still_blocked_with_current_env_claim_ids" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape still_blocked_with_current_env_claim_ids is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing ready_after_all_env_claim_ids" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape ready_after_all_env_claim_ids is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing still_blocked_after_all_env_claim_ids" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape still_blocked_after_all_env_claim_ids is not a list" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape claim readiness ids contain empty value" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape duplicate claim readiness ids in" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape current claim readiness overlap:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape after-all claim readiness overlap:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape missing blocked_claim_count" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape invalid blocked_claim_count:" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape blocked_claim_count below referenced claims:" in dispatch_prelaunch_validation_text
+    assert "function Invoke-AgentSpawnPlanShapeValidation" in dispatch_prelaunch_validation_text
+    assert "agent_spawn_plan.json" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape missing schema_version" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape missing artifact" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid schema_version:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid artifact:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid source_artifact:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape missing ready_batch_count" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape missing ready_claim_count" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape missing env_bundle_ready_batch_count" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape missing env_bundle_ready_claim_count" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape missing env_bundle_still_blocked_claim_count" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape missing blocked_or_manual_claim_count" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid ready_batch_count:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid ready_claim_count:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid env_bundle_ready_batch_count:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid env_bundle_ready_claim_count:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid env_bundle_still_blocked_claim_count:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid blocked_or_manual_claim_count:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape missing batches" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape batches is not a list" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape batch missing claims in" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape batch claims is not a list in" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape batch missing claim_count in" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape invalid batch claim_count in" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape batch claim_count mismatch in" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape batch claim without claim_id in" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape ready_batch_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape env_bundle_ready_batch_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape ready_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape env_bundle_ready_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape env_bundle_still_blocked_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape blocked_or_manual_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent spawn plan shape valid: ready_claims=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-AgentClaimsShapeValidation" in dispatch_prelaunch_validation_text
+    assert "agent_claims.json" in dispatch_prelaunch_validation_text
+    assert "agent claims shape missing schema_version" in dispatch_prelaunch_validation_text
+    assert "agent claims shape missing artifact" in dispatch_prelaunch_validation_text
+    assert "agent claims shape invalid schema_version:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape invalid artifact:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape missing claims" in dispatch_prelaunch_validation_text
+    assert "agent claims shape claims is not a list" in dispatch_prelaunch_validation_text
+    assert "agent claims shape missing claim_count" in dispatch_prelaunch_validation_text
+    assert "agent claims shape missing ready_to_claim_count" in dispatch_prelaunch_validation_text
+    assert "agent claims shape missing blocked_claim_count" in dispatch_prelaunch_validation_text
+    assert "agent claims shape missing manual_claim_count" in dispatch_prelaunch_validation_text
+    assert "agent claims shape invalid claim_count:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape invalid ready_to_claim_count:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape invalid blocked_claim_count:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape invalid manual_claim_count:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape claim without claim_id" in dispatch_prelaunch_validation_text
+    assert "agent claims shape duplicate claim_id:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape ready_to_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape blocked_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape manual_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "agent claims shape valid: claims=" in dispatch_prelaunch_validation_text
+    assert "function Invoke-ClaimStatusReportShapeValidation" in dispatch_prelaunch_validation_text
+    assert "claim status report shape missing schema_version" in dispatch_prelaunch_validation_text
+    assert "claim status report shape missing artifact" in dispatch_prelaunch_validation_text
+    assert "claim status report shape invalid schema_version:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape invalid artifact:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape missing claims" in dispatch_prelaunch_validation_text
+    assert "claim status report shape claims is not a list" in dispatch_prelaunch_validation_text
+    assert "claim status report shape missing claim_count" in dispatch_prelaunch_validation_text
+    assert "claim status report shape missing ready_to_claim_count" in dispatch_prelaunch_validation_text
+    assert "claim status report shape missing blocked_claim_count" in dispatch_prelaunch_validation_text
+    assert "claim status report shape missing manual_claim_count" in dispatch_prelaunch_validation_text
+    assert "claim status report shape missing locked_claim_count" in dispatch_prelaunch_validation_text
+    assert "claim status report shape missing invalid_lock_count" in dispatch_prelaunch_validation_text
+    assert "claim status report shape invalid claim_count:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape invalid ready_to_claim_count:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape invalid blocked_claim_count:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape invalid manual_claim_count:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape invalid locked_claim_count:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape invalid invalid_lock_count:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape claim without claim_id" in dispatch_prelaunch_validation_text
+    assert "claim status report shape duplicate claim_id:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape ready_to_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape blocked_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape manual_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape locked_claim_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape invalid_lock_count mismatch:" in dispatch_prelaunch_validation_text
+    assert "claim status report shape valid: claims=" in dispatch_prelaunch_validation_text
+    assert "env unblock queue shape valid: entries=" in dispatch_prelaunch_validation_text
+    assert "Invoke-ClaimLockEmptyValidation" in dispatch_prelaunch_validation_text
+    assert "claim lock helper missing for empty check:" in dispatch_prelaunch_validation_text
+    assert "claim lock prelaunch found existing locks:" in dispatch_prelaunch_validation_text
+    assert "claim lock empty check passed" in dispatch_prelaunch_validation_text
     assert "Invoke-PrelaunchStep 'agent spawn dry run'" in dispatch_prelaunch_validation_text
     assert "-Provider', 'all', '-Phase', 'all', '-ShowBlocked'" in dispatch_prelaunch_validation_text
+    assert "Invoke-PrelaunchStep 'agent spawn balanced dry run'" in dispatch_prelaunch_validation_text
+    assert "-Provider', 'balanced', '-Phase', 'all', '-ShowBlocked'" in dispatch_prelaunch_validation_text
     assert "Invoke-PrelaunchStep 'ready claims sequential validate-only'" in dispatch_prelaunch_validation_text
     assert "Invoke-PrelaunchStep 'ready claims parallel validate-only'" in dispatch_prelaunch_validation_text
     assert "Invoke-PrelaunchStep 'claim lock list'" in dispatch_prelaunch_validation_text
@@ -5864,14 +16295,8 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "Invoke-PrelaunchStep 'env bundle validate-only'" in dispatch_prelaunch_validation_text
     assert "env bundle validate-only skipped" in dispatch_prelaunch_validation_text
     assert "Dispatch prelaunch validation passed." in dispatch_prelaunch_validation_text
-    assert "TAMANDUA_WAVE_LAUNCHER_AGENT_ID" in wave_launcher_text
-    assert "ClaimLockHelperPath" in wave_launcher_text
-    assert "Missing claim lock helper" in wave_launcher_text
-    assert "-File $ClaimLockHelperPath -ClaimId $ClaimId -AgentId $AgentId" in wave_launcher_text
-    assert "$env:TAMANDUA_AGENT_CLAIM_ID = $ClaimId" in wave_launcher_text
-    assert "$env:TAMANDUA_AGENT_ID = $AgentId" in wave_launcher_text
-    assert "$env:TAMANDUA_CLAIM_LOCK_ACQUIRED = '1'" in wave_launcher_text
     assert "TAMANDUA_STAGED_LAUNCHER_AGENT_ID" in staged_launcher_text
+    assert "AgentId may only contain letters" in staged_launcher_text
     assert "ClaimLockHelperPath" in staged_launcher_text
     assert "Missing claim lock helper" in staged_launcher_text
     assert "-File $ClaimLockHelperPath -ClaimId $ClaimId -AgentId $AgentId" in staged_launcher_text
@@ -5879,13 +16304,18 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "$env:TAMANDUA_AGENT_ID = $AgentId" in staged_launcher_text
     assert "$env:TAMANDUA_CLAIM_LOCK_ACQUIRED = '1'" in staged_launcher_text
     assert "TAMANDUA_DISPATCH_AGENT_ID" in dispatch_runner_text
+    assert "AgentId may only contain letters" in dispatch_runner_text
     assert "claim_id = 'claim-' + [string]$Package.package_id" in dispatch_runner_text
     assert "agent_id = $script:DispatchAgentId" in dispatch_runner_text
     assert "`wave-1-windows-low` | manual: resource overlap: windows-lab" in brief_text
     assert "`wave-1-windows-low` | manual: resource overlap: windows-lab | stage 2" in brief_text
     assert "`CALDERA_API_KEY`" in brief_text
     assert str(manifest_path).replace("\\", "/") in brief_text
-    assert by_id["wave-1-windows-high"]["launcher_selected"] is True
+    assert by_id["wave-1-windows-high"]["launcher_selected"] is False
+    assert (
+        by_id["wave-1-windows-high"]["manual_reason"]
+        == "parallel launcher not emitted: fewer than two non-overlapping packages"
+    )
     assert by_id["wave-1-windows-high"]["staged_launcher_selected"] is True
     assert by_id["wave-1-windows-high"]["staged_stage"] == 1
     assert by_id["wave-1-windows-low"]["launcher_selected"] is False
@@ -5937,7 +16367,6 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert by_id["wave-1-caldera"]["manual_prerequisites"] == ["Use a disposable lab VM."]
     assert by_id["wave-1-windows-high"]["continue_on_failure"] is False
     assert Path(manifest["output_dir"]).is_absolute()
-    assert Path(manifest["launcher_paths"][0]).is_absolute()
     assert Path(manifest["staged_launcher_paths"][0]).is_absolute()
     assert Path(by_id["wave-1-caldera"]["script_path"]).is_absolute()
     assert Path(by_id["wave-1-caldera"]["prompt_path"]).is_absolute()
@@ -5956,9 +16385,13 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     refreshed_roster_text = Path(manifest["agent_roster_path"]).read_text(encoding="utf-8")
     refreshed_prompt_text = caldera_prompt_path.read_text(encoding="utf-8")
     refreshed_brief_text = Path(manifest["dispatch_brief_path"]).read_text(encoding="utf-8")
-    assert "`wave-1-caldera` | operator-or-secret-holder | auto | `operator-env`" in refreshed_roster_text
+    assert "`wave-1-caldera` | operator-or-secret-holder | manual: blocked: missing_effective_env | `operator-env`" in refreshed_roster_text
     assert "Resource tags: operator-env" in refreshed_prompt_text
-    assert "`wave-1-caldera` | auto | stage 1 | operator-or-secret-holder | `operator-env`" in refreshed_brief_text
+    assert (
+        "`wave-1-caldera` | manual: blocked: missing_effective_env | - | operator-or-secret-holder | `operator-env`"
+        in refreshed_brief_text
+    )
+    assert "parallel-launcher:blocked: missing_effective_env" in refreshed_brief_text
 
 
 def test_preflight_work_package_summarizes_dispatch_results(tmp_path):
@@ -6196,6 +16629,39 @@ def test_preflight_work_package_rejects_mistyped_agent_status_contract(tmp_path)
         "expected_profiles_not_list",
         "missing_profiles_not_list",
     ]
+
+
+def test_preflight_work_package_treats_missing_expected_agent_status_as_not_launched(tmp_path):
+    output_dir = tmp_path / "dispatch"
+    package_dir = output_dir / "wave-1-pending" / "outputs"
+    package_dir.mkdir(parents=True)
+    manifest = {
+        "profile_id": "validation-execution-preflight-probe",
+        "source_preflight": "preflight.json",
+        "packages": [
+            {
+                "package_id": "wave-1-pending",
+                "wave": 1,
+                "launcher_selected": True,
+                "resource_tags": ["windows-lab"],
+                "required_env": ["TAMANDUA_SERVER_PASSWORD"],
+                "expected_profile_ids": ["pending-probe"],
+                "output_dir": str(package_dir),
+                "status_path": str(output_dir / "wave-1-pending" / "agent_status.json"),
+            },
+        ],
+    }
+    (output_dir / "dispatch_manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+
+    json_path, _ = preflight_work_package.summarize_dispatch(output_dir)
+    results = json.loads(json_path.read_text(encoding="utf-8"))
+    package = results["packages"][0]
+
+    assert results["missing_count"] == 1
+    assert results["invalid_count"] == 0
+    assert package["status"] == "missing"
+    assert package["failures"][:2] == ["missing_expected_profile_artifact", "missing_package_artifact"]
+    assert "agent_status_contract_invalid" not in package.get("agent_notes", [])
 
 
 def test_preflight_work_package_rejects_non_string_agent_status_lists(tmp_path):
@@ -7722,6 +18188,9 @@ def test_preflight_work_package_summarizes_missing_package_handoff(tmp_path):
                 "wave": 1,
                 "launcher_selected": False,
                 "manual_reason": "resource overlap: windows-lab",
+                "current_next_action": {
+                    "action": "Verify Proxmox credentials before rerunning QGA diagnostics."
+                },
                 "resource_tags": ["proxmox-qga"],
                 "required_env": ["TAMANDUA_PROXMOX_PASSWORD"],
                 "expected_profile_ids": [
@@ -7760,6 +18229,7 @@ def test_preflight_work_package_summarizes_missing_package_handoff(tmp_path):
     assert "missing package" in markdown
     assert "TAMANDUA_PROXMOX_PASSWORD" in markdown
     assert "windows-proxmox-qga-readiness-probe" in markdown
+    assert "next_action=action=Verify Proxmox credentials before rerunning QGA diagnostics." in markdown
 
 
 def test_preflight_work_package_summarizes_connection_stability_next_action(tmp_path):
@@ -7826,7 +18296,8 @@ def test_preflight_work_package_summarizes_connection_stability_next_action(tmp_
     assert "TAMANDUA_SERVER_PASSWORD" in package["evidence_excerpt"]["next_action"]["action"]
     assert "next action" in markdown
     assert "windows-agent-connection-stability-probe" in markdown
-    assert "server_log_access, telemetry_batches" in markdown
+    assert "missing=server_log_access, telemetry_batches" in markdown
+    assert "action=Set TAMANDUA_SERVER_PASSWORD or provide --server-password." in markdown
 
 
 def test_preflight_work_package_promotes_dispatch_results_artifact(tmp_path):
@@ -8090,6 +18561,17 @@ def test_preflight_work_package_promotes_dispatch_results_artifact(tmp_path):
     assert Path(report["packages"][0]["agent_status_path"]).exists()
     assert report["tests"][0]["evidence"]["artifact_path"] == report["packages"][0]["artifact_path"]
     assert "source-workdir" not in json.dumps(report)
+    archived_summary_path = Path(report["dispatch_manifest"]).parent / "dispatch_results.json"
+    archived_summary_markdown_path = Path(report["dispatch_manifest"]).parent / "dispatch_results.md"
+    assert archived_summary_path.exists()
+    assert archived_summary_markdown_path.exists()
+    archived_summary = json.loads(archived_summary_path.read_text(encoding="utf-8"))
+    archived_summary_markdown = archived_summary_markdown_path.read_text(encoding="utf-8")
+    assert archived_summary["dispatch_manifest"] == report["dispatch_manifest"]
+    assert archived_summary["packages"][0]["artifact_path"] == report["packages"][0]["artifact_path"]
+    assert Path(report["packages"][0]["artifact_path"]).name in archived_summary_markdown
+    assert "source-workdir" not in json.dumps(archived_summary)
+    assert "source-workdir" not in archived_summary_markdown
     assert comparison["summary"]["status_counts"] == report["status_counts"]
     assert comparison["summary"]["failed_status_count"] == 1
     assert comparison["summary"]["missing_required_env"] == []
@@ -8548,6 +19030,42 @@ def test_caldera_api_shape_next_action_for_missing_api_key():
     assert "CALDERA_API_KEY" in action["action"]
 
 
+def test_caldera_api_shape_request_ignores_proxy_env(monkeypatch):
+    captured = {}
+
+    class FakeResponse:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_exc):
+            return False
+
+        def read(self):
+            return b'{"data":[]}'
+
+    class FakeOpener:
+        def open(self, request, timeout=None):
+            captured["url"] = request.full_url
+            captured["timeout"] = timeout
+            return FakeResponse()
+
+    def fake_build_opener(*handlers):
+        captured["proxies"] = getattr(handlers[0], "proxies", None)
+        return FakeOpener()
+
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setattr(caldera_api.urllib.request, "build_opener", fake_build_opener)
+
+    result = caldera_api.request_json("http://192.168.12.146:8888", "key", "/api/v2/agents", 3)
+
+    assert result["status"] == 200
+    assert captured["url"] == "http://192.168.12.146:8888/api/v2/agents"
+    assert captured["timeout"] == 3
+    assert captured["proxies"] == {}
+
+
 def test_caldera_api_shape_markdown_renders_next_action(tmp_path):
     report = {
         "run_id": "20260604T000000Z-caldera-api-shape-probe",
@@ -8579,6 +19097,45 @@ def test_caldera_api_shape_markdown_renders_next_action(tmp_path):
     assert "## Next Action" in text
     assert "CALDERA_API_KEY" in text
     assert "/api/v2/agents" in text
+
+
+def test_validation_caldera_request_ignores_proxy_env(monkeypatch):
+    captured = {}
+
+    class FakeResponse:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_exc):
+            return False
+
+        def read(self):
+            return b'{"id":"operation-1"}'
+
+    class FakeOpener:
+        def open(self, request, timeout=None):
+            captured["url"] = request.full_url
+            captured["method"] = request.get_method()
+            captured["timeout"] = timeout
+            return FakeResponse()
+
+    def fake_build_opener(*handlers):
+        captured["proxies"] = getattr(handlers[0], "proxies", None)
+        return FakeOpener()
+
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setattr(validation.urllib.request, "build_opener", fake_build_opener)
+    args = Namespace(caldera_url="http://192.168.12.146:8888", caldera_api_key="key")
+
+    result = validation.caldera_request(args, "GET", "/api/v2/operations", timeout=4)
+
+    assert result["status"] == 200
+    assert result["url"] == "http://192.168.12.146:8888/api/v2/operations"
+    assert captured["method"] == "GET"
+    assert captured["timeout"] == 4
+    assert captured["proxies"] == {}
 
 
 def test_caldera_probes_write_to_explicit_output_dir(tmp_path, monkeypatch):
@@ -8624,9 +19181,11 @@ def test_macos_backend_probe_writes_to_explicit_output_dir(tmp_path, monkeypatch
 
 def test_macos_backend_load_agents_passes_explicit_server(monkeypatch):
     calls = []
+    envs = []
 
-    def fake_run(command, **_kwargs):
+    def fake_run(command, **kwargs):
         calls.append(command)
+        envs.append(kwargs.get("env"))
         return macos_backend.subprocess.CompletedProcess(
             command,
             0,
@@ -8634,13 +19193,27 @@ def test_macos_backend_load_agents_passes_explicit_server(monkeypatch):
             stderr="",
         )
 
+    monkeypatch.setenv("HTTP_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setenv("NO_PROXY", "localhost,127.0.0.1")
     monkeypatch.setattr(macos_backend.subprocess, "run", fake_run)
 
     agents, evidence = macos_backend.load_agents("http://192.168.12.146:4000")
 
     assert agents == []
     assert calls[0][-2:] == ["--server", "http://192.168.12.146:4000"]
+    assert envs[0]["HTTP_PROXY"] == "http://127.0.0.1:9"
+    assert envs[0]["NO_PROXY"] == "localhost,127.0.0.1,192.168.12.146"
+    assert envs[0]["no_proxy"] == envs[0]["NO_PROXY"]
     assert "--server http://192.168.12.146:4000" in evidence["command"]
+
+
+def test_macos_backend_ctl_env_preserves_existing_no_proxy_host():
+    env = macos_backend.tamandua_ctl_env(
+        "https://tamandua.treantlab.org",
+        {"NO_PROXY": "localhost,tamandua.treantlab.org"},
+    )
+
+    assert env["NO_PROXY"] == "localhost,tamandua.treantlab.org"
 
 
 def test_macos_backend_load_agents_redacts_remote_config_metadata(tmp_path, monkeypatch):
@@ -8965,6 +19538,139 @@ def test_windows_qga_readiness_next_action_for_missing_proxmox_password():
     assert action["api_url"] == "https://192.168.12.149:8006/api2/json/access/ticket"
 
 
+def test_windows_qga_readiness_login_ignores_proxy_env(monkeypatch):
+    captured = {}
+
+    class FakeSession:
+        def __init__(self):
+            self.verify = True
+            self.trust_env = True
+
+        def post(self, url, **_kwargs):
+            captured["url"] = url
+            captured["trust_env"] = self.trust_env
+            return type(
+                "Response",
+                (),
+                {
+                    "ok": False,
+                    "status_code": 401,
+                    "text": "unauthorized",
+                    "json": lambda _self: {},
+                },
+            )()
+
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setattr(windows_qga_readiness.requests, "Session", FakeSession)
+    args = Namespace(
+        proxmox_host="192.168.12.149",
+        proxmox_user="root@pam",
+        proxmox_password="secret",
+        http_timeout_seconds=1,
+    )
+
+    _session, evidence = windows_qga_readiness.login(args)
+
+    assert captured["url"] == "https://192.168.12.149:8006/api2/json/access/ticket"
+    assert captured["trust_env"] is False
+    assert evidence["status"] == 401
+
+
+def test_validation_proxmox_api_host_ignores_proxy_env(monkeypatch):
+    captured = {}
+
+    class FakeResponse:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_exc):
+            return False
+
+        def read(self):
+            return b'{"data":{"ticket":"ticket","CSRFPreventionToken":"csrf"}}'
+
+    class FakeOpener:
+        def open(self, request, timeout=None):
+            captured["url"] = request.full_url
+            captured["timeout"] = timeout
+            return FakeResponse()
+
+    def fake_build_opener(*handlers):
+        captured["handler_types"] = [type(handler).__name__ for handler in handlers]
+        captured["proxies"] = getattr(handlers[0], "proxies", None)
+        return FakeOpener()
+
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setattr(validation.urllib.request, "build_opener", fake_build_opener)
+    host = validation.ProxmoxApiHost("192.168.12.149", "root@pam", "secret", "Default")
+
+    data = host._request("POST", "/access/ticket", payload=b"username=root%40pam", auth=False)
+
+    assert data["data"]["ticket"] == "ticket"
+    assert captured["url"] == "https://192.168.12.149:8006/api2/json/access/ticket"
+    assert captured["timeout"] == 30
+    assert captured["proxies"] == {}
+    assert "HTTPSHandler" in captured["handler_types"]
+
+
+def test_validation_proxmox_api_guest_exec_reports_http_error(monkeypatch):
+    class FakeOpener:
+        def open(self, request, timeout=None):
+            raise validation.urllib.error.HTTPError(
+                request.full_url,
+                500,
+                "QEMU guest agent is not running",
+                hdrs=None,
+                fp=None,
+            )
+
+    monkeypatch.setattr(validation.urllib.request, "build_opener", lambda *_handlers: FakeOpener())
+    host = validation.ProxmoxApiHost("192.168.12.149", "root@pam", "secret", "Default")
+    host.ticket = "ticket"
+    host.csrf = "csrf"
+
+    result = host.guest_exec(1521, "whoami", timeout=5)
+
+    assert result["outer_exit_code"] == 1
+    assert result["guest_exit_code"] is None
+    assert result["transport"] == "proxmox_api_qga"
+    assert result["error_code"] == "qga_execution_channel_failed"
+    assert "HTTP Error 500" in result["stderr"]
+    assert result["command_result"]["exit_code"] == 1
+
+
+def test_tamandua_ctl_command_redacts_token_in_command_result(monkeypatch):
+    captured = {}
+
+    def fake_local_command(command, **_kwargs):
+        captured["command"] = command
+        return validation.CommandResult(
+            host="local",
+            command=" ".join(command),
+            exit_code=1,
+            stdout="",
+            stderr="unauthorized",
+            duration_ms=1,
+        )
+
+    monkeypatch.setattr(validation, "local_command", fake_local_command)
+    args = Namespace(
+        agent_id="agent-1",
+        tamandua_ctl_path="tamandua-ctl",
+        tamandua_ctl_server="http://127.0.0.1:4000",
+        tamandua_ctl_token="secret-token",
+        live_response_idle_timeout_seconds=5,
+        live_response_shell_start_timeout_seconds=5,
+        live_response_supervisor_mode=False,
+    )
+
+    result = validation.tamandua_ctl_command(args, "whoami", timeout=10)
+
+    assert "secret-token" in captured["command"]
+    assert "secret-token" not in result["command_result"]["command"]
+    assert "<redacted-token>" in result["command_result"]["command"]
+
+
 def test_windows_qga_readiness_markdown_renders_next_action(tmp_path):
     report = {
         "run_id": "20260604T000000Z-windows-proxmox-qga-readiness-probe",
@@ -9008,8 +19714,8 @@ def test_windows_qga_file_diagnostics_next_action_for_file_open_501():
             {"authenticated": True},
         ),
         windows_qga_file_diagnostics.make_result(
-            "proxmox-agent-file-open-exposed",
-            "Proxmox API exposes QGA file-open endpoint",
+            "proxmox-agent-readonly-diagnostics-transport",
+            "Proxmox exposes a read-only QGA diagnostics transport",
             False,
             "runner",
             {"observed_501_not_implemented": True},
@@ -9023,6 +19729,44 @@ def test_windows_qga_file_diagnostics_next_action_for_file_open_501():
     assert action["observed_501_not_implemented"] is True
     assert action["file_open_endpoint"] == "/nodes/Default/qemu/1521/agent/file-open"
     assert "HTTP 501" in action["action"]
+
+
+def test_windows_qga_file_diagnostics_login_ignores_proxy_env(monkeypatch):
+    captured = {}
+
+    class FakeSession:
+        def __init__(self):
+            self.verify = True
+            self.trust_env = True
+
+        def post(self, url, **_kwargs):
+            captured["url"] = url
+            captured["trust_env"] = self.trust_env
+            return type(
+                "Response",
+                (),
+                {
+                    "ok": False,
+                    "status_code": 401,
+                    "text": "unauthorized",
+                    "json": lambda _self: {},
+                },
+            )()
+
+    monkeypatch.setenv("HTTPS_PROXY", "http://127.0.0.1:9")
+    monkeypatch.setattr(windows_qga_file_diagnostics.requests, "Session", FakeSession)
+    args = Namespace(
+        proxmox_host="192.168.12.149",
+        proxmox_user="root@pam",
+        proxmox_password="secret",
+        http_timeout_seconds=1,
+    )
+
+    _session, evidence = windows_qga_file_diagnostics.login(args)
+
+    assert captured["url"] == "https://192.168.12.149:8006/api2/json/access/ticket"
+    assert captured["trust_env"] is False
+    assert evidence["status"] == 401
 
 
 def test_preflight_work_package_summarizes_qga_next_action(tmp_path):
@@ -9476,6 +20220,93 @@ def test_windows_lab_readiness_rejects_driver_not_loaded_even_with_online_target
     assert readiness["ready_for_windows_broad_runs"] is False
 
 
+def test_windows_lab_readiness_ctl_env_adds_server_to_no_proxy():
+    env = windows_lab_readiness.tamandua_ctl_env(
+        "http://192.168.12.146:4000",
+        {"HTTP_PROXY": "http://127.0.0.1:9", "NO_PROXY": "localhost,127.0.0.1"},
+    )
+
+    assert env["HTTP_PROXY"] == "http://127.0.0.1:9"
+    assert env["NO_PROXY"] == "localhost,127.0.0.1,192.168.12.146"
+    assert env["no_proxy"] == env["NO_PROXY"]
+
+
+def test_windows_lab_readiness_ctl_env_preserves_existing_no_proxy_host():
+    env = windows_lab_readiness.tamandua_ctl_env(
+        "https://tamandua.treantlab.org",
+        {"NO_PROXY": "localhost,tamandua.treantlab.org"},
+    )
+
+    assert env["NO_PROXY"] == "localhost,tamandua.treantlab.org"
+
+
+def test_agent_platform_live_ctl_env_adds_server_to_no_proxy():
+    env = agent_platform_live.tamandua_ctl_env(
+        "http://192.168.12.146:4000",
+        {"HTTP_PROXY": "http://127.0.0.1:9", "NO_PROXY": "localhost,127.0.0.1"},
+    )
+
+    assert env["HTTP_PROXY"] == "http://127.0.0.1:9"
+    assert env["NO_PROXY"] == "localhost,127.0.0.1,192.168.12.146"
+    assert env["no_proxy"] == env["NO_PROXY"]
+
+
+def test_agent_platform_live_run_ctl_passes_proxy_safe_env(monkeypatch, tmp_path):
+    captured = {}
+
+    def fake_run(command, **kwargs):
+        captured["command"] = command
+        captured["env"] = kwargs["env"]
+        return agent_platform_live.subprocess.CompletedProcess(
+            command,
+            0,
+            stdout=json.dumps({"data": []}),
+            stderr="",
+        )
+
+    monkeypatch.setattr(agent_platform_live.subprocess, "run", fake_run)
+    result = agent_platform_live.run_ctl(tmp_path / "tamandua-ctl.exe", "http://192.168.12.146:4000")
+
+    assert result["ok"]
+    assert captured["command"][-2:] == ["--server", "http://192.168.12.146:4000"]
+    assert "192.168.12.146" in captured["env"]["NO_PROXY"].split(",")
+    assert captured["env"]["no_proxy"] == captured["env"]["NO_PROXY"]
+
+
+def test_fleet_inventory_ctl_env_adds_server_to_no_proxy():
+    env = fleet_inventory.tamandua_ctl_env(
+        "http://192.168.12.146:4000",
+        {"HTTPS_PROXY": "http://127.0.0.1:9", "NO_PROXY": "localhost"},
+    )
+
+    assert env["HTTPS_PROXY"] == "http://127.0.0.1:9"
+    assert env["NO_PROXY"] == "localhost,192.168.12.146"
+    assert env["no_proxy"] == env["NO_PROXY"]
+
+
+def test_fleet_inventory_run_ctl_passes_proxy_safe_env(monkeypatch):
+    captured = {}
+
+    def fake_run(command, **kwargs):
+        captured["command"] = command
+        captured["env"] = kwargs["env"]
+        return fleet_inventory.subprocess.CompletedProcess(
+            command,
+            0,
+            stdout=json.dumps({"data": []}),
+            stderr="",
+        )
+
+    monkeypatch.setattr(fleet_inventory.subprocess, "run", fake_run)
+    result = fleet_inventory.run_ctl_agents_list("http://192.168.12.146:4000", 30)
+
+    assert result["exit_code"] == 0
+    assert result["json"] == {"data": []}
+    assert captured["command"][-2:] == ["--server", "http://192.168.12.146:4000"]
+    assert "192.168.12.146" in captured["env"]["NO_PROXY"].split(",")
+    assert captured["env"]["no_proxy"] == captured["env"]["NO_PROXY"]
+
+
 def test_windows_lab_readiness_markdown_renders_next_action(tmp_path):
     report = {
         "run_id": "20260604T000000Z-windows-lab-execution-readiness-probe",
@@ -9526,7 +20357,7 @@ def test_windows_connection_stability_accepts_active_stable_session_with_telemet
 
     assert [test["status"] for test in tests] == ["covered"] * 5
     assert stability["ready_for_windows_broad_runs"] is True
-    assert stability["stable_session_count"] == 1
+    assert stability["stable_session_count"] == 2
     assert stability["active_session_count"] == 1
     assert stability["telemetry_events"] == 13
     assert stability["next_action"]["missing_stability"] == []
@@ -9826,6 +20657,75 @@ def test_score_test_uses_inline_event_sample_detections():
     assert score["observed_expected_detections"] == ["encoded", "powershell"]
 
 
+def test_score_test_ignores_stale_inline_event_sample_detections():
+    score = validation.score_test(
+        {
+            "expected_telemetry": ["process_create"],
+            "expected_detections": ["encoded", "powershell"],
+        },
+        [{"event_type": "process_create", "source_name": "endpoint_process", "count": 1}],
+        [],
+        [],
+        [
+            {
+                "event_type": "process_create",
+                "severity": "high",
+                "created_at": "2026-06-14T08:04:40Z",
+                "source_timestamp": "2026-06-13T22:24:52.526",
+                "detections": [
+                    {
+                        "rule_name": "encoded_powershell_execution",
+                        "detection_type": "script_threat",
+                        "description": "Encoded PowerShell command line",
+                    }
+                ],
+            }
+        ],
+        noise_started_at=validation.parse_report_timestamp("2026-06-14T08:04:29Z"),
+    )
+
+    assert score["observed_expected_detections"] == []
+    assert score["missing_expected_detections"] == ["encoded", "powershell"]
+
+
+def test_score_test_uses_inserted_window_for_field_contract_even_when_source_timestamp_is_stale():
+    score = validation.score_test(
+        {
+            "expected_telemetry": ["process_create"],
+            "expected_detections": ["encoded", "powershell"],
+            "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+        },
+        [{"event_type": "process_create", "source_name": "kernel_driver", "count": 1}],
+        [],
+        [],
+        [
+            {
+                "event_type": "process_create",
+                "agent_id": "agent-1",
+                "hostname": "WIN-TEMPLATE",
+                "created_at": "2026-06-14T08:04:40Z",
+                "source_timestamp": "2026-06-13T22:24:52.526",
+                "payload": {
+                    "name": "cmd.exe",
+                    "cmdline": "cmd.exe /d /c whoami",
+                },
+                "detections": [
+                    {
+                        "rule_name": "encoded_powershell_execution",
+                        "detection_type": "script_threat",
+                        "description": "Encoded PowerShell command line",
+                    }
+                ],
+            }
+        ],
+        noise_started_at=validation.parse_report_timestamp("2026-06-14T08:04:29Z"),
+    )
+
+    assert score["missing_expected_fields"] == []
+    assert score["observed_expected_detections"] == []
+    assert score["missing_expected_detections"] == ["encoded", "powershell"]
+
+
 def test_score_test_accepts_explicit_alternative_telemetry_without_hiding_strict_gap():
     score = validation.score_test(
         {
@@ -9885,7 +20785,7 @@ def test_transport_only_live_response_alternative_uses_audit_field_contract():
 
 
 def test_tamandua_ctl_command_requires_semantic_marker_in_output(monkeypatch):
-    def fake_local_command(_invocation, cwd=None, timeout=120):
+    def fake_local_command(_invocation, cwd=None, timeout=120, env=None):
         return validation.CommandResult(
             host="local",
             command="tamandua-ctl remote command",
@@ -9920,6 +20820,91 @@ def test_tamandua_ctl_command_requires_semantic_marker_in_output(monkeypatch):
     assert result["error_code"] == "live_response_command_marker_missing"
 
 
+def test_tamandua_ctl_runner_env_adds_server_to_no_proxy():
+    env = validation.tamandua_ctl_env(
+        "http://192.168.12.146:4000",
+        {"HTTP_PROXY": "http://127.0.0.1:9", "NO_PROXY": "localhost"},
+    )
+
+    assert env["HTTP_PROXY"] == "http://127.0.0.1:9"
+    assert env["NO_PROXY"] == "localhost,192.168.12.146"
+    assert env["no_proxy"] == env["NO_PROXY"]
+
+
+def test_tamandua_ctl_command_passes_proxy_safe_env(monkeypatch):
+    captured = {}
+
+    def fake_local_command(invocation, cwd=None, timeout=120, env=None):
+        captured["invocation"] = invocation
+        captured["env"] = env
+        return validation.CommandResult(
+            host="local",
+            command="tamandua-ctl remote command",
+            exit_code=0,
+            stdout=(
+                '{"status":"completed","shell_ready":true,"unconfirmed_dispatch":false,'
+                '"output":"tamandua-semantic-rewrite-test-case\\n",'
+                '"events":[{"event":"session_started"}]}'
+            ),
+            stderr="",
+            duration_ms=1000,
+        )
+
+    monkeypatch.setattr(validation, "local_command", fake_local_command)
+    args = Namespace(
+        agent_id="agent-1",
+        live_response_idle_timeout_seconds=2,
+        live_response_shell_start_timeout_seconds=20,
+        live_response_supervisor_mode=False,
+        tamandua_ctl_path="tamandua-ctl",
+        tamandua_ctl_server="http://192.168.12.146:4000",
+        tamandua_ctl_token=None,
+    )
+
+    result = validation.tamandua_ctl_command(
+        args,
+        "sh -lc 'echo tamandua-semantic-rewrite-test-case; id'",
+        30,
+    )
+
+    assert result["outer_exit_code"] == 0
+    assert captured["invocation"][-2:] == ["--", "sh -lc 'echo tamandua-semantic-rewrite-test-case; id'"]
+    assert "192.168.12.146" in captured["env"]["NO_PROXY"].split(",")
+    assert captured["env"]["no_proxy"] == captured["env"]["NO_PROXY"]
+
+
+def test_tamandua_ctl_agent_state_passes_proxy_safe_env(monkeypatch):
+    captured = {}
+
+    def fake_local_command(invocation, cwd=None, timeout=120, env=None):
+        captured["invocation"] = invocation
+        captured["env"] = env
+        return validation.CommandResult(
+            host="local",
+            command="tamandua-ctl remote agents list",
+            exit_code=0,
+            stdout=json.dumps({"data": [{"id": "agent-1", "hostname": "WIN-TEMPLATE"}]}),
+            stderr="",
+            duration_ms=1000,
+        )
+
+    monkeypatch.setattr(validation, "local_command", fake_local_command)
+    args = Namespace(
+        agent_id="agent-1",
+        agent_hostname="WIN-TEMPLATE",
+        tamandua_ctl_path="tamandua-ctl",
+        tamandua_ctl_server="http://192.168.12.146:4000",
+        tamandua_ctl_token=None,
+    )
+
+    state = validation.tamandua_ctl_agent_state(args)
+
+    assert state["agent"]["id"] == "agent-1"
+    assert captured["invocation"][-2:] == ["--server", "http://192.168.12.146:4000"]
+    assert "192.168.12.146" in captured["env"]["NO_PROXY"].split(",")
+    assert captured["env"]["no_proxy"] == captured["env"]["NO_PROXY"]
+
+
 def test_score_test_accepts_persisted_kernel_driver_event_as_raw_evidence():
     before = {"driver_status": {"raw_event_type_counts": {"registry_set_value": 10}}}
     after = {"driver_status": {"raw_event_type_counts": {"registry_set_value": 10}}}
@@ -9932,6 +20917,30 @@ def test_score_test_accepts_persisted_kernel_driver_event_as_raw_evidence():
         [
             {"event_type": "process_create", "source_name": "endpoint_process", "count": 1},
             {"event_type": "registry_set_value", "source_name": "kernel_driver", "count": 1},
+        ],
+        [],
+        [],
+        [],
+        before,
+        after,
+    )
+
+    assert score["missing_expected_driver_raw_event_types"] == []
+    assert score["coverage"]["driver_raw"] == "ok"
+
+
+def test_score_test_accepts_persisted_kernel_driver_inferred_event_as_raw_evidence():
+    before = {"driver_status": {"raw_event_type_counts": {"registry_set_value": 10}}}
+    after = {"driver_status": {"raw_event_type_counts": {"registry_set_value": 10}}}
+
+    score = validation.score_test(
+        {
+            "expected_telemetry": ["process_create"],
+            "expected_driver_raw_event_types": ["registry_set_value"],
+        },
+        [
+            {"event_type": "process_create", "source_name": "endpoint_process", "count": 1},
+            {"event_type": "registry_set_value", "source_name": "kernel_driver_inferred", "count": 1},
         ],
         [],
         [],
@@ -10103,6 +21112,32 @@ def test_windows_roadmap_batch_generator_declares_live_response_audit_alternativ
     assert "expected_fields" not in test
 
 
+def test_windows_roadmap_batch_generator_accepts_t1505_file_activity_alternatives():
+    scenario = {
+        "id": "win-persistence-999",
+        "name": "Generated web shell file activity contract",
+        "technique_id": "T1505.003",
+        "technique_name": "Web Shell",
+        "tactic": "persistence",
+        "validation_category": "alert-quality",
+        "benchmark_lane": "enterprise-eval",
+        "executor": "alert_quality",
+        "upstream_target_lane": None,
+        "existing_profile_refs": [],
+        "variant": "safe",
+        "status": "planned",
+        "safe_level": "safe",
+    }
+
+    test = roadmap_batch.profile_test("windows", scenario)
+
+    assert test["expected_telemetry"] == ["process_create", "file_create"]
+    assert ["process_create", "file_create"] in test["expected_telemetry_any"]
+    assert ["process_create", "file_modify"] in test["expected_telemetry_any"]
+    assert ["process_create", "file_delete"] in test["expected_telemetry_any"]
+    assert ["live_response_command_completed"] in test["expected_telemetry_any"]
+
+
 def test_cmd_fallback_commands_get_observable_dwell():
     command = 'cmd.exe /d /c "curl.exe -I http://127.0.0.1/ 2>nul || ver"'
 
@@ -10111,6 +21146,162 @@ def test_cmd_fallback_commands_get_observable_dwell():
     assert normalized.startswith('cmd.exe /d /c "curl.exe')
     assert "ping -n 9 127.0.0.1 > nul" in normalized
     assert normalized.endswith('"')
+
+
+def test_merge_tamandua_validation_reports_recomputes_summary_and_gate(tmp_path):
+    profile = {"profile_id": "windows-roadmap-300-batch-01"}
+    base = {
+        "run_id": "slice-a",
+        "started_at": "2026-06-15T08:00:00Z",
+        "finished_at": "2026-06-15T08:01:00Z",
+        "execute": True,
+        "benchmark_lane": "enterprise-eval",
+        "profile": profile,
+        "target": {"agent_id": "agent-1", "vmid": 1521},
+        "git": {"commit_short": "abc123", "dirty": True},
+        "quality_gate": {
+            "thresholds": {
+                "benchmark_lane": "enterprise-eval",
+                "fail_on_missed": True,
+                "fail_on_partial": True,
+                "max_driver_channel_drops": 0,
+                "max_driver_kernel_drops": 0,
+                "max_unexpected_high_critical": 0,
+                "max_unknown_source": 0,
+                "require_upstream": False,
+            }
+        },
+        "selected_tests": ["test-a"],
+        "tests": [
+            {
+                "id": "test-a",
+                "status": "covered",
+                "executor_used": "command",
+                "execution_class": "deterministic",
+                "claim_level": "deterministic",
+                "tags": ["tactic:execution", "mitre:T1059", "category:telemetry"],
+                "score": {
+                    "status": "covered",
+                    "evidence_source_counts": {"live_response_audit": 1},
+                    "missing_expected_telemetry": [],
+                    "missing_expected_fields": [],
+                },
+            }
+        ],
+    }
+    second = copy.deepcopy(base)
+    second["run_id"] = "slice-b"
+    second["started_at"] = "2026-06-15T08:02:00Z"
+    second["finished_at"] = "2026-06-15T08:03:00Z"
+    second["selected_tests"] = ["test-b"]
+    second["tests"][0]["id"] = "test-b"
+    first_path = tmp_path / "slice-a.json"
+    second_path = tmp_path / "slice-b.json"
+    first_path.write_text(json.dumps(base), encoding="utf-8")
+    second_path.write_text(json.dumps(second), encoding="utf-8")
+
+    report = merge_reports.merge_reports(
+        [first_path, second_path],
+        Namespace(
+            run_id="merged-run",
+            profile_id=None,
+            benchmark_lane=None,
+            allow_duplicates=False,
+            dedupe_tests=None,
+            allow_missed=None,
+            allow_partial=None,
+            require_upstream=None,
+            max_driver_channel_drops=None,
+            max_driver_kernel_drops=None,
+            max_unexpected_high_critical=None,
+            max_unknown_source=None,
+        ),
+    )
+
+    assert report["run_id"] == "merged-run"
+    assert report["started_at"] == "2026-06-15T08:00:00Z"
+    assert report["finished_at"] == "2026-06-15T08:03:00Z"
+    assert report["summary"]["tests"] == 2
+    assert report["summary"]["covered"] == 2
+    assert report["summary"]["evidence_source_coverage"]["live_response_audit"]["events"] == 2
+    assert report["quality_gate"]["passed"] is True
+    assert report["merge"]["source_run_ids"] == ["slice-a", "slice-b"]
+
+
+def test_merge_tamandua_validation_reports_dedupes_prefer_covered(tmp_path):
+    profile = {"profile_id": "windows-roadmap-300-batch-03"}
+    base = {
+        "run_id": "slice-a",
+        "started_at": "2026-06-15T08:00:00Z",
+        "finished_at": "2026-06-15T08:01:00Z",
+        "execute": True,
+        "benchmark_lane": "enterprise-eval",
+        "profile": profile,
+        "target": {"agent_id": "agent-1", "vmid": 1521},
+        "git": {"commit_short": "abc123", "dirty": True},
+        "quality_gate": {
+            "thresholds": {
+                "benchmark_lane": "enterprise-eval",
+                "fail_on_missed": True,
+                "fail_on_partial": True,
+                "max_driver_channel_drops": 0,
+                "max_driver_kernel_drops": 0,
+                "max_unexpected_high_critical": 0,
+                "max_unknown_source": 0,
+                "require_upstream": False,
+            }
+        },
+        "selected_tests": ["test-a"],
+        "tests": [
+            {
+                "id": "test-a",
+                "status": "infra_blocked",
+                "executor_used": "command",
+                "execution_class": "deterministic",
+                "claim_level": "deterministic",
+                "tags": ["tactic:credential-access", "mitre:T1003.001", "category:driver-contract"],
+                "score": {"status": "infra_blocked", "gap_category": "infrastructure"},
+            }
+        ],
+    }
+    replacement = copy.deepcopy(base)
+    replacement["run_id"] = "slice-b"
+    replacement["selected_tests"] = ["test-a"]
+    replacement["tests"][0]["status"] = "covered"
+    replacement["tests"][0]["score"] = {
+        "status": "covered",
+        "evidence_source_counts": {"endpoint_event": 1},
+        "missing_expected_telemetry": [],
+        "missing_expected_fields": [],
+    }
+    first_path = tmp_path / "slice-a.json"
+    second_path = tmp_path / "slice-b.json"
+    first_path.write_text(json.dumps(base), encoding="utf-8")
+    second_path.write_text(json.dumps(replacement), encoding="utf-8")
+
+    report = merge_reports.merge_reports(
+        [first_path, second_path],
+        Namespace(
+            run_id="merged-run",
+            profile_id=None,
+            benchmark_lane=None,
+            allow_duplicates=False,
+            dedupe_tests="prefer-covered",
+            allow_missed=None,
+            allow_partial=None,
+            require_upstream=None,
+            max_driver_channel_drops=None,
+            max_driver_kernel_drops=None,
+            max_unexpected_high_critical=None,
+            max_unknown_source=None,
+        ),
+    )
+
+    assert [test["id"] for test in report["tests"]] == ["test-a"]
+    assert report["tests"][0]["status"] == "covered"
+    assert report["summary"]["tests"] == 1
+    assert report["summary"]["covered"] == 1
+    assert report["quality_gate"]["passed"] is True
 
 
 def test_benchmark_setup_alert_filter_is_path_scoped_for_caldera_harness():
@@ -10165,6 +21356,28 @@ def test_benchmark_setup_alert_filter_excludes_enterprise_eval_marker():
                     }
                 ]
             },
+        }
+    )
+
+
+def test_benchmark_run_key_persistence_event_excludes_marker_only():
+    assert validation.is_benchmark_run_key_persistence_event(
+        {
+            "event_type": "registry_set_value",
+            "detection_name": "registry_t1547_001",
+            "key_path": r"HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+            "value_name": "TamanduaBenchRunKey",
+            "severity": "high",
+        }
+    )
+
+    assert not validation.is_benchmark_run_key_persistence_event(
+        {
+            "event_type": "registry_set_value",
+            "detection_name": "registry_t1547_001",
+            "key_path": r"HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Run",
+            "value_name": "Updater",
+            "severity": "high",
         }
     )
 

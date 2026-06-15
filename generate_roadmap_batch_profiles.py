@@ -11,7 +11,12 @@ from typing import Any
 from generate_windows_p0_roadmap_profile import COMMANDS as WINDOWS_COMMANDS
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 ROADMAP_DIR = ROOT / "tools" / "detection_validation" / "roadmaps"
 PROFILE_DIR = ROOT / "tools" / "detection_validation" / "profiles"
 
@@ -32,6 +37,13 @@ OPTIONAL_TELEMETRY = [
 WINDOWS_TECHNIQUE_TELEMETRY = {
     "T1547.001": ["process_create", "registry_set_value"],
     "T1505.003": ["process_create", "file_create"],
+}
+WINDOWS_TECHNIQUE_TELEMETRY_ANY = {
+    "T1505.003": [
+        ["process_create", "file_create"],
+        ["process_create", "file_modify"],
+        ["process_create", "file_delete"],
+    ],
 }
 
 
@@ -151,9 +163,11 @@ def profile_test(platform: str, scenario: dict[str, Any]) -> dict[str, Any] | No
         "risk": "low" if scenario.get("safe_level") == "safe" else "medium",
     }
     if platform == "windows":
+        telemetry_any = list(WINDOWS_TECHNIQUE_TELEMETRY_ANY.get(technique, []))
+        telemetry_any.append([LIVE_RESPONSE_AUDIT_TELEMETRY])
         test.update(
             {
-                "expected_telemetry_any": [[LIVE_RESPONSE_AUDIT_TELEMETRY]],
+                "expected_telemetry_any": telemetry_any,
                 "expected_fields_by_event_type": {
                     "process_create": WINDOWS_REQUIRED_FIELDS,
                     LIVE_RESPONSE_AUDIT_TELEMETRY: LIVE_RESPONSE_AUDIT_REQUIRED_FIELDS,
@@ -161,12 +175,19 @@ def profile_test(platform: str, scenario: dict[str, Any]) -> dict[str, Any] | No
                 "telemetry_contract_notes": [
                     "process_create remains the strict endpoint telemetry expectation",
                     (
+                        "T1505.003 accepts file_modify/file_delete as Windows file-system "
+                        "evidence when the create edge is coalesced or missed"
+                    )
+                    if technique == "T1505.003"
+                    else "",
+                    (
                         f"{LIVE_RESPONSE_AUDIT_TELEMETRY} is accepted only as tamandua-ctl "
                         "live-response audit evidence when endpoint collection is unavailable or not_loaded"
                     ),
                 ],
             }
         )
+        test["telemetry_contract_notes"] = [note for note in test["telemetry_contract_notes"] if note]
     else:
         test["expected_fields"] = UNIX_REQUIRED_FIELDS
     return test

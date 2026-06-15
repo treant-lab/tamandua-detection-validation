@@ -9,6 +9,7 @@ Tamandua agent config/logs when guest-exec is unstable.
 from __future__ import annotations
 
 import argparse
+import base64
 import json
 import os
 import subprocess
@@ -23,10 +24,32 @@ import urllib3
 
 urllib3.disable_warnings()
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 PROFILE_ID = "windows-proxmox-qga-file-diagnostics-probe"
 PROFILE_NAME = "Windows Proxmox QGA File Diagnostics Probe"
+
+
+def load_dotenv(path: Path = ROOT / ".env") -> None:
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        value = value.strip()
+        if len(value) >= 2 and value[0] in {"'", '"'} and value[-1] == value[0]:
+            value = value[1:-1]
+        os.environ[key] = value
 
 
 def utc_now() -> str:
@@ -53,6 +76,7 @@ def git_snapshot() -> dict[str, Any]:
 def login(args: argparse.Namespace) -> tuple[requests.Session | None, dict[str, Any]]:
     session = requests.Session()
     session.verify = False
+    session.trust_env = False
     base = f"https://{args.proxmox_host}:8006/api2/json"
     if not args.proxmox_password:
         return None, {
@@ -182,7 +206,7 @@ def next_action_hint(
             missing_diagnostics.append("proxmox_api_auth")
         elif test_id == "qga-file-commands-advertised":
             missing_diagnostics.append("guest_file_commands_advertised")
-        elif test_id == "proxmox-agent-file-open-exposed":
+        elif test_id in {"proxmox-agent-file-open-exposed", "proxmox-agent-readonly-diagnostics-transport"}:
             missing_diagnostics.append("proxmox_agent_file_open_exposed")
 
     if auth_evidence.get("error") == "missing_proxmox_password":
@@ -272,6 +296,94 @@ def summarize_error(response: dict[str, Any]) -> str | None:
     return response.get("error")
 
 
+def decode_qga(value: Any) -> str:
+    if value is None:
+        return ""
+    text = str(value)
+    try:
+        return base64.b64decode(text, validate=True).decode("utf-8", errors="replace")
+    except Exception:
+        return text
+
+
+def qga_guest_exec_file_metadata(session: requests.Session, args: argparse.Namespace) -> dict[str, Any]:
+    marker = "tamandua-qga-file-metadata-ready"
+    candidates = [
+        r"D:\ProgramData\Tamandua\config\agent.toml",
+        r"C:\ProgramData\Tamandua\config\agent.toml",
+        r"D:\ProgramData\Tamandua\logs\agent.log",
+        r"C:\ProgramData\Tamandua\logs\agent.log",
+    ]
+    lines = [f"echo {marker}"]
+    for path in candidates:
+        lines.append(f'if exist "{path}" echo exists={path}')
+    raw_input = "\r\n".join(lines + ["exit /b 0", ""])
+    start = request_json(
+        session,
+        args,
+        "POST",
+        f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/exec",
+        data={"command": "cmd.exe", "input-data": raw_input},
+    )
+    pid = (((start.get("body") or {}).get("data") or {}) if isinstance(start.get("body"), dict) else {}).get("pid")
+    result: dict[str, Any] = {
+        "start": {
+            "status": start.get("status"),
+            "ok": start.get("ok"),
+            "duration_ms": start.get("duration_ms"),
+            "error": summarize_error(start),
+        },
+        "transport": "proxmox_api_qga_guest_exec",
+        "reads_file_contents": False,
+    }
+    if not start.get("ok") or pid is None:
+        result.update({"ready": False, "error": "guest_exec_start_failed"})
+        return result
+
+    deadline = time.monotonic() + max(5, int(getattr(args, "guest_exec_timeout_seconds", 30)))
+    last: dict[str, Any] = {}
+    while time.monotonic() < deadline:
+        time.sleep(1)
+        poll = request_json(
+            session,
+            args,
+            "GET",
+            f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/exec-status",
+            params={"pid": pid},
+        )
+        last = poll
+        data = ((poll.get("body") or {}).get("data") or {}) if isinstance(poll.get("body"), dict) else {}
+        if data.get("exited"):
+            stdout = decode_qga(data.get("out-data"))
+            stderr = decode_qga(data.get("err-data"))
+            result.update(
+                {
+                    "ready": data.get("exitcode") == 0 and marker in stdout,
+                    "exitcode": data.get("exitcode"),
+                    "stdout_tail": stdout[-1000:],
+                    "stderr_tail": stderr[-1000:],
+                    "marker_seen": marker in stdout,
+                    "existing_candidate_count": sum(1 for line in stdout.splitlines() if line.startswith("exists=")),
+                    "poll": {"status": poll.get("status"), "ok": poll.get("ok"), "duration_ms": poll.get("duration_ms")},
+                }
+            )
+            return result
+
+    result.update(
+        {
+            "ready": False,
+            "error": "guest_exec_status_timeout",
+            "last_poll": {
+                "status": last.get("status"),
+                "ok": last.get("ok"),
+                "duration_ms": last.get("duration_ms"),
+                "error": summarize_error(last),
+            },
+        }
+    )
+    return result
+
+
 def build_report(args: argparse.Namespace) -> dict[str, Any]:
     started = utc_now()
     session, auth = login(args)
@@ -288,6 +400,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     qga_info: dict[str, Any] = {}
     commands: list[str] = []
     file_attempts: list[dict[str, Any]] = []
+    guest_exec_metadata: dict[str, Any] = {}
     if session is not None:
         qga_info = request_json(session, args, "GET", f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/info")
         commands = supported_commands(qga_info)
@@ -308,16 +421,20 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         )
         file_attempts = qga_file_open_attempts(session, args)
         exposed = any(attempt.get("ok") for attempt in file_attempts)
+        if not exposed and "guest-exec" in commands:
+            guest_exec_metadata = qga_guest_exec_file_metadata(session, args)
         tests.append(
             make_result(
-                "proxmox-agent-file-open-exposed",
-                "Proxmox API exposes QGA file-open endpoint",
-                exposed,
+                "proxmox-agent-readonly-diagnostics-transport",
+                "Proxmox exposes a read-only QGA diagnostics transport",
+                exposed or bool(guest_exec_metadata.get("ready")),
                 "runner",
                 {
                     "attempts": file_attempts,
                     "expected_endpoint": f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/file-open",
                     "observed_501_not_implemented": any(attempt.get("status") == 501 for attempt in file_attempts),
+                    "file_open_exposed": exposed,
+                    "guest_exec_metadata": guest_exec_metadata,
                 },
             )
         )
@@ -387,6 +504,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 ),
             },
             "file_open_attempts": file_attempts,
+            "guest_exec_metadata": guest_exec_metadata,
         },
         "tests": tests,
     }
@@ -447,6 +565,7 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
 
 
 def parse_args() -> argparse.Namespace:
+    load_dotenv()
     parser = argparse.ArgumentParser(description=PROFILE_NAME)
     parser.add_argument("--proxmox-host", default=os.getenv("TAMANDUA_PROXMOX_HOST", "192.168.12.149"))
     parser.add_argument("--proxmox-user", default=os.getenv("TAMANDUA_PROXMOX_USER", "root@pam"))
@@ -454,6 +573,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--proxmox-node", default=os.getenv("TAMANDUA_PROXMOX_NODE", "Default"))
     parser.add_argument("--vmid", type=int, default=int(os.getenv("TAMANDUA_WINDOWS_VMID", "1521")))
     parser.add_argument("--http-timeout-seconds", type=int, default=int(os.getenv("TAMANDUA_PROXMOX_HTTP_TIMEOUT_SECONDS", "20")))
+    parser.add_argument("--guest-exec-timeout-seconds", type=int, default=int(os.getenv("TAMANDUA_QGA_GUEST_EXEC_TIMEOUT_SECONDS", "30")))
     parser.add_argument("--output-dir", default=str(RUNS_DIR))
     return parser.parse_args()
 

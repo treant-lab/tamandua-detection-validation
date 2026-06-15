@@ -13,7 +13,12 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 PROFILE_DIR = ROOT / "tools" / "detection_validation" / "profiles"
 JSON_OUT = ROOT / "tools" / "detection_validation" / "roadmaps" / "windows_detection_roadmap_300.json"
 MD_OUT = ROOT / "docs" / "benchmarks" / "WINDOWS_DETECTION_ROADMAP_300.md"

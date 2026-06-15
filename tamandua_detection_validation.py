@@ -32,11 +32,23 @@ import uuid
 from pathlib import Path
 from typing import Any
 
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    # Fallback for direct execution without root_resolver
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 
-ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_PROFILE = ROOT / "tools" / "detection_validation" / "profiles" / "windows_atomic_smoke.json"
-DEFAULT_OUTPUT_DIR = ROOT / "docs" / "benchmarks" / "runs"
-PROFILE_DIR = ROOT / "tools" / "detection_validation" / "profiles"
+# Paths adapt based on standalone vs monorepo mode
+if is_standalone():
+    DEFAULT_PROFILE = Path(__file__).parent / "profiles" / "windows_atomic_smoke.json"
+    DEFAULT_OUTPUT_DIR = RUNS_DIR
+    PROFILE_DIR = Path(__file__).parent / "profiles"
+else:
+    DEFAULT_PROFILE = ROOT / "tools" / "detection_validation" / "profiles" / "windows_atomic_smoke.json"
+    DEFAULT_OUTPUT_DIR = RUNS_DIR
+    PROFILE_DIR = ROOT / "tools" / "detection_validation" / "profiles"
 
 
 @dataclasses.dataclass
@@ -175,7 +187,12 @@ def classify_live_response_execution_error(execution: dict[str, Any]) -> str | N
     return "live_response_execution_channel_failed"
 
 
-def local_command(command: list[str], cwd: Path | None = None, timeout: int = 60) -> CommandResult:
+def local_command(
+    command: list[str],
+    cwd: Path | None = None,
+    timeout: int = 60,
+    env: dict[str, str] | None = None,
+) -> CommandResult:
     started = time.monotonic()
     try:
         proc = subprocess.run(
@@ -186,6 +203,7 @@ def local_command(command: list[str], cwd: Path | None = None, timeout: int = 60
             encoding="utf-8",
             errors="replace",
             timeout=timeout,
+            env=env,
         )
     except subprocess.TimeoutExpired as exc:
         return CommandResult(
@@ -216,6 +234,30 @@ def local_command(command: list[str], cwd: Path | None = None, timeout: int = 60
         stderr=proc.stderr,
         duration_ms=int((time.monotonic() - started) * 1000),
     )
+
+
+def tamandua_ctl_env(server: str | None, base_env: dict[str, str] | None = None) -> dict[str, str]:
+    env = dict(base_env or os.environ)
+    if not server:
+        return env
+    host = urllib.parse.urlparse(server).hostname
+    if not host:
+        return env
+
+    existing_values: list[str] = []
+    for name in ("NO_PROXY", "no_proxy"):
+        existing = env.get(name)
+        if existing:
+            existing_values.extend(item.strip() for item in existing.split(",") if item.strip())
+
+    merged: list[str] = []
+    for value in [*existing_values, host]:
+        if value and value not in merged:
+            merged.append(value)
+    no_proxy = ",".join(merged)
+    env["NO_PROXY"] = no_proxy
+    env["no_proxy"] = no_proxy
+    return env
 
 
 def require_paramiko():
@@ -392,10 +434,14 @@ class ProxmoxApiHost:
             headers=headers,
             method=method,
         )
-        with urllib.request.urlopen(request, timeout=30, context=self.context) as response:
+        opener = urllib.request.build_opener(
+            urllib.request.ProxyHandler({}),
+            urllib.request.HTTPSHandler(context=self.context),
+        )
+        with opener.open(request, timeout=30) as response:
             return json.loads(response.read().decode("utf-8"))
 
-    def guest_exec(self, vmid: int, command: str, timeout: int = 120) -> dict[str, Any]:
+    def guest_exec(self, vmid: int, command: str, timeout: int = 120, retries: int = 3) -> dict[str, Any]:
         started = time.monotonic()
         guest_os = os.getenv("TAMANDUA_QGA_GUEST_OS", "windows").strip().lower()
         if guest_os in {"linux", "bash", "sh"}:
@@ -419,11 +465,57 @@ class ProxmoxApiHost:
         payload = urllib.parse.urlencode(
             {"command": guest_command, "input-data": input_data}
         ).encode()
-        start = self._request(
-            "POST",
-            f"/nodes/{urllib.parse.quote(self.node)}/qemu/{vmid}/agent/exec",
-            payload=payload,
-        )
+        start: dict[str, Any] | None = None
+        start_error: str | None = None
+        for attempt in range(max(0, retries) + 1):
+            try:
+                start = self._request(
+                    "POST",
+                    f"/nodes/{urllib.parse.quote(self.node)}/qemu/{vmid}/agent/exec",
+                    payload=payload,
+                )
+                start_error = None
+                break
+            except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as exc:
+                error_text = str(exc)
+                if isinstance(exc, urllib.error.HTTPError):
+                    try:
+                        body = exc.read().decode("utf-8", errors="replace")
+                    except Exception:
+                        body = ""
+                    if body:
+                        error_text = f"{error_text}: {body}"
+                start_error = error_text
+                retryable = (
+                    "qemu guest agent is not running" in error_text.lower()
+                    or "guest agent is not running" in error_text.lower()
+                    or "got timeout" in error_text.lower()
+                    or "timeout" in error_text.lower()
+                )
+                if attempt >= max(0, retries) or not retryable:
+                    break
+                time.sleep(5 * (attempt + 1))
+        if start_error is not None or start is None:
+            result = CommandResult(
+                host=self.host,
+                command=command_text,
+                exit_code=1,
+                stdout="",
+                stderr=start_error or "Proxmox API guest exec did not start",
+                duration_ms=int((time.monotonic() - started) * 1000),
+            )
+            return {
+                "outer_exit_code": 1,
+                "stdout": "",
+                "stderr": result.stderr,
+                "guest_exit_code": None,
+                "guest_stdout": "",
+                "guest_stderr": result.stderr,
+                "transport": "proxmox_api_qga",
+                "error_code": "qga_execution_channel_failed",
+                "error": result.stderr,
+                "command_result": dataclasses.asdict(result),
+            }
         pid = ((start.get("data") or {}) if isinstance(start, dict) else {}).get("pid")
         if pid is None:
             return {
@@ -450,11 +542,18 @@ class ProxmoxApiHost:
         last: dict[str, Any] = {}
         while time.monotonic() < deadline:
             time.sleep(1)
-            status = self._request(
-                "GET",
-                f"/nodes/{urllib.parse.quote(self.node)}/qemu/{vmid}/agent/exec-status?"
-                + urllib.parse.urlencode({"pid": pid}),
-            )
+            try:
+                status = self._request(
+                    "GET",
+                    f"/nodes/{urllib.parse.quote(self.node)}/qemu/{vmid}/agent/exec-status?"
+                    + urllib.parse.urlencode({"pid": pid}),
+                )
+            except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as exc:
+                last = dict(last)
+                last["exitcode"] = 124
+                last["err-data"] = (last.get("err-data") or "") + f"\nQGA exec-status failed: {exc}"
+                time.sleep(2)
+                continue
             last = (status.get("data") or {}) if isinstance(status, dict) else {}
             if last.get("exited"):
                 break
@@ -622,7 +721,7 @@ def guest_command(
     retries: int = 3,
 ) -> dict[str, Any]:
     if isinstance(proxmox, ProxmoxApiHost):
-        return proxmox.guest_exec(vmid, windows_command, timeout=timeout)
+        return proxmox.guest_exec(vmid, windows_command, timeout=timeout, retries=retries)
 
     command = qm_guest_exec_command(vmid, windows_command, timeout)
     result = proxmox.run(command, timeout=timeout + 30)
@@ -686,7 +785,18 @@ def tamandua_ctl_command(args: argparse.Namespace, command: str, timeout: int) -
     # platform shell quoting such as `sh -lc '...'`.
     invocation.extend(["--", command])
 
-    result = local_command(invocation, cwd=ROOT, timeout=timeout + 10)
+    result = local_command(
+        invocation,
+        cwd=ROOT,
+        timeout=timeout + 10,
+        env=tamandua_ctl_env(args.tamandua_ctl_server),
+    )
+    command_result = dataclasses.asdict(result)
+    if args.tamandua_ctl_token:
+        command_result["command"] = str(command_result.get("command") or "").replace(
+            args.tamandua_ctl_token,
+            "<redacted-token>",
+        )
     parsed: dict[str, Any] = {
         "outer_exit_code": result.exit_code,
         "stdout": result.stdout,
@@ -695,7 +805,7 @@ def tamandua_ctl_command(args: argparse.Namespace, command: str, timeout: int) -
         "guest_stdout": "",
         "guest_stderr": result.stderr,
         "transport": "tamandua_ctl_live_response",
-        "command_result": dataclasses.asdict(result),
+        "command_result": command_result,
     }
     live_response_error = classify_live_response_execution_error(parsed)
     if result.exit_code not in (0, None) and live_response_error:
@@ -806,7 +916,12 @@ def tamandua_ctl_agent_state(args: argparse.Namespace) -> dict[str, Any]:
     if args.tamandua_ctl_token:
         invocation.extend(["--token", args.tamandua_ctl_token])
 
-    result = local_command(invocation, cwd=ROOT, timeout=45)
+    result = local_command(
+        invocation,
+        cwd=ROOT,
+        timeout=45,
+        env=tamandua_ctl_env(args.tamandua_ctl_server),
+    )
     state: dict[str, Any] = {
         "transport": "tamandua_ctl_agents_list",
         "command_result": dataclasses.asdict(result),
@@ -1199,7 +1314,8 @@ def caldera_request(
     request = urllib.request.Request(url, data=data, headers=headers, method=method)
     started = time.monotonic()
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(request, timeout=timeout) as response:
             body = response.read().decode(errors="replace")
             parsed = json.loads(body) if body.strip() else {}
             return {
@@ -1864,6 +1980,7 @@ select jsonb_build_object(
   'hostname', hostname,
   'status', status,
   'last_seen_at', last_seen_at,
+  'db_now', now(),
   'agent_version', agent_version,
   'os_type', os_type,
   'os_version', os_version,
@@ -1888,7 +2005,7 @@ def parse_agent_timestamp(value: Any) -> dt.datetime | None:
     if not text:
         return None
     text = re.sub(
-        r"(\.\d{1,6})(?=Z|[+-]\d{2}:?\d{2}$)",
+        r"(\.\d{1,6})(?=Z|[+-]\d{2}:?\d{2}$|$)",
         lambda match: match.group(1).ljust(7, "0"),
         text,
     )
@@ -1905,7 +2022,31 @@ def parse_report_timestamp(value: Any) -> dt.datetime | None:
     return parse_agent_timestamp(value)
 
 
-def evaluate_agent_readiness(agent_state: dict[str, Any], freshness_seconds: int) -> dict[str, Any]:
+def report_row_has_stale_source_timestamp(
+    row: dict[str, Any],
+    noise_started_at: dt.datetime | None,
+) -> bool:
+    """Return true when a DB row was inserted during the run but sourced earlier."""
+    if noise_started_at is None:
+        return False
+    source_timestamp = parse_report_timestamp(row.get("last_source_at") or row.get("source_timestamp"))
+    if source_timestamp is None:
+        return False
+    if source_timestamp < noise_started_at:
+        return True
+    row_timestamp = parse_report_timestamp(
+        row.get("last_at") or row.get("created_at") or row.get("inserted_at") or row.get("updated_at")
+    )
+    if row_timestamp is not None and source_timestamp < row_timestamp - dt.timedelta(minutes=5):
+        return True
+    return False
+
+
+def evaluate_agent_readiness(
+    agent_state: dict[str, Any],
+    freshness_seconds: int,
+    reference_time: dt.datetime | None = None,
+) -> dict[str, Any]:
     issues: list[str] = []
     status = str(agent_state.get("status") or "").lower()
     last_seen = parse_agent_timestamp(agent_state.get("last_seen_at"))
@@ -1918,7 +2059,8 @@ def evaluate_agent_readiness(agent_state: dict[str, Any], freshness_seconds: int
     if last_seen is None:
         issues.append("agent_last_seen_missing_or_unparseable")
     else:
-        age_seconds = max(0.0, (utc_now() - last_seen).total_seconds())
+        reference = reference_time or parse_agent_timestamp(agent_state.get("db_now")) or utc_now()
+        age_seconds = max(0.0, (reference - last_seen).total_seconds())
         if freshness_seconds >= 0 and age_seconds > freshness_seconds:
             issues.append(f"agent_last_seen_stale_{int(age_seconds)}s")
 
@@ -1929,6 +2071,8 @@ def evaluate_agent_readiness(agent_state: dict[str, Any], freshness_seconds: int
         "last_seen_at": agent_state.get("last_seen_at"),
         "last_seen_age_seconds": age_seconds,
         "freshness_seconds": freshness_seconds,
+        "reference_time": iso(reference) if last_seen is not None else None,
+        "reference_time_source": "db_now" if last_seen is not None and agent_state.get("db_now") else "local_utc_now",
     }
 
 
@@ -2256,6 +2400,7 @@ normalized as (
   select
     event_type,
     severity,
+    source_timestamp,
     created_at,
     coalesce(det_obj->>'rule_name', det_obj->>'rule', det_obj->>'name', 'unknown') as rule_name,
     coalesce(det_obj->>'detection_type', det_obj->>'type', 'unknown') as detection_type,
@@ -2265,6 +2410,7 @@ normalized as (
     select
       event_type,
       severity,
+      source_timestamp,
       created_at,
       case
         when jsonb_typeof(detection) = 'object' then detection
@@ -2283,7 +2429,8 @@ from (
     event_type,
     severity,
     count(*)::int as count,
-    max(created_at) as last_at
+    max(created_at) as last_at,
+    max(source_timestamp) as last_source_at
   from normalized
   group by rule_name, detection_type, mitre_technique, event_type, severity
   order by count desc, rule_name, event_type
@@ -2901,6 +3048,22 @@ def is_benchmark_service_registry_cleanup_event(row: dict[str, Any]) -> bool:
     )
 
 
+def is_benchmark_run_key_persistence_event(row: dict[str, Any]) -> bool:
+    if str(row.get("event_type") or "").lower() not in {"registry_create", "registry_set_value", "registry_delete"}:
+        return False
+    if str(row.get("detection_name") or "").lower() not in {
+        "registry_persistence",
+        "persistence_t1547_001",
+        "registry_t1547_001",
+    }:
+        return False
+
+    haystack = searchable_text(row).lower().replace("\\\\", "\\")
+    run_key = "\\currentversion\\run" in haystack and "\\currentversion\\runonce" not in haystack
+    benchmark_marker = "tamanduabench" in haystack or "tamanduaenterpriseeval" in haystack
+    return run_key and benchmark_marker
+
+
 def is_benign_defender_manifest_backup_event(row: dict[str, Any]) -> bool:
     if str(row.get("event_type") or "").lower() not in {"registry_create", "registry_delete"}:
         return False
@@ -3390,7 +3553,13 @@ def score_test(
     expected_alerts = list(test.get("expected_alerts") or [])
     expected_correlations = list(test.get("expected_correlations") or [])
     observed = {str(row.get("event_type")) for row in event_rows}
-    detection_evidence_rows = detection_rows + inline_detection_rows(event_samples or [])
+    fresh_detection_rows = [
+        row for row in detection_rows if not report_row_has_stale_source_timestamp(row, noise_started_at)
+    ]
+    fresh_event_samples = [
+        row for row in (event_samples or []) if not report_row_has_stale_source_timestamp(row, noise_started_at)
+    ]
+    detection_evidence_rows = fresh_detection_rows + inline_detection_rows(fresh_event_samples)
     raw_driver_delta: dict[str, int] = {}
     converted_driver_delta: dict[str, int] = {}
     skipped_driver_delta: dict[str, int] = {}
@@ -3416,7 +3585,8 @@ def score_test(
         observed_kernel_driver_events = {
             str(row.get("event_type"))
             for row in event_rows
-            if str(row.get("source_name", "")).lower() == "kernel_driver" and int(row.get("count") or 0) > 0
+            if str(row.get("source_name", "")).lower() in {"kernel_driver", "kernel_driver_inferred"}
+            and int(row.get("count") or 0) > 0
         }
         missing_driver_raw = [
             event_type for event_type in missing_driver_raw if event_type not in observed_kernel_driver_events
@@ -3443,10 +3613,11 @@ def score_test(
         expected_detections,
         ["rule_name", "detection_type", "mitre_technique", "description"],
     )
+    field_event_samples = event_samples or []
     if expected_fields_by_event_type:
         field_score = score_expected_fields_by_event_type(
             expected_fields_by_event_type,
-            event_samples or [],
+            field_event_samples,
             required_event_types=set(telemetry_state["observed_telemetry_alternative"])
             or expected
             or {
@@ -3456,10 +3627,10 @@ def score_test(
             },
         )
     else:
-        field_score = score_expected_fields(expected_fields, event_samples or [])
+        field_score = score_expected_fields(expected_fields, field_event_samples)
     value_score = score_expected_values_by_event_type(
         expected_values_by_event_type,
-        event_samples or [],
+        fresh_event_samples,
         required_event_types=set(telemetry_state["observed_telemetry_alternative"])
         or expected
         or {
@@ -3503,8 +3674,8 @@ def score_test(
         expected_correlations,
         event_rows,
         alert_rows,
-        detection_rows,
-        event_samples or [],
+        fresh_detection_rows,
+        fresh_event_samples,
     )
 
     detection_covered = not missing_detections
@@ -3521,22 +3692,6 @@ def score_test(
         if row_timestamp is None:
             return True
         return row_timestamp >= noise_started_at
-
-    def row_has_stale_source_timestamp(row: dict[str, Any]) -> bool:
-        """Exclude delayed/stale endpoint rows from benchmark noise gates.
-
-        The benchmark DB query scopes by insertion/created time so delayed
-        driver/agent rows can appear inside a test window even when the event's
-        original source timestamp predates the test. Those rows are useful
-        telemetry, but they are not evidence that the active scenario created
-        fresh high/critical noise.
-        """
-        if noise_started_at is None:
-            return False
-        source_timestamp = parse_report_timestamp(row.get("last_source_at") or row.get("source_timestamp"))
-        if source_timestamp is None:
-            return False
-        return source_timestamp < noise_started_at
 
     for row in alert_rows:
         if str(row.get("severity", "")).lower() not in {"high", "critical"}:
@@ -3583,7 +3738,7 @@ def score_test(
         event_key = (str(row.get("event_type")), str(row.get("severity", "")).lower())
         if detection_covered and event_key in expected_detection_event_keys:
             expected_critical_or_high_events.append(row)
-        elif row_has_stale_source_timestamp(row):
+        elif report_row_has_stale_source_timestamp(row, noise_started_at):
             excluded_stale_source_events.append(row)
         elif str(row.get("detection_name") or "").lower() in excluded_setup_detection_names:
             continue
@@ -3592,6 +3747,8 @@ def score_test(
         elif is_benign_windows_error_reporting_ntdll_event(row):
             continue
         elif is_benchmark_service_registry_cleanup_event(row):
+            continue
+        elif is_benchmark_run_key_persistence_event(row):
             continue
         elif is_benign_defender_manifest_backup_event(row):
             continue
@@ -3610,10 +3767,11 @@ def score_test(
         and not is_benign_edge_update_ntdll_event(row)
         and not is_benign_windows_error_reporting_ntdll_event(row)
         and not is_benchmark_service_registry_cleanup_event(row)
+        and not is_benchmark_run_key_persistence_event(row)
         and not is_benign_defender_manifest_backup_event(row)
         and not is_benign_edge_update_etw_process_event(row)
         and not is_benign_windows_service_etw_process_event(row)
-        and not row_has_stale_source_timestamp(row)
+        and not report_row_has_stale_source_timestamp(row, noise_started_at)
     ]
     total_events = sum(int(row.get("count") or 0) for row in event_rows)
     unexpected_high_or_critical_event_count = sum(int(row.get("count") or 0) for row in critical_or_high_events)

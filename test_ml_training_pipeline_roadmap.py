@@ -4,7 +4,12 @@ import re
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 ROADMAP = ROOT / "docs" / "benchmarks" / "ML_TRAINING_PIPELINE_ROADMAP.md"
 DATASET_GUIDE = ROOT / "apps" / "tamandua_ml" / "docs" / "DATASET_ACQUISITION.md"
 DATASET_QUICKSTART = ROOT / "apps" / "tamandua_ml" / "docs" / "DATASET_QUICKSTART.md"

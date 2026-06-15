@@ -49,13 +49,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-initialaccess-001",
@@ -67,13 +60,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-execution-001-t1059-004",
       "name": "Unix Shell: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'id >/dev/null; uname -a >/dev/null; echo tamandua-execution'",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
       "roadmap_traceability": {
         "technique": "T1059.004",
         "technique_name": "Unix Shell",
@@ -99,13 +99,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-execution-001",
@@ -117,13 +110,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-execution-009-t1059-006",
       "name": "Python: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'id >/dev/null; uname -a >/dev/null; echo tamandua-execution'",
+      "fallback_command": "sh -lc 'id >/dev/null; sw_vers >/dev/null 2>&1 || uname -a >/dev/null; echo tamandua-execution'",
       "roadmap_traceability": {
         "technique": "T1059.006",
         "technique_name": "Python",
@@ -149,13 +149,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-execution-009",
@@ -167,13 +160,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-persistence-001-t1543-001",
       "name": "Launch Agent: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; echo tamandua >/tmp/tamandua-persistence/marker; ls /tmp/tamandua-persistence >/dev/null; rm -rf /tmp/tamandua-persistence'",
+      "fallback_command": "sh -lc 'mkdir -p /tmp/tamandua-persistence; cat > /tmp/tamandua-persistence/com.tamandua.benchmark.plist <<EOF\n<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n<plist version=\"1.0\"><dict><key>Label</key><string>com.tamandua.benchmark</string></dict></plist>\nEOF\nplutil -lint /tmp/tamandua-persistence/com.tamandua.benchmark.plist >/dev/null 2>&1 || true; rm -rf /tmp/tamandua-persistence'",
       "roadmap_traceability": {
         "technique": "T1543.001",
         "technique_name": "Launch Agent",
@@ -199,13 +199,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-persistence-001",
@@ -217,13 +210,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-privilegeescalation-001-t1548-003",
       "name": "Sudo and Sudo Caching: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'id; groups; whoami'",
+      "fallback_command": "sh -lc 'id; groups; whoami; find /usr/bin -perm -4000 -maxdepth 1 -type f 2>/dev/null | head -n 5'",
       "roadmap_traceability": {
         "technique": "T1548.003",
         "technique_name": "Sudo and Sudo Caching",
@@ -249,13 +249,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-privilegeescalation-001",
@@ -267,13 +260,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-defenseevasion-001-t1027",
       "name": "Obfuscated Files or Information: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
       "roadmap_traceability": {
         "technique": "T1027",
         "technique_name": "Obfuscated Files or Information",
@@ -299,13 +299,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-defenseevasion-001",
@@ -317,13 +310,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-defenseevasion-009-t1140",
       "name": "Deobfuscate/Decode Files: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'mktemp /tmp/tamandua-hidden.XXXXXX >/tmp/tamandua-path.txt; p=$(cat /tmp/tamandua-path.txt); mv \"$p\" \"${p}.renamed\"; rm -f \"${p}.renamed\" /tmp/tamandua-path.txt'",
+      "fallback_command": "sh -lc 'p=$(mktemp /tmp/tamandua-hidden.XXXXXX); mv \"$p\" \"$(dirname \"$p\")/.tamandua-hidden\"; chmod 600 \"$(dirname \"$p\")/.tamandua-hidden\"; rm -f \"$(dirname \"$p\")/.tamandua-hidden\"'",
       "roadmap_traceability": {
         "technique": "T1140",
         "technique_name": "Deobfuscate/Decode Files",
@@ -349,13 +349,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-defenseevasion-009",
@@ -367,13 +360,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-credentialaccess-001-t1555-001",
       "name": "Keychain: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; security list-keychains >/dev/null 2>&1 || true; id >/dev/null'",
       "roadmap_traceability": {
         "technique": "T1555.001",
         "technique_name": "Keychain",
@@ -399,13 +399,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-credentialaccess-001",
@@ -417,13 +410,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-credentialaccess-009-t1552-001",
       "name": "Credentials In Files: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; id >/dev/null'",
+      "fallback_command": "sh -lc 'test -r /etc/passwd && head -n 1 /etc/passwd >/dev/null; security list-keychains >/dev/null 2>&1 || true; id >/dev/null'",
       "roadmap_traceability": {
         "technique": "T1552.001",
         "technique_name": "Credentials In Files",
@@ -449,13 +449,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-credentialaccess-009",
@@ -467,13 +460,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-discovery-001-t1082",
       "name": "System Information Discovery: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'whoami; hostname; uname -a; ps -eo pid,comm | head'",
+      "fallback_command": "sh -lc 'whoami; hostname; sw_vers 2>/dev/null || uname -a; ps -axo pid,comm | head'",
       "roadmap_traceability": {
         "technique": "T1082",
         "technique_name": "System Information Discovery",
@@ -499,13 +499,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-discovery-001",
@@ -517,13 +510,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-lateralmovement-001-t1021-004",
       "name": "SSH: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'hostname; id; getent hosts localhost || true'",
+      "fallback_command": "sh -lc 'hostname; id; dscacheutil -q host -a name localhost >/dev/null 2>&1 || true; smbutil statshares -a >/dev/null 2>&1 || true'",
       "roadmap_traceability": {
         "technique": "T1021.004",
         "technique_name": "SSH",
@@ -549,13 +549,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-lateralmovement-001",
@@ -567,13 +560,20 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-mac-lateralmovement-009-t1021-005",
       "name": "VNC: telemetry contract",
       "executor": "command",
-      "fallback_command": "sh -lc 'hostname; id; getent hosts localhost || true'",
+      "fallback_command": "sh -lc 'hostname; id; dscacheutil -q host -a name localhost >/dev/null 2>&1 || true; smbutil statshares -a >/dev/null 2>&1 || true'",
       "roadmap_traceability": {
         "technique": "T1021.005",
         "technique_name": "VNC",
@@ -599,13 +599,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "macos-roadmap-batch",
         "roadmap:mac-lateralmovement-009",
@@ -617,7 +610,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     }
   ]
 }

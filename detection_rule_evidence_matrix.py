@@ -17,7 +17,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 GENERATED_DIR = ROOT / "docs" / "benchmarks" / "generated"
 RULE_DIR = ROOT / "apps" / "tamandua_server" / "priv" / "sigma_rules"

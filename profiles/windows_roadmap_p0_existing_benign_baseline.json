@@ -54,13 +54,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "parent_process_name"
-      ],
       "tags": [
         "windows-roadmap-batch",
         "roadmap:win-execution-006",
@@ -72,7 +65,31 @@
         "executor:benign_baseline",
         "status:covered-by-existing-profile"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
     },
     {
       "id": "roadmap-win-persistence-006-t1574-001",
@@ -107,13 +124,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "parent_process_name"
-      ],
       "tags": [
         "windows-roadmap-batch",
         "roadmap:win-persistence-006",
@@ -125,7 +135,31 @@
         "executor:benign_baseline",
         "status:covered-by-existing-profile"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
     },
     {
       "id": "roadmap-win-privilegeescalation-006-t1543-003",
@@ -160,13 +194,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "parent_process_name"
-      ],
       "tags": [
         "windows-roadmap-batch",
         "roadmap:win-privilegeescalation-006",
@@ -178,7 +205,31 @@
         "executor:benign_baseline",
         "status:covered-by-existing-profile"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
     },
     {
       "id": "roadmap-win-defenseevasion-006-t1218-011",
@@ -215,13 +266,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "parent_process_name"
-      ],
       "tags": [
         "windows-roadmap-batch",
         "roadmap:win-defenseevasion-006",
@@ -233,7 +277,31 @@
         "executor:benign_baseline",
         "status:covered-by-existing-profile"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
     },
     {
       "id": "roadmap-win-credentialaccess-006-t1552-006",
@@ -267,13 +335,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "parent_process_name"
-      ],
       "tags": [
         "windows-roadmap-batch",
         "roadmap:win-credentialaccess-006",
@@ -285,7 +346,31 @@
         "executor:benign_baseline",
         "status:covered-by-existing-profile"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
     },
     {
       "id": "roadmap-win-lateralmovement-006-t1550-002",
@@ -319,13 +404,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "parent_process_name"
-      ],
       "tags": [
         "windows-roadmap-batch",
         "roadmap:win-lateralmovement-006",
@@ -337,7 +415,31 @@
         "executor:benign_baseline",
         "status:covered-by-existing-profile"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
     },
     {
       "id": "roadmap-win-commandandcontrol-006-t1132",
@@ -371,13 +473,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "parent_process_name"
-      ],
       "tags": [
         "windows-roadmap-batch",
         "roadmap:win-commandandcontrol-006",
@@ -389,7 +484,31 @@
         "executor:benign_baseline",
         "status:covered-by-existing-profile"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
     },
     {
       "id": "roadmap-win-exfiltration-006-t1041",
@@ -425,13 +544,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "parent_process_name"
-      ],
       "tags": [
         "windows-roadmap-batch",
         "roadmap:win-exfiltration-006",
@@ -443,7 +555,31 @@
         "executor:benign_baseline",
         "status:covered-by-existing-profile"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
     },
     {
       "id": "roadmap-win-impact-006-t1565-001",
@@ -477,13 +613,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "parent_process_name"
-      ],
       "tags": [
         "windows-roadmap-batch",
         "roadmap:win-impact-006",
@@ -495,7 +624,31 @@
         "executor:benign_baseline",
         "status:covered-by-existing-profile"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_telemetry_any": [
+        [
+          "live_response_command_completed"
+        ]
+      ],
+      "expected_fields_by_event_type": {
+        "process_create": [
+          "agent_id",
+          "hostname",
+          "process_name",
+          "command_line",
+          "parent_process_name"
+        ],
+        "live_response_command_completed": [
+          "agent_id",
+          "hostname",
+          "command",
+          "session_id"
+        ]
+      },
+      "telemetry_contract_notes": [
+        "process_create remains the strict endpoint telemetry expectation",
+        "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
+      ]
     }
   ]
 }

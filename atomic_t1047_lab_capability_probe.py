@@ -17,7 +17,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 PROFILE_PATH = ROOT / "tools" / "detection_validation" / "profiles" / "windows_atomic_extended_safe.json"
 PROFILE_ID = "atomic-t1047-lab-capability-probe"
@@ -79,9 +84,12 @@ def latest_source_artifact() -> tuple[Path | None, dict[str, Any]]:
             precondition = test.get("precondition") if isinstance(test.get("precondition"), dict) else {}
             has_t1047 = bool(test)
             has_precondition = bool(precondition)
-            # Prefer focused artifacts that carry the T1047 precondition payload
-            # over older aggregate exec-batch runs with the same source profile.
-            rank = (2 if has_precondition else 1 if has_t1047 else 0)
+            quality_gate = data.get("quality_gate") if isinstance(data.get("quality_gate"), dict) else {}
+            is_covered = test.get("status") == "covered" and quality_gate.get("passed") is True
+            # Prefer focused green T1047 evidence over older bounded
+            # precondition-failure artifacts. A WMI-capable target is stronger
+            # lab capability evidence than a classified WMIC absence.
+            rank = (3 if is_covered else 2 if has_precondition else 1 if has_t1047 else 0)
             candidates.append((rank, timestamp_key(path), path, data))
     if not candidates:
         return None, {}
@@ -161,11 +169,22 @@ def build_tests() -> list[dict[str, Any]]:
     definition = profile_test_definition()
     artifact_test = artifact_test_result(source)
     precondition = artifact_test.get("precondition") if isinstance(artifact_test.get("precondition"), dict) else {}
+    execution = artifact_test.get("execution") if isinstance(artifact_test.get("execution"), dict) else {}
+    score = artifact_test.get("score") if isinstance(artifact_test.get("score"), dict) else {}
+    quality_gate = source.get("quality_gate") if isinstance(source.get("quality_gate"), dict) else {}
     error_codes = {str(value) for value in nested_values(artifact_test, "error_code") if value}
     guest_exit_codes = {str(value) for value in nested_values(precondition, "guest_exit_code") if value is not None}
     command_confirmed = any(value is True for value in nested_values(precondition, "command_confirmed"))
     end_reasons = {str(value) for value in nested_values(precondition, "end_reason") if value}
     output_text = "\n".join(str(value) for value in nested_values(precondition, "guest_stdout") if value)
+    execution_exit_codes = {str(value) for value in nested_values(execution, "guest_exit_code") if value is not None}
+    observed_telemetry = {str(value) for value in score.get("observed_expected_telemetry") or []}
+    covered_with_wmi_capability = (
+        artifact_test.get("status") == "covered"
+        and quality_gate.get("passed") is True
+        and "process_create" in observed_telemetry
+        and "0" in execution_exit_codes
+    )
 
     source_path_text = str(source_path.relative_to(ROOT)).replace("\\", "/") if source_path else None
     definition_precondition = str(definition.get("precondition_command") or "")
@@ -212,17 +231,33 @@ def build_tests() -> list[dict[str, Any]]:
         ),
         result(
             "atomic-t1047-wmic-unavailable-classified",
-            "Latest T1047 artifact classifies WMIC absence instead of running an unsupported scenario",
-            bool(expected_error_code in error_codes and "2" in guest_exit_codes and "__TAMANDUA_CTL_DONE_1__:2" in output_text),
+            "Latest T1047 artifact either proves WMI capability or classifies WMIC absence",
+            bool(
+                covered_with_wmi_capability
+                or (
+                    expected_error_code in error_codes
+                    and "2" in guest_exit_codes
+                    and "__TAMANDUA_CTL_DONE_1__:2" in output_text
+                )
+            ),
             {
                 "source_path": source_path_text,
                 "source_run_id": source.get("run_id"),
+                "source_quality_gate_passed": quality_gate.get("passed"),
+                "test_status": artifact_test.get("status"),
+                "execution_guest_exit_codes": sorted(execution_exit_codes),
+                "observed_expected_telemetry": sorted(observed_telemetry),
+                "covered_with_wmi_capability": covered_with_wmi_capability,
                 "expected_error_code": expected_error_code,
                 "observed_error_codes": sorted(error_codes),
                 "guest_exit_codes": sorted(guest_exit_codes),
                 "done_marker_exit_2_observed": "__TAMANDUA_CTL_DONE_1__:2" in output_text,
             },
-            ["wmi_cli_unavailable_on_target", "guest_exit_code=2"] if expected_error_code not in error_codes else [],
+            (
+                ["wmi_capability_or_classified_absence"]
+                if not covered_with_wmi_capability and expected_error_code not in error_codes
+                else []
+            ),
         ),
     ]
 

@@ -6,9 +6,15 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 from datetime import datetime, timezone
 
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - optional local convenience
+    def load_dotenv(*_args, **_kwargs) -> bool:
+        return False
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 RUNS_DIR = REPO_ROOT / "docs" / "benchmarks" / "runs"
@@ -30,6 +36,17 @@ ALLOWED_COMMAND_PREFIXES = (
     "powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1 ",
 )
 UNSAFE_COMMAND_TOKENS = (";", "|", "&", "`", "\r", "\n", ">", "<")
+
+
+@contextmanager
+def local_dotenv_environment():
+    previous = os.environ.copy()
+    load_dotenv(REPO_ROOT / ".env")
+    try:
+        yield
+    finally:
+        os.environ.clear()
+        os.environ.update(previous)
 
 
 def load_json(path: Path) -> dict:
@@ -124,6 +141,19 @@ def ps_array(values: list[str]) -> str:
     return "@(" + ", ".join(ps_single_quoted(value) for value in values) + ")"
 
 
+def ps_agent_id_guard_lines(variable_name: str, source_name: str) -> list[str]:
+    return [
+        f"if (-not ${variable_name}) {{",
+        f"  Write-Error 'AgentId is required for {source_name}.'",
+        "  exit 2",
+        "}",
+        f"if (${variable_name} -notmatch '^[A-Za-z0-9_.-]+$') {{",
+        f"  Write-Error 'AgentId may only contain letters, digits, underscore, dot, or dash. Source: {source_name}.'",
+        "  exit 2",
+        "}",
+    ]
+
+
 def repo_relative(path: Path) -> str:
     try:
         return str(path.resolve().relative_to(REPO_ROOT)).replace("\\", "/")
@@ -152,6 +182,10 @@ def replacement_variants(value: str | Path | None) -> list[str]:
     relative = repo_relative(path)
     variants.add(relative)
     variants.add(relative.replace("/", "\\"))
+    if not path.is_absolute():
+        absolute = (REPO_ROOT / path).resolve(strict=False)
+        variants.add(str(absolute))
+        variants.add(absolute.as_posix())
     return [variant for variant in variants if variant]
 
 
@@ -226,6 +260,30 @@ def missing_effective_env(
     return [name for name in package_effective_env_with_current_action(package, current_next_action) if not env.get(str(name))]
 
 
+def package_launch_blockers(
+    package: dict,
+    current_next_action: object = None,
+    environ: dict[str, str] | None = None,
+    include_launcher_selection: bool = False,
+) -> list[str]:
+    blockers = []
+    if missing_effective_env(package, environ, current_next_action=current_next_action):
+        blockers.append("missing_effective_env")
+    if dependent_waves(package):
+        blockers.append("depends_on_prior_waves")
+    if include_launcher_selection and package.get("launcher_selected") is False:
+        blockers.append("manual_launch_required")
+    return blockers
+
+
+def package_is_launch_ready(
+    package: dict,
+    current_next_action: object = None,
+    environ: dict[str, str] | None = None,
+) -> bool:
+    return not package_launch_blockers(package, current_next_action=current_next_action, environ=environ)
+
+
 def package_handoff_notes(
     package: dict,
     launcher_selected: bool | None = None,
@@ -239,7 +297,10 @@ def package_handoff_notes(
         notes.append("parallel-launcher:auto")
     elif launcher_selected is False:
         reason = manual_reason or "manual"
-        notes.append(f"parallel-launcher:manual:{reason}")
+        if str(reason).startswith("blocked:"):
+            notes.append("parallel-launcher:" + str(reason))
+        else:
+            notes.append(f"parallel-launcher:manual:{reason}")
     if staged_stage is not None:
         notes.append(f"staged-launcher:stage-{staged_stage}")
     dependencies = dependent_waves(package)
@@ -372,6 +433,28 @@ def package_with_latest_current_next_action(package: dict, runs_dir: Path = RUNS
     return enriched
 
 
+def package_current_next_action_or_task(package: dict, current_next_action: object = None) -> dict[str, object]:
+    action: dict[str, object] = {}
+    if isinstance(current_next_action, dict) and current_next_action:
+        action = dict(current_next_action)
+    elif isinstance(package.get("current_next_action"), dict) and package.get("current_next_action"):
+        action = dict(package.get("current_next_action") or {})
+    if action.get("action"):
+        return action
+    action_text = str(package.get("action") or "").strip()
+    if action_text:
+        action["action"] = action_text
+        return action
+    for roadmap_action in package.get("roadmap_next_actions") or []:
+        if not isinstance(roadmap_action, dict):
+            continue
+        action_text = str(roadmap_action.get("action") or "").strip()
+        if action_text:
+            action["action"] = action_text
+            return action
+    return action
+
+
 def operator_input_details_by_env(package: dict) -> dict[str, dict[str, str]]:
     details: dict[str, dict[str, str]] = {}
     for item in package.get("operator_inputs") or []:
@@ -383,6 +466,43 @@ def operator_input_details_by_env(package: dict) -> dict[str, dict[str, str]]:
             "flag": str(item.get("flag") or ""),
             "description": str(item.get("description") or ""),
         }
+    return details
+
+
+def next_action_env_details_by_env(package: dict) -> dict[str, dict[str, str]]:
+    action = package.get("current_next_action") if isinstance(package.get("current_next_action"), dict) else {}
+    details: dict[str, dict[str, str]] = {}
+    token_env = str(action.get("token_env") or "")
+    if token_env:
+        target_server = str(action.get("target_server") or "")
+        suffix = f" for {target_server}" if target_server else ""
+        details[token_env] = {
+            "name": "tamandua_token",
+            "flag": "",
+            "description": f"Tamandua API token used for non-interactive tamandua-ctl remote login{suffix}",
+        }
+    for env_name in [str(value) for value in action.get("required_env") or [] if str(value)]:
+        details.setdefault(
+            env_name,
+            {
+                "name": "",
+                "flag": "",
+                "description": str(action.get("action") or ""),
+            },
+        )
+    return details
+
+
+def env_details_by_env(package: dict) -> dict[str, dict[str, str]]:
+    details = next_action_env_details_by_env(package)
+    for env_name, item in operator_input_details_by_env(package).items():
+        existing = details.setdefault(env_name, {"name": "", "flag": "", "description": ""})
+        if item.get("name"):
+            existing["name"] = item["name"]
+        if item.get("flag"):
+            existing["flag"] = item["flag"]
+        if item.get("description"):
+            existing["description"] = item["description"]
     return details
 
 
@@ -445,25 +565,7 @@ def render_package_script(
         "if (-not $ClaimId) { $ClaimId = 'claim-' + $PackageId }",
         "$AgentId = [Environment]::GetEnvironmentVariable('TAMANDUA_AGENT_ID')",
         "if (-not $AgentId) { $AgentId = [Environment]::UserName }",
-        "if ([Environment]::GetEnvironmentVariable('TAMANDUA_CLAIM_LOCK_ACQUIRED') -ne '1') {",
-        "  $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path",
-        "  $ClaimLockHelperCandidates = @(",
-        "    (Join-Path $ScriptDir 'claim_lock_helper.ps1'),",
-        "    (Join-Path (Split-Path -Parent $ScriptDir) 'claim_lock_helper.ps1'),",
-        "    (Join-Path (Split-Path -Parent (Split-Path -Parent $ScriptDir)) 'claim_lock_helper.ps1')",
-        "  )",
-        "  $ClaimLockHelperPath = $null",
-        "  foreach ($Candidate in $ClaimLockHelperCandidates) {",
-        "    if ($Candidate -and (Test-Path $Candidate)) { $ClaimLockHelperPath = $Candidate; break }",
-        "  }",
-        "  if (-not $ClaimLockHelperPath) {",
-        "    Write-Error 'Missing claim lock helper for direct package execution.'",
-        "    exit 2",
-        "  }",
-        "  powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ClaimLockHelperPath -ClaimId $ClaimId -AgentId $AgentId",
-        "  if ($LASTEXITCODE -ne $null -and $LASTEXITCODE -ne 0) { exit $LASTEXITCODE }",
-        "  $env:TAMANDUA_CLAIM_LOCK_ACQUIRED = '1'",
-        "}",
+        *ps_agent_id_guard_lines("AgentId", "TAMANDUA_AGENT_ID"),
         f"$ExpectedProfiles = {ps_array(expected_profiles)}",
         "function Write-AgentStatus {",
         "  param([string]$Status, [int]$ExitCode, [string[]]$Notes)",
@@ -519,6 +621,31 @@ def render_package_script(
             ]
         )
 
+    lines.extend(
+        [
+            "if ([Environment]::GetEnvironmentVariable('TAMANDUA_CLAIM_LOCK_ACQUIRED') -ne '1') {",
+            "  $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path",
+            "  $ClaimLockHelperCandidates = @(",
+            "    (Join-Path $ScriptDir 'claim_lock_helper.ps1'),",
+            "    (Join-Path (Split-Path -Parent $ScriptDir) 'claim_lock_helper.ps1'),",
+            "    (Join-Path (Split-Path -Parent (Split-Path -Parent $ScriptDir)) 'claim_lock_helper.ps1')",
+            "  )",
+            "  $ClaimLockHelperPath = $null",
+            "  foreach ($Candidate in $ClaimLockHelperCandidates) {",
+            "    if ($Candidate -and (Test-Path $Candidate)) { $ClaimLockHelperPath = $Candidate; break }",
+            "  }",
+            "  if (-not $ClaimLockHelperPath) {",
+            "    Write-Error 'Missing claim lock helper for direct package execution.'",
+            "    exit 2",
+            "  }",
+            "  powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ClaimLockHelperPath -ClaimId $ClaimId -AgentId $AgentId",
+            "  if ($LASTEXITCODE -ne $null -and $LASTEXITCODE -ne 0) { exit $LASTEXITCODE }",
+            "  $env:TAMANDUA_CLAIM_LOCK_ACQUIRED = '1'",
+            "}",
+            "",
+        ]
+    )
+
     continue_on_failure = bool(package.get("continue_on_failure"))
     if continue_on_failure:
         lines.extend(
@@ -565,6 +692,7 @@ def write_package_script(package: dict, preflight_path: Path, output_dir: Path) 
     package_id = str(package.get("package_id") or "work-package")
     script_path = output_dir / f"{safe_filename(package_id)}.ps1"
     package_output_dir = output_dir / safe_filename(package_id) / "outputs"
+    package_output_dir.mkdir(parents=True, exist_ok=True)
     script_path.write_text(
         render_package_script(package, preflight_path, package_output_dir=package_output_dir),
         encoding="utf-8",
@@ -777,7 +905,7 @@ def current_next_action_from_artifacts(artifacts: list[str]) -> dict[str, object
 def render_agent_prompt(package: dict, script_path: Path, preflight_path: Path) -> str:
     package_id = str(package.get("package_id") or "")
     claim_id = f"claim-{package_id}" if package_id else "claim-unassigned"
-    required_env = ", ".join(str(value) for value in package.get("required_env") or []) or "-"
+    declared_required_env = ", ".join(str(value) for value in package.get("required_env") or []) or "-"
     roadmaps = ", ".join(str(value) for value in package.get("roadmaps") or []) or "-"
     blockers = ", ".join(str(value) for value in package.get("blocking_profiles") or []) or "-"
     resources = ", ".join(package_manifest_resource_tags(package))
@@ -794,8 +922,7 @@ def render_agent_prompt(package: dict, script_path: Path, preflight_path: Path) 
     required_status_fields = ", ".join(output_contract["status_required_fields"])
     allowed_status_values = ", ".join(output_contract["status_allowed_values"])
     current_status = package_current_status_fields(script_path, package)
-    if not current_status["next_action"] and isinstance(package.get("current_next_action"), dict):
-        current_status["next_action"] = package.get("current_next_action") or {}
+    current_status["next_action"] = package_current_next_action_or_task(package, current_status["next_action"])
     current_artifacts = ", ".join(str(value) for value in current_status["artifacts"]) or "-"
     current_missing_profiles = ", ".join(str(value) for value in current_status["missing_profiles"]) or "-"
     current_exit_code = current_status["exit_code"] if current_status["exit_code"] is not None else "-"
@@ -805,6 +932,7 @@ def render_agent_prompt(package: dict, script_path: Path, preflight_path: Path) 
         or "-"
     )
     effective_env = ", ".join(package_effective_env_with_current_action(package, current_status["next_action"])) or "-"
+    required_env = effective_env
     lines = [
         f"# {package.get('package_id')}",
         "",
@@ -814,6 +942,7 @@ def render_agent_prompt(package: dict, script_path: Path, preflight_path: Path) 
         f"Owner role: {package.get('recommended_owner_role') or ''}",
         f"Roadmaps: {roadmaps}",
         f"Required env: {required_env}",
+        f"Declared package env: {declared_required_env}",
         f"Next-action env: {next_action_env}",
         f"Effective env checklist: {effective_env}",
         f"Depends on waves: {dependencies}",
@@ -989,7 +1118,13 @@ def render_wave_launcher(
         "Set-StrictMode -Version Latest",
         "$WaveLauncherAgentId = [Environment]::GetEnvironmentVariable('TAMANDUA_WAVE_LAUNCHER_AGENT_ID')",
         "if (-not $WaveLauncherAgentId) { $WaveLauncherAgentId = [Environment]::UserName }",
+        *ps_agent_id_guard_lines("WaveLauncherAgentId", "TAMANDUA_WAVE_LAUNCHER_AGENT_ID"),
         "$WaveLauncherDir = Split-Path -Parent $MyInvocation.MyCommand.Path",
+    ]
+    if depends_on_waves:
+        lines.extend(render_dependency_evidence_guard(wave, depends_on_waves))
+    lines.extend(
+        [
         "$ClaimLockHelperPath = Join-Path $WaveLauncherDir 'claim_lock_helper.ps1'",
         "if (-not (Test-Path $ClaimLockHelperPath)) {",
         "  $ClaimLockHelperPath = Join-Path (Split-Path -Parent $WaveLauncherDir) 'claim_lock_helper.ps1'",
@@ -998,9 +1133,8 @@ def render_wave_launcher(
         "  Write-Error ('Missing claim lock helper: ' + $ClaimLockHelperPath)",
         "  exit 2",
         "}",
-    ]
-    if depends_on_waves:
-        lines.extend(render_dependency_evidence_guard(wave, depends_on_waves))
+        ]
+    )
     lines.extend(
         [
         "$jobs = @()",
@@ -1060,13 +1194,20 @@ def write_wave_launchers(packages: list[dict], script_paths: dict[str, Path], ou
             for package in packages
             if int(package.get("wave") or 0) == wave and package.get("parallelizable_in_wave")
         ]
-        if len(wave_packages) < 2:
+        launchable_wave_packages = []
+        for package in wave_packages:
+            if not package_is_launch_ready(package):
+                continue
+            if missing_effective_env(package):
+                continue
+            launchable_wave_packages.append(package)
+        if len(launchable_wave_packages) < 2:
             continue
         used_resources = set()
         launch_items = []
         skipped_items = []
         ordered_wave_packages = sorted(
-            wave_packages,
+            launchable_wave_packages,
             key=lambda package: (-package_impact_score(package), str(package.get("package_id") or "")),
         )
         for package in ordered_wave_packages:
@@ -1099,7 +1240,11 @@ def wave_execution_stages(wave_packages: list[dict]) -> list[list[dict]]:
     stages: list[list[dict]] = []
     stage_resources: list[set[str]] = []
     ordered_packages = sorted(
-        [package for package in wave_packages if package.get("parallelizable_in_wave")],
+        [
+            package
+            for package in wave_packages
+            if package.get("parallelizable_in_wave") and package_is_launch_ready(package)
+        ],
         key=lambda package: (-package_impact_score(package), str(package.get("package_id") or "")),
     )
     for package in ordered_packages:
@@ -1126,9 +1271,12 @@ def staged_launcher_membership(packages: list[dict]) -> dict[str, int]:
             for package in packages
             if int(package.get("wave") or 0) == wave and package.get("parallelizable_in_wave")
         ]
-        if len(wave_packages) < 2:
+        launchable_wave_packages = [
+            package for package in wave_packages if package_is_launch_ready(package)
+        ]
+        if len(launchable_wave_packages) < 2:
             continue
-        for stage_number, stage in enumerate(wave_execution_stages(wave_packages), start=1):
+        for stage_number, stage in enumerate(wave_execution_stages(launchable_wave_packages), start=1):
             for package in stage:
                 staged[str(package.get("package_id"))] = stage_number
     return staged
@@ -1148,7 +1296,13 @@ def render_staged_wave_launcher(
         "Set-StrictMode -Version Latest",
         "$StagedLauncherAgentId = [Environment]::GetEnvironmentVariable('TAMANDUA_STAGED_LAUNCHER_AGENT_ID')",
         "if (-not $StagedLauncherAgentId) { $StagedLauncherAgentId = [Environment]::UserName }",
+        *ps_agent_id_guard_lines("StagedLauncherAgentId", "TAMANDUA_STAGED_LAUNCHER_AGENT_ID"),
         "$StagedLauncherDir = Split-Path -Parent $MyInvocation.MyCommand.Path",
+    ]
+    if depends_on_waves:
+        lines.extend(render_dependency_evidence_guard(wave, depends_on_waves))
+    lines.extend(
+        [
         "$ClaimLockHelperPath = Join-Path $StagedLauncherDir 'claim_lock_helper.ps1'",
         "if (-not (Test-Path $ClaimLockHelperPath)) {",
         "  $ClaimLockHelperPath = Join-Path (Split-Path -Parent $StagedLauncherDir) 'claim_lock_helper.ps1'",
@@ -1157,9 +1311,8 @@ def render_staged_wave_launcher(
         "  Write-Error ('Missing claim lock helper: ' + $ClaimLockHelperPath)",
         "  exit 2",
         "}",
-    ]
-    if depends_on_waves:
-        lines.extend(render_dependency_evidence_guard(wave, depends_on_waves))
+        ]
+    )
     lines.append("$StageFailures = @()")
     for stage_number, stage in enumerate(stages, start=1):
         lines.extend(["", f"# Stage {stage_number}", "$jobs = @()"])
@@ -1220,9 +1373,12 @@ def write_staged_wave_launchers(packages: list[dict], script_paths: dict[str, Pa
             for package in packages
             if int(package.get("wave") or 0) == wave and package.get("parallelizable_in_wave")
         ]
-        if len(wave_packages) < 2:
+        launchable_wave_packages = [
+            package for package in wave_packages if package_is_launch_ready(package)
+        ]
+        if len(launchable_wave_packages) < 2:
             continue
-        stages = wave_execution_stages(wave_packages)
+        stages = wave_execution_stages(launchable_wave_packages)
         staged_items = [
             [(package, script_paths[str(package.get("package_id"))]) for package in stage]
             for stage in stages
@@ -1328,7 +1484,7 @@ def render_env_checklist(packages: list[dict], environ: dict[str, str] | None = 
         package_id = str(package.get("package_id") or "")
         wave = int(package.get("wave") or 0)
         env_sources: dict[str, set[str]] = {}
-        input_details = operator_input_details_by_env(package)
+        input_details = env_details_by_env(package)
         for env_name in package.get("required_env") or []:
             env_sources.setdefault(str(env_name), set()).add("script")
         for env_name in package_next_action_env(package):
@@ -1407,7 +1563,7 @@ def render_env_template(packages: list[dict]) -> str:
     env_details: dict[str, dict[str, str]] = {}
     env_owners: dict[str, set[str]] = {}
     for package in sorted(packages, key=lambda item: (int(item.get("wave") or 0), str(item.get("package_id") or ""))):
-        input_details = operator_input_details_by_env(package)
+        input_details = env_details_by_env(package)
         owner = str(package.get("recommended_owner_role") or "operator-or-secret-holder")
         for env_name in package_effective_env(package):
             name = str(env_name)
@@ -1512,8 +1668,7 @@ def render_owner_launch_plan(
                 if isinstance(status_payload, dict)
                 else {}
             )
-            if not current_next_action and isinstance(package.get("current_next_action"), dict):
-                current_next_action = package.get("current_next_action") or {}
+            current_next_action = package_current_next_action_or_task(package, current_next_action)
             owner_package_context[package_id] = {
                 "current_next_action": current_next_action,
                 "missing_effective_env": missing_effective_env(
@@ -1648,8 +1803,7 @@ def build_owner_launch_plan_json(
                 if isinstance(status_payload, dict)
                 else {}
             )
-            if not current_next_action and isinstance(package.get("current_next_action"), dict):
-                current_next_action = package.get("current_next_action") or {}
+            current_next_action = package_current_next_action_or_task(package, current_next_action)
             package_next_env = ordered_unique(
                 package_next_action_env(package) + next_action_env_from_action(current_next_action)
             )
@@ -1661,7 +1815,7 @@ def build_owner_launch_plan_json(
                 blocked_reasons.append("missing_effective_env")
             if package_dependencies:
                 blocked_reasons.append("depends_on_prior_waves")
-            if selected is False:
+            if selected is False and not str(manual_reason or "").startswith("blocked:"):
                 blocked_reasons.append("manual_launch_required")
             package_entries.append(
                 {
@@ -1946,7 +2100,7 @@ def render_current_next_action_summary(action: object) -> str:
         parts.append("login_command=" + str(action.get("login_command")))
     if action.get("token_login_command"):
         parts.append("token_login_command=" + str(action.get("token_login_command")))
-    elif action.get("action"):
+    if action.get("action"):
         parts.append("action=" + str(action.get("action")))
     return "; ".join(parts) or "-"
 
@@ -2041,20 +2195,26 @@ def build_agent_spawn_plan_json(claims_payload: dict, output_dir: Path) -> dict:
             "$env:TAMANDUA_CLAIM_LOCK_ACQUIRED='1'; "
         )
         run_command = str(claim.get("command") or "")
+        codex_spawn_script = (
+            f"{lock_prefix}"
+            f"$env:TAMANDUA_AGENT_CLAIM_ID='{claim_id}'; "
+            "$env:TAMANDUA_AGENT_ID='<agent-id>'; "
+            f"Get-Content -Raw '{prompt_path}' | codex exec --cd . -"
+        )
+        claude_spawn_script = (
+            f"{lock_prefix}"
+            f"$env:TAMANDUA_AGENT_CLAIM_ID='{claim_id}'; "
+            "$env:TAMANDUA_AGENT_ID='<agent-id>'; "
+            f"Get-Content -Raw '{prompt_path}' | claude --print"
+        )
         command_templates = {
             "codex": (
                 "powershell -NoProfile -ExecutionPolicy Bypass -Command "
-                f"\"{lock_prefix}"
-                f"$env:TAMANDUA_AGENT_CLAIM_ID='{claim_id}'; "
-                "$env:TAMANDUA_AGENT_ID='<agent-id>'; "
-                f"codex exec --cd . --prompt-file '{prompt_path}'\""
+                f"{ps_single_quoted(codex_spawn_script)}"
             ),
             "claude": (
                 "powershell -NoProfile -ExecutionPolicy Bypass -Command "
-                f"\"{lock_prefix}"
-                f"$env:TAMANDUA_AGENT_CLAIM_ID='{claim_id}'; "
-                "$env:TAMANDUA_AGENT_ID='<agent-id>'; "
-                f"claude --print (Get-Content -Raw '{prompt_path}')\""
+                f"{ps_single_quoted(claude_spawn_script)}"
             ),
         }
         copy_paste_prompt = "\n".join(
@@ -2135,16 +2295,24 @@ def build_agent_spawn_plan_json(claims_payload: dict, output_dir: Path) -> dict:
         if blocked_reasons <= {"missing_effective_env"}:
             env_ready_claim = dict(claim)
             env_ready_claim["claim_state"] = "ready_to_claim"
+            env_ready_claim["missing_effective_env"] = []
+            env_ready_claim["blocked_reasons"] = []
             env_bundle_ready_source_claims.append(env_ready_claim)
         else:
+            remaining_reasons = sorted(blocked_reasons - {"missing_effective_env"})
+            post_env_state = str(claim.get("claim_state") or "")
+            if "depends_on_prior_waves" in remaining_reasons:
+                post_env_state = "blocked_dependency_wave"
+            elif "manual_launch_required" in remaining_reasons:
+                post_env_state = "manual_claim_required"
             env_bundle_still_blocked_claims.append(
                 {
                     "claim_id": str(claim.get("claim_id") or ""),
                     "package_id": str(claim.get("package_id") or ""),
                     "owner": str(claim.get("owner") or "unassigned"),
-                    "claim_state": str(claim.get("claim_state") or ""),
-                    "missing_effective_env": missing_env,
-                    "blocked_reasons": [str(value) for value in claim.get("blocked_reasons") or []],
+                    "claim_state": post_env_state,
+                    "missing_effective_env": [],
+                    "blocked_reasons": remaining_reasons,
                     "depends_on_waves": [int(value) for value in claim.get("depends_on_waves") or []],
                     "prompt_path": stable_artifact_ref(claim.get("prompt_path")),
                     "current_next_action": claim.get("current_next_action") if isinstance(claim.get("current_next_action"), dict) else {},
@@ -2170,8 +2338,10 @@ def build_agent_spawn_plan_json(claims_payload: dict, output_dir: Path) -> dict:
         "source_artifact": str(claims_payload.get("artifact") or ""),
         "ready_batch_count": len(batches),
         "ready_claim_count": ready_claim_count,
+        "current_env_multi_agent_actionable": ready_claim_count >= 2,
         "env_bundle_ready_batch_count": len(env_bundle_ready_batches),
         "env_bundle_ready_claim_count": env_bundle_ready_claim_count,
+        "post_env_bundle_multi_agent_actionable": env_bundle_ready_claim_count >= 2,
         "env_bundle_still_blocked_claim_count": len(env_bundle_still_blocked_claims),
         "blocked_or_manual_claim_count": len(blocked_or_manual),
         "execute_policy": {
@@ -2193,6 +2363,10 @@ def build_agent_spawn_plan_json(claims_payload: dict, output_dir: Path) -> dict:
     }
     if ready_claim_count < 2:
         plan["not_multi_agent_actionable_reason"] = "fewer than two ready claims"
+    if env_bundle_ready_claim_count < 2:
+        plan["post_env_bundle_not_multi_agent_actionable_reason"] = (
+            "fewer than two env-bundle ready claims"
+        )
     return plan
 
 
@@ -2211,8 +2385,10 @@ def render_agent_spawn_plan(plan: dict) -> str:
         "",
         f"- Ready batches: `{plan.get('ready_batch_count')}`",
         f"- Ready claims: `{plan.get('ready_claim_count')}`",
+        f"- Current-env multi-agent actionable: `{str(bool(plan.get('current_env_multi_agent_actionable'))).lower()}`",
         f"- Env-bundle ready batches: `{plan.get('env_bundle_ready_batch_count')}`",
         f"- Env-bundle ready claims: `{plan.get('env_bundle_ready_claim_count')}`",
+        f"- Post-env-bundle multi-agent actionable: `{str(bool(plan.get('post_env_bundle_multi_agent_actionable'))).lower()}`",
         f"- Env-bundle still blocked claims: `{plan.get('env_bundle_still_blocked_claim_count')}`",
         f"- Blocked/manual claims: `{plan.get('blocked_or_manual_claim_count')}`",
         "- Execute policy: one provider per claim unless `-AllowDuplicateProviderPerClaim` is passed and `TAMANDUA_ALLOW_DUPLICATE_PROVIDER_PER_CLAIM=1` is set.",
@@ -2221,6 +2397,11 @@ def render_agent_spawn_plan(plan: dict) -> str:
     ]
     if plan.get("not_multi_agent_actionable_reason"):
         lines.append(f"- Not multi-agent actionable reason: `{plan.get('not_multi_agent_actionable_reason')}`")
+    if plan.get("post_env_bundle_not_multi_agent_actionable_reason"):
+        lines.append(
+            "- Post-env-bundle not multi-agent actionable reason: "
+            f"`{plan.get('post_env_bundle_not_multi_agent_actionable_reason')}`"
+        )
     lines.append("")
     for batch in plan.get("batches") or []:
         lines.extend(
@@ -2391,7 +2572,7 @@ def render_agent_spawn_launcher(agent_spawn_plan_json_path: Path) -> str:
         [
             "# Validation Agent Spawn Launcher",
             "param(",
-            "  [ValidateSet('codex','claude','all')]",
+            "  [ValidateSet('codex','claude','all','balanced')]",
             "  [string]$Provider = 'all',",
             "  [ValidateSet('ready','env-bundle','all')]",
             "  [string]$Phase = 'ready',",
@@ -2410,8 +2591,11 @@ def render_agent_spawn_launcher(agent_spawn_plan_json_path: Path) -> str:
             "if (-not $AgentId) { throw 'AgentId is required; pass -AgentId or set TAMANDUA_SPAWN_AGENT_ID.' }",
             "if ($AgentId -notmatch '^[A-Za-z0-9_.-]+$') { throw 'AgentId may only contain letters, digits, underscore, dot, or dash.' }",
             "$Plan = Get-Content -Raw -LiteralPath $PlanPath | ConvertFrom-Json",
+            "$PlanDir = Split-Path -Parent $PlanPath",
+            "$EnvQueuePath = Join-Path $PlanDir 'env_unblock_queue.json'",
             "$Rows = @()",
             "$BlockedRowCount = 0",
+            "$BalancedProviderIndex = 0",
             "function Format-NextAction([object]$Action) {",
             "  if ($null -eq $Action) { return '-' }",
             "  $Parts = @()",
@@ -2428,6 +2612,13 @@ def render_agent_spawn_launcher(agent_spawn_plan_json_path: Path) -> str:
             "  foreach ($Batch in @($Batches)) {",
             "    foreach ($Claim in @($Batch.claims)) {",
             "      if ($ClaimId -and ([string]$Claim.claim_id) -ne $ClaimId) { continue }",
+            "      if ($Provider -eq 'balanced') {",
+            "        $BalancedProvider = if (($script:BalancedProviderIndex % 2) -eq 0) { 'codex' } else { 'claude' }",
+            "        $script:BalancedProviderIndex += 1",
+            "        $BalancedCommand = ([string]$Claim.agent_spawn_command_templates.$BalancedProvider).Replace('<agent-id>', $AgentId)",
+            "        $script:Rows += [pscustomobject]@{ phase = $BatchPhase; provider = $BalancedProvider; claim_id = [string]$Claim.claim_id; next_action = (Format-NextAction $Claim.current_next_action); command = $BalancedCommand }",
+            "        continue",
+            "      }",
             "      if ($Provider -in @('codex','all')) {",
             "        $script:Rows += [pscustomobject]@{ phase = $BatchPhase; provider = 'codex'; claim_id = [string]$Claim.claim_id; next_action = (Format-NextAction $Claim.current_next_action); command = ([string]$Claim.agent_spawn_command_templates.codex).Replace('<agent-id>', $AgentId) }",
             "      }",
@@ -2448,23 +2639,116 @@ def render_agent_spawn_launcher(agent_spawn_plan_json_path: Path) -> str:
             "    Write-Host ('[blocked][' + [string]$Claim.claim_state + '][' + [string]$Claim.claim_id + '] missing_env=' + $Missing + '; reasons=' + $Reasons + '; next_action=' + $NextAction + '; prompt=' + $Prompt)",
             "  }",
             "}",
+            "function Show-EnvBundleReadiness {",
+            "  if (-not (Test-Path -LiteralPath $script:EnvQueuePath)) { Write-Host ('[env-bundle-readiness] missing_queue=' + $script:EnvQueuePath); return }",
+            "  try { $Queue = Get-Content -Raw -LiteralPath $script:EnvQueuePath | ConvertFrom-Json } catch { Write-Host ('[env-bundle-readiness] invalid_queue=' + [string]$_.Exception.Message); return }",
+            "  try { $RequiredEnv = Get-EnvBundleRequiredEnv $Queue } catch { Write-Host ('[env-bundle-readiness] invalid_queue=' + [string]$_.Exception.Message); return }",
+            "  try { Assert-EnvBundleQueueMatchesPlan $Queue } catch { Write-Host ('[env-bundle-readiness] invalid_queue=' + [string]$_.Exception.Message); return }",
+            "  $PresentEnv = @($RequiredEnv | Where-Object { [Environment]::GetEnvironmentVariable($_) })",
+            "  $MissingEnv = @($RequiredEnv | Where-Object { -not [Environment]::GetEnvironmentVariable($_) })",
+            "  Write-Host ('[env-bundle-readiness] present=' + [string]$PresentEnv.Count + '/' + [string]$RequiredEnv.Count + ' missing=' + (($MissingEnv -join ',') -replace '^$', '-'))",
+            "}",
+            "function Get-EnvBundleReadyClaimIdsFromPlan {",
+            "  $PlanClaimIds = @()",
+            "  foreach ($Batch in @($script:Plan.env_bundle_ready_batches)) {",
+            "    foreach ($Claim in @($Batch.claims)) {",
+            "      $ClaimIdText = [string]$Claim.claim_id",
+            "      if ($ClaimIdText) { $PlanClaimIds += $ClaimIdText }",
+            "    }",
+            "  }",
+            "  return @($PlanClaimIds | Sort-Object)",
+            "}",
+            "function Get-EnvBundleStillBlockedClaimIdsFromPlan {",
+            "  $PlanClaimIds = @()",
+            "  foreach ($Claim in @($script:Plan.env_bundle_still_blocked_claims)) {",
+            "    $ClaimIdText = [string]$Claim.claim_id",
+            "    if ($ClaimIdText) { $PlanClaimIds += $ClaimIdText }",
+            "  }",
+            "  return @($PlanClaimIds | Sort-Object)",
+            "}",
+            "function Assert-EnvBundleQueueMatchesPlan([object]$Queue) {",
+            "  if (-not ($Queue.PSObject.Properties.Name -contains 'ready_after_all_env_claim_ids')) { throw 'Env unblock queue missing ready_after_all_env_claim_ids.' }",
+            "  if ($Queue.ready_after_all_env_claim_ids -isnot [System.Array]) { throw 'Env unblock queue ready_after_all_env_claim_ids is not a list.' }",
+            "  if (-not ($Queue.PSObject.Properties.Name -contains 'still_blocked_after_all_env_claim_ids')) { throw 'Env unblock queue missing still_blocked_after_all_env_claim_ids.' }",
+            "  if ($Queue.still_blocked_after_all_env_claim_ids -isnot [System.Array]) { throw 'Env unblock queue still_blocked_after_all_env_claim_ids is not a list.' }",
+            "  $QueueClaimIds = @()",
+            "  foreach ($ClaimId in @($Queue.ready_after_all_env_claim_ids)) {",
+            "    $ClaimIdText = [string]$ClaimId",
+            "    if (-not $ClaimIdText) { throw 'Env unblock queue ready_after_all_env_claim_ids contains empty value.' }",
+            "    $QueueClaimIds += $ClaimIdText",
+            "  }",
+            "  $QueueClaimIds = @($QueueClaimIds | Sort-Object)",
+            "  $PlanClaimIds = Get-EnvBundleReadyClaimIdsFromPlan",
+            "  if (($QueueClaimIds -join '|') -ne ($PlanClaimIds -join '|')) { throw ('Env unblock queue ready_after_all_env_claim_ids mismatch: queue=' + ($QueueClaimIds -join ',') + ' plan=' + ($PlanClaimIds -join ',')) }",
+            "  $QueueStillBlockedClaimIds = @()",
+            "  foreach ($ClaimId in @($Queue.still_blocked_after_all_env_claim_ids)) {",
+            "    $ClaimIdText = [string]$ClaimId",
+            "    if (-not $ClaimIdText) { throw 'Env unblock queue still_blocked_after_all_env_claim_ids contains empty value.' }",
+            "    $QueueStillBlockedClaimIds += $ClaimIdText",
+            "  }",
+            "  $QueueStillBlockedClaimIds = @($QueueStillBlockedClaimIds | Sort-Object)",
+            "  $PlanStillBlockedClaimIds = Get-EnvBundleStillBlockedClaimIdsFromPlan",
+            "  if (($QueueStillBlockedClaimIds -join '|') -ne ($PlanStillBlockedClaimIds -join '|')) { throw ('Env unblock queue still_blocked_after_all_env_claim_ids mismatch: queue=' + ($QueueStillBlockedClaimIds -join ',') + ' plan=' + ($PlanStillBlockedClaimIds -join ',')) }",
+            "}",
+            "function Get-EnvBundleRequiredEnv([object]$Queue) {",
+            "  $RequiredEnv = @()",
+            "  foreach ($Entry in @($Queue.entries)) {",
+            "    $EnvName = [string]$Entry.env",
+            "    if (-not $EnvName) { throw 'Env unblock queue contains an entry without env.' }",
+            "    $RequiredEnv += $EnvName",
+            "  }",
+            "  $DuplicateEnv = @($RequiredEnv | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })",
+            "  if ($DuplicateEnv.Count -gt 0) { throw ('Env unblock queue contains duplicate env entries: ' + (($DuplicateEnv | Sort-Object) -join ', ')) }",
+            "  if (-not ($Queue.PSObject.Properties.Name -contains 'required_env_names')) { throw 'Env unblock queue missing required_env_names.' }",
+            "  if ($Queue.required_env_names -isnot [System.Array]) { throw 'Env unblock queue required_env_names is not a list.' }",
+            "  $RequiredEnvNames = @()",
+            "  foreach ($RequiredEnvName in @($Queue.required_env_names)) {",
+            "    $RequiredEnvNameText = [string]$RequiredEnvName",
+            "    if (-not $RequiredEnvNameText) { throw 'Env unblock queue required_env_names contains empty value.' }",
+            "    $RequiredEnvNames += $RequiredEnvNameText",
+            "  }",
+            "  $RequiredEnvNames = @($RequiredEnvNames | Sort-Object)",
+            "  $EntryEnvNames = @($RequiredEnv | Sort-Object)",
+            "  if (($RequiredEnvNames -join '|') -ne ($EntryEnvNames -join '|')) { throw ('Env unblock queue required_env_names mismatch: required_env_names=' + ($RequiredEnvNames -join ',') + ' entries=' + ($EntryEnvNames -join ',')) }",
+            "  if (-not ($Queue.PSObject.Properties.Name -contains 'all_env_powershell_set_commands')) { throw 'Env unblock queue missing all_env_powershell_set_commands.' }",
+            "  if ($Queue.all_env_powershell_set_commands -isnot [System.Array]) { throw 'Env unblock queue all_env_powershell_set_commands is not a list.' }",
+            "  $CommandEnvNames = @()",
+            "  foreach ($Command in @($Queue.all_env_powershell_set_commands)) {",
+            "    $CommandText = [string]$Command",
+            "    if (-not $CommandText) { throw 'Env unblock queue all_env_powershell_set_commands contains empty value.' }",
+            "    $CommandMatch = [regex]::Match($CommandText, '^\\$env:([A-Za-z_][A-Za-z0-9_]*)\\s*=')",
+            "    if (-not $CommandMatch.Success) { throw ('Env unblock queue invalid env set command: ' + $CommandText) }",
+            "    $CommandEnvNames += $CommandMatch.Groups[1].Value",
+            "  }",
+            "  $CommandEnvNames = @($CommandEnvNames | Sort-Object)",
+            "  if (($CommandEnvNames -join '|') -ne ($EntryEnvNames -join '|')) { throw ('Env unblock queue env set commands mismatch: commands=' + ($CommandEnvNames -join ',') + ' entries=' + ($EntryEnvNames -join ',')) }",
+            "  return @($RequiredEnv | Sort-Object)",
+            "}",
+            "function Assert-EnvBundleReadyForExecution {",
+            "  if (-not (Test-Path -LiteralPath $script:EnvQueuePath)) { throw ('env bundle queue not found: ' + $script:EnvQueuePath) }",
+            "  try { $Queue = Get-Content -Raw -LiteralPath $script:EnvQueuePath | ConvertFrom-Json } catch { throw ('env bundle queue invalid: ' + [string]$_.Exception.Message) }",
+            "  $RequiredEnv = Get-EnvBundleRequiredEnv $Queue",
+            "  Assert-EnvBundleQueueMatchesPlan $Queue",
+            "  $MissingEnv = @($RequiredEnv | Where-Object { -not [Environment]::GetEnvironmentVariable($_) })",
+            "  if ($MissingEnv.Count -gt 0) { throw ('Refusing env-bundle spawn while env values are missing: ' + ($MissingEnv -join ', ')) }",
+            "  $PlaceholderEnv = @($RequiredEnv | Where-Object { [Environment]::GetEnvironmentVariable($_) -match '^<set-.+>$' })",
+            "  if ($PlaceholderEnv.Count -gt 0) { throw ('Refusing env-bundle spawn while placeholder env values remain: ' + ($PlaceholderEnv -join ', ')) }",
+            "}",
             "if ($Phase -in @('ready','all')) { Add-SpawnRows @($Plan.batches) 'ready' }",
             "if ($Phase -in @('env-bundle','all')) { Add-SpawnRows @($Plan.env_bundle_ready_batches) 'env-bundle' }",
+            "if ($Phase -in @('env-bundle','all')) { Show-EnvBundleReadiness }",
             "if ($ShowBlocked) { Show-BlockedClaims }",
             "if (-not $Rows -and -not $BlockedRowCount) { Write-Host 'No matching spawn commands or blocked claims.'; exit 0 }",
-            "foreach ($Row in $Rows) {",
-            "  Write-Host ('[' + $Row.phase + '][' + $Row.provider + '][' + $Row.claim_id + '] next_action=' + $Row.next_action + '; command=' + $Row.command)",
+            "if ($Execute) {",
+            "  if ([Environment]::GetEnvironmentVariable('TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH') -ne '1') {",
+            "    throw 'Refusing to execute agent spawn commands without TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH=1.'",
+            "  }",
+            "  if ($Phase -in @('env-bundle','all') -and [Environment]::GetEnvironmentVariable('TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH') -ne '1') {",
+            "    throw 'Refusing to execute env-bundle spawn commands without TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH=1.'",
+            "  }",
+            "  if ($Phase -in @('env-bundle','all')) { Assert-EnvBundleReadyForExecution }",
             "}",
-            "if (-not $Execute) {",
-            "  Write-Host 'Dry run only. Pass -Execute and set TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH=1 to run commands.'",
-            "  exit 0",
-            "}",
-            "if ([Environment]::GetEnvironmentVariable('TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH') -ne '1') {",
-            "  throw 'Refusing to execute agent spawn commands without TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH=1.'",
-            "}",
-            "if ($Phase -in @('env-bundle','all') -and [Environment]::GetEnvironmentVariable('TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH') -ne '1') {",
-            "  throw 'Refusing to execute env-bundle spawn commands without TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH=1.'",
-            "}",
+            "if ($Execute) {",
             "if (-not $AllowDuplicateProviderPerClaim) {",
             "  $DuplicateClaims = @($Rows | Group-Object claim_id | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })",
             "  if ($DuplicateClaims.Count -gt 0) {",
@@ -2479,13 +2763,23 @@ def render_agent_spawn_launcher(agent_spawn_plan_json_path: Path) -> str:
             "  $DuplicateClaims = @($Rows | Group-Object claim_id | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })",
             "  if ($DuplicateClaims.Count -gt 0) { Write-Host ('[duplicate-provider-override] claims=' + ($DuplicateClaims -join ',')) }",
             "}",
+            "}",
+            "foreach ($Row in $Rows) {",
+            "  Write-Host ('[' + $Row.phase + '][' + $Row.provider + '][' + $Row.claim_id + '] next_action=' + $Row.next_action + '; command=' + $Row.command)",
+            "}",
+            "if (-not $Execute) {",
+            "  Write-Host 'Dry run only. Pass -Execute and set TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH=1 to run commands.'",
+            "  exit 0",
+            "}",
             "if ($Parallel) {",
             "  $Jobs = @()",
+            "  $SpawnWorkingDirectory = (Get-Location).Path",
             "  foreach ($Row in $Rows) {",
-            "    $Jobs += Start-Job -Name ($Row.provider + '-' + $Row.claim_id) -ArgumentList $Row.phase, $Row.provider, $Row.claim_id, $Row.command -ScriptBlock {",
-            "      param([string]$Phase, [string]$Provider, [string]$ClaimId, [string]$Command)",
+            "    $Jobs += Start-Job -Name ($Row.provider + '-' + $Row.claim_id) -ArgumentList $Row.phase, $Row.provider, $Row.claim_id, $Row.command, $SpawnWorkingDirectory -ScriptBlock {",
+            "      param([string]$Phase, [string]$Provider, [string]$ClaimId, [string]$Command, [string]$WorkingDirectory)",
             "      Write-Host ('[spawn-execute][' + $Phase + '][' + $Provider + '][' + $ClaimId + ']')",
             "      try {",
+            "        if ($WorkingDirectory) { Set-Location -LiteralPath $WorkingDirectory }",
             "        Invoke-Expression $Command",
             "        $ExitCode = if ($LASTEXITCODE -ne $null) { [int]$LASTEXITCODE } else { 0 }",
             "        [pscustomobject]@{ phase = $Phase; provider = $Provider; claim_id = $ClaimId; exit_code = $ExitCode; error = '' }",
@@ -2497,17 +2791,23 @@ def render_agent_spawn_launcher(agent_spawn_plan_json_path: Path) -> str:
             "  $Jobs | Wait-Job | Out-Null",
             "  $Failures = @()",
             "  foreach ($Job in $Jobs) {",
-            "    $Results = Receive-Job $Job",
+            "    $JobReceiveErrors = @()",
+            "    $Results = @(Receive-Job -Job $Job -ErrorAction SilentlyContinue -ErrorVariable JobReceiveErrors)",
             "    $SawResult = $false",
             "    foreach ($Result in @($Results)) {",
             "      if ($Result.PSObject.Properties.Name -contains 'exit_code') { $SawResult = $true }",
             "      if ($Result.PSObject.Properties.Name -contains 'exit_code' -and [int]$Result.exit_code -ne 0) {",
             "        $Failure = [string]$Result.provider + ':' + [string]$Result.claim_id + '=' + [string]$Result.exit_code",
             "        if ($Result.PSObject.Properties.Name -contains 'error' -and [string]$Result.error) { $Failure += ' ' + [string]$Result.error }",
+            "        if ($JobReceiveErrors.Count -gt 0) { $Failure += ' stderr=' + (($JobReceiveErrors | ForEach-Object { [string]$_ }) -join ' | ') }",
             "        $Failures += $Failure",
             "      }",
             "    }",
-            "    if (-not $SawResult) { $Failures += ($Job.Name + ' produced no result') }",
+            "    if (-not $SawResult) {",
+            "      $NoResultFailure = $Job.Name + ' produced no result'",
+            "      if ($JobReceiveErrors.Count -gt 0) { $NoResultFailure += ' stderr=' + (($JobReceiveErrors | ForEach-Object { [string]$_ }) -join ' | ') }",
+            "      $Failures += $NoResultFailure",
+            "    }",
             "    if ($Job.State -ne 'Completed') { $Failures += ($Job.Name + ' state ' + [string]$Job.State) }",
             "    if ($Job.ChildJobs.Count -gt 0 -and $Job.ChildJobs[0].JobStateInfo.Reason) { $Failures += ($Job.Name + ' reason ' + [string]$Job.ChildJobs[0].JobStateInfo.Reason) }",
             "    Remove-Job -Job $Job -Force",
@@ -2746,6 +3046,15 @@ def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dic
         for package in manifest.get("packages") or []
         if isinstance(package, dict)
     ]
+    for package in packages:
+        for derived_key in (
+            "launcher_selected",
+            "manual_reason",
+            "staged_launcher_selected",
+            "staged_stage",
+            "handoff_notes",
+        ):
+            package.pop(derived_key, None)
     output_dir = resolve_dispatch_manifest_path_ref(manifest.get("output_dir"), manifest_dir)
     preflight_path = resolve_dispatch_manifest_path_ref(manifest.get("source_preflight"), manifest_dir)
     claim_lock_helper_ref = str(manifest.get("claim_lock_helper_path") or "")
@@ -2754,6 +3063,7 @@ def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dic
             package["claim_lock_helper_path"] = claim_lock_helper_ref
 
     script_paths: dict[str, Path] = {}
+    refreshed_package_script_paths: list[Path] = []
     prompt_paths: dict[str, Path] = {}
     for package in packages:
         package_id = str(package.get("package_id") or "")
@@ -2761,6 +3071,20 @@ def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dic
             continue
         script_path = resolve_dispatch_manifest_path_ref(package.get("script_path"), manifest_dir)
         script_paths[package_id] = script_path
+        script_path.parent.mkdir(parents=True, exist_ok=True)
+        package_output_dir = resolve_dispatch_manifest_path_ref(
+            package.get("output_dir") or package_manifest_output_dir(package, script_path),
+            manifest_dir,
+        )
+        script_path.write_text(
+            render_package_script(
+                package,
+                Path(stable_path(preflight_path)),
+                package_output_dir=Path(stable_path(package_output_dir)),
+            ),
+            encoding="utf-8",
+        )
+        refreshed_package_script_paths.append(script_path)
         prompt_path_value = package.get("prompt_path")
         if prompt_path_value:
             prompt_path = resolve_dispatch_manifest_path_ref(prompt_path_value, manifest_dir)
@@ -2778,14 +3102,22 @@ def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dic
         if manifest.get("env_template_path")
         else None
     )
-    launcher_paths = [
+    existing_launcher_paths = [
         resolve_dispatch_manifest_path_ref(value, manifest_dir)
         for value in manifest.get("launcher_paths") or []
     ]
-    staged_launcher_paths = [
+    existing_staged_launcher_paths = [
         resolve_dispatch_manifest_path_ref(value, manifest_dir)
         for value in manifest.get("staged_launcher_paths") or []
     ]
+    launcher_output_dir = existing_launcher_paths[0].parent if existing_launcher_paths else output_dir / "launchers"
+    launcher_output_dir.mkdir(parents=True, exist_ok=True)
+    launcher_paths = write_wave_launchers(packages, script_paths, launcher_output_dir)
+    staged_launcher_output_dir = (
+        existing_staged_launcher_paths[0].parent if existing_staged_launcher_paths else launcher_output_dir
+    )
+    staged_launcher_output_dir.mkdir(parents=True, exist_ok=True)
+    staged_launcher_paths = write_staged_wave_launchers(packages, script_paths, staged_launcher_output_dir)
     roster_path = write_agent_roster(packages, script_paths, prompt_paths, output_dir)
     owner_launch_plan_path = write_owner_launch_plan(
         packages,
@@ -2809,7 +3141,11 @@ def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dic
     agent_spawn_launcher_path = write_agent_spawn_launcher(agent_spawn_plan_json_path, output_dir)
     claim_status_report_path, claim_status_report_json_path = write_claim_status_report(agent_claims_json_path, output_dir)
     claim_lock_helper_path = write_claim_lock_helper(agent_claims_json_path, output_dir)
-    env_unblock_queue_path, env_unblock_queue_json_path = write_env_unblock_queue(agent_claims_json_path, output_dir)
+    env_unblock_queue_path, env_unblock_queue_json_path = write_env_unblock_queue(
+        agent_claims_json_path,
+        output_dir,
+        agent_spawn_launcher_path,
+    )
     ready_claims_launcher_path = write_ready_claims_launcher(agent_claims_json_path, output_dir)
     ready_claims_parallel_launcher_path = write_ready_claims_parallel_launcher(agent_claims_json_path, output_dir)
     env_bundle_ready_claims_launcher_path = write_env_bundle_ready_claims_launcher(agent_claims_json_path, output_dir)
@@ -2820,12 +3156,24 @@ def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dic
         ready_claims_parallel_launcher_path,
         env_bundle_ready_claims_launcher_path,
         claim_lock_helper_path,
+        env_unblock_queue_json_path,
+        agent_spawn_plan_json_path,
+        agent_claims_json_path,
+        claim_status_report_json_path,
+        manifest_path,
+        owner_launch_plan_json_path,
+        execution_matrix_json_path,
     )
-    dispatch_runner_path = (
-        resolve_dispatch_manifest_path_ref(manifest.get("dispatch_runner_path"), manifest_dir)
-        if manifest.get("dispatch_runner_path")
-        else None
-    )
+    dispatch_runner_path = None
+    if manifest.get("dispatch_runner_path"):
+        dispatch_runner_path = write_dispatch_runner(
+            packages,
+            output_dir,
+            script_paths,
+            launcher_paths,
+            staged_launcher_paths,
+            manifest_path,
+        )
     dispatch_brief_path = write_dispatch_brief(
         packages,
         preflight_path,
@@ -2858,32 +3206,43 @@ def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dic
         manifest_path,
         dispatch_runner_path,
     )
-    manifest.update(
-        {
-            "agent_roster_path": stable_path(roster_path),
-            "owner_launch_plan_path": stable_path(owner_launch_plan_path),
-            "owner_launch_plan_json_path": stable_path(owner_launch_plan_json_path),
-            "execution_matrix_path": stable_path(execution_matrix_path),
-            "execution_matrix_json_path": stable_path(execution_matrix_json_path),
-            "agent_claims_path": stable_path(agent_claims_path),
-            "agent_claims_json_path": stable_path(agent_claims_json_path),
-            "agent_spawn_plan_path": stable_path(agent_spawn_plan_path),
-            "agent_spawn_plan_json_path": stable_path(agent_spawn_plan_json_path),
-            "agent_spawn_launcher_path": stable_path(agent_spawn_launcher_path),
-            "claim_status_report_path": stable_path(claim_status_report_path),
-            "claim_status_report_json_path": stable_path(claim_status_report_json_path),
-            "claim_lock_helper_path": stable_path(claim_lock_helper_path),
-            "env_unblock_queue_path": stable_path(env_unblock_queue_path),
-            "env_unblock_queue_json_path": stable_path(env_unblock_queue_json_path),
-            "ready_claims_launcher_path": stable_path(ready_claims_launcher_path),
-            "ready_claims_parallel_launcher_path": stable_path(ready_claims_parallel_launcher_path),
-            "env_bundle_ready_claims_launcher_path": stable_path(env_bundle_ready_claims_launcher_path),
-            "dispatch_prelaunch_validation_path": stable_path(dispatch_prelaunch_validation_path),
-            "dispatch_brief_path": stable_path(dispatch_brief_path),
-        }
+    manifest = build_dispatch_manifest(
+        packages,
+        preflight_path,
+        output_dir,
+        script_paths,
+        prompt_paths,
+        launcher_paths,
+        staged_launcher_paths,
+        roster_path,
+        env_checklist_path,
+        env_template_path,
+        owner_launch_plan_path,
+        owner_launch_plan_json_path,
+        execution_matrix_path,
+        execution_matrix_json_path,
+        agent_claims_path,
+        agent_claims_json_path,
+        agent_spawn_plan_path,
+        agent_spawn_plan_json_path,
+        agent_spawn_launcher_path,
+        claim_status_report_path,
+        claim_status_report_json_path,
+        claim_lock_helper_path,
+        env_unblock_queue_path,
+        env_unblock_queue_json_path,
+        ready_claims_launcher_path,
+        ready_claims_parallel_launcher_path,
+        env_bundle_ready_claims_launcher_path,
+        dispatch_prelaunch_validation_path,
+        dispatch_brief_path,
+        dispatch_runner_path,
+        manifest.get("selection_mode"),
+        manifest.get("selected_wave"),
     )
     manifest_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return {
+        "package_scripts": ",".join(stable_path(path) for path in refreshed_package_script_paths),
         "agent_roster": str(roster_path),
         "owner_launch_plan": str(owner_launch_plan_path),
         "owner_launch_plan_json": str(owner_launch_plan_json_path),
@@ -2904,6 +3263,9 @@ def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dic
         "env_bundle_ready_claims_launcher": str(env_bundle_ready_claims_launcher_path),
         "dispatch_prelaunch_validation": str(dispatch_prelaunch_validation_path),
         "dispatch_brief": str(dispatch_brief_path),
+        "launcher_paths": ",".join(stable_path(path) for path in launcher_paths),
+        "staged_launcher_paths": ",".join(stable_path(path) for path in staged_launcher_paths),
+        "dispatch_runner": str(dispatch_runner_path) if dispatch_runner_path else "",
     }
 
 
@@ -2966,6 +3328,14 @@ def render_claim_lock_helper(claims_payload: dict) -> str:
         "  Write-Host ('Unknown validation claim: ' + $ClaimId)",
         "  exit 2",
         "}",
+        "if (-not $AgentId) {",
+        "  Write-Host 'AgentId is required.'",
+        "  exit 2",
+        "}",
+        "if ($AgentId -notmatch '^[A-Za-z0-9_.-]+$') {",
+        "  Write-Host 'AgentId may only contain letters, digits, underscore, dot, or dash.'",
+        "  exit 2",
+        "}",
         "$LockPath = Get-ClaimLockPath $ClaimId",
         "if (Test-Path $LockPath) {",
         "  Write-Host ('Claim already locked: ' + $LockPath)",
@@ -3009,7 +3379,35 @@ def claim_current_next_action_env(claim: dict) -> list[str]:
     return next_action_env_from_action(action)
 
 
-def build_env_unblock_queue_json(claims_payload: dict, env_bundle_launcher_path: Path | None = None) -> dict:
+def next_action_summary_direct_for_env(env_name: str, action: object, summary: str) -> bool:
+    action_env = next_action_env_from_action(action)
+    if action_env:
+        return env_name in action_env
+    summary_text = str(summary or "")
+    if env_name in summary_text:
+        return True
+    if env_name.startswith("TAMANDUA_FRESH_RESTORE") and (
+        "fresh-restore" in summary_text or "restore metadata" in summary_text
+    ):
+        return True
+    if env_name.startswith("CALDERA_") and "CALDERA" in summary_text:
+        return True
+    if env_name == "TAMANDUA_PROXMOX_PASSWORD" and (
+        "Proxmox" in summary_text or "QGA" in summary_text
+    ):
+        return True
+    if env_name == "TAMANDUA_TOKEN" and "tamandua-ctl" in summary_text:
+        return True
+    return False
+
+
+def build_env_unblock_queue_json(
+    claims_payload: dict,
+    env_bundle_launcher_path: Path | None = None,
+    agent_spawn_launcher_path: Path | None = None,
+    environ: dict[str, str] | None = None,
+) -> dict:
+    env = environ if environ is not None else os.environ
     env_entries: dict[str, dict] = {}
     next_action_env_entries: dict[str, dict] = {}
     claims = [claim for claim in claims_payload.get("claims") or [] if isinstance(claim, dict)]
@@ -3053,19 +3451,32 @@ def build_env_unblock_queue_json(claims_payload: dict, env_bundle_launcher_path:
                     "immediate_claim_ids": [],
                     "dependency_claim_ids": [],
                     "manual_claim_ids": [],
+                    "next_action_summaries": [],
+                    "direct_next_action_summaries": [],
+                    "indirect_next_action_summaries": [],
                 },
             )
             entry["owners"].add(str(claim.get("owner") or "unassigned"))
-            entry["claim_ids"].append(str(claim.get("claim_id") or ""))
+            claim_id = str(claim.get("claim_id") or "")
+            entry["claim_ids"].append(claim_id)
             entry["package_ids"].append(str(claim.get("package_id") or ""))
             entry["waves"].add(int(claim.get("wave") or 0))
+            next_action_summary = render_current_next_action_summary(claim.get("current_next_action"))
+            if claim_id and next_action_summary != "-":
+                entry["next_action_summaries"].append(f"{claim_id}: {next_action_summary}")
+                summary = f"{claim_id}: {next_action_summary}"
+                current_next_action = claim.get("current_next_action")
+                if next_action_summary_direct_for_env(env_name, current_next_action, next_action_summary):
+                    entry["direct_next_action_summaries"].append(summary)
+                else:
+                    entry["indirect_next_action_summaries"].append(summary)
             blocked_reasons = {str(value) for value in claim.get("blocked_reasons") or []}
             if "depends_on_prior_waves" in blocked_reasons:
-                entry["dependency_claim_ids"].append(str(claim.get("claim_id") or ""))
+                entry["dependency_claim_ids"].append(claim_id)
             elif "manual_launch_required" in blocked_reasons:
-                entry["manual_claim_ids"].append(str(claim.get("claim_id") or ""))
+                entry["manual_claim_ids"].append(claim_id)
             else:
-                entry["immediate_claim_ids"].append(str(claim.get("claim_id") or ""))
+                entry["immediate_claim_ids"].append(claim_id)
     entries = []
     for entry in env_entries.values():
         claim_ids = sorted(set(value for value in entry["claim_ids"] if value))
@@ -3105,6 +3516,13 @@ def build_env_unblock_queue_json(claims_payload: dict, env_bundle_launcher_path:
                 "single_env_ready_claim_ids": sorted(single_env_ready_claim_ids),
                 "single_env_still_blocked_claim_ids": sorted(single_env_still_blocked_claim_ids),
                 "remaining_env_after_setting": remaining_env_after_setting,
+                "next_action_summaries": sorted(set(value for value in entry["next_action_summaries"] if value)),
+                "direct_next_action_summaries": sorted(
+                    set(value for value in entry["direct_next_action_summaries"] if value)
+                ),
+                "indirect_next_action_summaries": sorted(
+                    set(value for value in entry["indirect_next_action_summaries"] if value)
+                ),
                 "placeholder": env_template_placeholder(env_name),
                 "powershell_set_command": f"$env:{env_name} = '{env_template_placeholder(env_name)}'",
                 "copy_paste_unblock_prompt": "\n".join(
@@ -3117,6 +3535,31 @@ def build_env_unblock_queue_json(claims_payload: dict, env_bundle_launcher_path:
                         f"Dependency-gated claims also needing this env: {', '.join(dependency_claim_ids) or '-'}",
                         f"Manual claims also needing this env: {', '.join(manual_claim_ids) or '-'}",
                         f"All affected packages: {', '.join(sorted(set(value for value in entry['package_ids'] if value))) or '-'}",
+                        (
+                            "Direct claim next actions: "
+                            + (
+                                " | ".join(
+                                    sorted(set(value for value in entry["direct_next_action_summaries"] if value))
+                                )
+                                or "-"
+                            )
+                        ),
+                        (
+                            "Other affected claim next actions: "
+                            + (
+                                " | ".join(
+                                    sorted(set(value for value in entry["indirect_next_action_summaries"] if value))
+                                )
+                                or "-"
+                            )
+                        ),
+                        (
+                            "Affected claim next actions: "
+                            + (
+                                " | ".join(sorted(set(value for value in entry["next_action_summaries"] if value)))
+                                or "-"
+                            )
+                        ),
                     ]
                 ),
             }
@@ -3145,6 +3588,29 @@ def build_env_unblock_queue_json(claims_payload: dict, env_bundle_launcher_path:
                 "actions": sorted(set(value for value in entry["actions"] if value)),
             }
         )
+    existing_next_action_env = {str(entry.get("env") or "") for entry in next_action_entries}
+    for entry in entries:
+        env_name = str(entry.get("env") or "")
+        if not env_name or env_name in existing_next_action_env:
+            continue
+        direct_summaries = [str(value) for value in entry.get("direct_next_action_summaries") or [] if value]
+        if not direct_summaries:
+            continue
+        next_action_entries.append(
+            {
+                "env": env_name,
+                "owners": [str(value) for value in entry.get("owners") or []],
+                "claim_ids": [str(value) for value in entry.get("claim_ids") or []],
+                "package_ids": [str(value) for value in entry.get("package_ids") or []],
+                "waves": [int(value) for value in entry.get("waves") or []],
+                "claim_count": int(entry.get("claim_count") or 0),
+                "placeholder": env_template_placeholder(env_name),
+                "powershell_set_command": f"$env:{env_name} = '{env_template_placeholder(env_name)}'",
+                "token_login_commands": [],
+                "actions": direct_summaries,
+            }
+        )
+        existing_next_action_env.add(env_name)
     next_action_entries.sort(
         key=lambda item: (
             -int(item.get("claim_count") or 0),
@@ -3152,26 +3618,53 @@ def build_env_unblock_queue_json(claims_payload: dict, env_bundle_launcher_path:
         )
     )
     all_env_names = {str(entry.get("env") or "") for entry in entries}
+    def env_value_is_placeholder(env_name: str) -> bool:
+        value = str(env.get(env_name) or "")
+        return value == env_template_placeholder(env_name) or bool(re.fullmatch(r"<set-.+>", value))
+
+    currently_present_env_names = sorted(
+        name for name in all_env_names if env.get(name) and not env_value_is_placeholder(name)
+    )
+    currently_placeholder_env_names = sorted(
+        name for name in all_env_names if env.get(name) and env_value_is_placeholder(name)
+    )
+    currently_missing_env_names = sorted(name for name in all_env_names if not env.get(name))
     ready_after_all_env_claim_ids = []
     still_blocked_after_all_env_claim_ids = []
+    ready_with_current_env_claim_ids = []
+    still_blocked_with_current_env_claim_ids = []
     for claim in claims:
         claim_id = str(claim.get("claim_id") or "")
         missing_env = {str(value) for value in claim.get("missing_effective_env") or []}
         if not missing_env:
             continue
         remaining_env = sorted(missing_env - all_env_names)
+        current_remaining_env = sorted(value for value in missing_env if not env.get(value) or env_value_is_placeholder(value))
         blocked_reasons = {str(value) for value in claim.get("blocked_reasons") or []}
         if not remaining_env and blocked_reasons <= {"missing_effective_env"}:
             ready_after_all_env_claim_ids.append(claim_id)
         else:
             still_blocked_after_all_env_claim_ids.append(claim_id)
+        if not current_remaining_env and blocked_reasons <= {"missing_effective_env"}:
+            ready_with_current_env_claim_ids.append(claim_id)
+        else:
+            still_blocked_with_current_env_claim_ids.append(claim_id)
     return {
         "schema_version": 1,
         "artifact": "validation-env-unblock-queue",
         "source_artifact": str(claims_payload.get("artifact") or ""),
         "env_count": len(entries),
+        "required_env_names": sorted(all_env_names),
         "next_action_env_count": len(next_action_entries),
         "blocked_claim_count": int(claims_payload.get("blocked_claim_count") or 0),
+        "current_env_present_count": len(currently_present_env_names),
+        "current_env_missing_count": len(currently_missing_env_names),
+        "current_env_placeholder_count": len(currently_placeholder_env_names),
+        "current_env_present_names": currently_present_env_names,
+        "current_env_missing_names": currently_missing_env_names,
+        "current_env_placeholder_names": currently_placeholder_env_names,
+        "ready_with_current_env_claim_ids": sorted(ready_with_current_env_claim_ids),
+        "still_blocked_with_current_env_claim_ids": sorted(still_blocked_with_current_env_claim_ids),
         "all_env_powershell_set_commands": [str(entry.get("powershell_set_command") or "") for entry in entries],
         "next_action_env_powershell_set_commands": [
             str(entry.get("powershell_set_command") or "") for entry in next_action_entries
@@ -3180,6 +3673,13 @@ def build_env_unblock_queue_json(claims_payload: dict, env_bundle_launcher_path:
             "$env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'",
             "powershell -NoProfile -ExecutionPolicy Bypass -File "
             f"'{stable_artifact_ref(env_bundle_launcher_path) if env_bundle_launcher_path else 'env_bundle_ready_claims_launcher.ps1'}'",
+        ] if ready_after_all_env_claim_ids else [],
+        "post_env_bundle_balanced_agent_spawn_commands": [
+            "$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'",
+            "$env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'",
+            "powershell -NoProfile -ExecutionPolicy Bypass -File "
+            f"'{stable_artifact_ref(agent_spawn_launcher_path) if agent_spawn_launcher_path else 'agent_spawn_launcher.ps1'}' "
+            "-Provider balanced -Phase env-bundle -Execute -Parallel",
         ] if ready_after_all_env_claim_ids else [],
         "env_bundle_validation_command": (
             "powershell -NoProfile -ExecutionPolicy Bypass -File "
@@ -3209,6 +3709,11 @@ def render_env_unblock_queue(queue: dict) -> str:
         f"- Env vars: `{queue.get('env_count')}`",
         f"- Next-action env vars: `{queue.get('next_action_env_count') or 0}`",
         f"- Blocked claims: `{queue.get('blocked_claim_count')}`",
+        f"- Current env present: `{queue.get('current_env_present_count') or 0}`",
+        f"- Current env missing: `{queue.get('current_env_missing_count') or 0}`",
+        f"- Current env placeholders: `{queue.get('current_env_placeholder_count') or 0}`",
+        f"- Claims ready with current env: `{', '.join(str(value) for value in queue.get('ready_with_current_env_claim_ids') or []) or '-'}`",
+        f"- Claims still blocked with current env: `{', '.join(str(value) for value in queue.get('still_blocked_with_current_env_claim_ids') or []) or '-'}`",
         f"- Claims ready after all envs: `{', '.join(str(value) for value in queue.get('ready_after_all_env_claim_ids') or []) or '-'}`",
         f"- Claims still blocked after all envs: `{', '.join(str(value) for value in queue.get('still_blocked_after_all_env_claim_ids') or []) or '-'}`",
         "",
@@ -3261,6 +3766,20 @@ def render_env_unblock_queue(queue: dict) -> str:
                     "",
                     "```powershell",
                     *launcher_commands,
+                    "```",
+                    "",
+                ]
+            )
+        balanced_spawn_commands = [
+            str(command) for command in queue.get("post_env_bundle_balanced_agent_spawn_commands") or [] if command
+        ]
+        if balanced_spawn_commands:
+            lines.extend(
+                [
+                    "## Copy/Paste Post-Env-Bundle Balanced Agent Spawn",
+                    "",
+                    "```powershell",
+                    *balanced_spawn_commands,
                     "```",
                     "",
                 ]
@@ -3325,9 +3844,17 @@ def render_env_unblock_queue(queue: dict) -> str:
     return "\n".join(lines)
 
 
-def write_env_unblock_queue(agent_claims_json_path: Path, output_dir: Path) -> tuple[Path, Path]:
+def write_env_unblock_queue(
+    agent_claims_json_path: Path,
+    output_dir: Path,
+    agent_spawn_launcher_path: Path | None = None,
+) -> tuple[Path, Path]:
     claims_payload = load_json(agent_claims_json_path)
-    queue = build_env_unblock_queue_json(claims_payload, output_dir / "env_bundle_ready_claims_launcher.ps1")
+    queue = build_env_unblock_queue_json(
+        claims_payload,
+        output_dir / "env_bundle_ready_claims_launcher.ps1",
+        agent_spawn_launcher_path=agent_spawn_launcher_path or output_dir / "agent_spawn_launcher.ps1",
+    )
     markdown_path = output_dir / "env_unblock_queue.md"
     json_path = output_dir / "env_unblock_queue.json"
     markdown_path.write_text(render_env_unblock_queue(queue), encoding="utf-8")
@@ -3370,6 +3897,7 @@ def render_ready_claims_launcher(claims_payload: dict) -> str:
         "$ReadyClaimFailures = @()",
         "$ReadyClaimAgentId = [Environment]::GetEnvironmentVariable('TAMANDUA_READY_CLAIMS_AGENT_ID')",
         "if (-not $ReadyClaimAgentId) { $ReadyClaimAgentId = [Environment]::UserName }",
+        *ps_agent_id_guard_lines("ReadyClaimAgentId", "TAMANDUA_READY_CLAIMS_AGENT_ID"),
         "$ReadyClaimLauncherDir = Split-Path -Parent $MyInvocation.MyCommand.Path",
         "$ClaimLockHelperPath = Join-Path $ReadyClaimLauncherDir 'claim_lock_helper.ps1'",
         "$DispatchManifestPath = Join-Path $ReadyClaimLauncherDir 'dispatch_manifest.json'",
@@ -3515,6 +4043,7 @@ def render_ready_claims_parallel_launcher(claims_payload: dict) -> str:
         "$ReadyClaimFailures = @()",
         "$ReadyClaimAgentId = [Environment]::GetEnvironmentVariable('TAMANDUA_READY_CLAIMS_AGENT_ID')",
         "if (-not $ReadyClaimAgentId) { $ReadyClaimAgentId = [Environment]::UserName }",
+        *ps_agent_id_guard_lines("ReadyClaimAgentId", "TAMANDUA_READY_CLAIMS_AGENT_ID"),
         "$ReadyClaimLauncherDir = Split-Path -Parent $MyInvocation.MyCommand.Path",
         "$ClaimLockHelperPath = Join-Path $ReadyClaimLauncherDir 'claim_lock_helper.ps1'",
         "$DispatchManifestPath = Join-Path $ReadyClaimLauncherDir 'dispatch_manifest.json'",
@@ -3658,6 +4187,26 @@ def render_env_bundle_ready_claims_launcher(claims_payload: dict) -> str:
         for claim in batch
         if str(claim.get("claim_id") or "")
     ]
+    all_env_names = {
+        str(env_name)
+        for claim in claims_payload.get("claims") or []
+        if isinstance(claim, dict)
+        for env_name in claim.get("missing_effective_env") or []
+        if str(env_name)
+    }
+    still_blocked_after_all_env_claim_ids = []
+    for claim in claims_payload.get("claims") or []:
+        if not isinstance(claim, dict):
+            continue
+        claim_id = str(claim.get("claim_id") or "")
+        missing_env = {str(value) for value in claim.get("missing_effective_env") or [] if str(value)}
+        blocked_reasons = {str(value) for value in claim.get("blocked_reasons") or [] if str(value)}
+        if (
+            claim_id
+            and missing_env
+            and (missing_env - all_env_names or not blocked_reasons <= {"missing_effective_env"})
+        ):
+            still_blocked_after_all_env_claim_ids.append(claim_id)
     lines = [
         "# Validation Env-Bundle Ready Claims Launcher",
         "# Runs claims that become ready only after env_unblock_queue.json values are set.",
@@ -3670,6 +4219,7 @@ def render_env_bundle_ready_claims_launcher(claims_payload: dict) -> str:
         "$EnvBundleFailures = @()",
         "$EnvBundleClaimsAgentId = [Environment]::GetEnvironmentVariable('TAMANDUA_ENV_BUNDLE_CLAIMS_AGENT_ID')",
         "if (-not $EnvBundleClaimsAgentId) { $EnvBundleClaimsAgentId = [Environment]::UserName }",
+        *ps_agent_id_guard_lines("EnvBundleClaimsAgentId", "TAMANDUA_ENV_BUNDLE_CLAIMS_AGENT_ID"),
         "$EnvBundleLauncherDir = Split-Path -Parent $MyInvocation.MyCommand.Path",
         "$ClaimLockHelperPath = Join-Path $EnvBundleLauncherDir 'claim_lock_helper.ps1'",
         "$DispatchManifestPath = Join-Path $EnvBundleLauncherDir 'dispatch_manifest.json'",
@@ -3688,9 +4238,134 @@ def render_env_bundle_ready_claims_launcher(claims_payload: dict) -> str:
         "  Write-Error ('Unable to parse env unblock queue JSON: ' + [string]$_.Exception.Message)",
         "  exit 2",
         "}",
-        "$RequiredEnv = @($EnvQueue.entries | ForEach-Object { [string]$_.env } | Where-Object { $_ } | Sort-Object -Unique)",
+        "$RequiredEnv = @()",
+        "foreach ($Entry in @($EnvQueue.entries)) {",
+        "  $EnvName = [string]$Entry.env",
+        "  if (-not $EnvName) {",
+        "    Write-Error 'Env unblock queue contains an entry without env.'",
+        "    exit 2",
+        "  }",
+        "  $RequiredEnv += $EnvName",
+        "}",
+        "$DuplicateEnv = @($RequiredEnv | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })",
+        "if ($DuplicateEnv.Count -gt 0) {",
+        "  Write-Error ('Env unblock queue contains duplicate env entries: ' + (($DuplicateEnv | Sort-Object) -join ', '))",
+        "  exit 2",
+        "}",
+        "$RequiredEnv = @($RequiredEnv | Sort-Object)",
+        f"$EnvBundleReadyClaims = {ps_array(validate_claim_ids)}",
+        "if (-not ($EnvQueue.PSObject.Properties.Name -contains 'ready_after_all_env_claim_ids')) {",
+        "  Write-Error 'Env unblock queue missing ready_after_all_env_claim_ids.'",
+        "  exit 2",
+        "}",
+        "if ($EnvQueue.ready_after_all_env_claim_ids -isnot [System.Array]) {",
+        "  Write-Error 'Env unblock queue ready_after_all_env_claim_ids is not a list.'",
+        "  exit 2",
+        "}",
+        "if (-not ($EnvQueue.PSObject.Properties.Name -contains 'still_blocked_after_all_env_claim_ids')) {",
+        "  Write-Error 'Env unblock queue missing still_blocked_after_all_env_claim_ids.'",
+        "  exit 2",
+        "}",
+        "if ($EnvQueue.still_blocked_after_all_env_claim_ids -isnot [System.Array]) {",
+        "  Write-Error 'Env unblock queue still_blocked_after_all_env_claim_ids is not a list.'",
+        "  exit 2",
+        "}",
+        "$QueueReadyClaimIds = @()",
+        "foreach ($ClaimId in @($EnvQueue.ready_after_all_env_claim_ids)) {",
+        "  $ClaimIdText = [string]$ClaimId",
+        "  if (-not $ClaimIdText) {",
+        "    Write-Error 'Env unblock queue ready_after_all_env_claim_ids contains empty value.'",
+        "    exit 2",
+        "  }",
+        "  $QueueReadyClaimIds += $ClaimIdText",
+        "}",
+        "$QueueReadyClaimIds = @($QueueReadyClaimIds | Sort-Object)",
+        "$ExpectedReadyClaimIds = @($EnvBundleReadyClaims | Sort-Object)",
+        "if (($QueueReadyClaimIds -join '|') -ne ($ExpectedReadyClaimIds -join '|')) {",
+        "  Write-Error ('Env unblock queue ready_after_all_env_claim_ids mismatch: queue=' + ($QueueReadyClaimIds -join ',') + ' launcher=' + ($ExpectedReadyClaimIds -join ','))",
+        "  exit 2",
+        "}",
+        "$QueueStillBlockedClaimIds = @()",
+        "foreach ($ClaimId in @($EnvQueue.still_blocked_after_all_env_claim_ids)) {",
+        "  $ClaimIdText = [string]$ClaimId",
+        "  if (-not $ClaimIdText) {",
+        "    Write-Error 'Env unblock queue still_blocked_after_all_env_claim_ids contains empty value.'",
+        "    exit 2",
+        "  }",
+        "  $QueueStillBlockedClaimIds += $ClaimIdText",
+        "}",
+        "$QueueStillBlockedClaimIds = @($QueueStillBlockedClaimIds | Sort-Object)",
+        f"$ExpectedStillBlockedClaimIds = @({ps_array(sorted(still_blocked_after_all_env_claim_ids))} | Sort-Object)",
+        "if (($QueueStillBlockedClaimIds -join '|') -ne ($ExpectedStillBlockedClaimIds -join '|')) {",
+        "  Write-Error ('Env unblock queue still_blocked_after_all_env_claim_ids mismatch: queue=' + ($QueueStillBlockedClaimIds -join ',') + ' launcher=' + ($ExpectedStillBlockedClaimIds -join ','))",
+        "  exit 2",
+        "}",
+        "if (-not ($EnvQueue.PSObject.Properties.Name -contains 'required_env_names')) {",
+        "  Write-Error 'Env unblock queue missing required_env_names.'",
+        "  exit 2",
+        "}",
+        "if ($EnvQueue.required_env_names -isnot [System.Array]) {",
+        "  Write-Error 'Env unblock queue required_env_names is not a list.'",
+        "  exit 2",
+        "}",
+        "$RequiredEnvNames = @()",
+        "foreach ($RequiredEnvName in @($EnvQueue.required_env_names)) {",
+        "  $RequiredEnvNameText = [string]$RequiredEnvName",
+        "  if (-not $RequiredEnvNameText) {",
+        "    Write-Error 'Env unblock queue required_env_names contains empty value.'",
+        "    exit 2",
+        "  }",
+        "  $RequiredEnvNames += $RequiredEnvNameText",
+        "}",
+        "$RequiredEnvNames = @($RequiredEnvNames | Sort-Object)",
+        "if (($RequiredEnvNames -join '|') -ne ($RequiredEnv -join '|')) {",
+        "  Write-Error ('Env unblock queue required_env_names mismatch: required_env_names=' + ($RequiredEnvNames -join ',') + ' entries=' + ($RequiredEnv -join ','))",
+        "  exit 2",
+        "}",
+        "if (-not ($EnvQueue.PSObject.Properties.Name -contains 'all_env_powershell_set_commands')) {",
+        "  Write-Error 'Env unblock queue missing all_env_powershell_set_commands.'",
+        "  exit 2",
+        "}",
+        "if ($EnvQueue.all_env_powershell_set_commands -isnot [System.Array]) {",
+        "  Write-Error 'Env unblock queue all_env_powershell_set_commands is not a list.'",
+        "  exit 2",
+        "}",
+        "$CommandEnvNames = @()",
+        "foreach ($Command in @($EnvQueue.all_env_powershell_set_commands)) {",
+        "  $CommandText = [string]$Command",
+        "  if (-not $CommandText) {",
+        "    Write-Error 'Env unblock queue all_env_powershell_set_commands contains empty value.'",
+        "    exit 2",
+        "  }",
+        "  $CommandMatch = [regex]::Match($CommandText, '^\\$env:([A-Za-z_][A-Za-z0-9_]*)\\s*=')",
+        "  if (-not $CommandMatch.Success) {",
+        "    Write-Error ('Env unblock queue invalid env set command: ' + $CommandText)",
+        "    exit 2",
+        "  }",
+        "  $CommandEnvNames += $CommandMatch.Groups[1].Value",
+        "}",
+        "$CommandEnvNames = @($CommandEnvNames | Sort-Object)",
+        "if (($CommandEnvNames -join '|') -ne ($RequiredEnv -join '|')) {",
+        "  Write-Error ('Env unblock queue env set commands mismatch: commands=' + ($CommandEnvNames -join ',') + ' entries=' + ($RequiredEnv -join ','))",
+        "  exit 2",
+        "}",
+        "$PresentEnv = @($RequiredEnv | Where-Object { [Environment]::GetEnvironmentVariable($_) })",
         "$MissingEnv = @($RequiredEnv | Where-Object { -not [Environment]::GetEnvironmentVariable($_) })",
+        "Write-Host ('Env bundle current env present: ' + [string]$PresentEnv.Count + '/' + [string]$RequiredEnv.Count)",
+        "Write-Host ('Env bundle current env missing: ' + (($MissingEnv -join ', ') -replace '^$', '-'))",
         "if ($MissingEnv.Count -gt 0) {",
+        "  $MissingSetCommands = @()",
+        "  foreach ($Command in @($EnvQueue.all_env_powershell_set_commands)) {",
+        "    $CommandText = [string]$Command",
+        "    $CommandMatch = [regex]::Match($CommandText, '^\\$env:([A-Za-z_][A-Za-z0-9_]*)\\s*=')",
+        "    if ($CommandMatch.Success -and $MissingEnv -contains $CommandMatch.Groups[1].Value) {",
+        "      $MissingSetCommands += $CommandText",
+        "    }",
+        "  }",
+        "  if ($MissingSetCommands.Count -gt 0) {",
+        "    Write-Host 'Env bundle missing set commands:'",
+        "    foreach ($CommandText in $MissingSetCommands) { Write-Host ('  ' + $CommandText) }",
+        "  }",
         "  Write-Error ('Missing env bundle values: ' + ($MissingEnv -join ', '))",
         "  exit 2",
         "}",
@@ -3708,9 +4383,8 @@ def render_env_bundle_ready_claims_launcher(claims_payload: dict) -> str:
         "  Write-Error ('Placeholder env bundle values must be replaced before launch: ' + (($PlaceholderEnv | Sort-Object -Unique) -join ', '))",
         "  exit 2",
         "}",
-        f"$EnvBundleReadyClaims = {ps_array(validate_claim_ids)}",
         "if ($ValidateOnly) {",
-        "  Write-Host ('Env bundle validation passed. Ready claims: ' + ($EnvBundleReadyClaims -join ', '))",
+        "  Write-Host ('Env bundle validation passed. Ready claims after complete env bundle: ' + ($EnvBundleReadyClaims -join ', '))",
         "  exit 0",
         "}",
         "$AllowEnvBundleClaims = [Environment]::GetEnvironmentVariable('TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH')",
@@ -3728,7 +4402,22 @@ def render_env_bundle_ready_claims_launcher(claims_payload: dict) -> str:
         "}",
         "function Start-EnvBundleClaimJob {",
         "  param([string]$ClaimId, [string]$PackageId, [string]$ScriptPath, [string]$TokenEnv, [string]$TokenLoginCommand)",
-        "  Start-Job -Name $ClaimId -ArgumentList $ClaimId, $PackageId, $ScriptPath, $script:ClaimLockHelperPath, $script:EnvBundleClaimsAgentId, $TokenEnv, $TokenLoginCommand -ScriptBlock {",
+        "  $ResolvedScriptPath = $ScriptPath",
+        "  if (-not [System.IO.Path]::IsPathRooted($ResolvedScriptPath)) {",
+        "    $RepoRelativePath = Join-Path (Get-Location) $ResolvedScriptPath",
+        "    if (Test-Path $RepoRelativePath) {",
+        "      $ResolvedScriptPath = $RepoRelativePath",
+        "    } else {",
+        "      $PackageRelativePath = Join-Path $script:EnvBundleLauncherDir (Split-Path -Leaf $ResolvedScriptPath)",
+        "      $ResolvedScriptPath = $PackageRelativePath",
+        "    }",
+        "  }",
+        "  if (-not (Test-Path $ResolvedScriptPath)) {",
+        "    Write-Error ('Missing env-bundle claim script: ' + $ResolvedScriptPath)",
+        "    exit 2",
+        "  }",
+        "  $ResolvedScriptPath = (Resolve-Path -LiteralPath $ResolvedScriptPath).Path",
+        "  Start-Job -Name $ClaimId -ArgumentList $ClaimId, $PackageId, $ResolvedScriptPath, $script:ClaimLockHelperPath, $script:EnvBundleClaimsAgentId, $TokenEnv, $TokenLoginCommand -ScriptBlock {",
         "    param([string]$InnerClaimId, [string]$InnerPackageId, [string]$InnerScriptPath, [string]$InnerClaimLockHelperPath, [string]$InnerAgentId, [string]$InnerTokenEnv, [string]$InnerTokenLoginCommand)",
         "    Write-Host ('[env-bundle-claim] ' + $InnerClaimId + ' (' + $InnerPackageId + ')')",
         "    $env:TAMANDUA_AGENT_CLAIM_ID = $InnerClaimId",
@@ -3843,6 +4532,13 @@ def render_dispatch_prelaunch_validation(
     ready_claims_parallel_launcher_path: Path | None = None,
     env_bundle_ready_claims_launcher_path: Path | None = None,
     claim_lock_helper_path: Path | None = None,
+    env_unblock_queue_json_path: Path | None = None,
+    agent_spawn_plan_json_path: Path | None = None,
+    agent_claims_json_path: Path | None = None,
+    claim_status_report_json_path: Path | None = None,
+    dispatch_manifest_path: Path | None = None,
+    owner_launch_plan_json_path: Path | None = None,
+    execution_matrix_json_path: Path | None = None,
 ) -> str:
     lines = [
         "# Validation Dispatch Prelaunch Validation",
@@ -3862,13 +4558,1692 @@ def render_dispatch_prelaunch_validation(
         "    $script:PrelaunchFailures += ($Label + ' exit ' + [string]$ExitCode)",
         "  }",
         "}",
+        "function Invoke-ClaimLockEmptyValidation {",
+        "  param([string]$ClaimLockHelperPath)",
+        "  Write-Host '[prelaunch] claim lock empty check'",
+        "  if (-not (Test-Path -LiteralPath $ClaimLockHelperPath)) {",
+        "    $script:PrelaunchFailures += ('claim lock helper missing for empty check: ' + $ClaimLockHelperPath)",
+        "    return",
+        "  }",
+        "  $ClaimLockDir = Join-Path (Split-Path -Parent $ClaimLockHelperPath) 'claim_locks'",
+        "  if (-not (Test-Path -LiteralPath $ClaimLockDir)) {",
+        "    Write-Host '[prelaunch] claim lock empty check passed: no claim_locks dir'",
+        "    return",
+        "  }",
+        "  $ExistingLocks = @(Get-ChildItem -LiteralPath $ClaimLockDir -Filter '*.claim-lock.json' -ErrorAction SilentlyContinue)",
+        "  if ($ExistingLocks.Count -gt 0) {",
+        "    $LockNames = @($ExistingLocks | ForEach-Object { $_.Name } | Sort-Object)",
+        "    $script:PrelaunchFailures += ('claim lock prelaunch found existing locks: ' + ($LockNames -join ', '))",
+        "    return",
+        "  }",
+        "  Write-Host '[prelaunch] claim lock empty check passed'",
+        "}",
+        "function Invoke-OwnerLaunchPlanShapeValidation {",
+        "  param([string]$Path)",
+        "  Write-Host '[prelaunch] owner launch plan shape'",
+        "  if (-not (Test-Path -LiteralPath $Path)) {",
+        "    $script:PrelaunchFailures += ('owner launch plan shape missing ' + $Path)",
+        "    return",
+        "  }",
+        "  try { $Plan = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('owner launch plan shape invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  if (-not ($Plan.PSObject.Properties.Name -contains 'artifact')) {",
+        "    $script:PrelaunchFailures += 'owner launch plan shape missing artifact'",
+        "    return",
+        "  }",
+        "  if ([string]$Plan.artifact -ne 'validation-owner-launch-plan') {",
+        "    $script:PrelaunchFailures += ('owner launch plan shape invalid artifact: ' + [string]$Plan.artifact)",
+        "    return",
+        "  }",
+        "  if (-not ($Plan.PSObject.Properties.Name -contains 'owners')) {",
+        "    $script:PrelaunchFailures += 'owner launch plan shape missing owners'",
+        "    return",
+        "  }",
+        "  if ($Plan.owners -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'owner launch plan shape owners is not a list'",
+        "    return",
+        "  }",
+        "  foreach ($CountField in @('owner_count','package_count','launchable_package_count','blocked_package_count')) {",
+        "    if (-not ($Plan.PSObject.Properties.Name -contains $CountField)) {",
+        "      $script:PrelaunchFailures += ('owner launch plan shape missing ' + $CountField)",
+        "      return",
+        "    }",
+        "    $CountRaw = [string]$Plan.PSObject.Properties[$CountField].Value",
+        "    $Count = 0",
+        "    if (-not [int]::TryParse($CountRaw, [ref]$Count) -or $Count -lt 0) {",
+        "      $script:PrelaunchFailures += ('owner launch plan shape invalid ' + $CountField + ': ' + $CountRaw)",
+        "      return",
+        "    }",
+        "  }",
+        "  $PackageIds = @()",
+        "  $LaunchableCount = 0",
+        "  $BlockedCount = 0",
+        "  foreach ($Owner in @($Plan.owners)) {",
+        "    if (-not ($Owner.PSObject.Properties.Name -contains 'owner') -or -not [string]$Owner.owner) {",
+        "      $script:PrelaunchFailures += 'owner launch plan shape owner without owner'",
+        "      return",
+        "    }",
+        "    if (-not ($Owner.PSObject.Properties.Name -contains 'packages')) {",
+        "      $script:PrelaunchFailures += ('owner launch plan shape owner missing packages: ' + [string]$Owner.owner)",
+        "      return",
+        "    }",
+        "    if ($Owner.packages -isnot [System.Array]) {",
+        "      $script:PrelaunchFailures += ('owner launch plan shape owner packages is not a list: ' + [string]$Owner.owner)",
+        "      return",
+        "    }",
+        "    foreach ($Package in @($Owner.packages)) {",
+        "      if (-not ($Package.PSObject.Properties.Name -contains 'package_id') -or -not [string]$Package.package_id) {",
+        "        $script:PrelaunchFailures += 'owner launch plan shape package without package_id'",
+        "        return",
+        "      }",
+        "      $PackageIds += [string]$Package.package_id",
+        "      if ($Package.PSObject.Properties.Name -contains 'ready_to_launch' -and [bool]$Package.ready_to_launch) {",
+        "        $LaunchableCount += 1",
+        "      } else {",
+        "        $BlockedCount += 1",
+        "      }",
+        "    }",
+        "  }",
+        "  $DuplicatePackageIds = @($PackageIds | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name } | Sort-Object)",
+        "  if ($DuplicatePackageIds.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('owner launch plan shape duplicate package_id: ' + ($DuplicatePackageIds -join ','))",
+        "    return",
+        "  }",
+        "  if ([int]$Plan.owner_count -ne @($Plan.owners).Count) {",
+        "    $script:PrelaunchFailures += ('owner launch plan shape owner_count mismatch: count=' + [string]$Plan.owner_count + ' owners=' + [string]@($Plan.owners).Count)",
+        "    return",
+        "  }",
+        "  if ([int]$Plan.package_count -ne $PackageIds.Count) {",
+        "    $script:PrelaunchFailures += ('owner launch plan shape package_count mismatch: count=' + [string]$Plan.package_count + ' packages=' + [string]$PackageIds.Count)",
+        "    return",
+        "  }",
+        "  if ([int]$Plan.launchable_package_count -ne $LaunchableCount) {",
+        "    $script:PrelaunchFailures += ('owner launch plan shape launchable_package_count mismatch: count=' + [string]$Plan.launchable_package_count + ' packages=' + [string]$LaunchableCount)",
+        "    return",
+        "  }",
+        "  if ([int]$Plan.blocked_package_count -ne $BlockedCount) {",
+        "    $script:PrelaunchFailures += ('owner launch plan shape blocked_package_count mismatch: count=' + [string]$Plan.blocked_package_count + ' packages=' + [string]$BlockedCount)",
+        "    return",
+        "  }",
+        "  Write-Host ('[prelaunch] owner launch plan shape valid: packages=' + [string]$PackageIds.Count)",
+        "}",
+        "function Invoke-ExecutionMatrixShapeValidation {",
+        "  param([string]$Path)",
+        "  Write-Host '[prelaunch] execution matrix shape'",
+        "  if (-not (Test-Path -LiteralPath $Path)) {",
+        "    $script:PrelaunchFailures += ('execution matrix shape missing ' + $Path)",
+        "    return",
+        "  }",
+        "  try { $Matrix = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('execution matrix shape invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  if (-not ($Matrix.PSObject.Properties.Name -contains 'artifact')) {",
+        "    $script:PrelaunchFailures += 'execution matrix shape missing artifact'",
+        "    return",
+        "  }",
+        "  if ([string]$Matrix.artifact -ne 'validation-execution-matrix') {",
+        "    $script:PrelaunchFailures += ('execution matrix shape invalid artifact: ' + [string]$Matrix.artifact)",
+        "    return",
+        "  }",
+        "  if ($Matrix.PSObject.Properties.Name -contains 'source_artifact' -and [string]$Matrix.source_artifact -ne 'validation-owner-launch-plan') {",
+        "    $script:PrelaunchFailures += ('execution matrix shape invalid source_artifact: ' + [string]$Matrix.source_artifact)",
+        "    return",
+        "  }",
+        "  if (-not ($Matrix.PSObject.Properties.Name -contains 'rows')) {",
+        "    $script:PrelaunchFailures += 'execution matrix shape missing rows'",
+        "    return",
+        "  }",
+        "  if ($Matrix.rows -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'execution matrix shape rows is not a list'",
+        "    return",
+        "  }",
+        "  foreach ($CountField in @('package_count','ready_to_launch_count','blocked_count')) {",
+        "    if (-not ($Matrix.PSObject.Properties.Name -contains $CountField)) {",
+        "      $script:PrelaunchFailures += ('execution matrix shape missing ' + $CountField)",
+        "      return",
+        "    }",
+        "    $CountRaw = [string]$Matrix.PSObject.Properties[$CountField].Value",
+        "    $Count = 0",
+        "    if (-not [int]::TryParse($CountRaw, [ref]$Count) -or $Count -lt 0) {",
+        "      $script:PrelaunchFailures += ('execution matrix shape invalid ' + $CountField + ': ' + $CountRaw)",
+        "      return",
+        "    }",
+        "  }",
+        "  $PackageIds = @()",
+        "  $ReadyCount = 0",
+        "  $BlockedCount = 0",
+        "  foreach ($Row in @($Matrix.rows)) {",
+        "    if (-not ($Row.PSObject.Properties.Name -contains 'package_id') -or -not [string]$Row.package_id) {",
+        "      $script:PrelaunchFailures += 'execution matrix shape row without package_id'",
+        "      return",
+        "    }",
+        "    $PackageIds += [string]$Row.package_id",
+        "    if ($Row.PSObject.Properties.Name -contains 'ready_to_launch' -and [bool]$Row.ready_to_launch) {",
+        "      $ReadyCount += 1",
+        "    } else {",
+        "      $BlockedCount += 1",
+        "    }",
+        "  }",
+        "  $DuplicatePackageIds = @($PackageIds | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name } | Sort-Object)",
+        "  if ($DuplicatePackageIds.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('execution matrix shape duplicate package_id: ' + ($DuplicatePackageIds -join ','))",
+        "    return",
+        "  }",
+        "  if ([int]$Matrix.package_count -ne $PackageIds.Count) {",
+        "    $script:PrelaunchFailures += ('execution matrix shape package_count mismatch: count=' + [string]$Matrix.package_count + ' rows=' + [string]$PackageIds.Count)",
+        "    return",
+        "  }",
+        "  if ([int]$Matrix.ready_to_launch_count -ne $ReadyCount) {",
+        "    $script:PrelaunchFailures += ('execution matrix shape ready_to_launch_count mismatch: count=' + [string]$Matrix.ready_to_launch_count + ' rows=' + [string]$ReadyCount)",
+        "    return",
+        "  }",
+        "  if ([int]$Matrix.blocked_count -ne $BlockedCount) {",
+        "    $script:PrelaunchFailures += ('execution matrix shape blocked_count mismatch: count=' + [string]$Matrix.blocked_count + ' rows=' + [string]$BlockedCount)",
+        "    return",
+        "  }",
+        "  Write-Host ('[prelaunch] execution matrix shape valid: rows=' + [string]$PackageIds.Count)",
+        "}",
+        "function Invoke-OwnerPlanExecutionMatrixAlignmentValidation {",
+        "  param([string]$OwnerPlanPath, [string]$ExecutionMatrixPath)",
+        "  Write-Host '[prelaunch] owner plan execution matrix alignment'",
+        "  if (-not (Test-Path -LiteralPath $OwnerPlanPath)) {",
+        "    $script:PrelaunchFailures += ('owner plan execution matrix alignment missing owner plan: ' + $OwnerPlanPath)",
+        "    return",
+        "  }",
+        "  if (-not (Test-Path -LiteralPath $ExecutionMatrixPath)) {",
+        "    $script:PrelaunchFailures += ('owner plan execution matrix alignment missing execution matrix: ' + $ExecutionMatrixPath)",
+        "    return",
+        "  }",
+        "  try { $OwnerPlan = Get-Content -Raw -LiteralPath $OwnerPlanPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('owner plan execution matrix alignment owner plan invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  try { $Matrix = Get-Content -Raw -LiteralPath $ExecutionMatrixPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('owner plan execution matrix alignment execution matrix invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  $OwnerPackages = @{}",
+        "  foreach ($Owner in @($OwnerPlan.owners)) {",
+        "    foreach ($Package in @($Owner.packages)) {",
+        "      $PackageId = [string]$Package.package_id",
+        "      if ($PackageId) { $OwnerPackages[$PackageId] = [bool]$Package.ready_to_launch }",
+        "    }",
+        "  }",
+        "  $MatrixPackages = @{}",
+        "  foreach ($Row in @($Matrix.rows)) {",
+        "    $PackageId = [string]$Row.package_id",
+        "    if ($PackageId) { $MatrixPackages[$PackageId] = [bool]$Row.ready_to_launch }",
+        "  }",
+        "  $OwnerPackageIds = @($OwnerPackages.Keys | Sort-Object)",
+        "  $MatrixPackageIds = @($MatrixPackages.Keys | Sort-Object)",
+        "  if (($OwnerPackageIds -join '|') -ne ($MatrixPackageIds -join '|')) {",
+        "    $script:PrelaunchFailures += ('owner plan execution matrix alignment package_ids mismatch: owner=' + ($OwnerPackageIds -join ',') + ' matrix=' + ($MatrixPackageIds -join ','))",
+        "    return",
+        "  }",
+        "  foreach ($PackageId in $OwnerPackageIds) {",
+        "    if ([bool]$OwnerPackages[$PackageId] -ne [bool]$MatrixPackages[$PackageId]) {",
+        "      $script:PrelaunchFailures += ('owner plan execution matrix alignment ready_to_launch mismatch: ' + $PackageId)",
+        "      return",
+        "    }",
+        "  }",
+        "  Write-Host ('[prelaunch] owner plan execution matrix alignment valid: packages=' + [string]$OwnerPackageIds.Count)",
+        "}",
+        "function Invoke-DispatchManifestPlanAlignmentValidation {",
+        "  param([string]$ManifestPath, [string]$OwnerPlanPath, [string]$ExecutionMatrixPath)",
+        "  Write-Host '[prelaunch] dispatch manifest plan alignment'",
+        "  foreach ($Path in @($ManifestPath,$OwnerPlanPath,$ExecutionMatrixPath)) {",
+        "    if (-not (Test-Path -LiteralPath $Path)) {",
+        "      $script:PrelaunchFailures += ('dispatch manifest plan alignment missing path: ' + $Path)",
+        "      return",
+        "    }",
+        "  }",
+        "  try { $Manifest = Get-Content -Raw -LiteralPath $ManifestPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('dispatch manifest plan alignment manifest invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  try { $OwnerPlan = Get-Content -Raw -LiteralPath $OwnerPlanPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('dispatch manifest plan alignment owner plan invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  try { $Matrix = Get-Content -Raw -LiteralPath $ExecutionMatrixPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('dispatch manifest plan alignment execution matrix invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  $ManifestPackageIds = @($Manifest.packages | ForEach-Object { [string]$_.package_id } | Where-Object { $_ } | Sort-Object)",
+        "  $OwnerPackageIds = @()",
+        "  foreach ($Owner in @($OwnerPlan.owners)) {",
+        "    foreach ($Package in @($Owner.packages)) {",
+        "      $PackageId = [string]$Package.package_id",
+        "      if ($PackageId) { $OwnerPackageIds += $PackageId }",
+        "    }",
+        "  }",
+        "  $OwnerPackageIds = @($OwnerPackageIds | Sort-Object)",
+        "  $MatrixPackageIds = @($Matrix.rows | ForEach-Object { [string]$_.package_id } | Where-Object { $_ } | Sort-Object)",
+        "  if (($ManifestPackageIds -join '|') -ne ($OwnerPackageIds -join '|')) {",
+        "    $script:PrelaunchFailures += ('dispatch manifest plan alignment owner package_ids mismatch: manifest=' + ($ManifestPackageIds -join ',') + ' owner=' + ($OwnerPackageIds -join ','))",
+        "    return",
+        "  }",
+        "  if (($ManifestPackageIds -join '|') -ne ($MatrixPackageIds -join '|')) {",
+        "    $script:PrelaunchFailures += ('dispatch manifest plan alignment matrix package_ids mismatch: manifest=' + ($ManifestPackageIds -join ',') + ' matrix=' + ($MatrixPackageIds -join ','))",
+        "    return",
+        "  }",
+        "  Write-Host ('[prelaunch] dispatch manifest plan alignment valid: packages=' + [string]$ManifestPackageIds.Count)",
+        "}",
+        "function Invoke-DispatchManifestAgentClaimsAlignmentValidation {",
+        "  param([string]$ManifestPath, [string]$AgentClaimsPath)",
+        "  Write-Host '[prelaunch] dispatch manifest agent claims alignment'",
+        "  foreach ($Path in @($ManifestPath,$AgentClaimsPath)) {",
+        "    if (-not (Test-Path -LiteralPath $Path)) {",
+        "      $script:PrelaunchFailures += ('dispatch manifest agent claims alignment missing path: ' + $Path)",
+        "      return",
+        "    }",
+        "  }",
+        "  try { $Manifest = Get-Content -Raw -LiteralPath $ManifestPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('dispatch manifest agent claims alignment manifest invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  try { $ClaimsPayload = Get-Content -Raw -LiteralPath $AgentClaimsPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('dispatch manifest agent claims alignment claims invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  $ManifestPackageIds = @($Manifest.packages | ForEach-Object { [string]$_.package_id } | Where-Object { $_ } | Sort-Object)",
+        "  $ClaimPackageIds = @($ClaimsPayload.claims | ForEach-Object { [string]$_.package_id } | Where-Object { $_ } | Sort-Object)",
+        "  if (($ManifestPackageIds -join '|') -ne ($ClaimPackageIds -join '|')) {",
+        "    $script:PrelaunchFailures += ('dispatch manifest agent claims alignment package_ids mismatch: manifest=' + ($ManifestPackageIds -join ',') + ' claims=' + ($ClaimPackageIds -join ','))",
+        "    return",
+        "  }",
+        "  foreach ($Claim in @($ClaimsPayload.claims)) {",
+        "    $PackageId = [string]$Claim.package_id",
+        "    $ClaimId = [string]$Claim.claim_id",
+        "    $ExpectedClaimId = 'claim-' + $PackageId",
+        "    if ($PackageId -and $ClaimId -ne $ExpectedClaimId) {",
+        "      $script:PrelaunchFailures += ('dispatch manifest agent claims alignment claim_id mismatch: ' + $PackageId + '=' + $ClaimId)",
+        "      return",
+        "    }",
+        "  }",
+        "  Write-Host ('[prelaunch] dispatch manifest agent claims alignment valid: packages=' + [string]$ManifestPackageIds.Count)",
+        "}",
+        "function Invoke-ClaimLockHelperAgentClaimsAlignmentValidation {",
+        "  param([string]$ClaimLockHelperPath, [string]$AgentClaimsPath)",
+        "  Write-Host '[prelaunch] claim lock helper agent claims alignment'",
+        "  foreach ($Path in @($ClaimLockHelperPath,$AgentClaimsPath)) {",
+        "    if (-not (Test-Path -LiteralPath $Path)) {",
+        "      $script:PrelaunchFailures += ('claim lock helper agent claims alignment missing path: ' + $Path)",
+        "      return",
+        "    }",
+        "  }",
+        "  try { $HelperText = Get-Content -Raw -LiteralPath $ClaimLockHelperPath } catch {",
+        "    $script:PrelaunchFailures += ('claim lock helper agent claims alignment helper unreadable: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  try { $ClaimsPayload = Get-Content -Raw -LiteralPath $AgentClaimsPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('claim lock helper agent claims alignment claims invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  foreach ($RequiredText in @('# Validation Claim Lock Helper','CreateNew','Unknown validation claim','Claim already locked','AgentId may only contain letters','Refusing to reset claim lock without -Force','Refusing to reset all claim locks without -Force')) {",
+        "    if (-not $HelperText.Contains($RequiredText)) {",
+        "      $script:PrelaunchFailures += ('claim lock helper agent claims alignment missing helper marker: ' + $RequiredText)",
+        "      return",
+        "    }",
+        "  }",
+        "  $KnownClaimsMatch = [regex]::Match($HelperText, '(?s)\\$KnownClaims\\s*=\\s*@\\((.*?)\\)')",
+        "  if (-not $KnownClaimsMatch.Success) {",
+        "    $script:PrelaunchFailures += 'claim lock helper agent claims alignment missing KnownClaims list'",
+        "    return",
+        "  }",
+        "  $KnownClaims = @()",
+        "  foreach ($Match in [regex]::Matches($KnownClaimsMatch.Groups[1].Value, \"'([^']+)'\") ) {",
+        "    $KnownClaims += [string]$Match.Groups[1].Value",
+        "  }",
+        "  $KnownClaims = @($KnownClaims | Where-Object { $_ } | Sort-Object)",
+        "  $ClaimIds = @($ClaimsPayload.claims | ForEach-Object { [string]$_.claim_id } | Where-Object { $_ } | Sort-Object)",
+        "  if (($KnownClaims -join '|') -ne ($ClaimIds -join '|')) {",
+        "    $script:PrelaunchFailures += ('claim lock helper agent claims alignment claim_ids mismatch: helper=' + ($KnownClaims -join ',') + ' claims=' + ($ClaimIds -join ','))",
+        "    return",
+        "  }",
+        "  foreach ($ClaimId in $ClaimIds) {",
+        "    $ExpectedLockSuffix = $ClaimId + '.claim-lock.json'",
+        "    if (-not $HelperText.Contains($ExpectedLockSuffix) -and -not $HelperText.Contains('$KnownClaimId + ''.claim-lock.json''')) {",
+        "      $script:PrelaunchFailures += ('claim lock helper agent claims alignment missing lock suffix handling: ' + $ExpectedLockSuffix)",
+        "      return",
+        "    }",
+        "  }",
+        "  Write-Host ('[prelaunch] claim lock helper agent claims alignment valid: claims=' + [string]$ClaimIds.Count)",
+        "}",
+        "function Invoke-AgentClaimsStatusReportAlignmentValidation {",
+        "  param([string]$AgentClaimsPath, [string]$ClaimStatusReportPath)",
+        "  Write-Host '[prelaunch] agent claims status report alignment'",
+        "  foreach ($Path in @($AgentClaimsPath,$ClaimStatusReportPath)) {",
+        "    if (-not (Test-Path -LiteralPath $Path)) {",
+        "      $script:PrelaunchFailures += ('agent claims status report alignment missing path: ' + $Path)",
+        "      return",
+        "    }",
+        "  }",
+        "  try { $ClaimsPayload = Get-Content -Raw -LiteralPath $AgentClaimsPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('agent claims status report alignment claims invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  try { $Report = Get-Content -Raw -LiteralPath $ClaimStatusReportPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('agent claims status report alignment report invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  $ClaimIds = @($ClaimsPayload.claims | ForEach-Object { [string]$_.claim_id } | Where-Object { $_ } | Sort-Object)",
+        "  $ReportClaimIds = @($Report.claims | ForEach-Object { [string]$_.claim_id } | Where-Object { $_ } | Sort-Object)",
+        "  if (($ClaimIds -join '|') -ne ($ReportClaimIds -join '|')) {",
+        "    $script:PrelaunchFailures += ('agent claims status report alignment claim_ids mismatch: claims=' + ($ClaimIds -join ',') + ' report=' + ($ReportClaimIds -join ','))",
+        "    return",
+        "  }",
+        "  # Static audit markers for dynamic agent-claims/report field checks:",
+        "  # agent claims status report alignment package_id mismatch:",
+        "  # agent claims status report alignment claim_state mismatch:",
+        "  # agent claims status report alignment owner mismatch:",
+        "  # agent claims status report alignment wave mismatch:",
+        "  # agent claims status report alignment stage mismatch:",
+        "  # agent claims status report alignment ready_to_launch mismatch:",
+        "  # agent claims status report alignment script_path mismatch:",
+        "  # agent claims status report alignment prompt_path mismatch:",
+        "  # agent claims status report alignment status_path mismatch:",
+        "  # agent claims status report alignment command mismatch:",
+        "  # agent claims status report alignment missing_effective_env mismatch:",
+        "  # agent claims status report alignment blocked_reasons mismatch:",
+        "  # agent claims status report alignment resource_tags mismatch:",
+        "  # agent claims status report alignment invalid lock_state:",
+        "  # agent claims status report alignment lock_path mismatch:",
+        "  $ReportByClaimId = @{}",
+        "  foreach ($ReportClaim in @($Report.claims)) {",
+        "    $ReportClaimId = [string]$ReportClaim.claim_id",
+        "    if ($ReportClaimId) { $ReportByClaimId[$ReportClaimId] = $ReportClaim }",
+        "  }",
+        "  foreach ($Claim in @($ClaimsPayload.claims)) {",
+        "    $ClaimId = [string]$Claim.claim_id",
+        "    $ReportClaim = $ReportByClaimId[$ClaimId]",
+        "    foreach ($FieldName in @('package_id','claim_state','owner','wave','stage','ready_to_launch','script_path','prompt_path','status_path','command')) {",
+        "      $ClaimValue = ''",
+        "      $ReportValue = ''",
+        "      if ($Claim.PSObject.Properties.Name -contains $FieldName) { $ClaimValue = [string]$Claim.PSObject.Properties[$FieldName].Value }",
+        "      if ($ReportClaim.PSObject.Properties.Name -contains $FieldName) { $ReportValue = [string]$ReportClaim.PSObject.Properties[$FieldName].Value }",
+        "      if ($ClaimValue -ne $ReportValue) {",
+        "        $script:PrelaunchFailures += ('agent claims status report alignment ' + $FieldName + ' mismatch: ' + $ClaimId + ' claims=' + $ClaimValue + ' report=' + $ReportValue)",
+        "        return",
+        "      }",
+        "    }",
+        "    foreach ($ListFieldName in @('missing_effective_env','blocked_reasons','resource_tags')) {",
+        "      $ClaimValues = @()",
+        "      $ReportValues = @()",
+        "      if ($Claim.PSObject.Properties.Name -contains $ListFieldName) { $ClaimValues = @($Claim.PSObject.Properties[$ListFieldName].Value | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object) }",
+        "      if ($ReportClaim.PSObject.Properties.Name -contains $ListFieldName) { $ReportValues = @($ReportClaim.PSObject.Properties[$ListFieldName].Value | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object) }",
+        "      if (($ClaimValues -join '|') -ne ($ReportValues -join '|')) {",
+        "        $script:PrelaunchFailures += ('agent claims status report alignment ' + $ListFieldName + ' mismatch: ' + $ClaimId + ' claims=' + ($ClaimValues -join ',') + ' report=' + ($ReportValues -join ','))",
+        "        return",
+        "      }",
+        "    }",
+        "    $LockState = [string]$ReportClaim.lock_state",
+        "    if ($LockState -and $LockState -notin @('unlocked','locked','invalid')) {",
+        "      $script:PrelaunchFailures += ('agent claims status report alignment invalid lock_state: ' + $ClaimId + '=' + $LockState)",
+        "      return",
+        "    }",
+        "    $LockPath = ([string]$ReportClaim.lock_path).Replace('\\','/')",
+        "    if ($LockPath -and -not $LockPath.EndsWith('/claim_locks/' + $ClaimId + '.claim-lock.json')) {",
+        "      $script:PrelaunchFailures += ('agent claims status report alignment lock_path mismatch: ' + $ClaimId + '=' + $LockPath)",
+        "      return",
+        "    }",
+        "  }",
+        "  Write-Host ('[prelaunch] agent claims status report alignment valid: claims=' + [string]$ClaimIds.Count)",
+        "}",
+        "function Invoke-AgentClaimsSpawnPlanAlignmentValidation {",
+        "  param([string]$AgentClaimsPath, [string]$AgentSpawnPlanPath)",
+        "  Write-Host '[prelaunch] agent claims spawn plan alignment'",
+        "  foreach ($Path in @($AgentClaimsPath,$AgentSpawnPlanPath)) {",
+        "    if (-not (Test-Path -LiteralPath $Path)) {",
+        "      $script:PrelaunchFailures += ('agent claims spawn plan alignment missing path: ' + $Path)",
+        "      return",
+        "    }",
+        "  }",
+        "  try { $ClaimsPayload = Get-Content -Raw -LiteralPath $AgentClaimsPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('agent claims spawn plan alignment claims invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  try { $Plan = Get-Content -Raw -LiteralPath $AgentSpawnPlanPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('agent claims spawn plan alignment spawn plan invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  $ClaimsById = @{}",
+        "  foreach ($Claim in @($ClaimsPayload.claims)) {",
+        "    $ClaimId = [string]$Claim.claim_id",
+        "    if ($ClaimId) { $ClaimsById[$ClaimId] = $Claim }",
+        "  }",
+        "  $PlanClaimsById = @{}",
+        "  foreach ($BatchField in @('batches','env_bundle_ready_batches')) {",
+        "    foreach ($Batch in @($Plan.PSObject.Properties[$BatchField].Value)) {",
+        "      foreach ($Claim in @($Batch.claims)) {",
+        "        $ClaimId = [string]$Claim.claim_id",
+        "        if ($ClaimId) { $PlanClaimsById[$ClaimId] = $Claim }",
+        "      }",
+        "    }",
+        "  }",
+        "  foreach ($ListField in @('env_bundle_still_blocked_claims','blocked_or_manual_claims')) {",
+        "    foreach ($Claim in @($Plan.PSObject.Properties[$ListField].Value)) {",
+        "      $ClaimId = [string]$Claim.claim_id",
+        "      if ($ClaimId) { $PlanClaimsById[$ClaimId] = $Claim }",
+        "    }",
+        "  }",
+        "  $ClaimIds = @($ClaimsById.Keys | Sort-Object)",
+        "  $PlanClaimIds = @($PlanClaimsById.Keys | Sort-Object)",
+        "  if (($ClaimIds -join '|') -ne ($PlanClaimIds -join '|')) {",
+        "    $script:PrelaunchFailures += ('agent claims spawn plan alignment claim_ids mismatch: claims=' + ($ClaimIds -join ',') + ' spawn=' + ($PlanClaimIds -join ','))",
+        "    return",
+        "  }",
+        "  # Static audit markers for dynamic agent-claims/spawn-plan field checks:",
+        "  # agent claims spawn plan alignment package_id mismatch:",
+        "  # agent claims spawn plan alignment claim_state mismatch:",
+        "  foreach ($ClaimId in $ClaimIds) {",
+        "    $Claim = $ClaimsById[$ClaimId]",
+        "    $PlanClaim = $PlanClaimsById[$ClaimId]",
+        "    foreach ($FieldName in @('package_id','claim_state')) {",
+        "      if ($PlanClaim.PSObject.Properties.Name -contains $FieldName) {",
+        "        $ClaimValue = [string]$Claim.PSObject.Properties[$FieldName].Value",
+        "        $PlanValue = [string]$PlanClaim.PSObject.Properties[$FieldName].Value",
+        "        if ($ClaimValue -ne $PlanValue) {",
+        "          $script:PrelaunchFailures += ('agent claims spawn plan alignment ' + $FieldName + ' mismatch: ' + $ClaimId + ' claims=' + $ClaimValue + ' spawn=' + $PlanValue)",
+        "          return",
+        "        }",
+        "      }",
+        "    }",
+        "  }",
+        "  Write-Host ('[prelaunch] agent claims spawn plan alignment valid: claims=' + [string]$ClaimIds.Count)",
+        "}",
+        "function Invoke-EnvQueueAgentClaimsAlignmentValidation {",
+        "  param([string]$EnvQueuePath, [string]$AgentClaimsPath)",
+        "  Write-Host '[prelaunch] env unblock queue agent claims alignment'",
+        "  foreach ($Path in @($EnvQueuePath,$AgentClaimsPath)) {",
+        "    if (-not (Test-Path -LiteralPath $Path)) {",
+        "      $script:PrelaunchFailures += ('env unblock queue agent claims alignment missing path: ' + $Path)",
+        "      return",
+        "    }",
+        "  }",
+        "  try { $Queue = Get-Content -Raw -LiteralPath $EnvQueuePath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('env unblock queue agent claims alignment queue invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  try { $ClaimsPayload = Get-Content -Raw -LiteralPath $AgentClaimsPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('env unblock queue agent claims alignment claims invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  $ClaimsById = @{}",
+        "  foreach ($Claim in @($ClaimsPayload.claims)) {",
+        "    $ClaimId = [string]$Claim.claim_id",
+        "    if ($ClaimId) { $ClaimsById[$ClaimId] = $Claim }",
+        "  }",
+        "  $RequiredEnvNames = @($Queue.required_env_names | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object)",
+        "  $ExpectedEnvNames = @()",
+        "  $ExpectedReadyAfterAll = @()",
+        "  $ExpectedStillBlockedAfterAll = @()",
+        "  foreach ($Claim in @($ClaimsPayload.claims)) {",
+        "    $ClaimId = [string]$Claim.claim_id",
+        "    $MissingEnv = @($Claim.missing_effective_env | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object)",
+        "    if ($MissingEnv.Count -eq 0) { continue }",
+        "    $ExpectedEnvNames += $MissingEnv",
+        "    $BlockedReasons = @($Claim.blocked_reasons | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object)",
+        "    $OtherBlockers = @($BlockedReasons | Where-Object { $_ -ne 'missing_effective_env' })",
+        "    $MissingOutsideQueue = @($MissingEnv | Where-Object { $RequiredEnvNames -notcontains $_ })",
+        "    if ($MissingOutsideQueue.Count -eq 0 -and $OtherBlockers.Count -eq 0) {",
+        "      $ExpectedReadyAfterAll += $ClaimId",
+        "    } else {",
+        "      $ExpectedStillBlockedAfterAll += $ClaimId",
+        "    }",
+        "  }",
+        "  $ExpectedEnvNames = @($ExpectedEnvNames | Sort-Object -Unique)",
+        "  if (($RequiredEnvNames -join '|') -ne ($ExpectedEnvNames -join '|')) {",
+        "    $script:PrelaunchFailures += ('env unblock queue agent claims alignment required_env_names mismatch: queue=' + ($RequiredEnvNames -join ',') + ' claims=' + ($ExpectedEnvNames -join ','))",
+        "    return",
+        "  }",
+        "  # Static audit markers for dynamic env-queue/agent-claims checks:",
+        "  # env unblock queue agent claims alignment unknown claim_id:",
+        "  # env unblock queue agent claims alignment package_ids mismatch:",
+        "  # env unblock queue agent claims alignment env not in claim missing_effective_env:",
+        "  # env unblock queue agent claims alignment remaining_env_after_setting mismatch:",
+        "  # env unblock queue agent claims alignment ready_after_all_env_claim_ids mismatch:",
+        "  # env unblock queue agent claims alignment still_blocked_after_all_env_claim_ids mismatch:",
+        "  foreach ($Entry in @($Queue.entries)) {",
+        "    $EnvName = [string]$Entry.env",
+        "    $EntryClaimIds = @($Entry.claim_ids | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object)",
+        "    $ExpectedPackageIds = @()",
+        "    foreach ($ClaimId in $EntryClaimIds) {",
+        "      if (-not $ClaimsById.ContainsKey($ClaimId)) {",
+        "        $script:PrelaunchFailures += ('env unblock queue agent claims alignment unknown claim_id: ' + $ClaimId)",
+        "        return",
+        "      }",
+        "      $Claim = $ClaimsById[$ClaimId]",
+        "      $ExpectedPackageIds += [string]$Claim.package_id",
+        "      $MissingEnv = @($Claim.missing_effective_env | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object)",
+        "      if ($MissingEnv -notcontains $EnvName) {",
+        "        $script:PrelaunchFailures += ('env unblock queue agent claims alignment env not in claim missing_effective_env: ' + $EnvName + ' claim=' + $ClaimId)",
+        "        return",
+        "      }",
+        "      if ($Entry.PSObject.Properties.Name -contains 'remaining_env_after_setting') {",
+        "        $RemainingByClaim = $Entry.remaining_env_after_setting",
+        "        if (-not ($RemainingByClaim.PSObject.Properties.Name -contains $ClaimId)) {",
+        "          $script:PrelaunchFailures += ('env unblock queue agent claims alignment remaining_env_after_setting mismatch: ' + $EnvName + ' claim=' + $ClaimId)",
+        "          return",
+        "        }",
+        "        $ExpectedRemaining = @($MissingEnv | Where-Object { $_ -ne $EnvName } | Sort-Object)",
+        "        $ActualRemaining = @($RemainingByClaim.PSObject.Properties[$ClaimId].Value | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object)",
+        "        if (($ExpectedRemaining -join '|') -ne ($ActualRemaining -join '|')) {",
+        "          $script:PrelaunchFailures += ('env unblock queue agent claims alignment remaining_env_after_setting mismatch: ' + $EnvName + ' claim=' + $ClaimId + ' queue=' + ($ActualRemaining -join ',') + ' claims=' + ($ExpectedRemaining -join ','))",
+        "          return",
+        "        }",
+        "      }",
+        "    }",
+        "    $ExpectedPackageIds = @($ExpectedPackageIds | Where-Object { $_ } | Sort-Object -Unique)",
+        "    $EntryPackageIds = @($Entry.package_ids | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object -Unique)",
+        "    if (($EntryPackageIds -join '|') -ne ($ExpectedPackageIds -join '|')) {",
+        "      $script:PrelaunchFailures += ('env unblock queue agent claims alignment package_ids mismatch: ' + $EnvName + ' queue=' + ($EntryPackageIds -join ',') + ' claims=' + ($ExpectedPackageIds -join ','))",
+        "      return",
+        "    }",
+        "  }",
+        "  $QueueReadyAfterAll = @($Queue.ready_after_all_env_claim_ids | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object)",
+        "  $ExpectedReadyAfterAll = @($ExpectedReadyAfterAll | Where-Object { $_ } | Sort-Object)",
+        "  if (($QueueReadyAfterAll -join '|') -ne ($ExpectedReadyAfterAll -join '|')) {",
+        "    $script:PrelaunchFailures += ('env unblock queue agent claims alignment ready_after_all_env_claim_ids mismatch: queue=' + ($QueueReadyAfterAll -join ',') + ' claims=' + ($ExpectedReadyAfterAll -join ','))",
+        "    return",
+        "  }",
+        "  $QueueStillBlockedAfterAll = @($Queue.still_blocked_after_all_env_claim_ids | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object)",
+        "  $ExpectedStillBlockedAfterAll = @($ExpectedStillBlockedAfterAll | Where-Object { $_ } | Sort-Object)",
+        "  if (($QueueStillBlockedAfterAll -join '|') -ne ($ExpectedStillBlockedAfterAll -join '|')) {",
+        "    $script:PrelaunchFailures += ('env unblock queue agent claims alignment still_blocked_after_all_env_claim_ids mismatch: queue=' + ($QueueStillBlockedAfterAll -join ',') + ' claims=' + ($ExpectedStillBlockedAfterAll -join ','))",
+        "    return",
+        "  }",
+        "  Write-Host ('[prelaunch] env unblock queue agent claims alignment valid: envs=' + [string]$RequiredEnvNames.Count + ' claims=' + [string]$ClaimsById.Count)",
+        "}",
+        "function Invoke-ReadyLaunchersAgentClaimsAlignmentValidation {",
+        "  param([string]$AgentClaimsPath, [string]$ReadyLauncherPath, [string]$ReadyParallelLauncherPath, [string]$EnvBundleLauncherPath)",
+        "  Write-Host '[prelaunch] ready launchers agent claims alignment'",
+        "  foreach ($Path in @($AgentClaimsPath,$ReadyLauncherPath,$ReadyParallelLauncherPath,$EnvBundleLauncherPath)) {",
+        "    if (-not (Test-Path -LiteralPath $Path)) {",
+        "      $script:PrelaunchFailures += ('ready launchers agent claims alignment missing path: ' + $Path)",
+        "      return",
+        "    }",
+        "  }",
+        "  try { $ClaimsPayload = Get-Content -Raw -LiteralPath $AgentClaimsPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('ready launchers agent claims alignment claims invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  function Get-LauncherRows([string]$Path, [string]$Pattern) {",
+        "    $Text = Get-Content -Raw -LiteralPath $Path",
+        "    $Rows = @()",
+        "    foreach ($Match in [regex]::Matches($Text, $Pattern)) {",
+        "      $Rows += [pscustomobject]@{",
+        "        claim_id = [string]$Match.Groups[1].Value",
+        "        package_id = [string]$Match.Groups[2].Value",
+        "        script_path = [string]$Match.Groups[3].Value",
+        "      }",
+        "    }",
+        "    return $Rows",
+        "  }",
+        "  function Test-LauncherRows([string]$Name, [object[]]$Rows, [object[]]$ExpectedClaimIds, [hashtable]$ClaimsById) {",
+        "    $RowClaimIds = @($Rows | ForEach-Object { [string]$_.claim_id } | Where-Object { $_ } | Sort-Object)",
+        "    $ExpectedSorted = @($ExpectedClaimIds | ForEach-Object { [string]$_ } | Where-Object { $_ } | Sort-Object)",
+        "    if (($RowClaimIds -join '|') -ne ($ExpectedSorted -join '|')) {",
+        "      $script:PrelaunchFailures += ('ready launchers agent claims alignment ' + $Name + ' claim_ids mismatch: launcher=' + ($RowClaimIds -join ',') + ' claims=' + ($ExpectedSorted -join ','))",
+        "      return $false",
+        "    }",
+        "    foreach ($Row in $Rows) {",
+        "      $ClaimId = [string]$Row.claim_id",
+        "      if (-not $ClaimsById.ContainsKey($ClaimId)) {",
+        "        $script:PrelaunchFailures += ('ready launchers agent claims alignment ' + $Name + ' unknown claim_id: ' + $ClaimId)",
+        "        return $false",
+        "      }",
+        "      $Claim = $ClaimsById[$ClaimId]",
+        "      foreach ($FieldName in @('package_id','script_path')) {",
+        "        $ClaimValue = [string]$Claim.PSObject.Properties[$FieldName].Value",
+        "        $RowValue = [string]$Row.PSObject.Properties[$FieldName].Value",
+        "        if ($ClaimValue -ne $RowValue) {",
+        "          $script:PrelaunchFailures += ('ready launchers agent claims alignment ' + $Name + ' ' + $FieldName + ' mismatch: ' + $ClaimId + ' launcher=' + $RowValue + ' claims=' + $ClaimValue)",
+        "          return $false",
+        "        }",
+        "      }",
+        "    }",
+        "    return $true",
+        "  }",
+        "  $ClaimsById = @{}",
+        "  $ReadyClaimIds = @()",
+        "  $EnvBundleClaimIds = @()",
+        "  foreach ($Claim in @($ClaimsPayload.claims)) {",
+        "    $ClaimId = [string]$Claim.claim_id",
+        "    if (-not $ClaimId) { continue }",
+        "    $ClaimsById[$ClaimId] = $Claim",
+        "    if ([string]$Claim.claim_state -eq 'ready_to_claim') { $ReadyClaimIds += $ClaimId }",
+        "    $MissingEnv = @($Claim.missing_effective_env | ForEach-Object { [string]$_ } | Where-Object { $_ })",
+        "    $BlockedReasons = @($Claim.blocked_reasons | ForEach-Object { [string]$_ } | Where-Object { $_ })",
+        "    $OtherBlockers = @($BlockedReasons | Where-Object { $_ -ne 'missing_effective_env' })",
+        "    if ($MissingEnv.Count -gt 0 -and $OtherBlockers.Count -eq 0) { $EnvBundleClaimIds += $ClaimId }",
+        "  }",
+        "  # Static audit markers for dynamic launcher/agent-claims checks:",
+        "  # ready launchers agent claims alignment ready claim_ids mismatch:",
+        "  # ready launchers agent claims alignment ready-parallel claim_ids mismatch:",
+        "  # ready launchers agent claims alignment env-bundle claim_ids mismatch:",
+        "  # ready launchers agent claims alignment ready package_id mismatch:",
+        "  # ready launchers agent claims alignment ready script_path mismatch:",
+        "  # ready launchers agent claims alignment valid:",
+        "  $ReadyRows = @(Get-LauncherRows $ReadyLauncherPath \"Invoke-ReadyClaim\\s+'([^']*)'\\s+'([^']*)'\\s+'([^']*)'\")",
+        "  $ReadyParallelRows = @(Get-LauncherRows $ReadyParallelLauncherPath \"Start-ReadyClaimJob\\s+'([^']*)'\\s+'([^']*)'\\s+'([^']*)'\")",
+        "  $EnvBundleRows = @(Get-LauncherRows $EnvBundleLauncherPath \"Start-EnvBundleClaimJob\\s+'([^']*)'\\s+'([^']*)'\\s+'([^']*)'\")",
+        "  if (-not (Test-LauncherRows 'ready' $ReadyRows $ReadyClaimIds $ClaimsById)) { return }",
+        "  if (-not (Test-LauncherRows 'ready-parallel' $ReadyParallelRows $ReadyClaimIds $ClaimsById)) { return }",
+        "  if (-not (Test-LauncherRows 'env-bundle' $EnvBundleRows $EnvBundleClaimIds $ClaimsById)) { return }",
+        "  Write-Host ('[prelaunch] ready launchers agent claims alignment valid: ready=' + [string]$ReadyClaimIds.Count + ' env_bundle=' + [string]$EnvBundleClaimIds.Count)",
+        "}",
+        "function Invoke-DispatchRunnerManifestAlignmentValidation {",
+        "  param([string]$ManifestPath)",
+        "  Write-Host '[prelaunch] dispatch runner manifest alignment'",
+        "  if (-not (Test-Path -LiteralPath $ManifestPath)) {",
+        "    $script:PrelaunchFailures += ('dispatch runner manifest alignment missing manifest: ' + $ManifestPath)",
+        "    return",
+        "  }",
+        "  try { $Manifest = Get-Content -Raw -LiteralPath $ManifestPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('dispatch runner manifest alignment manifest invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  $RunnerPath = ''",
+        "  if ($Manifest.PSObject.Properties.Name -contains 'dispatch_runner_path') { $RunnerPath = [string]$Manifest.dispatch_runner_path }",
+        "  if (-not $RunnerPath) {",
+        "    Write-Host '[prelaunch] dispatch runner manifest alignment skipped: no dispatch_runner_path'",
+        "    return",
+        "  }",
+        "  if (-not (Test-Path -LiteralPath $RunnerPath)) {",
+        "    $script:PrelaunchFailures += ('dispatch runner manifest alignment runner missing: ' + $RunnerPath)",
+        "    return",
+        "  }",
+        "  try { $RunnerText = Get-Content -Raw -LiteralPath $RunnerPath } catch {",
+        "    $script:PrelaunchFailures += ('dispatch runner manifest alignment runner unreadable: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  foreach ($RequiredText in @('TAMANDUA_ALLOW_ONE_SHOT_DISPATCH','TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH','Missing claim lock helper','claim lock exit','Dispatch one-shot completed with failures')) {",
+        "    if (-not $RunnerText.Contains($RequiredText)) {",
+        "      $script:PrelaunchFailures += ('dispatch runner manifest alignment missing runner marker: ' + $RequiredText)",
+        "      return",
+        "    }",
+        "  }",
+        "  $RunnerTextNormalized = $RunnerText.Replace('\\','/')",
+        "  $ManifestPathNormalized = $ManifestPath.Replace('\\','/')",
+        "  if (-not $RunnerTextNormalized.Contains($ManifestPathNormalized)) {",
+        "    $script:PrelaunchFailures += ('dispatch runner manifest alignment manifest path mismatch: ' + $ManifestPath)",
+        "    return",
+        "  }",
+        "  if (-not ($Manifest.PSObject.Properties.Name -contains 'packages') -or $Manifest.packages -isnot [System.Array]) {",
+        "    return",
+        "  }",
+        "  $StagedLauncherPaths = @()",
+        "  if ($Manifest.PSObject.Properties.Name -contains 'staged_launcher_paths' -and $Manifest.staged_launcher_paths -is [System.Array]) {",
+        "    $StagedLauncherPaths = @($Manifest.staged_launcher_paths)",
+        "  }",
+        "  foreach ($LauncherPath in $StagedLauncherPaths) {",
+        "    $LauncherPathText = [string]$LauncherPath",
+        "    if ($LauncherPathText -and -not $RunnerTextNormalized.Contains($LauncherPathText.Replace('\\','/'))) {",
+        "      $script:PrelaunchFailures += ('dispatch runner manifest alignment missing staged launcher: ' + $LauncherPathText)",
+        "      return",
+        "    }",
+        "  }",
+        "  foreach ($Package in @($Manifest.packages)) {",
+        "    $PackageId = [string]$Package.package_id",
+        "    $ScriptPath = [string]$Package.script_path",
+        "    $StagedSelected = $false",
+        "    $HasStagedSelection = $false",
+        "    if ($Package.PSObject.Properties.Name -contains 'staged_launcher_selected') { $HasStagedSelection = $true; $StagedSelected = ($Package.staged_launcher_selected -eq $true) }",
+        "    if ($PackageId -and $ScriptPath -and $HasStagedSelection -and -not $StagedSelected) {",
+        "      $ClaimId = 'claim-' + $PackageId",
+        "      if (-not $RunnerTextNormalized.Contains($ScriptPath.Replace('\\','/'))) {",
+        "        $script:PrelaunchFailures += ('dispatch runner manifest alignment missing direct script: ' + $PackageId + '=' + $ScriptPath)",
+        "        return",
+        "      }",
+        "      if (-not $RunnerText.Contains($ClaimId)) {",
+        "        $script:PrelaunchFailures += ('dispatch runner manifest alignment missing direct claim: ' + $PackageId + '=' + $ClaimId)",
+        "        return",
+        "      }",
+        "    }",
+        "  }",
+        "  Write-Host ('[prelaunch] dispatch runner manifest alignment valid: runner=' + $RunnerPath)",
+        "}",
+        "function Invoke-DispatchManifestShapeValidation {",
+        "  param([string]$Path)",
+        "  Write-Host '[prelaunch] dispatch manifest shape'",
+        "  if (-not (Test-Path -LiteralPath $Path)) {",
+        "    $script:PrelaunchFailures += ('dispatch manifest shape missing ' + $Path)",
+        "    return",
+        "  }",
+        "  try { $Manifest = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('dispatch manifest shape invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  foreach ($PathField in @('output_dir','owner_launch_plan_path','owner_launch_plan_json_path','execution_matrix_path','execution_matrix_json_path','agent_claims_json_path','agent_spawn_plan_json_path','agent_spawn_launcher_path','claim_status_report_json_path','claim_lock_helper_path','env_unblock_queue_json_path','ready_claims_launcher_path','ready_claims_parallel_launcher_path','env_bundle_ready_claims_launcher_path','dispatch_prelaunch_validation_path')) {",
+        "    if (-not ($Manifest.PSObject.Properties.Name -contains $PathField)) {",
+        "      $script:PrelaunchFailures += ('dispatch manifest shape missing ' + $PathField)",
+        "      return",
+        "    }",
+        "    $PathValue = [string]$Manifest.PSObject.Properties[$PathField].Value",
+        "    if (-not $PathValue) {",
+        "      $script:PrelaunchFailures += ('dispatch manifest shape empty ' + $PathField)",
+        "      return",
+        "    }",
+        "    if (-not (Test-Path -LiteralPath $PathValue)) {",
+        "      $script:PrelaunchFailures += ('dispatch manifest shape path missing ' + $PathField + ': ' + $PathValue)",
+        "      return",
+        "    }",
+        "  }",
+        "  if (-not ($Manifest.PSObject.Properties.Name -contains 'packages')) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape missing packages'",
+        "    return",
+        "  }",
+        "  if (-not ($Manifest.PSObject.Properties.Name -contains 'profile_id')) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape missing profile_id'",
+        "    return",
+        "  }",
+        "  if ([string]$Manifest.profile_id -ne 'validation-execution-preflight-probe') {",
+        "    $script:PrelaunchFailures += ('dispatch manifest shape invalid profile_id: ' + [string]$Manifest.profile_id)",
+        "    return",
+        "  }",
+        "  if (-not ($Manifest.PSObject.Properties.Name -contains 'source_preflight')) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape missing source_preflight'",
+        "    return",
+        "  }",
+        "  $SourcePreflightPath = [string]$Manifest.source_preflight",
+        "  if (-not $SourcePreflightPath) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape empty source_preflight'",
+        "    return",
+        "  }",
+        "  if (-not (Test-Path -LiteralPath $SourcePreflightPath)) {",
+        "    $script:PrelaunchFailures += ('dispatch manifest shape source_preflight missing: ' + $SourcePreflightPath)",
+        "    return",
+        "  }",
+        "  try { $SourcePreflight = Get-Content -Raw -LiteralPath $SourcePreflightPath | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('dispatch manifest shape source_preflight invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  $SourceProfileId = ''",
+        "  if ($SourcePreflight.PSObject.Properties.Name -contains 'profile_id') {",
+        "    $SourceProfileId = [string]$SourcePreflight.profile_id",
+        "  } elseif ($SourcePreflight.PSObject.Properties.Name -contains 'profile') {",
+        "    $SourceProfileId = [string]$SourcePreflight.profile",
+        "  }",
+        "  if ($SourceProfileId -ne 'validation-execution-preflight-probe') {",
+        "    $script:PrelaunchFailures += ('dispatch manifest shape source_preflight invalid profile_id: ' + $SourceProfileId)",
+        "    return",
+        "  }",
+        "  if ($Manifest.packages -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape packages is not a list'",
+        "    return",
+        "  }",
+        "  if (-not ($Manifest.PSObject.Properties.Name -contains 'expected_package_ids')) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape missing expected_package_ids'",
+        "    return",
+        "  }",
+        "  if ($Manifest.expected_package_ids -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape expected_package_ids is not a list'",
+        "    return",
+        "  }",
+        "  if (-not ($Manifest.PSObject.Properties.Name -contains 'expected_waves')) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape missing expected_waves'",
+        "    return",
+        "  }",
+        "  if ($Manifest.expected_waves -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape expected_waves is not a list'",
+        "    return",
+        "  }",
+        "  # Static audit markers for optional manifest launcher fields:",
+        "  # dispatch manifest shape launcher_paths is not a list",
+        "  # dispatch manifest shape launcher_paths contains empty value",
+        "  # dispatch manifest shape launcher path missing launcher_paths:",
+        "  # dispatch manifest shape missing staged_launcher_paths",
+        "  # dispatch manifest shape staged_launcher_paths is not a list",
+        "  # dispatch manifest shape staged_launcher_paths contains empty value",
+        "  # dispatch manifest shape launcher path missing staged_launcher_paths:",
+        "  # dispatch manifest shape empty agent_roster_path",
+        "  # dispatch manifest shape path missing agent_roster_path:",
+        "  # dispatch manifest shape empty dispatch_runner_path",
+        "  # dispatch manifest shape path missing dispatch_runner_path:",
+        "  foreach ($LauncherListField in @('launcher_paths','staged_launcher_paths')) {",
+        "    if ($Manifest.PSObject.Properties.Name -contains $LauncherListField) {",
+        "      if ($Manifest.PSObject.Properties[$LauncherListField].Value -isnot [System.Array]) {",
+        "        $script:PrelaunchFailures += ('dispatch manifest shape ' + $LauncherListField + ' is not a list')",
+        "        return",
+        "      }",
+        "      foreach ($LauncherPath in @($Manifest.PSObject.Properties[$LauncherListField].Value)) {",
+        "        $LauncherPathText = [string]$LauncherPath",
+        "        if (-not $LauncherPathText) {",
+        "          $script:PrelaunchFailures += ('dispatch manifest shape ' + $LauncherListField + ' contains empty value')",
+        "          return",
+        "        }",
+        "        if (-not (Test-Path -LiteralPath $LauncherPathText)) {",
+        "          $script:PrelaunchFailures += ('dispatch manifest shape launcher path missing ' + $LauncherListField + ': ' + $LauncherPathText)",
+        "          return",
+        "        }",
+        "      }",
+        "    }",
+        "  }",
+        "  if ($Manifest.PSObject.Properties.Name -contains 'dispatch_runner_path' -and $null -ne $Manifest.PSObject.Properties['dispatch_runner_path'].Value -and -not ($Manifest.PSObject.Properties.Name -contains 'staged_launcher_paths')) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape missing staged_launcher_paths'",
+        "    return",
+        "  }",
+        "  foreach ($OptionalPathField in @('agent_roster_path','dispatch_runner_path')) {",
+        "    if ($Manifest.PSObject.Properties.Name -contains $OptionalPathField -and $null -ne $Manifest.PSObject.Properties[$OptionalPathField].Value) {",
+        "      $OptionalPathValue = [string]$Manifest.PSObject.Properties[$OptionalPathField].Value",
+        "      if (-not $OptionalPathValue) {",
+        "        $script:PrelaunchFailures += ('dispatch manifest shape empty ' + $OptionalPathField)",
+        "        return",
+        "      }",
+        "      if (-not (Test-Path -LiteralPath $OptionalPathValue)) {",
+        "        $script:PrelaunchFailures += ('dispatch manifest shape path missing ' + $OptionalPathField + ': ' + $OptionalPathValue)",
+        "        return",
+        "      }",
+        "    }",
+        "  }",
+        "  $PackageIds = @()",
+        "  $PackageWaves = @()",
+        "  # Static audit markers for dynamic dispatch-manifest package path fields:",
+        "  # dispatch manifest shape package missing output_dir:",
+        "  # dispatch manifest shape package missing script_path:",
+        "  # dispatch manifest shape package missing prompt_path:",
+        "  # dispatch manifest shape package missing status_path:",
+        "  # dispatch manifest shape package empty output_dir:",
+        "  # dispatch manifest shape package empty script_path:",
+        "  # dispatch manifest shape package empty prompt_path:",
+        "  # dispatch manifest shape package empty status_path:",
+        "  # dispatch manifest shape package path missing output_dir:",
+        "  # dispatch manifest shape package path missing script_path:",
+        "  # dispatch manifest shape package path missing prompt_path:",
+        "  foreach ($Package in @($Manifest.packages)) {",
+        "    if (-not ($Package.PSObject.Properties.Name -contains 'package_id')) {",
+        "      $script:PrelaunchFailures += 'dispatch manifest shape package without package_id'",
+        "      return",
+        "    }",
+        "    $PackageId = [string]$Package.package_id",
+        "    if (-not $PackageId) {",
+        "      $script:PrelaunchFailures += 'dispatch manifest shape package without package_id'",
+        "      return",
+        "    }",
+        "    $PackageIds += $PackageId",
+        "    foreach ($PackagePathField in @('output_dir','script_path','prompt_path','status_path')) {",
+        "      if (-not ($Package.PSObject.Properties.Name -contains $PackagePathField)) {",
+        "        $script:PrelaunchFailures += ('dispatch manifest shape package missing ' + $PackagePathField + ': ' + $PackageId)",
+        "        return",
+        "      }",
+        "      $PackagePathValue = [string]$Package.PSObject.Properties[$PackagePathField].Value",
+        "      if (-not $PackagePathValue) {",
+        "        $script:PrelaunchFailures += ('dispatch manifest shape package empty ' + $PackagePathField + ': ' + $PackageId)",
+        "        return",
+        "      }",
+        "      if ($PackagePathField -in @('output_dir','script_path','prompt_path') -and -not (Test-Path -LiteralPath $PackagePathValue)) {",
+        "        $script:PrelaunchFailures += ('dispatch manifest shape package path missing ' + $PackagePathField + ': ' + $PackageId + '=' + $PackagePathValue)",
+        "        return",
+        "      }",
+        "      if ($PackagePathField -eq 'status_path') {",
+        "        $StatusParent = Split-Path -Parent $PackagePathValue",
+        "        if (-not $StatusParent -or -not (Test-Path -LiteralPath $StatusParent)) {",
+        "          $script:PrelaunchFailures += ('dispatch manifest shape package status parent missing: ' + $PackageId + '=' + $PackagePathValue)",
+        "          return",
+        "        }",
+        "      }",
+        "    }",
+        "    if (-not ($Package.PSObject.Properties.Name -contains 'wave')) {",
+        "      $script:PrelaunchFailures += ('dispatch manifest shape package missing wave: ' + $PackageId)",
+        "      return",
+        "    }",
+        "    $WaveRaw = [string]$Package.wave",
+        "    $Wave = 0",
+        "    if (-not [int]::TryParse($WaveRaw, [ref]$Wave) -or $Wave -lt 1) {",
+        "      $script:PrelaunchFailures += ('dispatch manifest shape package invalid wave: ' + $PackageId + '=' + $WaveRaw)",
+        "      return",
+        "    }",
+        "    $PackageWaves += $Wave",
+        "  }",
+        "  $DuplicatePackageIds = @($PackageIds | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name } | Sort-Object)",
+        "  if ($DuplicatePackageIds.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('dispatch manifest shape duplicate package_id: ' + ($DuplicatePackageIds -join ','))",
+        "    return",
+        "  }",
+        "  $ExpectedPackageIds = @($Manifest.expected_package_ids | ForEach-Object { [string]$_ } | Sort-Object)",
+        "  if (@($ExpectedPackageIds | Where-Object { -not $_ }).Count -gt 0) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape expected_package_ids contains empty value'",
+        "    return",
+        "  }",
+        "  $SortedPackageIds = @($PackageIds | Sort-Object)",
+        "  if (($ExpectedPackageIds -join '|') -ne ($SortedPackageIds -join '|')) {",
+        "    $script:PrelaunchFailures += ('dispatch manifest shape expected_package_ids mismatch: expected=' + ($ExpectedPackageIds -join ',') + ' packages=' + ($SortedPackageIds -join ','))",
+        "    return",
+        "  }",
+        "  $ExpectedWaves = @($Manifest.expected_waves | ForEach-Object { [string]$_ } | Sort-Object)",
+        "  if (@($ExpectedWaves | Where-Object { -not $_ }).Count -gt 0) {",
+        "    $script:PrelaunchFailures += 'dispatch manifest shape expected_waves contains empty value'",
+        "    return",
+        "  }",
+        "  $PackageWaves = @($PackageWaves | Sort-Object -Unique | ForEach-Object { [string]$_ })",
+        "  if (($ExpectedWaves -join '|') -ne ($PackageWaves -join '|')) {",
+        "    $script:PrelaunchFailures += ('dispatch manifest shape expected_waves mismatch: expected=' + ($ExpectedWaves -join ',') + ' packages=' + ($PackageWaves -join ','))",
+        "    return",
+        "  }",
+        "  Write-Host ('[prelaunch] dispatch manifest shape valid: packages=' + [string]@($Manifest.packages).Count)",
+        "}",
+        "function Invoke-AgentSpawnPlanShapeValidation {",
+        "  param([string]$Path)",
+        "  Write-Host '[prelaunch] agent spawn plan shape'",
+        "  if (-not (Test-Path -LiteralPath $Path)) {",
+        "    $script:PrelaunchFailures += ('agent spawn plan shape missing ' + $Path)",
+        "    return",
+        "  }",
+        "  try { $Plan = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('agent spawn plan shape invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  if (-not ($Plan.PSObject.Properties.Name -contains 'schema_version')) {",
+        "    $script:PrelaunchFailures += 'agent spawn plan shape missing schema_version'",
+        "    return",
+        "  }",
+        "  if (-not ($Plan.PSObject.Properties.Name -contains 'artifact')) {",
+        "    $script:PrelaunchFailures += 'agent spawn plan shape missing artifact'",
+        "    return",
+        "  }",
+        "  if ([int]$Plan.schema_version -ne 1) {",
+        "    $script:PrelaunchFailures += ('agent spawn plan shape invalid schema_version: ' + [string]$Plan.schema_version)",
+        "    return",
+        "  }",
+        "  if ([string]$Plan.artifact -ne 'validation-agent-spawn-plan') {",
+        "    $script:PrelaunchFailures += ('agent spawn plan shape invalid artifact: ' + [string]$Plan.artifact)",
+        "    return",
+        "  }",
+        "  if ($Plan.PSObject.Properties.Name -contains 'source_artifact' -and [string]$Plan.source_artifact -ne 'validation-agent-claims') {",
+        "    $script:PrelaunchFailures += ('agent spawn plan shape invalid source_artifact: ' + [string]$Plan.source_artifact)",
+        "    return",
+        "  }",
+        "  # Static audit markers for dynamic agent-spawn-plan count fields:",
+        "  # agent spawn plan shape missing ready_batch_count",
+        "  # agent spawn plan shape missing ready_claim_count",
+        "  # agent spawn plan shape missing env_bundle_ready_batch_count",
+        "  # agent spawn plan shape missing env_bundle_ready_claim_count",
+        "  # agent spawn plan shape missing env_bundle_still_blocked_claim_count",
+        "  # agent spawn plan shape missing blocked_or_manual_claim_count",
+        "  # agent spawn plan shape invalid ready_batch_count:",
+        "  # agent spawn plan shape invalid ready_claim_count:",
+        "  # agent spawn plan shape invalid env_bundle_ready_batch_count:",
+        "  # agent spawn plan shape invalid env_bundle_ready_claim_count:",
+        "  # agent spawn plan shape invalid env_bundle_still_blocked_claim_count:",
+        "  # agent spawn plan shape invalid blocked_or_manual_claim_count:",
+        "  # agent spawn plan shape missing batches",
+        "  # agent spawn plan shape missing env_bundle_ready_batches",
+        "  # agent spawn plan shape missing env_bundle_still_blocked_claims",
+        "  # agent spawn plan shape missing blocked_or_manual_claims",
+        "  # agent spawn plan shape batches is not a list",
+        "  # agent spawn plan shape env_bundle_ready_batches is not a list",
+        "  # agent spawn plan shape env_bundle_still_blocked_claims is not a list",
+        "  # agent spawn plan shape blocked_or_manual_claims is not a list",
+        "  # agent spawn plan shape ready_claim_count mismatch:",
+        "  # agent spawn plan shape env_bundle_ready_claim_count mismatch:",
+        "  foreach ($CountField in @('ready_batch_count','ready_claim_count','env_bundle_ready_batch_count','env_bundle_ready_claim_count','env_bundle_still_blocked_claim_count','blocked_or_manual_claim_count')) {",
+        "    if (-not ($Plan.PSObject.Properties.Name -contains $CountField)) {",
+        "      $script:PrelaunchFailures += ('agent spawn plan shape missing ' + $CountField)",
+        "      return",
+        "    }",
+        "    $CountRaw = [string]$Plan.PSObject.Properties[$CountField].Value",
+        "    $Count = 0",
+        "    if (-not [int]::TryParse($CountRaw, [ref]$Count) -or $Count -lt 0) {",
+        "      $script:PrelaunchFailures += ('agent spawn plan shape invalid ' + $CountField + ': ' + $CountRaw)",
+        "      return",
+        "    }",
+        "  }",
+        "  foreach ($ListField in @('batches','env_bundle_ready_batches','env_bundle_still_blocked_claims','blocked_or_manual_claims')) {",
+        "    if (-not ($Plan.PSObject.Properties.Name -contains $ListField)) {",
+        "      $script:PrelaunchFailures += ('agent spawn plan shape missing ' + $ListField)",
+        "      return",
+        "    }",
+        "    if ($Plan.PSObject.Properties[$ListField].Value -isnot [System.Array]) {",
+        "      $script:PrelaunchFailures += ('agent spawn plan shape ' + $ListField + ' is not a list')",
+        "      return",
+        "    }",
+        "  }",
+        "  function Test-SpawnPlanBatchList([object[]]$Batches, [string]$FieldName, [string]$CountFieldName) {",
+        "    $ClaimCount = 0",
+        "    foreach ($Batch in @($Batches)) {",
+        "      if (-not ($Batch.PSObject.Properties.Name -contains 'claims')) {",
+        "        $script:PrelaunchFailures += ('agent spawn plan shape batch missing claims in ' + $FieldName)",
+        "        return $null",
+        "      }",
+        "      if ($Batch.claims -isnot [System.Array]) {",
+        "        $script:PrelaunchFailures += ('agent spawn plan shape batch claims is not a list in ' + $FieldName)",
+        "        return $null",
+        "      }",
+        "      if (-not ($Batch.PSObject.Properties.Name -contains 'claim_count')) {",
+        "        $script:PrelaunchFailures += ('agent spawn plan shape batch missing claim_count in ' + $FieldName)",
+        "        return $null",
+        "      }",
+        "      $BatchClaimCountRaw = [string]$Batch.claim_count",
+        "      $BatchClaimCount = 0",
+        "      if (-not [int]::TryParse($BatchClaimCountRaw, [ref]$BatchClaimCount) -or $BatchClaimCount -lt 0) {",
+        "        $script:PrelaunchFailures += ('agent spawn plan shape invalid batch claim_count in ' + $FieldName + ': ' + $BatchClaimCountRaw)",
+        "        return $null",
+        "      }",
+        "      if ($BatchClaimCount -ne @($Batch.claims).Count) {",
+        "        $script:PrelaunchFailures += ('agent spawn plan shape batch claim_count mismatch in ' + $FieldName + ': count=' + [string]$BatchClaimCount + ' claims=' + [string]@($Batch.claims).Count)",
+        "        return $null",
+        "      }",
+        "      foreach ($Claim in @($Batch.claims)) {",
+        "        if (-not ($Claim.PSObject.Properties.Name -contains 'claim_id') -or -not [string]$Claim.claim_id) {",
+        "          $script:PrelaunchFailures += ('agent spawn plan shape batch claim without claim_id in ' + $FieldName)",
+        "          return $null",
+        "        }",
+        "      }",
+        "      $ClaimCount += $BatchClaimCount",
+        "    }",
+        "    if ([int]$Plan.PSObject.Properties[$CountFieldName].Value -ne $ClaimCount) {",
+        "      $script:PrelaunchFailures += ('agent spawn plan shape ' + $CountFieldName + ' mismatch: count=' + [string]$Plan.PSObject.Properties[$CountFieldName].Value + ' claims=' + [string]$ClaimCount)",
+        "      return $null",
+        "    }",
+        "    return $ClaimCount",
+        "  }",
+        "  if ([int]$Plan.ready_batch_count -ne @($Plan.batches).Count) {",
+        "    $script:PrelaunchFailures += ('agent spawn plan shape ready_batch_count mismatch: count=' + [string]$Plan.ready_batch_count + ' batches=' + [string]@($Plan.batches).Count)",
+        "    return",
+        "  }",
+        "  if ([int]$Plan.env_bundle_ready_batch_count -ne @($Plan.env_bundle_ready_batches).Count) {",
+        "    $script:PrelaunchFailures += ('agent spawn plan shape env_bundle_ready_batch_count mismatch: count=' + [string]$Plan.env_bundle_ready_batch_count + ' batches=' + [string]@($Plan.env_bundle_ready_batches).Count)",
+        "    return",
+        "  }",
+        "  if ($null -eq (Test-SpawnPlanBatchList @($Plan.batches) 'batches' 'ready_claim_count')) { return }",
+        "  if ($null -eq (Test-SpawnPlanBatchList @($Plan.env_bundle_ready_batches) 'env_bundle_ready_batches' 'env_bundle_ready_claim_count')) { return }",
+        "  if ([int]$Plan.env_bundle_still_blocked_claim_count -ne @($Plan.env_bundle_still_blocked_claims).Count) {",
+        "    $script:PrelaunchFailures += ('agent spawn plan shape env_bundle_still_blocked_claim_count mismatch: count=' + [string]$Plan.env_bundle_still_blocked_claim_count + ' claims=' + [string]@($Plan.env_bundle_still_blocked_claims).Count)",
+        "    return",
+        "  }",
+        "  if ([int]$Plan.blocked_or_manual_claim_count -ne @($Plan.blocked_or_manual_claims).Count) {",
+        "    $script:PrelaunchFailures += ('agent spawn plan shape blocked_or_manual_claim_count mismatch: count=' + [string]$Plan.blocked_or_manual_claim_count + ' claims=' + [string]@($Plan.blocked_or_manual_claims).Count)",
+        "    return",
+        "  }",
+        "  Write-Host ('[prelaunch] agent spawn plan shape valid: ready_claims=' + [string]$Plan.ready_claim_count + ' env_bundle_ready_claims=' + [string]$Plan.env_bundle_ready_claim_count)",
+        "}",
+        "function Invoke-AgentClaimsShapeValidation {",
+        "  param([string]$Path)",
+        "  Write-Host '[prelaunch] agent claims shape'",
+        "  if (-not (Test-Path -LiteralPath $Path)) {",
+        "    $script:PrelaunchFailures += ('agent claims shape missing ' + $Path)",
+        "    return",
+        "  }",
+        "  try { $ClaimsPayload = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('agent claims shape invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  if (-not ($ClaimsPayload.PSObject.Properties.Name -contains 'schema_version')) {",
+        "    $script:PrelaunchFailures += 'agent claims shape missing schema_version'",
+        "    return",
+        "  }",
+        "  if (-not ($ClaimsPayload.PSObject.Properties.Name -contains 'artifact')) {",
+        "    $script:PrelaunchFailures += 'agent claims shape missing artifact'",
+        "    return",
+        "  }",
+        "  if ([int]$ClaimsPayload.schema_version -ne 1) {",
+        "    $script:PrelaunchFailures += ('agent claims shape invalid schema_version: ' + [string]$ClaimsPayload.schema_version)",
+        "    return",
+        "  }",
+        "  if ([string]$ClaimsPayload.artifact -ne 'validation-agent-claims') {",
+        "    $script:PrelaunchFailures += ('agent claims shape invalid artifact: ' + [string]$ClaimsPayload.artifact)",
+        "    return",
+        "  }",
+        "  if (-not ($ClaimsPayload.PSObject.Properties.Name -contains 'claims')) {",
+        "    $script:PrelaunchFailures += 'agent claims shape missing claims'",
+        "    return",
+        "  }",
+        "  if ($ClaimsPayload.claims -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'agent claims shape claims is not a list'",
+        "    return",
+        "  }",
+        "  # Static audit markers for dynamic agent-claims count fields:",
+        "  # agent claims shape missing claim_count",
+        "  # agent claims shape missing ready_to_claim_count",
+        "  # agent claims shape missing blocked_claim_count",
+        "  # agent claims shape missing manual_claim_count",
+        "  # agent claims shape invalid claim_count:",
+        "  # agent claims shape invalid ready_to_claim_count:",
+        "  # agent claims shape invalid blocked_claim_count:",
+        "  # agent claims shape invalid manual_claim_count:",
+        "  foreach ($CountField in @('claim_count','ready_to_claim_count','blocked_claim_count','manual_claim_count')) {",
+        "    if (-not ($ClaimsPayload.PSObject.Properties.Name -contains $CountField)) {",
+        "      $script:PrelaunchFailures += ('agent claims shape missing ' + $CountField)",
+        "      return",
+        "    }",
+        "    $CountRaw = [string]$ClaimsPayload.PSObject.Properties[$CountField].Value",
+        "    $Count = 0",
+        "    if (-not [int]::TryParse($CountRaw, [ref]$Count) -or $Count -lt 0) {",
+        "      $script:PrelaunchFailures += ('agent claims shape invalid ' + $CountField + ': ' + $CountRaw)",
+        "      return",
+        "    }",
+        "  }",
+        "  $ClaimIds = @()",
+        "  foreach ($Claim in @($ClaimsPayload.claims)) {",
+        "    if (-not ($Claim.PSObject.Properties.Name -contains 'claim_id')) {",
+        "      $script:PrelaunchFailures += 'agent claims shape claim without claim_id'",
+        "      return",
+        "    }",
+        "    $ClaimId = [string]$Claim.claim_id",
+        "    if (-not $ClaimId) {",
+        "      $script:PrelaunchFailures += 'agent claims shape claim without claim_id'",
+        "      return",
+        "    }",
+        "    $ClaimIds += $ClaimId",
+        "  }",
+        "  $DuplicateClaimIds = @($ClaimIds | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name } | Sort-Object)",
+        "  if ($DuplicateClaimIds.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('agent claims shape duplicate claim_id: ' + ($DuplicateClaimIds -join ','))",
+        "    return",
+        "  }",
+        "  if ([int]$ClaimsPayload.claim_count -ne @($ClaimsPayload.claims).Count) {",
+        "    $script:PrelaunchFailures += ('agent claims shape claim_count mismatch: count=' + [string]$ClaimsPayload.claim_count + ' claims=' + [string]@($ClaimsPayload.claims).Count)",
+        "    return",
+        "  }",
+        "  $ReadyClaims = @($ClaimsPayload.claims | Where-Object { [string]$_.claim_state -eq 'ready_to_claim' })",
+        "  if ([int]$ClaimsPayload.ready_to_claim_count -ne $ReadyClaims.Count) {",
+        "    $script:PrelaunchFailures += ('agent claims shape ready_to_claim_count mismatch: count=' + [string]$ClaimsPayload.ready_to_claim_count + ' claims=' + [string]$ReadyClaims.Count)",
+        "    return",
+        "  }",
+        "  $BlockedClaims = @($ClaimsPayload.claims | Where-Object { [string]$_.claim_state -like 'blocked_*' })",
+        "  if ([int]$ClaimsPayload.blocked_claim_count -ne $BlockedClaims.Count) {",
+        "    $script:PrelaunchFailures += ('agent claims shape blocked_claim_count mismatch: count=' + [string]$ClaimsPayload.blocked_claim_count + ' claims=' + [string]$BlockedClaims.Count)",
+        "    return",
+        "  }",
+        "  $ManualClaims = @($ClaimsPayload.claims | Where-Object { [string]$_.claim_state -eq 'manual_claim_required' })",
+        "  if ([int]$ClaimsPayload.manual_claim_count -ne $ManualClaims.Count) {",
+        "    $script:PrelaunchFailures += ('agent claims shape manual_claim_count mismatch: count=' + [string]$ClaimsPayload.manual_claim_count + ' claims=' + [string]$ManualClaims.Count)",
+        "    return",
+        "  }",
+        "  Write-Host ('[prelaunch] agent claims shape valid: claims=' + [string]@($ClaimsPayload.claims).Count)",
+        "}",
+        "function Invoke-ClaimStatusReportShapeValidation {",
+        "  param([string]$Path)",
+        "  Write-Host '[prelaunch] claim status report shape'",
+        "  if (-not (Test-Path -LiteralPath $Path)) {",
+        "    $script:PrelaunchFailures += ('claim status report shape missing ' + $Path)",
+        "    return",
+        "  }",
+        "  try { $Report = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('claim status report shape invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  if (-not ($Report.PSObject.Properties.Name -contains 'schema_version')) {",
+        "    $script:PrelaunchFailures += 'claim status report shape missing schema_version'",
+        "    return",
+        "  }",
+        "  if (-not ($Report.PSObject.Properties.Name -contains 'artifact')) {",
+        "    $script:PrelaunchFailures += 'claim status report shape missing artifact'",
+        "    return",
+        "  }",
+        "  if ([int]$Report.schema_version -ne 1) {",
+        "    $script:PrelaunchFailures += ('claim status report shape invalid schema_version: ' + [string]$Report.schema_version)",
+        "    return",
+        "  }",
+        "  if ([string]$Report.artifact -ne 'validation-claim-status-report') {",
+        "    $script:PrelaunchFailures += ('claim status report shape invalid artifact: ' + [string]$Report.artifact)",
+        "    return",
+        "  }",
+        "  if (-not ($Report.PSObject.Properties.Name -contains 'claims')) {",
+        "    $script:PrelaunchFailures += 'claim status report shape missing claims'",
+        "    return",
+        "  }",
+        "  if ($Report.claims -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'claim status report shape claims is not a list'",
+        "    return",
+        "  }",
+        "  # Static audit markers for dynamic claim-status count fields:",
+        "  # claim status report shape missing claim_count",
+        "  # claim status report shape missing ready_to_claim_count",
+        "  # claim status report shape missing blocked_claim_count",
+        "  # claim status report shape missing manual_claim_count",
+        "  # claim status report shape missing locked_claim_count",
+        "  # claim status report shape missing invalid_lock_count",
+        "  # claim status report shape invalid claim_count:",
+        "  # claim status report shape invalid ready_to_claim_count:",
+        "  # claim status report shape invalid blocked_claim_count:",
+        "  # claim status report shape invalid manual_claim_count:",
+        "  # claim status report shape invalid locked_claim_count:",
+        "  # claim status report shape invalid invalid_lock_count:",
+        "  foreach ($CountField in @('claim_count','ready_to_claim_count','blocked_claim_count','manual_claim_count','locked_claim_count','invalid_lock_count')) {",
+        "    if (-not ($Report.PSObject.Properties.Name -contains $CountField)) {",
+        "      $script:PrelaunchFailures += ('claim status report shape missing ' + $CountField)",
+        "      return",
+        "    }",
+        "    $CountRaw = [string]$Report.PSObject.Properties[$CountField].Value",
+        "    $Count = 0",
+        "    if (-not [int]::TryParse($CountRaw, [ref]$Count) -or $Count -lt 0) {",
+        "      $script:PrelaunchFailures += ('claim status report shape invalid ' + $CountField + ': ' + $CountRaw)",
+        "      return",
+        "    }",
+        "  }",
+        "  $ClaimIds = @()",
+        "  foreach ($Claim in @($Report.claims)) {",
+        "    if (-not ($Claim.PSObject.Properties.Name -contains 'claim_id')) {",
+        "      $script:PrelaunchFailures += 'claim status report shape claim without claim_id'",
+        "      return",
+        "    }",
+        "    $ClaimId = [string]$Claim.claim_id",
+        "    if (-not $ClaimId) {",
+        "      $script:PrelaunchFailures += 'claim status report shape claim without claim_id'",
+        "      return",
+        "    }",
+        "    $ClaimIds += $ClaimId",
+        "  }",
+        "  $DuplicateClaimIds = @($ClaimIds | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name } | Sort-Object)",
+        "  if ($DuplicateClaimIds.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('claim status report shape duplicate claim_id: ' + ($DuplicateClaimIds -join ','))",
+        "    return",
+        "  }",
+        "  if ([int]$Report.claim_count -ne @($Report.claims).Count) {",
+        "    $script:PrelaunchFailures += ('claim status report shape claim_count mismatch: count=' + [string]$Report.claim_count + ' claims=' + [string]@($Report.claims).Count)",
+        "    return",
+        "  }",
+        "  $ReadyClaims = @($Report.claims | Where-Object { [string]$_.claim_state -eq 'ready_to_claim' })",
+        "  if ([int]$Report.ready_to_claim_count -ne $ReadyClaims.Count) {",
+        "    $script:PrelaunchFailures += ('claim status report shape ready_to_claim_count mismatch: count=' + [string]$Report.ready_to_claim_count + ' claims=' + [string]$ReadyClaims.Count)",
+        "    return",
+        "  }",
+        "  $BlockedClaims = @($Report.claims | Where-Object { [string]$_.claim_state -like 'blocked_*' })",
+        "  if ([int]$Report.blocked_claim_count -ne $BlockedClaims.Count) {",
+        "    $script:PrelaunchFailures += ('claim status report shape blocked_claim_count mismatch: count=' + [string]$Report.blocked_claim_count + ' claims=' + [string]$BlockedClaims.Count)",
+        "    return",
+        "  }",
+        "  $ManualClaims = @($Report.claims | Where-Object { [string]$_.claim_state -eq 'manual_claim_required' })",
+        "  if ([int]$Report.manual_claim_count -ne $ManualClaims.Count) {",
+        "    $script:PrelaunchFailures += ('claim status report shape manual_claim_count mismatch: count=' + [string]$Report.manual_claim_count + ' claims=' + [string]$ManualClaims.Count)",
+        "    return",
+        "  }",
+        "  $LockedClaims = @($Report.claims | Where-Object { [string]$_.lock_state -eq 'locked' })",
+        "  if ([int]$Report.locked_claim_count -ne $LockedClaims.Count) {",
+        "    $script:PrelaunchFailures += ('claim status report shape locked_claim_count mismatch: count=' + [string]$Report.locked_claim_count + ' claims=' + [string]$LockedClaims.Count)",
+        "    return",
+        "  }",
+        "  $InvalidLockClaims = @($Report.claims | Where-Object { [string]$_.lock_state -eq 'invalid' })",
+        "  if ([int]$Report.invalid_lock_count -ne $InvalidLockClaims.Count) {",
+        "    $script:PrelaunchFailures += ('claim status report shape invalid_lock_count mismatch: count=' + [string]$Report.invalid_lock_count + ' claims=' + [string]$InvalidLockClaims.Count)",
+        "    return",
+        "  }",
+        "  Write-Host ('[prelaunch] claim status report shape valid: claims=' + [string]@($Report.claims).Count)",
+        "}",
+        "function Invoke-EnvQueueShapeValidation {",
+        "  param([string]$Path)",
+        "  Write-Host '[prelaunch] env unblock queue shape'",
+        "  if (-not (Test-Path -LiteralPath $Path)) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape missing ' + $Path)",
+        "    return",
+        "  }",
+        "  try { $Queue = Get-Content -Raw -LiteralPath $Path | ConvertFrom-Json } catch {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape invalid JSON: ' + [string]$_.Exception.Message)",
+        "    return",
+        "  }",
+        "  if ($null -eq $Queue -or -not ($Queue.PSObject.Properties.Name -contains 'entries')) {",
+        "    $script:PrelaunchFailures += 'env unblock queue shape missing entries'",
+        "    return",
+        "  }",
+        "  if ($Queue.entries -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'env unblock queue shape entries is not a list'",
+        "    return",
+        "  }",
+        "  $Entries = @()",
+        "  if ($null -ne $Queue.entries) { $Entries = @($Queue.entries) }",
+        "  $RequiredEnv = @()",
+        "  foreach ($Entry in $Entries) {",
+        "    $EnvName = [string]$Entry.env",
+        "    if (-not $EnvName) {",
+        "      $script:PrelaunchFailures += 'env unblock queue shape entry without env'",
+        "      return",
+        "    }",
+        "    $RequiredEnv += $EnvName",
+        "  }",
+        "  $DuplicateEnv = @($RequiredEnv | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })",
+        "  if ($DuplicateEnv.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape duplicate env entries: ' + (($DuplicateEnv | Sort-Object) -join ', '))",
+        "  }",
+        "  if ($Queue.PSObject.Properties.Name -contains 'env_count') {",
+        "    $EnvCountRaw = [string]$Queue.env_count",
+        "    $EnvCount = 0",
+        "    if (-not [int]::TryParse($EnvCountRaw, [ref]$EnvCount) -or $EnvCount -lt 0) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape invalid env_count: ' + $EnvCountRaw)",
+        "      return",
+        "    }",
+        "    if ($EnvCount -ne $RequiredEnv.Count) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape env_count mismatch: env_count=' + [string]$EnvCount + ' entries=' + [string]$RequiredEnv.Count)",
+        "      return",
+        "    }",
+        "  }",
+        "  if (-not ($Queue.PSObject.Properties.Name -contains 'required_env_names')) {",
+        "    $script:PrelaunchFailures += 'env unblock queue shape missing required_env_names'",
+        "    return",
+        "  }",
+        "  if ($Queue.required_env_names -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'env unblock queue shape required_env_names is not a list'",
+        "    return",
+        "  }",
+        "  $RequiredEnvNames = @()",
+        "  foreach ($RequiredEnvName in @($Queue.required_env_names)) {",
+        "    $RequiredEnvNameText = [string]$RequiredEnvName",
+        "    if (-not $RequiredEnvNameText) {",
+        "      $script:PrelaunchFailures += 'env unblock queue shape required_env_names contains empty value'",
+        "      return",
+        "    }",
+        "    $RequiredEnvNames += $RequiredEnvNameText",
+        "  }",
+        "  $RequiredEnvNames = @($RequiredEnvNames | Sort-Object)",
+        "  $EntryEnvNames = @($RequiredEnv | Sort-Object)",
+        "  if (($RequiredEnvNames -join '|') -ne ($EntryEnvNames -join '|')) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape required_env_names mismatch: required_env_names=' + ($RequiredEnvNames -join ',') + ' entries=' + ($EntryEnvNames -join ','))",
+        "    return",
+        "  }",
+        "  if (-not ($Queue.PSObject.Properties.Name -contains 'all_env_powershell_set_commands')) {",
+        "    $script:PrelaunchFailures += 'env unblock queue shape missing all_env_powershell_set_commands'",
+        "    return",
+        "  }",
+        "  if ($Queue.all_env_powershell_set_commands -isnot [System.Array]) {",
+        "    $script:PrelaunchFailures += 'env unblock queue shape all_env_powershell_set_commands is not a list'",
+        "    return",
+        "  }",
+        "  $CommandEnvNames = @()",
+        "  $CommandTexts = @()",
+        "  foreach ($Command in @($Queue.all_env_powershell_set_commands)) {",
+        "    $CommandText = [string]$Command",
+        "    if (-not $CommandText) {",
+        "      $script:PrelaunchFailures += 'env unblock queue shape all_env_powershell_set_commands contains empty value'",
+        "      return",
+        "    }",
+        "    $CommandMatch = [regex]::Match($CommandText, '^\\$env:([A-Za-z_][A-Za-z0-9_]*)\\s*=')",
+        "    if (-not $CommandMatch.Success) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape invalid env set command: ' + $CommandText)",
+        "      return",
+        "    }",
+        "    $CommandEnvNames += $CommandMatch.Groups[1].Value",
+        "    $CommandTexts += $CommandText",
+        "  }",
+        "  $DuplicateCommandEnv = @($CommandEnvNames | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })",
+        "  if ($DuplicateCommandEnv.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape duplicate env set commands: ' + (($DuplicateCommandEnv | Sort-Object) -join ', '))",
+        "    return",
+        "  }",
+        "  $CommandEnvNames = @($CommandEnvNames | Sort-Object)",
+        "  $EntryEnvNames = @($RequiredEnv | Sort-Object)",
+        "  if (($CommandEnvNames -join '|') -ne ($EntryEnvNames -join '|')) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape env set commands mismatch: commands=' + ($CommandEnvNames -join ',') + ' entries=' + ($EntryEnvNames -join ','))",
+        "    return",
+        "  }",
+        "  $EntryCommands = @()",
+        "  foreach ($Entry in $Entries) {",
+        "    if (-not ($Entry.PSObject.Properties.Name -contains 'powershell_set_command')) {",
+        "      $script:PrelaunchFailures += 'env unblock queue shape entry missing powershell_set_command'",
+        "      return",
+        "    }",
+        "    $EntryCommand = [string]$Entry.powershell_set_command",
+        "    if (-not $EntryCommand) {",
+        "      $script:PrelaunchFailures += 'env unblock queue shape entry missing powershell_set_command'",
+        "      return",
+        "    }",
+        "    foreach ($NextActionField in @('direct_next_action_summaries','indirect_next_action_summaries')) {",
+        "      if (-not ($Entry.PSObject.Properties.Name -contains $NextActionField)) {",
+        "        $script:PrelaunchFailures += ('env unblock queue shape entry missing ' + $NextActionField + ': ' + [string]$Entry.env)",
+        "        return",
+        "      }",
+        "      if ($Entry.PSObject.Properties[$NextActionField].Value -isnot [System.Array]) {",
+        "        $script:PrelaunchFailures += ('env unblock queue shape entry ' + $NextActionField + ' is not a list: ' + [string]$Entry.env)",
+        "        return",
+        "      }",
+        "      if (@($Entry.PSObject.Properties[$NextActionField].Value | ForEach-Object { [string]$_ } | Where-Object { -not $_ }).Count -gt 0) {",
+        "        $script:PrelaunchFailures += ('env unblock queue shape ' + $NextActionField + ' contains empty value: ' + [string]$Entry.env)",
+        "        return",
+        "      }",
+        "    }",
+        "    $EntryCommands += $EntryCommand",
+        "  }",
+        "  $SortedCommandTexts = @($CommandTexts | Sort-Object)",
+        "  $SortedEntryCommands = @($EntryCommands | Sort-Object)",
+        "  if (($SortedCommandTexts -join '|') -ne ($SortedEntryCommands -join '|')) {",
+        "    $script:PrelaunchFailures += 'env unblock queue shape env set command text mismatch'",
+        "    return",
+        "  }",
+        "  # Static audit markers for dynamic current-env shape failures:",
+        "  # env unblock queue shape missing current_env_present_names",
+        "  # env unblock queue shape current_env_present_names is not a list",
+        "  # env unblock queue shape missing current_env_missing_names",
+        "  # env unblock queue shape current_env_missing_names is not a list",
+        "  # env unblock queue shape missing current_env_placeholder_names",
+        "  # env unblock queue shape current_env_placeholder_names is not a list",
+        "  # env unblock queue shape missing current_env_present_count",
+        "  # env unblock queue shape missing current_env_missing_count",
+        "  # env unblock queue shape missing current_env_placeholder_count",
+        "  # env unblock queue shape invalid current_env_present_count:",
+        "  # env unblock queue shape invalid current_env_missing_count:",
+        "  # env unblock queue shape invalid current_env_placeholder_count:",
+        "  # env unblock queue shape current_env_present_count mismatch:",
+        "  # env unblock queue shape current_env_missing_count mismatch:",
+        "  # env unblock queue shape current_env_placeholder_count mismatch:",
+        "  # env unblock queue shape missing ready_with_current_env_claim_ids",
+        "  # env unblock queue shape ready_with_current_env_claim_ids is not a list",
+        "  # env unblock queue shape missing still_blocked_with_current_env_claim_ids",
+        "  # env unblock queue shape still_blocked_with_current_env_claim_ids is not a list",
+        "  # env unblock queue shape missing ready_after_all_env_claim_ids",
+        "  # env unblock queue shape ready_after_all_env_claim_ids is not a list",
+        "  # env unblock queue shape missing still_blocked_after_all_env_claim_ids",
+        "  # env unblock queue shape still_blocked_after_all_env_claim_ids is not a list",
+        "  # env unblock queue shape claim readiness ids contain empty value",
+        "  # env unblock queue shape duplicate claim readiness ids in",
+        "  # env unblock queue shape current claim readiness overlap:",
+        "  # env unblock queue shape after-all claim readiness overlap:",
+        "  # env unblock queue shape entry missing direct_next_action_summaries",
+        "  # env unblock queue shape entry direct_next_action_summaries is not a list",
+        "  # env unblock queue shape direct_next_action_summaries contains empty value",
+        "  # env unblock queue shape entry missing indirect_next_action_summaries",
+        "  # env unblock queue shape entry indirect_next_action_summaries is not a list",
+        "  # env unblock queue shape indirect_next_action_summaries contains empty value",
+        "  # env unblock queue shape missing blocked_claim_count",
+        "  # env unblock queue shape invalid blocked_claim_count:",
+        "  # env unblock queue shape blocked_claim_count below referenced claims:",
+        "  foreach ($CurrentEnvField in @('current_env_present_names','current_env_missing_names','current_env_placeholder_names')) {",
+        "    if (-not ($Queue.PSObject.Properties.Name -contains $CurrentEnvField)) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape missing ' + $CurrentEnvField)",
+        "      return",
+        "    }",
+        "    if ($Queue.PSObject.Properties[$CurrentEnvField].Value -isnot [System.Array]) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape ' + $CurrentEnvField + ' is not a list')",
+        "      return",
+        "    }",
+        "  }",
+        "  foreach ($CurrentEnvCountField in @('current_env_present_count','current_env_missing_count','current_env_placeholder_count')) {",
+        "    if (-not ($Queue.PSObject.Properties.Name -contains $CurrentEnvCountField)) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape missing ' + $CurrentEnvCountField)",
+        "      return",
+        "    }",
+        "  }",
+        "  $CurrentEnvPresentNames = @($Queue.current_env_present_names | ForEach-Object { [string]$_ } | Sort-Object)",
+        "  $CurrentEnvMissingNames = @($Queue.current_env_missing_names | ForEach-Object { [string]$_ } | Sort-Object)",
+        "  $CurrentEnvPlaceholderNames = @($Queue.current_env_placeholder_names | ForEach-Object { [string]$_ } | Sort-Object)",
+        "  if ((@($CurrentEnvPresentNames | Where-Object { -not $_ }).Count -gt 0) -or (@($CurrentEnvMissingNames | Where-Object { -not $_ }).Count -gt 0) -or (@($CurrentEnvPlaceholderNames | Where-Object { -not $_ }).Count -gt 0)) {",
+        "    $script:PrelaunchFailures += 'env unblock queue shape current env names contain empty value'",
+        "    return",
+        "  }",
+        "  $CurrentEnvOverlaps = @()",
+        "  $CurrentEnvOverlaps += @($CurrentEnvPresentNames | Where-Object { $CurrentEnvMissingNames -contains $_ })",
+        "  $CurrentEnvOverlaps += @($CurrentEnvPresentNames | Where-Object { $CurrentEnvPlaceholderNames -contains $_ })",
+        "  $CurrentEnvOverlaps += @($CurrentEnvMissingNames | Where-Object { $CurrentEnvPlaceholderNames -contains $_ })",
+        "  $CurrentEnvOverlaps = @($CurrentEnvOverlaps | Sort-Object -Unique)",
+        "  if ($CurrentEnvOverlaps.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape current env state overlap: ' + ($CurrentEnvOverlaps -join ','))",
+        "    return",
+        "  }",
+        "  $CurrentEnvUnionNames = @(($CurrentEnvPresentNames + $CurrentEnvMissingNames + $CurrentEnvPlaceholderNames) | Sort-Object -Unique)",
+        "  if (($CurrentEnvUnionNames -join '|') -ne ($EntryEnvNames -join '|')) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape current env state mismatch: current=' + ($CurrentEnvUnionNames -join ',') + ' entries=' + ($EntryEnvNames -join ','))",
+        "    return",
+        "  }",
+        "  $CurrentEnvExpectedCounts = @{",
+        "    current_env_present_count = $CurrentEnvPresentNames.Count",
+        "    current_env_missing_count = $CurrentEnvMissingNames.Count",
+        "    current_env_placeholder_count = $CurrentEnvPlaceholderNames.Count",
+        "  }",
+        "  foreach ($CurrentEnvCountField in @('current_env_present_count','current_env_missing_count','current_env_placeholder_count')) {",
+        "    $CurrentEnvCountRaw = [string]$Queue.PSObject.Properties[$CurrentEnvCountField].Value",
+        "    $CurrentEnvCount = 0",
+        "    if (-not [int]::TryParse($CurrentEnvCountRaw, [ref]$CurrentEnvCount) -or $CurrentEnvCount -lt 0) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape invalid ' + $CurrentEnvCountField + ': ' + $CurrentEnvCountRaw)",
+        "      return",
+        "    }",
+        "    if ($CurrentEnvCount -ne $CurrentEnvExpectedCounts[$CurrentEnvCountField]) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape ' + $CurrentEnvCountField + ' mismatch: count=' + [string]$CurrentEnvCount + ' names=' + [string]$CurrentEnvExpectedCounts[$CurrentEnvCountField])",
+        "      return",
+        "    }",
+        "  }",
+        "  $ClaimReadinessByField = @{}",
+        "  foreach ($ClaimReadinessField in @('ready_with_current_env_claim_ids','still_blocked_with_current_env_claim_ids','ready_after_all_env_claim_ids','still_blocked_after_all_env_claim_ids')) {",
+        "    if (-not ($Queue.PSObject.Properties.Name -contains $ClaimReadinessField)) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape missing ' + $ClaimReadinessField)",
+        "      return",
+        "    }",
+        "    if ($Queue.PSObject.Properties[$ClaimReadinessField].Value -isnot [System.Array]) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape ' + $ClaimReadinessField + ' is not a list')",
+        "      return",
+        "    }",
+        "    $ClaimIds = @($Queue.PSObject.Properties[$ClaimReadinessField].Value | ForEach-Object { [string]$_ } | Sort-Object)",
+        "    if (@($ClaimIds | Where-Object { -not $_ }).Count -gt 0) {",
+        "      $script:PrelaunchFailures += 'env unblock queue shape claim readiness ids contain empty value'",
+        "      return",
+        "    }",
+        "    $DuplicateClaimIds = @($ClaimIds | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name } | Sort-Object)",
+        "    if ($DuplicateClaimIds.Count -gt 0) {",
+        "      $script:PrelaunchFailures += ('env unblock queue shape duplicate claim readiness ids in ' + $ClaimReadinessField + ': ' + ($DuplicateClaimIds -join ','))",
+        "      return",
+        "    }",
+        "    $ClaimReadinessByField[$ClaimReadinessField] = $ClaimIds",
+        "  }",
+        "  $CurrentClaimReadinessOverlap = @($ClaimReadinessByField['ready_with_current_env_claim_ids'] | Where-Object { $ClaimReadinessByField['still_blocked_with_current_env_claim_ids'] -contains $_ } | Sort-Object -Unique)",
+        "  if ($CurrentClaimReadinessOverlap.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape current claim readiness overlap: ' + ($CurrentClaimReadinessOverlap -join ','))",
+        "    return",
+        "  }",
+        "  $AfterAllClaimReadinessOverlap = @($ClaimReadinessByField['ready_after_all_env_claim_ids'] | Where-Object { $ClaimReadinessByField['still_blocked_after_all_env_claim_ids'] -contains $_ } | Sort-Object -Unique)",
+        "  if ($AfterAllClaimReadinessOverlap.Count -gt 0) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape after-all claim readiness overlap: ' + ($AfterAllClaimReadinessOverlap -join ','))",
+        "    return",
+        "  }",
+        "  if (-not ($Queue.PSObject.Properties.Name -contains 'blocked_claim_count')) {",
+        "    $script:PrelaunchFailures += 'env unblock queue shape missing blocked_claim_count'",
+        "    return",
+        "  }",
+        "  $BlockedClaimCountRaw = [string]$Queue.blocked_claim_count",
+        "  $BlockedClaimCount = 0",
+        "  if (-not [int]::TryParse($BlockedClaimCountRaw, [ref]$BlockedClaimCount) -or $BlockedClaimCount -lt 0) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape invalid blocked_claim_count: ' + $BlockedClaimCountRaw)",
+        "    return",
+        "  }",
+        "  $ReferencedClaimIds = @()",
+        "  foreach ($Entry in $Entries) {",
+        "    if ($Entry.PSObject.Properties.Name -contains 'claim_ids') {",
+        "      foreach ($ClaimId in @($Entry.claim_ids)) {",
+        "        $ClaimIdText = [string]$ClaimId",
+        "        if ($ClaimIdText) { $ReferencedClaimIds += $ClaimIdText }",
+        "      }",
+        "    }",
+        "  }",
+        "  foreach ($ClaimReadinessField in @('ready_with_current_env_claim_ids','still_blocked_with_current_env_claim_ids','ready_after_all_env_claim_ids','still_blocked_after_all_env_claim_ids')) {",
+        "    $ReferencedClaimIds += @($ClaimReadinessByField[$ClaimReadinessField])",
+        "  }",
+        "  $ReferencedClaimIds = @($ReferencedClaimIds | Sort-Object -Unique)",
+        "  if ($BlockedClaimCount -lt $ReferencedClaimIds.Count) {",
+        "    $script:PrelaunchFailures += ('env unblock queue shape blocked_claim_count below referenced claims: count=' + [string]$BlockedClaimCount + ' referenced=' + [string]$ReferencedClaimIds.Count)",
+        "    return",
+        "  }",
+        "  Write-Host ('[prelaunch] env unblock queue shape valid: entries=' + [string]$RequiredEnv.Count)",
+        "}",
     ]
+    if dispatch_manifest_path:
+        lines.append(f"Invoke-DispatchManifestShapeValidation {ps_single_quoted(stable_path(dispatch_manifest_path))}")
+        lines.append(
+            f"Invoke-DispatchRunnerManifestAlignmentValidation {ps_single_quoted(stable_path(dispatch_manifest_path))}"
+        )
+    if owner_launch_plan_json_path:
+        lines.append(
+            f"Invoke-OwnerLaunchPlanShapeValidation {ps_single_quoted(stable_path(owner_launch_plan_json_path))}"
+        )
+    if execution_matrix_json_path:
+        lines.append(
+            f"Invoke-ExecutionMatrixShapeValidation {ps_single_quoted(stable_path(execution_matrix_json_path))}"
+        )
+    if dispatch_manifest_path and owner_launch_plan_json_path and execution_matrix_json_path:
+        lines.append(
+            "Invoke-DispatchManifestPlanAlignmentValidation "
+            f"{ps_single_quoted(stable_path(dispatch_manifest_path))} "
+            f"{ps_single_quoted(stable_path(owner_launch_plan_json_path))} "
+            f"{ps_single_quoted(stable_path(execution_matrix_json_path))}"
+        )
+    if owner_launch_plan_json_path and execution_matrix_json_path:
+        lines.append(
+            "Invoke-OwnerPlanExecutionMatrixAlignmentValidation "
+            f"{ps_single_quoted(stable_path(owner_launch_plan_json_path))} "
+            f"{ps_single_quoted(stable_path(execution_matrix_json_path))}"
+        )
+    if env_unblock_queue_json_path:
+        lines.append(f"Invoke-EnvQueueShapeValidation {ps_single_quoted(stable_path(env_unblock_queue_json_path))}")
+    if agent_spawn_plan_json_path:
+        lines.append(f"Invoke-AgentSpawnPlanShapeValidation {ps_single_quoted(stable_path(agent_spawn_plan_json_path))}")
+    if agent_claims_json_path:
+        lines.append(f"Invoke-AgentClaimsShapeValidation {ps_single_quoted(stable_path(agent_claims_json_path))}")
+    if claim_lock_helper_path and agent_claims_json_path:
+        lines.append(
+            "Invoke-ClaimLockHelperAgentClaimsAlignmentValidation "
+            f"{ps_single_quoted(stable_path(claim_lock_helper_path))} "
+            f"{ps_single_quoted(stable_path(agent_claims_json_path))}"
+        )
+    if env_unblock_queue_json_path and agent_claims_json_path:
+        lines.append(
+            "Invoke-EnvQueueAgentClaimsAlignmentValidation "
+            f"{ps_single_quoted(stable_path(env_unblock_queue_json_path))} "
+            f"{ps_single_quoted(stable_path(agent_claims_json_path))}"
+        )
+    if agent_claims_json_path and agent_spawn_plan_json_path:
+        lines.append(
+            "Invoke-AgentClaimsSpawnPlanAlignmentValidation "
+            f"{ps_single_quoted(stable_path(agent_claims_json_path))} "
+            f"{ps_single_quoted(stable_path(agent_spawn_plan_json_path))}"
+        )
+    if (
+        agent_claims_json_path
+        and ready_claims_launcher_path
+        and ready_claims_parallel_launcher_path
+        and env_bundle_ready_claims_launcher_path
+    ):
+        lines.append(
+            "Invoke-ReadyLaunchersAgentClaimsAlignmentValidation "
+            f"{ps_single_quoted(stable_path(agent_claims_json_path))} "
+            f"{ps_single_quoted(stable_path(ready_claims_launcher_path))} "
+            f"{ps_single_quoted(stable_path(ready_claims_parallel_launcher_path))} "
+            f"{ps_single_quoted(stable_path(env_bundle_ready_claims_launcher_path))}"
+        )
+    if dispatch_manifest_path and agent_claims_json_path:
+        lines.append(
+            "Invoke-DispatchManifestAgentClaimsAlignmentValidation "
+            f"{ps_single_quoted(stable_path(dispatch_manifest_path))} "
+            f"{ps_single_quoted(stable_path(agent_claims_json_path))}"
+        )
+    if claim_status_report_json_path:
+        lines.append(
+            f"Invoke-ClaimStatusReportShapeValidation {ps_single_quoted(stable_path(claim_status_report_json_path))}"
+        )
+    if agent_claims_json_path and claim_status_report_json_path:
+        lines.append(
+            "Invoke-AgentClaimsStatusReportAlignmentValidation "
+            f"{ps_single_quoted(stable_path(agent_claims_json_path))} "
+            f"{ps_single_quoted(stable_path(claim_status_report_json_path))}"
+        )
     if agent_spawn_launcher_path:
         lines.extend(
             [
                 "Invoke-PrelaunchStep 'agent spawn dry run' @(",
                 f"  'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', {ps_single_quoted(stable_path(agent_spawn_launcher_path))},",
                 "  '-Provider', 'all', '-Phase', 'all', '-ShowBlocked'",
+                ")",
+                "Invoke-PrelaunchStep 'agent spawn balanced dry run' @(",
+                f"  'powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', {ps_single_quoted(stable_path(agent_spawn_launcher_path))},",
+                "  '-Provider', 'balanced', '-Phase', 'all', '-ShowBlocked'",
                 ")",
             ]
         )
@@ -3891,6 +6266,7 @@ def render_dispatch_prelaunch_validation(
             ]
         )
     if claim_lock_helper_path:
+        lines.append(f"Invoke-ClaimLockEmptyValidation {ps_single_quoted(stable_path(claim_lock_helper_path))}")
         lines.extend(
             [
                 "Invoke-PrelaunchStep 'claim lock list' @(",
@@ -3933,6 +6309,13 @@ def write_dispatch_prelaunch_validation(
     ready_claims_parallel_launcher_path: Path | None = None,
     env_bundle_ready_claims_launcher_path: Path | None = None,
     claim_lock_helper_path: Path | None = None,
+    env_unblock_queue_json_path: Path | None = None,
+    agent_spawn_plan_json_path: Path | None = None,
+    agent_claims_json_path: Path | None = None,
+    claim_status_report_json_path: Path | None = None,
+    dispatch_manifest_path: Path | None = None,
+    owner_launch_plan_json_path: Path | None = None,
+    execution_matrix_json_path: Path | None = None,
 ) -> Path:
     validation_path = output_dir / "dispatch_prelaunch_validation.ps1"
     validation_path.write_text(
@@ -3942,6 +6325,13 @@ def write_dispatch_prelaunch_validation(
             ready_claims_parallel_launcher_path,
             env_bundle_ready_claims_launcher_path,
             claim_lock_helper_path,
+            env_unblock_queue_json_path,
+            agent_spawn_plan_json_path,
+            agent_claims_json_path,
+            claim_status_report_json_path,
+            dispatch_manifest_path,
+            owner_launch_plan_json_path,
+            execution_matrix_json_path,
         ),
         encoding="utf-8",
     )
@@ -3984,6 +6374,14 @@ def render_dispatch_brief(
     staged_launcher_paths = staged_launcher_paths or []
     launched, skipped = launcher_membership(packages)
     staged = staged_launcher_membership(packages)
+    spawn_plan: dict[str, object] = {}
+    if agent_spawn_plan_json_path and agent_spawn_plan_json_path.exists():
+        try:
+            spawn_plan = json.loads(agent_spawn_plan_json_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            spawn_plan = {}
+    current_env_multi_agent_actionable = bool(spawn_plan.get("current_env_multi_agent_actionable"))
+    post_env_bundle_multi_agent_actionable = bool(spawn_plan.get("post_env_bundle_multi_agent_actionable"))
     launcher_by_wave: dict[int, Path] = {}
     for path in launcher_paths:
         parts = path.name.split("-")
@@ -4043,13 +6441,40 @@ def render_dispatch_brief(
             "Agent spawn launcher dry-run all command: "
             f"`powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider all -Phase all -ShowBlocked`"
         )
+        if current_env_multi_agent_actionable:
+            lines.append(
+                "Agent spawn launcher balanced parallel execute command: "
+                f"`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider balanced -Phase ready -Execute -Parallel`"
+            )
+            lines.append(
+                "Agent spawn launcher Codex parallel execute command: "
+                f"`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider codex -Phase ready -Execute -Parallel`"
+            )
+            lines.append(
+                "Agent spawn launcher Claude parallel execute command: "
+                f"`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider claude -Phase ready -Execute -Parallel`"
+            )
+        else:
+            lines.append(
+                "Agent spawn launcher current-env parallel status: "
+                "`current_env_multi_agent_actionable=false`; ready-phase fan-out is not actionable until at least two current-env claims are ready."
+            )
         lines.append(
-            "Agent spawn launcher Codex parallel execute command: "
-            f"`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider codex -Phase ready -Execute -Parallel`"
+            "Agent spawn launcher Codex env-bundle execute command: "
+            f"`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; $env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider codex -Phase env-bundle -Execute -Parallel`"
         )
         lines.append(
-            "Agent spawn launcher Claude parallel execute command: "
-            f"`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider claude -Phase ready -Execute -Parallel`"
+            "Agent spawn launcher Claude env-bundle execute command: "
+            f"`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; $env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider claude -Phase env-bundle -Execute -Parallel`"
+        )
+        if post_env_bundle_multi_agent_actionable:
+            lines.append(
+                "Agent spawn launcher preferred env-bundle balanced execute command: "
+                f"`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; $env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider balanced -Phase env-bundle -Execute -Parallel`"
+            )
+        lines.append(
+            "Agent spawn env-bundle guard: "
+            "`-Phase env-bundle -Execute` refuses missing, placeholder, or malformed `env_unblock_queue.json` values before printing spawn commands."
         )
         lines.append(
             "Agent spawn duplicate-provider override guard: "
@@ -4078,6 +6503,10 @@ def render_dispatch_brief(
         )
     if env_unblock_queue_path:
         lines.append(f"Env unblock queue: `{stable_path(env_unblock_queue_path)}`")
+        lines.append(
+            "Env unblock queue handoff: includes copy/paste `Direct claim next actions:`, "
+            "`Other affected claim next actions:`, and compatibility `Affected claim next actions:` context per env."
+        )
     if env_unblock_queue_json_path:
         lines.append(f"Env unblock queue JSON: `{stable_path(env_unblock_queue_json_path)}`")
     if ready_claims_launcher_path:
@@ -4132,7 +6561,7 @@ def render_dispatch_brief(
                 [
                     f"{step}. Dispatch prelaunch validation: "
                     f"`powershell -NoProfile -ExecutionPolicy Bypass -File '{prelaunch_ref}'`",
-                    "   This runs no-execution checks for spawn dry-run, ready launchers, and claim-lock listing.",
+                    "   This runs no-execution checks for env queue shape, spawn dry-run, ready launchers, and claim-lock listing.",
                     "   Wrapped agent spawn dry run: "
                     f"`powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider all -Phase all -ShowBlocked`",
                     "   This prints Codex/Claude spawn commands and blocked-claim context; it does not execute package scripts.",
@@ -4146,24 +6575,47 @@ def render_dispatch_brief(
                     "   This prints Codex/Claude spawn commands and blocked-claim context; it does not execute package scripts.",
                 ]
             )
-        launch_sequence.extend(
-            [
-                f"{step}a. Optional Codex parallel agent execution: "
-                "`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; "
-                f"powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider codex -Phase ready -Execute -Parallel`",
-                f"{step}b. Optional Claude parallel agent execution: "
-                "`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; "
-                f"powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider claude -Phase ready -Execute -Parallel`",
-            ]
-        )
+        if current_env_multi_agent_actionable:
+            launch_sequence.extend(
+                [
+                    f"{step}a. Optional Codex current-env agent execution: "
+                    "`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; "
+                    f"powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider codex -Phase ready -Execute -Parallel`",
+                    f"{step}b. Optional Claude current-env agent execution: "
+                    "`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; "
+                    f"powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider claude -Phase ready -Execute -Parallel`",
+                    f"{step}c. Preferred balanced Codex/Claude current-env agent execution: "
+                    "`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; "
+                    f"powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider balanced -Phase ready -Execute -Parallel`",
+                ]
+            )
+        else:
+            launch_sequence.append(
+                f"{step}a. Current-env agent execution is not multi-agent actionable: "
+                "`current_env_multi_agent_actionable=false`; use env-bundle fan-out after the complete bundle validates."
+            )
         if dispatch_prelaunch_validation_path:
             launch_sequence.append(
-                f"{step}c. Optional env-bundle prelaunch validation after env fill: "
+                f"{step}b. Optional env-bundle prelaunch validation after env fill: "
                 f"`powershell -NoProfile -ExecutionPolicy Bypass -File '{stable_path(dispatch_prelaunch_validation_path)}' -ValidateEnvBundle`"
             )
         launch_sequence.extend(
             [
+                f"{step}c. Optional Codex env-bundle agent execution after complete env fill: "
+                "`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; $env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; "
+                f"powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider codex -Phase env-bundle -Execute -Parallel`",
+                f"{step}d. Optional Claude env-bundle agent execution after complete env fill: "
+                "`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; $env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; "
+                f"powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider claude -Phase env-bundle -Execute -Parallel`",
+                f"{step}e. Preferred balanced Codex/Claude env-bundle agent execution after complete env fill: "
+                "`$env:TAMANDUA_ALLOW_AGENT_SPAWN_LAUNCH = '1'; $env:TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH = '1'; "
+                f"powershell -NoProfile -ExecutionPolicy Bypass -File {ps_single_quoted(launcher_ref)} -Provider balanced -Phase env-bundle -Execute -Parallel`",
+            ]
+        )
+        launch_sequence.extend(
+            [
                 "   Use one provider per claim; this acquires claim locks inline before spawning agents.",
+                "   Env-bundle agent execution refuses missing, placeholder, or malformed `env_unblock_queue.json` values before printing spawn commands.",
                 "   Duplicate-provider execution requires both `-AllowDuplicateProviderPerClaim` and `TAMANDUA_ALLOW_DUPLICATE_PROVIDER_PER_CLAIM=1`; override launches emit `[duplicate-provider-override]`.",
             ]
         )
@@ -4461,6 +6913,7 @@ def render_dispatch_runner(
         "$env:TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH = '1'",
         "$DispatchAgentId = [Environment]::GetEnvironmentVariable('TAMANDUA_DISPATCH_AGENT_ID')",
         "if (-not $DispatchAgentId) { $DispatchAgentId = [Environment]::UserName }",
+        *ps_agent_id_guard_lines("DispatchAgentId", "TAMANDUA_DISPATCH_AGENT_ID"),
         "$DispatchFailures = @()",
         "$FailedWaves = @{}",
         f"$DispatchManifestPath = {ps_single_quoted(manifest_ref)}",
@@ -4691,11 +7144,20 @@ def launcher_membership(packages: list[dict]) -> tuple[dict[str, bool], dict[str
             for package in packages
             if int(package.get("wave") or 0) == wave and package.get("parallelizable_in_wave")
         ]
+        launchable_wave_packages = [
+            package for package in wave_packages if package_is_launch_ready(package)
+        ]
         used_resources = set()
         ordered_wave_packages = sorted(
-            wave_packages,
+            launchable_wave_packages,
             key=lambda package: (-package_impact_score(package), str(package.get("package_id") or "")),
         )
+        for package in wave_packages:
+            package_id = str(package.get("package_id"))
+            blockers = package_launch_blockers(package)
+            if blockers:
+                launched[package_id] = False
+                skipped[package_id] = "blocked: " + ", ".join(blockers)
         for package in ordered_wave_packages:
             package_id = str(package.get("package_id"))
             resources = set(package_resource_tags(package))
@@ -4706,8 +7168,8 @@ def launcher_membership(packages: list[dict]) -> tuple[dict[str, bool], dict[str
                 continue
             used_resources.update(resources)
             launched[package_id] = True
-        if sum(1 for package in wave_packages if launched.get(str(package.get("package_id"))) is True) < 2:
-            for package in wave_packages:
+        if sum(1 for package in launchable_wave_packages if launched.get(str(package.get("package_id"))) is True) < 2:
+            for package in launchable_wave_packages:
                 package_id = str(package.get("package_id"))
                 if launched.get(package_id) is True:
                     launched[package_id] = False
@@ -4773,7 +7235,6 @@ def build_dispatch_manifest(
     for package in sorted(packages, key=lambda item: (int(item.get("wave") or 0), str(item.get("package_id") or ""))):
         package_id = str(package.get("package_id"))
         script_path = script_paths[package_id]
-        input_details = operator_input_details_by_env(package)
         enriched_package = enriched_packages.get(package_id, {})
         launcher_selected = (
             package.get("launcher_selected")
@@ -4800,6 +7261,10 @@ def build_dispatch_manifest(
         current_next_action = enriched_package.get("current_next_action") if isinstance(enriched_package, dict) else {}
         if not isinstance(current_next_action, dict):
             current_next_action = {}
+        current_next_action = package_current_next_action_or_task(package, current_next_action)
+        package_for_env_details = dict(package)
+        package_for_env_details["current_next_action"] = current_next_action
+        input_details = env_details_by_env(package_for_env_details)
         next_action_required_env = (
             [str(value) for value in enriched_package.get("next_action_required_env") or []]
             if isinstance(enriched_package, dict) and enriched_package.get("next_action_required_env") is not None
@@ -5749,7 +8214,11 @@ def summarize_package_artifacts(output_dir: Path, expected_profile_ids: list[str
     elif not agent_status_path_is_expected(status_path, output_dir):
         status_summary = invalid_agent_status_path_summary(status_path, "agent_status_path_unexpected")
     elif not status_path.exists():
-        status_summary = invalid_agent_status_path_summary(status_path, "agent_status_missing")
+        status_summary = (
+            invalid_agent_status_path_summary(status_path, "agent_status_missing")
+            if artifact_paths
+            else {}
+        )
     else:
         status_summary = summarize_agent_status(status_path)
     agent_artifacts = [str(path) for path in status_summary.get("agent_artifacts") or []]
@@ -6083,7 +8552,10 @@ def build_dispatch_results(manifest: dict) -> dict:
             artifact_summary = invalid_package_output_summary(output_dir, "dispatch_output_dir_outside_manifest")
         else:
             artifact_summary = summarize_package_artifacts(output_dir, expected_profile_ids, package)
-        current_next_action = package.get("current_next_action") if isinstance(package.get("current_next_action"), dict) else {}
+        current_next_action = package_current_next_action_or_task(
+            package,
+            package.get("current_next_action") if isinstance(package.get("current_next_action"), dict) else {},
+        )
         if current_next_action:
             evidence_excerpt = artifact_summary.get("evidence_excerpt")
             if not isinstance(evidence_excerpt, dict):
@@ -6404,6 +8876,9 @@ def render_dispatch_results_markdown(results: dict) -> str:
             manual_reason = missing_package.get("manual_reason")
             if manual_reason:
                 details.append("manual_reason=" + str(manual_reason))
+            next_action = evidence.get("next_action")
+            if isinstance(next_action, dict) and next_action:
+                details.append("next_action=" + render_current_next_action_summary(next_action))
             lines.append(f"| | | | | | missing package | `{md_cell('; '.join(details) or '-')}` |")
         elif isinstance(evidence, dict) and isinstance(evidence.get("next_action"), dict):
             action = evidence["next_action"]
@@ -6417,7 +8892,7 @@ def render_dispatch_results_markdown(results: dict) -> str:
             )
             missing = ", ".join(str(value) for value in missing_values) or "-"
             action_text = str(action.get("action") or "-")
-            action_details = [f"{missing}; {action_text}"]
+            action_details = [f"missing={missing}", f"action={action_text}"]
             if action.get("login_command"):
                 action_details.append("login_command=" + str(action.get("login_command")))
             if action.get("token_login_command"):
@@ -6443,7 +8918,7 @@ def render_dispatch_results_markdown(results: dict) -> str:
             )
             missing = ", ".join(str(value) for value in missing_values) or "-"
             action_text = str(action.get("action") or "-")
-            action_details = [f"{missing}; {action_text}"]
+            action_details = [f"missing={missing}", f"action={action_text}"]
             if action.get("login_command"):
                 action_details.append("login_command=" + str(action.get("login_command")))
             if action.get("token_login_command"):
@@ -6547,6 +9022,7 @@ def archive_dispatch_evidence(results: dict, manifest_path: Path, archive_dir: P
             "ready_claims_parallel_launcher_path",
             "env_bundle_ready_claims_launcher_path",
             "dispatch_brief_path",
+            "dispatch_prelaunch_validation_path",
             "dispatch_runner_path",
         ):
             handoff_value = manifest.get(manifest_field)
@@ -6734,6 +9210,14 @@ def promote_dispatch_results(manifest_or_dir: Path, runs_dir: Path = RUNS_DIR) -
     comparison_path = runs_dir / f"{run_id}.comparison.json"
     json_path.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     markdown_path.write_text(render_dispatch_results_markdown(report), encoding="utf-8")
+    (archive_dir / "dispatch_results.json").write_text(
+        json.dumps(report, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    (archive_dir / "dispatch_results.md").write_text(
+        render_dispatch_results_markdown(report),
+        encoding="utf-8",
+    )
     comparison = {
         "schema_version": 1,
         "profile_id": DISPATCH_RESULTS_PROFILE_ID,
@@ -6810,7 +9294,7 @@ def package_list_entry(package: dict, environ: dict[str, str] | None = None) -> 
     required_env = [str(value) for value in package.get("required_env") or []]
     missing_env = missing_required_env(package, environ)
     dependencies = dependent_waves(package)
-    input_details = operator_input_details_by_env(package)
+    input_details = env_details_by_env(package)
     return {
         "package_id": str(package.get("package_id") or ""),
         "title": str(package.get("title") or ""),
@@ -6982,7 +9466,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.refresh_claim_status_report:
         try:
-            markdown_path, json_path = refresh_claim_status_report_from_manifest(args.refresh_claim_status_report)
+            with local_dotenv_environment():
+                markdown_path, json_path = refresh_claim_status_report_from_manifest(args.refresh_claim_status_report)
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
@@ -6991,7 +9476,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if args.refresh_dispatch_handoff_artifacts:
         try:
-            refreshed = refresh_dispatch_handoff_artifacts_from_manifest(args.refresh_dispatch_handoff_artifacts)
+            with local_dotenv_environment():
+                refreshed = refresh_dispatch_handoff_artifacts_from_manifest(args.refresh_dispatch_handoff_artifacts)
         except (FileNotFoundError, ValueError, json.JSONDecodeError) as exc:
             print(str(exc), file=sys.stderr)
             return 2
@@ -7107,6 +9593,7 @@ def main(argv: list[str] | None = None) -> int:
             ),
             encoding="utf-8",
         )
+        planned_manifest_path = output_dir / "dispatch_manifest.json" if args.emit_dispatch_manifest else None
         if args.emit_agent_roster:
             owner_launch_plan_path = write_owner_launch_plan(
                 selected,
@@ -7151,6 +9638,7 @@ def main(argv: list[str] | None = None) -> int:
             env_unblock_queue_path, env_unblock_queue_json_path = write_env_unblock_queue(
                 agent_claims_json_path,
                 output_dir,
+                agent_spawn_launcher_path,
             )
             ready_claims_launcher_path = write_ready_claims_launcher(
                 agent_claims_json_path,
@@ -7171,10 +9659,16 @@ def main(argv: list[str] | None = None) -> int:
                 ready_claims_parallel_launcher_path,
                 env_bundle_ready_claims_launcher_path,
                 claim_lock_helper_path,
+                env_unblock_queue_json_path,
+                agent_spawn_plan_json_path,
+                agent_claims_json_path,
+                claim_status_report_json_path,
+                planned_manifest_path,
+                owner_launch_plan_json_path,
+                execution_matrix_json_path,
             )
         else:
             dispatch_prelaunch_validation_path = None
-        planned_manifest_path = output_dir / "dispatch_manifest.json" if args.emit_dispatch_manifest else None
         dispatch_runner_path = None
         if args.emit_dispatch_runner:
             dispatch_runner_path = write_dispatch_runner(

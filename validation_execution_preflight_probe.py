@@ -21,8 +21,19 @@ from typing import Any
 
 from fresh_restore_provenance_probe import REQUIRED_RESTORE_FIELDS, RESTORE_FIELD_INPUTS
 
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - optional local convenience
+    def load_dotenv(*_args: Any, **_kwargs: Any) -> bool:
+        return False
 
-ROOT = Path(__file__).resolve().parents[2]
+
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 SCORECARD_JSON = ROOT / "docs" / "benchmarks" / "generated" / "validation_roadmap_scorecard.json"
 PROFILE_ID = "validation-execution-preflight-probe"
@@ -285,6 +296,22 @@ def collect_roadmap_next_actions(closure_gate: dict[str, Any]) -> list[dict[str,
             }
         )
     return sorted(actions, key=lambda item: str(item.get("roadmap") or ""))
+
+
+def collect_excluded_roadmaps(closure_gate: dict[str, Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for item in closure_gate.get("excluded_roadmaps") or []:
+        if not isinstance(item, dict):
+            continue
+        row = {
+            "roadmap": clean_text(item.get("roadmap") or ""),
+            "title": clean_text(item.get("title") or ""),
+            "status": clean_text(item.get("status") or ""),
+            "reason": clean_text(item.get("reason") or ""),
+        }
+        if row["roadmap"] and row["status"] and row["reason"]:
+            rows.append(row)
+    return sorted(rows, key=lambda item: str(item.get("roadmap") or ""))
 
 
 def classify_run_classes(
@@ -1159,6 +1186,23 @@ def write_markdown(path: Path, report: dict[str, Any]) -> None:
             + " |",
         ]
     )
+    excluded = [item for item in report.get("excluded_roadmaps") or [] if isinstance(item, dict)]
+    if excluded:
+        lines.extend(
+            [
+                "",
+                "## Excluded Roadmaps",
+                "",
+                "| Roadmap | Status | Reason |",
+                "|---------|--------|--------|",
+            ]
+        )
+        for item in excluded:
+            lines.append(
+                f"| `{clean_text(item.get('roadmap') or '-')}` | "
+                f"`{clean_text(item.get('status') or '-')}` | "
+                f"{clean_text(item.get('reason') or '-')} |"
+            )
     lines.extend(
         [
             "",
@@ -1318,6 +1362,8 @@ def write_markdown(path: Path, report: dict[str, Any]) -> None:
 
 
 def main() -> int:
+    load_dotenv(ROOT / ".env")
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--scorecard-json", default=str(SCORECARD_JSON))
     parser.add_argument("--closure-gate-json", default="")
@@ -1344,6 +1390,7 @@ def main() -> int:
     required_by_roadmap = collect_required_env(closure_gate) if closure_gate else {}
     roadmap_blockers = collect_roadmap_blockers(closure_gate) if closure_gate else []
     roadmap_next_actions = collect_roadmap_next_actions(closure_gate) if closure_gate else []
+    excluded_roadmaps = collect_excluded_roadmaps(closure_gate) if closure_gate else []
     missing_env = [
         env
         for env in sorted({env for envs in required_by_roadmap.values() for env in envs})
@@ -1376,6 +1423,7 @@ def main() -> int:
         "metadata": {"git": git_snapshot()},
         "closure_gate_path": rel(closure_path) if closure_path else None,
         "closure_gate_run_id": closure_gate.get("run_id") if closure_gate else None,
+        "excluded_roadmaps": excluded_roadmaps,
         "roadmap_next_actions": roadmap_next_actions,
         "roadmap_blockers": roadmap_blockers,
         "run_class_readiness": run_class_readiness,

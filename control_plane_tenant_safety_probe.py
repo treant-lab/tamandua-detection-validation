@@ -21,7 +21,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 PROFILE_ID = "control-plane-tenant-safety-static-probe"
 PROFILE_NAME = "Control Plane Tenant Safety Static/API Probe"
@@ -251,7 +256,8 @@ def request_without_auth(server: str, path: str, timeout: float) -> dict[str, An
     url = server.rstrip("/") + path
     request = urllib.request.Request(url, method="GET")
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(request, timeout=timeout) as response:
             body = response.read(512).decode("utf-8", errors="replace")
             return {"url": url, "status_code": response.status, "body_preview": body}
     except urllib.error.HTTPError as exc:

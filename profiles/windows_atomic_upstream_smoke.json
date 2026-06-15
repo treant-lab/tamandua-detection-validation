@@ -30,7 +30,7 @@
       "name": "Atomic System Information Discovery",
       "executor": "atomic_or_command",
       "atomic": {"technique": "T1082", "test_numbers": [1]},
-      "fallback_command": "cmd.exe /d /c systeminfo",
+      "fallback_command": "cmd.exe /d /c \"ver & hostname & reg.exe query \\\"HKLM\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\\" /v ProductName\"",
       "expected_telemetry": ["process_create"],
       "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
       "tags": ["atomic-upstream", "tactic:discovery", "mitre:T1082"],
@@ -88,7 +88,10 @@
       "atomic": {"technique": "T1112", "test_numbers": [1]},
       "fallback_command": "cmd.exe /d /c \"reg add HKCU\\Software\\TamanduaAtomicSmoke /v Marker /t REG_SZ /d tamandua /f & ping -n 5 127.0.0.1 > nul & reg delete HKCU\\Software\\TamanduaAtomicSmoke /f\"",
       "expected_telemetry": ["process_create", "registry_set_value"],
-      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "registry_key"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "expected_fields_by_event_type": {
+        "registry_set_value": ["registry_key"]
+      },
       "tags": ["atomic-upstream", "tactic:defense-evasion", "mitre:T1112"],
       "risk": "low"
     },

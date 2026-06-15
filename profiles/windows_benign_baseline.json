@@ -62,7 +62,10 @@
       "fallback_command": "cmd.exe /d /c \"reg.exe query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\"",
       "expected_telemetry": ["process_create"],
       "optional_telemetry": ["registry_query"],
-      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "registry_key"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
+      "expected_fields_by_event_type": {
+        "registry_query": ["registry_key"]
+      },
       "tags": ["benign", "baseline", "registry", "tactic:benign"],
       "risk": "low"
     },
@@ -92,7 +95,7 @@
       "id": "benign-scheduled-task-query",
       "name": "Benign Scheduled Task Query",
       "executor": "command",
-      "fallback_command": "cmd.exe /d /c \"schtasks.exe /Query /FO LIST | more\"",
+      "fallback_command": "cmd.exe /d /c \"schtasks.exe /Query /TN \\Microsoft\\Windows\\Defrag\\ScheduledDefrag /FO LIST 2>nul || schtasks.exe /Query /FO LIST /NH\"",
       "expected_telemetry": ["process_create"],
       "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
       "tags": ["benign", "baseline", "scheduled-task", "tactic:benign"],

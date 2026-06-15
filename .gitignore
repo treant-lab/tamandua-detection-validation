@@ -1,22 +1,16 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-.venv/
-venv/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-
-# Regenerable validation outputs
+# Regenerable benchmark outputs
 runs/
+
+# Regenerable scorecards
 generated/
 
-# OS / IDE
-.DS_Store
-Thumbs.db
-.vscode/
-.idea/
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
 
-# Logs
-*.log
+# pytest cache
+.pytest_cache/
+
+# Egg info
+*.egg-info/

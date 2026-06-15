@@ -14,7 +14,12 @@ from validate_ml_contracts import (
 )
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 CANONICAL = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-prelab-contract-coverage.json"
 
 

@@ -15,12 +15,17 @@ import os
 import re
 import subprocess
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 PROFILE_ID = "windows-agent-connection-stability-probe"
 PROFILE_NAME = "Windows Agent Connection Stability Probe"
@@ -28,6 +33,21 @@ DEFAULT_AGENT_ID = "cb145360-8ba8-475a-bfd6-2bc16d5281d7"
 
 TIMESTAMP_RE = re.compile(r"(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})\.(?P<millis>\d{3})")
 TELEMETRY_RE = re.compile(r"Received telemetry batch with (?P<count>\d+) events")
+
+
+def load_dotenv(path: Path = ROOT / ".env") -> None:
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        value = value.strip().strip('"').strip("'")
+        os.environ[key] = value
 
 
 @dataclass
@@ -42,9 +62,9 @@ class Session:
     telemetry_batches: int = 0
     telemetry_events: int = 0
 
-    def duration_seconds(self) -> float | None:
+    def duration_seconds(self, observed_at: str | None = None) -> float | None:
         start = self.connected_at or self.registered_at or self.joined_at or self.first_telemetry_at
-        end = self.disconnected_at
+        end = self.disconnected_at or observed_at
         if not start or not end:
             return None
         try:
@@ -52,7 +72,7 @@ class Session:
         except ValueError:
             return None
 
-    def as_dict(self) -> dict[str, Any]:
+    def as_dict(self, observed_at: str | None = None) -> dict[str, Any]:
         return {
             "connected_at": self.connected_at,
             "registered_at": self.registered_at,
@@ -61,7 +81,7 @@ class Session:
             "last_telemetry_at": self.last_telemetry_at,
             "disconnected_at": self.disconnected_at,
             "disconnect_reason": self.disconnect_reason,
-            "duration_seconds": self.duration_seconds(),
+            "duration_seconds": self.duration_seconds(observed_at),
             "telemetry_batches": self.telemetry_batches,
             "telemetry_events": self.telemetry_events,
         }
@@ -113,6 +133,8 @@ def log_timestamp(line: str, day: datetime) -> str | None:
         second=int(match.group("second")),
         microsecond=int(match.group("millis")) * 1000,
     )
+    if value > day.replace(microsecond=999999) and (value - day).total_seconds() > 3600:
+        value = value - timedelta(days=1)
     return value.isoformat().replace("+00:00", "Z")
 
 
@@ -226,15 +248,23 @@ def test_result(test_id: str, name: str, passed: bool, evidence: dict[str, Any],
     }
 
 
-def build_tests(fetch: dict[str, Any], sessions: list[Session], min_duration: int) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    session_dicts = [session.as_dict() for session in sessions]
+def build_tests(
+    fetch: dict[str, Any],
+    sessions: list[Session],
+    min_duration: int,
+    agent_id: str,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    observed_at = utc_now()
+    session_dicts = [session.as_dict(observed_at) for session in sessions]
     connected = [
         session
         for session in sessions
         if session.connected_at or session.registered_at or session.joined_at or session.first_telemetry_at
     ]
     stable_sessions = [
-        session for session in connected if session.duration_seconds() is not None and session.duration_seconds() >= min_duration
+        session
+        for session in connected
+        if session.duration_seconds(observed_at) is not None and session.duration_seconds(observed_at) >= min_duration
     ]
     active_sessions = [session for session in connected if not session.disconnected_at]
     latest = session_dicts[-1] if session_dicts else None
@@ -292,17 +322,24 @@ def build_tests(fetch: dict[str, Any], sessions: list[Session], min_duration: in
         "active_session_count": len(active_sessions),
         "telemetry_events": total_telemetry,
         "latest_session": latest,
+        "observed_at": observed_at,
         "blockers": sorted({item["gap_category"] for item in tests if item["status"] != "covered"}),
     }
     stability["next_action"] = connection_next_action(
         fetch,
         stability,
         min_duration,
+        agent_id,
     )
     return tests, stability
 
 
-def connection_next_action(fetch: dict[str, Any], stability: dict[str, Any], min_duration: int) -> dict[str, Any]:
+def connection_next_action(
+    fetch: dict[str, Any],
+    stability: dict[str, Any],
+    min_duration: int,
+    agent_id: str,
+) -> dict[str, Any]:
     blockers = [str(value) for value in stability.get("blockers") or []]
     missing = []
     if not fetch.get("ok"):
@@ -326,7 +363,7 @@ def connection_next_action(fetch: dict[str, Any], stability: dict[str, Any], min
     else:
         action = "Connection stability is ready; proceed only after Windows readiness and QGA readiness are also green."
     return {
-        "agent_id": DEFAULT_AGENT_ID,
+        "agent_id": agent_id,
         "missing_stability": missing,
         "blockers": blockers,
         "min_stable_session_seconds": min_duration,
@@ -421,13 +458,14 @@ def write_markdown(path: Path, report: dict[str, Any]) -> None:
 
 
 def main() -> int:
+    load_dotenv()
     parser = argparse.ArgumentParser()
     parser.add_argument("--server-host", default="192.168.12.146")
     parser.add_argument("--server-user", default="root")
     parser.add_argument("--server-password")
     parser.add_argument("--container", default="tamandua-server-light")
-    parser.add_argument("--agent-id", default=DEFAULT_AGENT_ID)
-    parser.add_argument("--agent-hostname", default="WIN-TEMPLATE")
+    parser.add_argument("--agent-id", default=os.environ.get("TAMANDUA_FRESH_RESTORE_AGENT_ID", DEFAULT_AGENT_ID))
+    parser.add_argument("--agent-hostname", default=os.environ.get("TAMANDUA_FRESH_RESTORE_HOSTNAME", "WIN-TEMPLATE"))
     parser.add_argument("--since", default="45m")
     parser.add_argument("--tail-lines", type=int, default=500)
     parser.add_argument("--min-stable-session-seconds", type=int, default=300)
@@ -442,7 +480,7 @@ def main() -> int:
 
     fetched = fetch_logs(args)
     sessions = parse_sessions(str(fetched.get("stdout") or ""), args.agent_id, now)
-    tests, stability = build_tests(fetched, sessions, args.min_stable_session_seconds)
+    tests, stability = build_tests(fetched, sessions, args.min_stable_session_seconds, args.agent_id)
     gate = quality_gate(tests)
     finished = utc_now()
 

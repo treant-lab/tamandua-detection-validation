@@ -17,17 +17,26 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 SCORECARD_JSON = ROOT / "docs" / "benchmarks" / "generated" / "validation_roadmap_scorecard.json"
 PROFILE_ID = "roadmap-closure-gate-probe"
 PROFILE_NAME = "Roadmap Closure Gate Probe"
-GATED_ROADMAPS = {
+ROADMAP_ACTION_TITLES = {
     "A": "Windows P0 segmented and lab readiness",
     "B": "Windows 300 fresh-restore provenance",
+    "C": "Atomic upstream smoke",
     "D": "CALDERA repeatability",
     "E": "Linux/macOS P0 sensor smoke",
     "M": "Expanded upstream Atomic/CALDERA",
+}
+EXCLUDED_ROADMAP_KEYS = {
+    "O": "generated_scorecard_automation_not_product_gate",
 }
 
 
@@ -151,6 +160,48 @@ def roadmap_key(item: dict[str, Any]) -> str:
     return str(item.get("key") or item.get("roadmap") or "").strip()
 
 
+def roadmap_title(item: dict[str, Any]) -> str:
+    key = roadmap_key(item)
+    return str(
+        item.get("title")
+        or item.get("owner_area")
+        or ROADMAP_ACTION_TITLES.get(key)
+        or f"Roadmap {key}"
+    )
+
+
+def gated_roadmap_items(scorecard: dict[str, Any]) -> list[tuple[str, str, dict[str, Any]]]:
+    rows = []
+    for item in roadmap_list(scorecard):
+        key = roadmap_key(item)
+        if not key:
+            continue
+        status = str(item.get("status") or "")
+        if key in EXCLUDED_ROADMAP_KEYS:
+            continue
+        if status == "pass":
+            continue
+        rows.append((key, roadmap_title(item), item))
+    return rows
+
+
+def excluded_roadmap_items(scorecard: dict[str, Any]) -> list[dict[str, str]]:
+    rows: list[dict[str, str]] = []
+    for item in roadmap_list(scorecard):
+        key = roadmap_key(item)
+        if key not in EXCLUDED_ROADMAP_KEYS:
+            continue
+        rows.append(
+            {
+                "roadmap": key,
+                "title": roadmap_title(item),
+                "status": clean_text(item.get("status") or "missing"),
+                "reason": EXCLUDED_ROADMAP_KEYS[key],
+            }
+        )
+    return rows
+
+
 def profile_summary(profile: dict[str, Any]) -> dict[str, Any]:
     latest = profile.get("latest") if isinstance(profile.get("latest"), dict) else {}
     aggregate = profile.get("aggregate") if isinstance(profile.get("aggregate"), dict) else {}
@@ -196,6 +247,11 @@ def roadmap_action_text(key: str, blockers: list[dict[str, Any]], required_env: 
         return (
             "Restore the Windows VM, run all six Windows 300 batches with fresh_restore provenance metadata, "
             "then rerun the fresh-restore provenance probe."
+        )
+    if key == "C":
+        return (
+            "Install and validate Invoke-AtomicTest plus the Atomics folder on WIN-TEMPLATE, rerun "
+            "windows-atomic-upstream-smoke with --require-upstream, and reject fallback-backed evidence."
         )
     if key == "D":
         return (
@@ -270,7 +326,7 @@ def test_result(key: str, title: str, roadmap: dict[str, Any] | None) -> dict[st
         blockers = [{"profile_id": None, "status": "missing_scorecard_roadmap"}]
     else:
         status = str(roadmap.get("status") or "")
-        passed = status in {"pass", "generated"}
+        passed = status == "pass"
         blockers = blocking_profiles(roadmap)
     action = roadmap_next_action(key, roadmap, blockers)
 
@@ -421,6 +477,23 @@ def write_markdown(path: Path, report: dict[str, Any]) -> None:
             f"| `{clean_text(action.get('roadmap') or '-')}` | {blockers or '-'} | "
             f"{envs or '-'} | {clean_text(action.get('action') or '-')} |"
         )
+    excluded = [item for item in report.get("excluded_roadmaps") or [] if isinstance(item, dict)]
+    if excluded:
+        lines.extend(
+            [
+                "",
+                "## Excluded Roadmaps",
+                "",
+                "| Roadmap | Status | Reason |",
+                "|---------|--------|--------|",
+            ]
+        )
+        for item in excluded:
+            lines.append(
+                f"| `{clean_text(item.get('roadmap') or '-')}` | "
+                f"`{clean_text(item.get('status') or '-')}` | "
+                f"{clean_text(item.get('reason') or '-')} |"
+            )
     lines.extend(
         [
             "",
@@ -445,7 +518,8 @@ def main() -> int:
 
     scorecard = load_json(Path(args.scorecard_json))
     roadmaps = {roadmap_key(item): item for item in roadmap_list(scorecard)}
-    tests = [test_result(key, title, roadmaps.get(key)) for key, title in GATED_ROADMAPS.items()]
+    tests = [test_result(key, title, roadmap) for key, title, roadmap in gated_roadmap_items(scorecard)]
+    excluded_roadmaps = excluded_roadmap_items(scorecard)
     gate = quality_gate(tests)
     finished = utc_now()
 
@@ -463,7 +537,8 @@ def main() -> int:
         "metadata": {"git": git_snapshot()},
         "scorecard_path": str(Path(args.scorecard_json).relative_to(ROOT)),
         "scorecard_generated_at": scorecard.get("generated_at") or scorecard.get("generated"),
-        "gated_roadmaps": sorted(GATED_ROADMAPS),
+        "gated_roadmaps": [item["evidence"]["roadmap_key"] for item in tests],
+        "excluded_roadmaps": excluded_roadmaps,
         "roadmap_next_actions": [
             item["evidence"]["next_action"]
             for item in tests

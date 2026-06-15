@@ -20,7 +20,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 PROFILE_ID = "caldera-paw-readiness-probe"
 PROFILE_NAME = "CALDERA PAW Readiness Probe"
@@ -89,7 +94,8 @@ def caldera_request(url: str, api_key: str | None, path: str, timeout: int) -> d
     request = urllib.request.Request(full_url, headers=headers, method="GET")
     started = time.monotonic()
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+        with opener.open(request, timeout=timeout) as response:
             raw = response.read().decode(errors="replace")
             body: Any = json.loads(raw) if raw.strip() else {}
             return {

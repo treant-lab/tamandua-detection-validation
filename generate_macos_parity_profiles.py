@@ -14,7 +14,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 PROFILE_DIR = ROOT / "tools" / "detection_validation" / "profiles"
 
 MACOS_FIELDS = ["agent_id", "hostname", "process_name", "command_line", "user"]

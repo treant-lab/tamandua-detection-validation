@@ -17,7 +17,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 DEFAULT_GENERATED_DIR = ROOT / "docs" / "benchmarks" / "generated"
 DEFAULT_POSITIONING = ROOT / "docs" / "benchmarks" / "COMPARATIVE_BENCHMARK_POSITIONING.md"
 

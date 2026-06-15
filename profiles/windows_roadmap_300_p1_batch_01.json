@@ -1616,6 +1616,18 @@
       "risk": "low",
       "expected_telemetry_any": [
         [
+          "process_create",
+          "file_create"
+        ],
+        [
+          "process_create",
+          "file_modify"
+        ],
+        [
+          "process_create",
+          "file_delete"
+        ],
+        [
           "live_response_command_completed"
         ]
       ],
@@ -1636,6 +1648,7 @@
       },
       "telemetry_contract_notes": [
         "process_create remains the strict endpoint telemetry expectation",
+        "T1505.003 accepts file_modify/file_delete as Windows file-system evidence when the create edge is coalesced or missed",
         "live_response_command_completed is accepted only as tamandua-ctl live-response audit evidence when endpoint collection is unavailable or not_loaded"
       ]
     },
@@ -1780,7 +1793,7 @@
       "id": "roadmap-win-persistence-015-t1547-001",
       "name": "Registry Run Keys / Startup Folder: response readiness",
       "executor": "command",
-      "fallback_command": "cmd.exe /d /c \"reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /t REG_SZ /d tamandua-bench-run /f & reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun & reg delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /f\"",
+      "fallback_command": "cmd.exe /d /c \"reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /t REG_SZ /d tamandua-bench-run /f & reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun & ping -n 8 127.0.0.1 > nul & reg delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /f\"",
       "roadmap_traceability": {
         "technique": "T1547.001",
         "technique_name": "Registry Run Keys / Startup Folder",

@@ -26,7 +26,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 DEFAULT_ALERTS_EX = ROOT / "apps" / "tamandua_server" / "lib" / "tamandua_server" / "alerts.ex"
 DEFAULT_FIXTURE_DIR = ROOT / "tools" / "detection_validation" / "fixtures"
 DEFAULT_OUTPUT_DIR = ROOT / "docs" / "benchmarks" / "generated"

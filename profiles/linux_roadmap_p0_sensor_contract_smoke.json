@@ -49,13 +49,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-initialaccess-001",
@@ -67,7 +60,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-execution-001-t1059-004",
@@ -99,13 +99,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-execution-001",
@@ -117,7 +110,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-execution-009-t1059-004",
@@ -149,13 +149,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-execution-009",
@@ -167,7 +160,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-persistence-001-t1053-003",
@@ -199,13 +199,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-persistence-001",
@@ -217,7 +210,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-privilegeescalation-001-t1548-003",
@@ -249,13 +249,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-privilegeescalation-001",
@@ -267,7 +260,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-defenseevasion-001-t1027",
@@ -299,13 +299,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-defenseevasion-001",
@@ -317,7 +310,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-defenseevasion-009-t1140",
@@ -349,13 +349,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-defenseevasion-009",
@@ -367,7 +360,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-credentialaccess-001-t1003-008",
@@ -399,13 +399,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-credentialaccess-001",
@@ -417,7 +410,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-credentialaccess-009-t1552-001",
@@ -449,13 +449,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-credentialaccess-009",
@@ -467,7 +460,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-discovery-001-t1082",
@@ -499,13 +499,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-discovery-001",
@@ -517,7 +510,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-lateralmovement-001-t1021-004",
@@ -549,13 +549,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-lateralmovement-001",
@@ -567,7 +560,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     },
     {
       "id": "roadmap-lin-lateralmovement-009-t1550-002",
@@ -599,13 +599,6 @@
         "dns_query",
         "registry_set_value"
       ],
-      "expected_fields": [
-        "agent_id",
-        "hostname",
-        "process_name",
-        "command_line",
-        "user"
-      ],
       "tags": [
         "linux-roadmap-batch",
         "roadmap:lin-lateralmovement-009",
@@ -617,7 +610,14 @@
         "executor:sensor_contract",
         "status:planned"
       ],
-      "risk": "low"
+      "risk": "low",
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "process_name",
+        "command_line",
+        "user"
+      ]
     }
   ]
 }

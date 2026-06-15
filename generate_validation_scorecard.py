@@ -17,7 +17,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 DEFAULT_RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 DEFAULT_OUTPUT_DIR = ROOT / "docs" / "benchmarks" / "generated"
 DEFAULT_PROFILES_DIR = ROOT / "tools" / "detection_validation" / "profiles"
@@ -25,6 +30,23 @@ DEFAULT_MANUAL_STATUS_DOCS = (
     ROOT / "docs" / "benchmarks" / "PARALLEL_EXECUTION_BOARD.md",
     ROOT / "docs" / "benchmarks" / "NEXT_VALIDATION_WORK_QUEUE.md",
 )
+ROADMAP_STATUSES = {
+    "dry-run",
+    "fail",
+    "generated",
+    "needs-repeatability",
+    "no-artifact",
+    "partial",
+    "pass",
+    "seeded",
+}
+PROFILE_STATUSES = {
+    "dry-run",
+    "fail",
+    "no-artifact",
+    "partial-scope",
+    "pass",
+}
 NON_AGGREGATED_PROFILES = {
     "validation-status-consistency-probe",
 }
@@ -71,6 +93,18 @@ CLAIM_BOUNDARY_CONTEXT_RE = re.compile(
     r")\b",
     re.IGNORECASE,
 )
+OPEN_FULL_SCOPE_NOTE_RE = re.compile(
+    r"\b("
+    r"Full Roadmap [A-Z0-9]+ still requires|"
+    r"Full governance still requires|"
+    r"Full Roadmap [A-Z0-9]+ requires|"
+    r"Full .* still requires|"
+    r"production .* still requires|"
+    r"Real fleet scale still requires|"
+    r"VM evidence is still required"
+    r")\b",
+    re.IGNORECASE,
+)
 STATUS_CONSISTENCY_CONTEXT_RE = re.compile(
     r"\b("
     r"status consistency|validation_status_consistency|validation-status-consistency-probe|"
@@ -80,6 +114,10 @@ STATUS_CONSISTENCY_CONTEXT_RE = re.compile(
 )
 CLOSURE_CRITERION_POSITIVE_RE = re.compile(
     r"^-\s*`?[^`]+`?\s+passes\s+with\b",
+    re.IGNORECASE,
+)
+ROADMAP_SCOPE_CAVEAT_RE = re.compile(
+    r"\bRoadmap\s+[A-Z0-9]+\s+is\s+partial\s+overall\b",
     re.IGNORECASE,
 )
 
@@ -143,7 +181,9 @@ ROADMAPS: tuple[RoadmapRule, ...] = (
         tuple(ProfileRule(f"windows-roadmap-300-p2-batch-{idx:02d}") for idx in range(1, 3)),
         note=(
             "P2 profiles cover advanced variants and edge cases. They should run after P1 is stable, "
-            "unless a P2 detector gap blocks a P1 storyline or false-positive fix."
+            "unless a P2 detector gap blocks a P1 storyline or false-positive fix. Full Roadmap B2 "
+            "still requires endpoint-sensor evidence without deterministic/live-response boundaries "
+            "before broader production claims."
         ),
     ),
     RoadmapRule(
@@ -151,6 +191,11 @@ ROADMAPS: tuple[RoadmapRule, ...] = (
         "Close Atomic Upstream Smoke",
         "Atomic upstream",
         (ProfileRule("windows-atomic-upstream-smoke"),),
+        note=(
+            "Closure requires a fresh Atomic Red Team run with Invoke-AtomicTest available and "
+            "--require-upstream enforced. Fallback-backed or live-response substitute evidence "
+            "does not close the upstream smoke claim."
+        ),
     ),
     RoadmapRule(
         "D",
@@ -195,6 +240,11 @@ ROADMAPS: tuple[RoadmapRule, ...] = (
             ProfileRule("windows-response-validation-safe-v1"),
             ProfileRule("linux-response-validation-safe-v1"),
         ),
+        note=(
+            "Selected non-destructive response audit evidence is green. Full Roadmap F still "
+            "requires RBAC/approval proof, rollback/no-op safety, destructive-action guardrails, "
+            "and broader investigation workflow evidence."
+        ),
     ),
     RoadmapRule(
         "G",
@@ -231,6 +281,11 @@ ROADMAPS: tuple[RoadmapRule, ...] = (
         "Enterprise Eval Closure",
         "Enterprise evaluation",
         (ProfileRule("windows-enterprise-eval-safe-v1"),),
+        note=(
+            "The selected Windows enterprise-eval profile has clean engineering-validation "
+            "coverage. Full Roadmap I still requires endpoint-sensor evidence without fallback "
+            "boundaries, stable lab execution, and expanded production-equivalent validation."
+        ),
     ),
     RoadmapRule(
         "J",
@@ -238,12 +293,14 @@ ROADMAPS: tuple[RoadmapRule, ...] = (
         "Benign/noise validation",
         (
             ProfileRule("windows-false-positive-regression-noise"),
+            ProfileRule("windows-benign-baseline"),
             ProfileRule("windows-benign-noise-broad-v1"),
             ProfileRule("linux-benign-noise-broad-v1"),
         ),
         note=(
-            "Selected Windows/Linux benign and false-positive regression evidence is green. "
-            "Older diagnostic baselines remain in artifact history but are not used as closure gates."
+            "Selected Windows/Linux benign and false-positive regression evidence is green, but the live "
+            "Windows benign baseline remains a closure gate for endpoint-sensor coverage and missing-field "
+            "normalization before broad FP claims are complete."
         ),
     ),
     RoadmapRule(
@@ -363,6 +420,11 @@ ROADMAPS: tuple[RoadmapRule, ...] = (
             ProfileRule("agent-platform-capabilities-runtime-probe"),
             ProfileRule("agent-platform-capabilities-live-api-probe"),
         ),
+        note=(
+            "Selected internal API/rendering and workflow evidence is green. Full Roadmap R still "
+            "requires public HTTPS reachability, collector-observed telemetry, live-response command "
+            "success, and broader storyline/evidence-quality proof."
+        ),
     ),
     RoadmapRule(
         "S",
@@ -431,7 +493,7 @@ def load_json(path: Path) -> dict[str, Any] | None:
 
 
 def run_paths(runs_dir: Path) -> list[Path]:
-    return sorted(path for path in runs_dir.glob("*.json") if path.name != "index.json")
+    return sorted(path for path in runs_dir.rglob("*.json") if path.name != "index.json")
 
 
 def infer_run_id(path: Path, report: dict[str, Any]) -> str:
@@ -773,6 +835,19 @@ def profile_status(
     }
 
 
+def latest_fail_after_pass(row: dict[str, Any]) -> bool:
+    latest = row.get("latest") or {}
+    latest_pass = row.get("latest_pass") or {}
+    return (
+        bool(latest_pass)
+        and latest.get("quality_gate_passed") is False
+    )
+
+
+def has_latest_pass(row: dict[str, Any]) -> bool:
+    return bool(row.get("latest_pass"))
+
+
 def roadmap_status(profile_rows: list[dict[str, Any]], required_passes: int) -> str:
     if not profile_rows:
         return "no-artifact"
@@ -781,16 +856,30 @@ def roadmap_status(profile_rows: list[dict[str, Any]], required_passes: int) -> 
     if all(row["status"] in {"no-artifact", "dry-run"} for row in profile_rows):
         return "dry-run"
     if required_passes > 1:
-        if all(row["status"] == "pass" for row in profile_rows) and any(
-            row["consecutive_latest_passes"] >= required_passes for row in profile_rows
+        if (
+            all(row["status"] == "pass" for row in profile_rows)
+            and all(has_latest_pass(row) for row in profile_rows)
+            and not any(latest_fail_after_pass(row) for row in profile_rows)
+            and any(
+                row["consecutive_latest_passes"] >= required_passes
+                for row in profile_rows
+            )
         ):
             return "pass"
         return "needs-repeatability"
-    if all(row["status"] == "pass" for row in profile_rows):
+    if (
+        all(row["status"] == "pass" for row in profile_rows)
+        and all(has_latest_pass(row) for row in profile_rows)
+        and not any(latest_fail_after_pass(row) for row in profile_rows)
+    ):
         return "pass"
-    if any(row["latest_pass"] or row["status"] == "partial-scope" for row in profile_rows):
+    if any(row["latest_pass"] or row["status"] in {"pass", "partial-scope"} for row in profile_rows):
         return "partial"
     return "fail"
+
+
+def note_declares_open_full_scope(note: str) -> bool:
+    return bool(OPEN_FULL_SCOPE_NOTE_RE.search(note))
 
 
 def static_roadmap_evidence(output_dir: Path) -> dict[str, list[str]]:
@@ -848,6 +937,8 @@ def build_payload(reports: list[dict[str, Any]], runs_dir: Path) -> dict[str, An
             status = "seeded"
         elif rule.key in static_evidence and status == "fail":
             status = "partial"
+        if status == "pass" and note_declares_open_full_scope(rule.note):
+            status = "partial"
         roadmaps.append(
             {
                 "key": rule.key,
@@ -878,7 +969,7 @@ def build_payload(reports: list[dict[str, Any]], runs_dir: Path) -> dict[str, An
         ],
         "contradictions": find_contradictions(roadmaps),
     }
-    payload["manual_claim_review"] = find_manual_claim_review(payload) + dispatch_manual_claim_review(latest)
+    payload["manual_claim_review"] = dispatch_manual_claim_review(latest)
     return payload
 
 
@@ -908,7 +999,11 @@ def find_contradictions(roadmaps: list[dict[str, Any]]) -> list[dict[str, str]]:
                         "roadmap": roadmap["key"],
                         "profile_id": row["profile_id"],
                         "type": "green-after-failure",
-                        "message": f"Latest artifact {latest.get('run_id')} passes after failing artifact {latest_fail.get('run_id')}; update manual blocker text if still marked blocked.",
+                        "message": (
+                            f"Latest artifact {latest.get('run_id')} passes after failing artifact "
+                            f"{latest_fail.get('run_id')}; verify manual docs preserve the scoped-pass "
+                            "claim boundary instead of carrying a stale profile-blocked status."
+                        ),
                     }
                 )
     return contradictions
@@ -984,6 +1079,10 @@ def manual_entity_matches(entity: dict[str, str], line: str, lowered: str) -> bo
     return needle.lower() in lowered
 
 
+def line_has_roadmap_scope_caveat(line: str) -> bool:
+    return bool(ROADMAP_SCOPE_CAVEAT_RE.search(line))
+
+
 def find_manual_claim_review(
     payload: dict[str, Any],
     docs: tuple[Path, ...] = DEFAULT_MANUAL_STATUS_DOCS,
@@ -1015,6 +1114,12 @@ def find_manual_claim_review(
             lowered = line.lower()
             for entity in entities:
                 if not manual_entity_matches(entity, line, lowered):
+                    continue
+                if (
+                    polarity == "negative"
+                    and entity.get("kind") == "profile"
+                    and line_has_roadmap_scope_caveat(line)
+                ):
                     continue
                 status = entity["status"]
                 positive_status = is_positive_generated_status(status)
@@ -1079,19 +1184,32 @@ def dispatch_manual_claim_review(latest: dict[str, dict[str, Any]], limit: int =
             continue
         package_id = str(claim.get("package_id") or "")
         package = packages.get(package_id, {})
+        current_next_action = claim.get("current_next_action") if isinstance(claim.get("current_next_action"), dict) else {}
+        action_text = str(current_next_action.get("action") or package.get("action") or "")
+        owner = str(claim.get("owner") or "unassigned")
+        manual_reason = str(package.get("manual_reason") or "manual launch required")
+        missing_env = [str(value) for value in claim.get("missing_effective_env") or []]
+        prompt_path = str(claim.get("prompt_path") or "-")
         item = {
             "kind": "dispatch-claim",
             "id": str(claim.get("claim_id") or ""),
+            "package_id": package_id,
             "generated_status": state or "manual_claim_required",
             "polarity": "manual",
             "doc": claims_ref,
             "line": "-",
+            "owner": owner,
+            "manual_reason": manual_reason,
+            "missing_env": missing_env,
+            "action": action_text or "-",
+            "prompt_path": prompt_path,
             "snippet": (
-                f"{package_id}: {str(package.get('manual_reason') or 'manual launch required')}; "
-                f"owner={str(claim.get('owner') or 'unassigned')}; "
-                f"missing_env={', '.join(str(value) for value in claim.get('missing_effective_env') or []) or '-'}; "
-                f"prompt={str(claim.get('prompt_path') or '-')}"
-            )[:240],
+                f"{package_id}: {manual_reason}; "
+                f"owner={owner}; "
+                f"missing_env={', '.join(missing_env) or '-'}; "
+                f"action={action_text or '-'}; "
+                f"prompt={prompt_path}"
+            ),
         }
         review.append(item)
         if len(review) >= limit:
@@ -1138,7 +1256,7 @@ def render_markdown(payload: dict[str, Any]) -> str:
         "",
         "Status: generated",
         "",
-        "Generated from `docs/benchmarks/runs/*.json` and `*.comparison.json` by",
+        "Generated from `docs/benchmarks/runs/**/*.json` and `*.comparison.json` by",
         "`tools/detection_validation/generate_validation_scorecard.py`.",
         "",
         f"- Generated at: `{payload['generated_at']}`",
@@ -1191,12 +1309,16 @@ def render_markdown(payload: dict[str, Any]) -> str:
         else:
             covered = display_source.get("covered", 0)
             tests = display_source.get("tests", 0)
-        scope = "complete" if aggregate_complete or latest.get("complete_profile_scope") else "partial"
-        raw_gate = (
-            "aggregate-pass"
-            if row.get("status") != "fail" and aggregate_complete and not latest.get("raw_quality_gate_passed")
-            else latest.get("raw_quality_gate_passed")
-        )
+        if row.get("status") == "dry-run":
+            scope = "not-executed"
+            raw_gate = "not-executed"
+        else:
+            scope = "complete" if aggregate_complete or latest.get("complete_profile_scope") else "partial"
+            raw_gate = (
+                "aggregate-pass"
+                if row.get("status") != "fail" and aggregate_complete and not latest.get("raw_quality_gate_passed")
+                else latest.get("raw_quality_gate_passed")
+            )
         displayed_run_id = display_source.get("run_id") or latest.get("run_id")
         lines.append(
             f"| `{row['profile_id']}` | `{md_value(displayed_run_id)}` | "
@@ -1221,9 +1343,8 @@ def render_markdown(payload: dict[str, Any]) -> str:
             "",
             "## Manual Claim Review",
             "",
-            "Heuristic scan of manual benchmark coordination docs for status wording",
-            "that may be stale relative to generated artifact state. Treat these as",
-            "review prompts, not hard failures.",
+            "Structured review queue for dispatch claims that require manual launch",
+            "or operator-provided environment before they can be closed.",
             "",
         ]
     )
@@ -1231,15 +1352,25 @@ def render_markdown(payload: dict[str, Any]) -> str:
     if review:
         lines.extend(
             [
-                "| Entity | Generated Status | Manual Wording | Location | Snippet |",
-                "|--------|------------------|----------------|----------|---------|",
+                "| Entity | Package | Generated Status | Manual Wording | Owner | Missing Env | Action | Prompt | Location | Snippet |",
+                "|--------|---------|------------------|----------------|-------|-------------|--------|--------|----------|---------|",
             ]
         )
         for item in review:
             snippet = str(item.get("snippet") or "").replace("|", "\\|")
+            missing_env = item.get("missing_env")
+            missing_env_text = (
+                ", ".join(str(value) for value in missing_env)
+                if isinstance(missing_env, list)
+                else str(missing_env or "-")
+            )
+            owner = str(item.get("owner") or "-").replace("|", "\\|")
+            action = str(item.get("action") or "-").replace("|", "\\|")
+            prompt_path = str(item.get("prompt_path") or "-").replace("|", "\\|")
             lines.append(
-                f"| `{item.get('kind')}:{item.get('id')}` | `{item.get('generated_status')}` | "
-                f"`{item.get('polarity')}` | `{item.get('doc')}:{item.get('line')}` | {snippet} |"
+                f"| `{item.get('kind')}:{item.get('id')}` | `{item.get('package_id') or '-'}` | `{item.get('generated_status')}` | "
+                f"`{item.get('polarity')}` | `{owner}` | `{missing_env_text or '-'}` | {action} | "
+                f"`{prompt_path}` | `{item.get('doc')}:{item.get('line')}` | {snippet} |"
             )
     else:
         lines.append("No manual claim review prompts found in configured docs.")
@@ -1247,14 +1378,153 @@ def render_markdown(payload: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def markdown_summary_matches_payload(markdown: str, payload: dict[str, Any]) -> bool:
+    source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+    expected_artifacts = f"- Artifacts read: `{source.get('artifact_count')}`"
+    expected_profiles = f"- Profiles found: `{source.get('profile_count')}`"
+    return expected_artifacts in markdown and expected_profiles in markdown
+
+
+def source_summary_matches_payload(payload: dict[str, Any]) -> bool:
+    source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+    source_profiles = source.get("profiles")
+    profile_rows = payload.get("profiles")
+    if not isinstance(source_profiles, list) or not isinstance(profile_rows, list):
+        return False
+    row_profile_ids = [row.get("profile_id") for row in profile_rows if isinstance(row, dict)]
+    if len(row_profile_ids) != len(profile_rows):
+        return False
+    if source_profiles != sorted(source_profiles) or len(set(source_profiles)) != len(source_profiles):
+        return False
+    return (
+        source.get("profile_count") == len(source_profiles)
+        and source.get("profile_count") == len(row_profile_ids)
+        and sorted(source_profiles) == sorted(row_profile_ids)
+    )
+
+
+def roadmap_keys_match_rules(payload: dict[str, Any]) -> bool:
+    roadmaps = payload.get("roadmaps")
+    if not isinstance(roadmaps, list):
+        return False
+    keys = [roadmap.get("key") for roadmap in roadmaps if isinstance(roadmap, dict)]
+    if len(keys) != len(roadmaps):
+        return False
+    expected_keys = [rule.key for rule in ROADMAPS]
+    return keys == expected_keys and len(set(keys)) == len(keys)
+
+
+def roadmap_rows_are_well_formed(payload: dict[str, Any]) -> bool:
+    roadmaps = payload.get("roadmaps")
+    if not isinstance(roadmaps, list):
+        return False
+    required_fields = {
+        "key",
+        "title",
+        "owner_area",
+        "status",
+        "required_passes",
+        "note",
+        "profiles",
+        "static_evidence",
+    }
+    for row in roadmaps:
+        if not isinstance(row, dict) or not required_fields.issubset(row):
+            return False
+        if row.get("status") not in ROADMAP_STATUSES:
+            return False
+        if not isinstance(row.get("profiles"), list):
+            return False
+        if not isinstance(row.get("static_evidence"), list):
+            return False
+        if not isinstance(row.get("required_passes"), int) or row.get("required_passes") < 1:
+            return False
+        for field in ("key", "title", "owner_area", "note"):
+            if not isinstance(row.get(field), str):
+                return False
+    return True
+
+
+def profile_aggregate_is_well_formed(aggregate: object) -> bool:
+    if not isinstance(aggregate, dict):
+        return False
+    if not isinstance(aggregate.get("complete"), bool):
+        return False
+    for field in ("covered", "raw_gate_failures", "partial_contributor_count"):
+        if not isinstance(aggregate.get(field), int) or aggregate.get(field) < 0:
+            return False
+    expected = aggregate.get("expected")
+    if expected is not None and (not isinstance(expected, int) or expected < 0):
+        return False
+    for field in ("covered_test_ids", "partial_contributor_ids"):
+        if not isinstance(aggregate.get(field), list):
+            return False
+    latest_raw_gate_pass = aggregate.get("latest_raw_gate_pass")
+    if latest_raw_gate_pass is not None and not isinstance(latest_raw_gate_pass, dict):
+        return False
+    return True
+
+
+def profile_rows_are_well_formed(payload: dict[str, Any]) -> bool:
+    profiles = payload.get("profiles")
+    if not isinstance(profiles, list):
+        return False
+    required_fields = {
+        "profile_id",
+        "status",
+        "latest",
+        "latest_pass",
+        "latest_fail",
+        "latest_diagnostic_fail",
+        "best_pass",
+        "aggregate",
+        "passing_artifacts",
+        "failing_artifacts",
+        "diagnostic_failing_artifacts",
+        "consecutive_latest_passes",
+    }
+    for row in profiles:
+        if not isinstance(row, dict) or not required_fields.issubset(row):
+            return False
+        if not isinstance(row.get("profile_id"), str) or not row.get("profile_id"):
+            return False
+        if row.get("status") not in PROFILE_STATUSES:
+            return False
+        for field in ("latest", "latest_pass", "latest_fail", "latest_diagnostic_fail", "best_pass"):
+            if row.get(field) is not None and not isinstance(row.get(field), dict):
+                return False
+        if not profile_aggregate_is_well_formed(row.get("aggregate")):
+            return False
+        for field in (
+            "passing_artifacts",
+            "failing_artifacts",
+            "diagnostic_failing_artifacts",
+            "consecutive_latest_passes",
+        ):
+            if not isinstance(row.get(field), int) or row.get(field) < 0:
+                return False
+    return True
+
+
 def write_outputs(payload: dict[str, Any], output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
+    if not source_summary_matches_payload(payload):
+        raise ValueError("validation roadmap scorecard source summary does not match payload profiles")
+    if not roadmap_keys_match_rules(payload):
+        raise ValueError("validation roadmap scorecard roadmap keys do not match configured rules")
+    if not roadmap_rows_are_well_formed(payload):
+        raise ValueError("validation roadmap scorecard roadmap rows are malformed")
+    if not profile_rows_are_well_formed(payload):
+        raise ValueError("validation roadmap scorecard profile rows are malformed")
+    markdown = render_markdown(payload)
+    if not markdown_summary_matches_payload(markdown, payload):
+        raise ValueError("validation roadmap scorecard markdown summary does not match payload source")
     (output_dir / "validation_roadmap_scorecard.json").write_text(
         json.dumps(payload, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     (output_dir / "validation_roadmap_scorecard.md").write_text(
-        render_markdown(payload).rstrip() + "\n",
+        markdown.rstrip() + "\n",
         encoding="utf-8",
     )
 

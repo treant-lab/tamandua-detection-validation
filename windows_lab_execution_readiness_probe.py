@@ -11,17 +11,43 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
+
+import requests
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 DEFAULT_CTL = ROOT / "apps" / "tamandua_ctl" / "target" / "release" / "tamandua-ctl.exe"
+DEFAULT_SERVER = "http://192.168.12.146:4000"
 PROFILE_ID = "windows-lab-execution-readiness-probe"
 PROFILE_NAME = "Windows Lab Execution Readiness Probe"
+
+
+def load_dotenv(path: Path = ROOT / ".env") -> None:
+    if not path.exists():
+        return
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        value = value.strip().strip('"').strip("'")
+        os.environ[key] = value
 
 
 def utc_now() -> str:
@@ -56,6 +82,28 @@ def git_snapshot() -> dict[str, Any]:
     }
 
 
+def tamandua_ctl_env(server: str | None, base_env: dict[str, str] | None = None) -> dict[str, str]:
+    env = dict(base_env or os.environ)
+    if not server:
+        return env
+    host = urlparse(server).hostname
+    if not host:
+        return env
+    existing_values = []
+    for name in ("NO_PROXY", "no_proxy"):
+        existing = env.get(name)
+        if existing:
+            existing_values.extend(item.strip() for item in existing.split(",") if item.strip())
+    merged = []
+    for value in [*existing_values, host]:
+        if value and value not in merged:
+            merged.append(value)
+    no_proxy = ",".join(merged)
+    env["NO_PROXY"] = no_proxy
+    env["no_proxy"] = no_proxy
+    return env
+
+
 def run_ctl(ctl_path: Path, server: str | None) -> dict[str, Any]:
     cmd = [str(ctl_path), "remote", "agents", "list", "--json"]
     if server:
@@ -64,6 +112,7 @@ def run_ctl(ctl_path: Path, server: str | None) -> dict[str, Any]:
         completed = subprocess.run(
             cmd,
             cwd=ROOT,
+            env=tamandua_ctl_env(server),
             text=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -101,6 +150,121 @@ def agents_from_ctl(ctl: dict[str, Any]) -> list[dict[str, Any]]:
     payload = ctl.get("payload") if isinstance(ctl.get("payload"), dict) else {}
     agents = payload.get("data") if isinstance(payload, dict) else []
     return [item for item in agents if isinstance(item, dict)] if isinstance(agents, list) else []
+
+
+def admin_web_agents(server: str | None) -> dict[str, Any]:
+    load_dotenv()
+    base_url = (server or os.environ.get("TAMANDUA_SERVER_URL") or DEFAULT_SERVER).rstrip("/")
+    email = os.environ.get("TAMANDUA_ADMIN_EMAIL", "admin@tamandua.local")
+    password = os.environ.get("TAMANDUA_ADMIN_PASSWORD")
+    if not password:
+        return {"ok": False, "error": "missing_env_TAMANDUA_ADMIN_PASSWORD", "source": "admin_web", "server": base_url}
+    session = requests.Session()
+    try:
+        login_page = session.get(f"{base_url}/login", timeout=20)
+        login_page.raise_for_status()
+        match = re.search(r'name="_csrf_token"[^>]*value="([^"]+)"', login_page.text)
+        if not match:
+            match = re.search(r'csrf-token[^>]*content="([^"]+)"', login_page.text)
+        if not match:
+            return {"ok": False, "error": "csrf_token_not_found", "source": "admin_web"}
+        login = session.post(
+            f"{base_url}/login",
+            data={
+                "_csrf_token": match.group(1),
+                "user[email]": email,
+                "user[password]": password,
+            },
+            allow_redirects=False,
+            timeout=20,
+        )
+        if login.status_code not in (200, 302):
+            return {"ok": False, "error": f"login_status_{login.status_code}", "source": "admin_web"}
+        response = session.get(
+            f"{base_url}/api/v1/agents",
+            headers={"accept": "application/json"},
+            timeout=20,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, dict) or not isinstance(payload.get("data"), list):
+            return {"ok": False, "error": "invalid_agents_payload", "source": "admin_web"}
+        return {"ok": True, "payload": payload, "source": "admin_web", "server": base_url}
+    except (requests.RequestException, json.JSONDecodeError) as exc:
+        return {"ok": False, "error": str(exc), "source": "admin_web", "server": base_url}
+
+
+def target_present(agents: list[dict[str, Any]], expected_agent_id: str | None) -> bool:
+    return bool(expected_agent_id) and any(agent_id(agent) == expected_agent_id for agent in agents)
+
+
+def maybe_admin_fallback(ctl: dict[str, Any], server: str | None, expected_agent_id: str | None) -> dict[str, Any]:
+    if target_present(agents_from_ctl(ctl), expected_agent_id):
+        ctl["inventory_source"] = "tamandua_ctl"
+        return ctl
+    fallback = admin_web_agents(server)
+    if fallback.get("ok") and target_present(agents_from_ctl(fallback), expected_agent_id):
+        return {
+            **ctl,
+            "inventory_source": "admin_web_fallback",
+            "ctl_payload_agent_count": len(agents_from_ctl(ctl)),
+            "admin_web_fallback": {key: value for key, value in fallback.items() if key != "payload"},
+            "payload": fallback["payload"],
+            "ok": True,
+        }
+    ctl["inventory_source"] = "tamandua_ctl"
+    ctl["admin_web_fallback"] = {key: value for key, value in fallback.items() if key != "payload"}
+    return ctl
+
+
+def proxmox_vm_status() -> dict[str, Any]:
+    load_dotenv()
+    host = os.environ.get("TAMANDUA_PROXMOX_HOST")
+    password = os.environ.get("TAMANDUA_PROXMOX_PASSWORD")
+    if not host or not password:
+        return {"ok": False, "error": "missing_proxmox_env"}
+    node = os.environ.get("TAMANDUA_PROXMOX_NODE", "Default")
+    vmid = os.environ.get("TAMANDUA_WINDOWS_VMID", "1521")
+    user = os.environ.get("TAMANDUA_PROXMOX_USER", "root@pam")
+    base = f"https://{host}:8006/api2/json"
+    session = requests.Session()
+    session.verify = False
+    session.trust_env = False
+    try:
+        ticket_response = session.post(
+            f"{base}/access/ticket",
+            data={"username": user, "password": password},
+            timeout=20,
+        )
+        ticket_response.raise_for_status()
+        ticket = ticket_response.json()["data"]
+        session.cookies.set("PVEAuthCookie", ticket["ticket"])
+        session.headers.update({"CSRFPreventionToken": ticket["CSRFPreventionToken"]})
+        status_response = session.get(
+            f"{base}/nodes/{node}/qemu/{vmid}/status/current",
+            timeout=20,
+        )
+        status_response.raise_for_status()
+        data = status_response.json().get("data") or {}
+    except (requests.RequestException, KeyError, TypeError, ValueError) as exc:
+        return {"ok": False, "error": str(exc)}
+
+    raw_cpu = data.get("cpu")
+    cpus = data.get("cpus")
+    normalized = None
+    try:
+        if cpus and float(cpus) > 0:
+            normalized = (float(raw_cpu) / float(cpus)) * 100.0
+    except (TypeError, ValueError):
+        normalized = None
+    return {
+        "ok": True,
+        "status": data.get("status"),
+        "qmpstatus": data.get("qmpstatus"),
+        "cpu_raw": raw_cpu,
+        "cpus": cpus,
+        "cpu_usage_normalized_percent": normalized,
+    }
 
 
 def agent_id(agent: dict[str, Any]) -> str:
@@ -179,10 +343,17 @@ def test_result(test_id: str, name: str, passed: bool, evidence: dict[str, Any],
     }
 
 
-def build_tests(ctl: dict[str, Any], expected_hostname: str, expected_agent_id: str | None, max_cpu: float) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+def build_tests(
+    ctl: dict[str, Any],
+    expected_hostname: str,
+    expected_agent_id: str | None,
+    max_cpu: float,
+    hypervisor_status: dict[str, Any] | None = None,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     agents = agents_from_ctl(ctl)
     target = target_agent(agents, expected_hostname, expected_agent_id)
     target_summary = summarize_agent(target) if target else None
+    hypervisor_status = hypervisor_status or {"ok": False, "error": "not_collected"}
 
     live_ready = False
     if target:
@@ -201,11 +372,19 @@ def build_tests(ctl: dict[str, Any], expected_hostname: str, expected_agent_id: 
         )
 
     cpu_ready = False
+    cpu_source = "agent_health"
+    agent_cpu = None
+    effective_cpu = None
     driver_not_loaded = False
     if target:
-        cpu = metrics(target).get("cpu_usage")
+        agent_cpu = metrics(target).get("cpu_usage")
+        effective_cpu = agent_cpu
+        proxmox_cpu = hypervisor_status.get("cpu_usage_normalized_percent")
+        if isinstance(proxmox_cpu, (int, float)):
+            effective_cpu = proxmox_cpu
+            cpu_source = "proxmox_normalized_percent"
         try:
-            cpu_ready = float(cpu) <= max_cpu
+            cpu_ready = float(effective_cpu) <= max_cpu
         except (TypeError, ValueError):
             cpu_ready = health(target) != "critical"
         driver_not_loaded = str(metrics(target).get("driver_state") or "").lower() == "not_loaded"
@@ -257,7 +436,15 @@ def build_tests(ctl: dict[str, Any], expected_hostname: str, expected_agent_id: 
             "windows-lab-target-load-safe-for-broad-runs",
             "WIN-TEMPLATE target load is safe for broad shards",
             bool(target) and cpu_ready and not driver_not_loaded,
-            {"target": target_summary, "max_cpu": max_cpu, "driver_not_loaded": driver_not_loaded},
+            {
+                "target": target_summary,
+                "max_cpu": max_cpu,
+                "driver_not_loaded": driver_not_loaded,
+                "cpu_source": cpu_source,
+                "agent_cpu_usage": agent_cpu,
+                "effective_cpu_usage": effective_cpu,
+                "hypervisor_status": hypervisor_status,
+            },
             "agent-health",
         ),
     ]
@@ -403,11 +590,12 @@ def write_markdown(path: Path, report: dict[str, Any]) -> None:
 
 
 def main() -> int:
+    load_dotenv()
     parser = argparse.ArgumentParser()
     parser.add_argument("--ctl-path", default=str(DEFAULT_CTL))
     parser.add_argument("--server")
-    parser.add_argument("--target-hostname", default="WIN-TEMPLATE")
-    parser.add_argument("--target-agent-id")
+    parser.add_argument("--target-hostname", default=os.environ.get("TAMANDUA_FRESH_RESTORE_HOSTNAME", "WIN-TEMPLATE"))
+    parser.add_argument("--target-agent-id", default=os.environ.get("TAMANDUA_FRESH_RESTORE_AGENT_ID"))
     parser.add_argument("--max-cpu", type=float, default=90.0)
     parser.add_argument("--output-dir", default=str(RUNS_DIR))
     args = parser.parse_args()
@@ -417,8 +605,14 @@ def main() -> int:
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    ctl = run_ctl(Path(args.ctl_path), args.server)
-    tests, readiness = build_tests(ctl, args.target_hostname, args.target_agent_id, args.max_cpu)
+    ctl = maybe_admin_fallback(run_ctl(Path(args.ctl_path), args.server), args.server, args.target_agent_id)
+    tests, readiness = build_tests(
+        ctl,
+        args.target_hostname,
+        args.target_agent_id,
+        args.max_cpu,
+        proxmox_vm_status(),
+    )
     gate = quality_gate(tests)
     finished = utc_now()
 
@@ -437,6 +631,7 @@ def main() -> int:
         "runtime_effect": "read_only_api",
         "metadata": {"git": git_snapshot()},
         "tamandua_ctl": {key: value for key, value in ctl.items() if key != "payload"},
+        "inventory_source": ctl.get("inventory_source") or "tamandua_ctl",
         "windows_lab_readiness": readiness,
         "tests": tests,
         "summary": summary(tests),

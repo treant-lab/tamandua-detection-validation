@@ -298,7 +298,7 @@ def render_report(reports: list[dict[str, Any]], selected_profiles: list[str]) -
         [
             "## Current Interpretation",
             "",
-            "- CALDERA smoke is claimable only for the selected upstream smoke profile when the latest run remains green.",
+            "- CALDERA smoke selected-profile evidence is claim-scoped only; repeatability and product claims still require the CALDERA repeatability gate to pass.",
             "- Atomic upstream smoke remains engineering validation until all partial tests and gate failures are closed.",
             "- Windows P0 safe expansion is closed by accumulated deterministic evidence: the full `31` profile ran, and targeted reruns closed the original execution failures.",
             "- Windows 300 now has deterministic execution evidence across six 50-scenario batches; the first pass covered `296/300`, and targeted reruns closed the four QGA timeout scenarios.",

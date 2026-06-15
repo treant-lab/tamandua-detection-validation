@@ -10,7 +10,12 @@ from pathlib import Path
 from typing import Any
 
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 DEFAULT_ROADMAP = ROOT / "tools" / "detection_validation" / "roadmaps" / "external_rule_global_improvement_roadmap.json"
 DEFAULT_OUT_JSON = ROOT / "tools" / "detection_validation" / "roadmaps" / "external_rule_event_contracts.json"
 DEFAULT_OUT_MD = ROOT / "docs" / "benchmarks" / "EXTERNAL_RULE_EVENT_CONTRACTS.md"

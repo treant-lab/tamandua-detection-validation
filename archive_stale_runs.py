@@ -33,7 +33,12 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Iterable
 
-ROOT = Path(__file__).resolve().parents[2]
+try:
+    from root_resolver import ROOT, RUNS_DIR, is_standalone
+except ImportError:
+    ROOT = Path(__file__).resolve().parents[2]
+    RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
+    is_standalone = lambda: False
 DEFAULT_RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 DEFAULT_ARCHIVE_SUBDIR = "archive"
 DEFAULT_AGE_DAYS = 7
