@@ -8666,7 +8666,7 @@ def validate_wave1_operator_handoff_index(data: dict[str, Any], path: Path) -> N
     if bool(summary["transcript_hashes_match_between_receipts"]) != hashes_match:
         raise ContractError(f"{path}.summary.transcript_hashes_match_between_receipts: must match transcript hash pairs")
     next_operator_action = str(summary["next_operator_action"])
-    if bool(data["safe_for_operator"]):
+    if bool(data["safe_for_operator"]) or bool(summary["post_run_receipts_wait_for_real_evidence"]):
         if "guarded Wave 1 acquisition" not in next_operator_action:
             raise ContractError(f"{path}.summary.next_operator_action: must point operator to guarded Wave 1 acquisition")
     elif "inspect failed acquisition transcript/output" not in next_operator_action.lower() or "rerun guarded acquisition" not in next_operator_action.lower():
@@ -20625,10 +20625,10 @@ def validate_ml_goal_snapshot(data: dict[str, Any], path: Path) -> None:
     evidence_summary = require_object(goal["evidence_status_summary"], f"{path}.goal.evidence_status_summary")
     expected_counts = {
         "total_required_evidence": 16,
-        "present_required_evidence": 5,
+        "present_required_evidence": 4,
         "usable_required_evidence": 1,
-        "missing_required_evidence": 11,
-        "unusable_present_required_evidence": 4,
+        "missing_required_evidence": 12,
+        "unusable_present_required_evidence": 3,
     }
     for field, expected in expected_counts.items():
         if int(evidence_summary[field]) != expected:

@@ -21,6 +21,24 @@ except ImportError:
 CANONICAL = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-wave1-operator-handoff-index.json"
 
 
+def mark_operator_handoff_safe(data: dict) -> None:
+    data["safe_for_operator"] = True
+    data["blockers"] = []
+    data["source_status_summary"]["safe_for_operator"] = True
+    data["source_status_summary"]["blocker_count"] = 0
+    data["summary"]["packet_consistent"] = True
+    data["source_status_summary"]["packet_consistent"] = True
+    data["source"]["source_packet_consistency_summary"]["consistent"] = True
+    data["source"]["source_packet_consistency_summary"]["failed_checks"] = 0
+    data["source"]["source_packet_consistency_summary"]["blocker_count"] = 0
+    data["source_status_summary"]["packet_consistency_failed_checks"] = 0
+    data["source_status_summary"]["packet_consistency_blocker_count"] = 0
+    for check in data["checks"]:
+        check["passed"] = True
+    data["source_status_summary"]["passed_checks"] = len(data["checks"])
+    data["source_status_summary"]["failed_checks"] = 0
+
+
 def test_validate_wave1_operator_handoff_index_accepts_jsonschema_path() -> None:
     mode = validate_contract(CANONICAL, WAVE1_OPERATOR_HANDOFF_INDEX_SCHEMA, validate_wave1_operator_handoff_index)
 
@@ -141,6 +159,20 @@ def test_validate_wave1_operator_handoff_index_rejects_wave1_transcript_alias_dr
         validate_contract(drifted, WAVE1_OPERATOR_HANDOFF_INDEX_SCHEMA, validate_wave1_operator_handoff_index)
 
 
+def test_validate_wave1_operator_handoff_index_accepts_guarded_action_while_waiting_for_real_evidence() -> None:
+    data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    data["safe_for_operator"] = False
+    data["blockers"] = ["execution_packet_consistency_not_green"]
+    data["source_status_summary"]["safe_for_operator"] = False
+    data["source_status_summary"]["blocker_count"] = 1
+    data["summary"]["post_run_receipts_wait_for_real_evidence"] = True
+    data["summary"]["next_operator_action"] = (
+        "Run guarded Wave 1 acquisition in the isolated lab and save the structured transcript JSON before intake."
+    )
+
+    validate_wave1_operator_handoff_index(data, CANONICAL)
+
+
 def test_validate_wave1_operator_handoff_index_rejects_transcript_hash_rollup_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
     data["summary"]["manifest_transcript_stdout_sha256"] = "f" * 64
@@ -225,6 +257,7 @@ def test_validate_wave1_operator_handoff_index_rejects_packet_consistency_lab_gu
 
 def test_validate_wave1_operator_handoff_index_rejects_safe_with_packet_consistency_mismatch(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    mark_operator_handoff_safe(data)
     data["source"]["source_packet_consistency_summary"]["command_mismatch_count"] = 1
     data["source_status_summary"]["packet_consistency_command_mismatch_count"] = 1
     drifted = tmp_path / "20260604T-ml-wave1-operator-handoff-index.json"
@@ -236,6 +269,7 @@ def test_validate_wave1_operator_handoff_index_rejects_safe_with_packet_consiste
 
 def test_validate_wave1_operator_handoff_index_rejects_safe_with_packet_consistency_hash_mismatch(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    mark_operator_handoff_safe(data)
     data["source"]["source_packet_consistency_summary"]["hash_mismatch_count"] = 1
     data["source_status_summary"]["packet_consistency_hash_mismatch_count"] = 1
     drifted = tmp_path / "20260604T-ml-wave1-operator-handoff-index.json"
@@ -247,6 +281,7 @@ def test_validate_wave1_operator_handoff_index_rejects_safe_with_packet_consiste
 
 def test_validate_wave1_operator_handoff_index_rejects_safe_with_lab_guard_proof_mismatch(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    mark_operator_handoff_safe(data)
     data["source"]["source_packet_consistency_summary"]["lab_standby_guard_proof_mismatch_count"] = 1
     data["source_status_summary"]["packet_consistency_lab_standby_guard_proof_mismatch_count"] = 1
     drifted = tmp_path / "20260604T-ml-wave1-operator-handoff-index.json"
@@ -258,6 +293,7 @@ def test_validate_wave1_operator_handoff_index_rejects_safe_with_lab_guard_proof
 
 def test_validate_wave1_operator_handoff_index_rejects_safe_with_lab_guards_set(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    mark_operator_handoff_safe(data)
     data["source"]["source_packet_consistency_summary"]["ml_lab_standby_guards_unset"] = False
     data["source_status_summary"]["packet_consistency_ml_lab_standby_guards_unset"] = False
     drifted = tmp_path / "20260604T-ml-wave1-operator-handoff-index.json"
@@ -269,6 +305,7 @@ def test_validate_wave1_operator_handoff_index_rejects_safe_with_lab_guards_set(
 
 def test_validate_wave1_operator_handoff_index_rejects_safe_with_lab_readiness_failure(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    mark_operator_handoff_safe(data)
     data["summary"]["ml_lab_standby_readiness_ready"] = False
     data["source_status_summary"]["ml_lab_standby_readiness_ready"] = False
     for check in data["checks"]:
@@ -286,6 +323,7 @@ def test_validate_wave1_operator_handoff_index_rejects_safe_with_lab_readiness_f
 
 def test_validate_wave1_operator_handoff_index_rejects_safe_with_local_training_readiness_failure(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    mark_operator_handoff_safe(data)
     data["summary"]["ml_local_training_readiness_ready"] = False
     data["source_status_summary"]["ml_local_training_readiness_ready"] = False
     for check in data["checks"]:
@@ -303,6 +341,7 @@ def test_validate_wave1_operator_handoff_index_rejects_safe_with_local_training_
 
 def test_validate_wave1_operator_handoff_index_rejects_hash_verification_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    mark_operator_handoff_safe(data)
     data["summary"]["transcript_template_hash_verification_ready"] = False
     data["source_status_summary"]["transcript_template_hash_verification_ready"] = False
     for check in data["checks"]:

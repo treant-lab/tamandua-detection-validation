@@ -20,11 +20,11 @@ from validate_ml_contracts import ContractError, validate_ml_goal_snapshot  # no
 def valid_goal_snapshot() -> dict:
     evidence_summary = {
         "total_required_evidence": 16,
-        "present_required_evidence": 5,
+        "present_required_evidence": 4,
         "usable_required_evidence": 1,
-        "missing_required_evidence": 11,
-        "unusable_present_required_evidence": 4,
-        "by_status": {"blocked_artifact": 3, "invalid_content": 1, "missing": 11, "usable": 1},
+        "missing_required_evidence": 12,
+        "unusable_present_required_evidence": 3,
+        "by_status": {"blocked_artifact": 3, "missing": 12, "usable": 1},
     }
     missing_ids = [
         "wave1_governed_acquisition",
@@ -69,9 +69,9 @@ def valid_goal_snapshot() -> dict:
                 {
                     "ref": "w1_transcript.json",
                     "type": "file",
-                    "present": True,
+                    "present": False,
                     "usable": False,
-                    "status": "invalid_content",
+                    "status": "missing",
                 },
                 {"ref": "w1_receipt.json", "type": "file", "present": True, "usable": False, "status": "blocked_artifact"},
             ],
