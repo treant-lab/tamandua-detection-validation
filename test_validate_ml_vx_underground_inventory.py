@@ -28,17 +28,10 @@ def valid_inventory() -> dict:
             "script_fetch_status": "blocked_http_403",
             "archive_downloaded": False,
             "inventory_role": "holdout_candidate",
-            "holdout_role": "holdout_metadata_only",
             "used_in_training": False,
             "raw_archives_in_repo": False,
             "archive_extraction_performed": False,
             "endpoint_exposed": False,
-            "downloads_require_guard_env": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD",
-            "operator_next_command": (
-                "python apps\\tamandua_ml\\scripts\\acquire_vx_underground.py "
-                "--output docs\\benchmarks\\runs\\20260604T-vx-inventory-smoke "
-                "--inventory-out docs\\benchmarks\\runs\\ml-vx-inthewild-inventory.json"
-            ),
             "claim_boundary": (
                 "Inventory metadata only. It does not download, extract, execute, classify, "
                 "or train on malware samples."
