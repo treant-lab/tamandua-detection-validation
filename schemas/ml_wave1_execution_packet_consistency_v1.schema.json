@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave1_execution_packet_consistency_v1.schema.json",
+  "title": "Tamandua ML Wave 1 Execution Packet Consistency v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "consistent", "blockers", "source", "configuration", "summary", "checks"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave1-execution-packet-consistency/v1"},
+    "kind": {"const": "MLWave1ExecutionPacketConsistency"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "consistent": {"type": "boolean"},
+    "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wave1_execution_packet",
+        "wave1_execution_packet_validation",
+        "wave1_operator_launch_brief",
+        "wave1_operator_launch_brief_validation",
+        "wave1_go_no_go",
+        "wave1_go_no_go_validation",
+        "wave1_execute_guard",
+        "wave1_execute_guard_validation",
+        "acquisition_readiness",
+        "acquisition_readiness_validation",
+        "lab_transcript_template",
+        "lab_transcript_template_validation",
+        "source_status_summary"
+      ],
+      "properties": {
+        "wave1_execution_packet": {"type": "string", "pattern": "20260604T-ml-wave1-execution-packet\\.json$"},
+        "wave1_execution_packet_validation": {"enum": ["jsonschema+built-in", "built-in", "failed"]},
+        "wave1_operator_launch_brief": {"type": "string", "pattern": "20260604T-ml-wave1-operator-launch-brief\\.json$"},
+        "wave1_operator_launch_brief_validation": {"enum": ["jsonschema+built-in", "built-in", "failed"]},
+        "wave1_go_no_go": {"type": "string", "pattern": "20260604T-ml-wave1-go-no-go\\.json$"},
+        "wave1_go_no_go_validation": {"enum": ["jsonschema+built-in", "built-in", "failed"]},
+        "wave1_execute_guard": {"type": "string", "pattern": "20260604T-ml-wave1-execute-guard-probe\\.json$"},
+        "wave1_execute_guard_validation": {"enum": ["jsonschema+built-in", "built-in", "failed"]},
+        "acquisition_readiness": {"type": "string", "pattern": "20260604T-ml-acquisition-readiness\\.json$"},
+        "acquisition_readiness_validation": {"enum": ["jsonschema+built-in", "built-in", "failed"]},
+        "lab_transcript_template": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.template\\.json$"},
+        "lab_transcript_template_validation": {"enum": ["jsonschema+built-in", "built-in", "failed"]},
+        "source_status_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "packet_safe_to_operator",
+            "operator_ready",
+            "go_for_guarded_real_acquisition",
+            "execute_guard_passed",
+            "acquisition_readiness_passed",
+            "check_count",
+            "passed_checks",
+            "failed_checks",
+            "blocker_count",
+            "blockers",
+            "command_mismatch_count",
+            "command_mismatch_fields",
+            "hash_mismatch_count",
+            "hash_mismatch_fields",
+            "authorized_acquisition_mismatch_count",
+            "authorized_acquisition_mismatch_fields",
+            "authorized_acquisition_command_sha256",
+            "next_action_safety_mismatch_count",
+            "next_action_safety_mismatch_fields",
+            "next_action_safety_assertions_passed",
+            "next_action_safety_assertions",
+            "lab_standby_guard_proof_mismatch_count",
+            "lab_standby_guard_proof_mismatch_fields",
+            "ml_lab_standby_guards_unset",
+            "ml_lab_standby_enabled_guards",
+            "operator_sequence_modes_sha256",
+            "operator_commands_by_mode_sha256",
+            "execution_packet_operator_sequence_modes",
+            "execution_packet_operator_sequence_step_count",
+            "execution_packet_operator_sequence_modes_sha256",
+            "execution_packet_operator_sequence_preserved",
+            "path_mismatch_count",
+            "path_mismatch_fields",
+            "guard_mismatch_count",
+            "guard_mismatch_fields",
+            "artifact_state_mismatch_count",
+            "artifact_state_mismatch_fields",
+            "operator_sequence_modes",
+            "operator_sequence_step_count",
+            "operator_sequence_expected_modes",
+            "operator_sequence_exact",
+            "validation_only_command_count",
+            "guarded_execute_command_count",
+            "guarded_required_env_count",
+            "command_guard_boundary_preserved"
+          ],
+          "properties": {
+            "packet_safe_to_operator": {"type": "boolean"},
+            "operator_ready": {"type": "boolean"},
+            "go_for_guarded_real_acquisition": {"type": "boolean"},
+            "execute_guard_passed": {"type": "boolean"},
+            "acquisition_readiness_passed": {"type": "boolean"},
+            "check_count": {"type": "integer", "minimum": 0},
+            "passed_checks": {"type": "integer", "minimum": 0},
+            "failed_checks": {"type": "integer", "minimum": 0},
+            "blocker_count": {"type": "integer", "minimum": 0},
+            "blockers": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "command_mismatch_count": {"type": "integer", "minimum": 0},
+            "command_mismatch_fields": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "hash_mismatch_count": {"type": "integer", "minimum": 0},
+            "hash_mismatch_fields": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "authorized_acquisition_mismatch_count": {"type": "integer", "minimum": 0},
+            "authorized_acquisition_mismatch_fields": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "authorized_acquisition_command_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "next_action_safety_mismatch_count": {"type": "integer", "minimum": 0},
+            "next_action_safety_mismatch_fields": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "next_action_safety_assertions_passed": {"type": "boolean"},
+            "next_action_safety_assertions": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "command_validation_only",
+                "execute_guard_absent",
+                "selected_action_only",
+                "no_success_stderr",
+                "no_real_operation_evidence",
+                "guarded_command_printed",
+                "no_real_acquisition_evidence",
+                "guarded_would_run_command_printed",
+                "data_root_outside_repo"
+              ],
+              "properties": {
+                "command_validation_only": {"type": "boolean"},
+                "execute_guard_absent": {"type": "boolean"},
+                "selected_action_only": {"type": "boolean"},
+                "no_success_stderr": {"type": "boolean"},
+                "no_real_operation_evidence": {"type": "boolean"},
+                "guarded_command_printed": {"type": "boolean"},
+                "no_real_acquisition_evidence": {"type": "boolean"},
+                "guarded_would_run_command_printed": {"type": "boolean"},
+                "data_root_outside_repo": {"type": "boolean"}
+              }
+            },
+            "lab_standby_guard_proof_mismatch_count": {"type": "integer", "minimum": 0},
+            "lab_standby_guard_proof_mismatch_fields": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "ml_lab_standby_guards_unset": {"type": "boolean"},
+            "ml_lab_standby_enabled_guards": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "operator_sequence_modes_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "operator_commands_by_mode_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "execution_packet_operator_sequence_modes": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "execution_packet_operator_sequence_step_count": {"type": "integer", "minimum": 0},
+            "execution_packet_operator_sequence_modes_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "execution_packet_operator_sequence_preserved": {"type": "boolean"},
+            "path_mismatch_count": {"type": "integer", "minimum": 0},
+            "path_mismatch_fields": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "guard_mismatch_count": {"type": "integer", "minimum": 0},
+            "guard_mismatch_fields": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "artifact_state_mismatch_count": {"type": "integer", "minimum": 0},
+            "artifact_state_mismatch_fields": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "operator_sequence_modes": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "operator_sequence_step_count": {"type": "integer", "minimum": 0},
+            "operator_sequence_expected_modes": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "operator_sequence_exact": {"type": "boolean"},
+            "validation_only_command_count": {"const": 3},
+            "guarded_execute_command_count": {"const": 2},
+            "guarded_required_env_count": {"const": 2},
+            "command_guard_boundary_preserved": {"type": "boolean"},
+            "goal_complete": {"const": false},
+            "next_unproven_requirement_id": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wave1_execution_packet", "wave1_operator_launch_brief", "wave1_go_no_go", "wave1_execute_guard", "acquisition_readiness", "lab_transcript_template"],
+      "properties": {
+        "wave1_execution_packet": {"type": "string", "pattern": "20260604T-ml-wave1-execution-packet\\.json$"},
+        "wave1_operator_launch_brief": {"type": "string", "pattern": "20260604T-ml-wave1-operator-launch-brief\\.json$"},
+        "wave1_go_no_go": {"type": "string", "pattern": "20260604T-ml-wave1-go-no-go\\.json$"},
+        "wave1_execute_guard": {"type": "string", "pattern": "20260604T-ml-wave1-execute-guard-probe\\.json$"},
+        "acquisition_readiness": {"type": "string", "pattern": "20260604T-ml-acquisition-readiness\\.json$"},
+        "lab_transcript_template": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.template\\.json$"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packet_safe_to_operator", "operator_ready", "go_for_guarded_real_acquisition", "execute_guard_passed", "acquisition_readiness_passed", "command_mismatches", "hash_mismatches", "authorized_acquisition_mismatches", "next_action_safety_mismatches", "next_action_safety_assertions_passed", "lab_standby_guard_proof_mismatches", "ml_lab_standby_guards_unset", "path_mismatches", "guard_mismatches", "artifact_state_mismatches", "operator_sequence_steps", "validation_only_command_count", "guarded_execute_command_count", "guarded_required_env_count", "command_guard_boundary_preserved"],
+      "properties": {
+        "packet_safe_to_operator": {"type": "boolean"},
+        "operator_ready": {"type": "boolean"},
+        "go_for_guarded_real_acquisition": {"type": "boolean"},
+        "execute_guard_passed": {"type": "boolean"},
+        "acquisition_readiness_passed": {"type": "boolean"},
+        "command_mismatches": {"type": "integer", "minimum": 0},
+        "hash_mismatches": {"type": "integer", "minimum": 0},
+        "authorized_acquisition_mismatches": {"type": "integer", "minimum": 0},
+        "next_action_safety_mismatches": {"type": "integer", "minimum": 0},
+        "next_action_safety_assertions_passed": {"type": "boolean"},
+        "lab_standby_guard_proof_mismatches": {"type": "integer", "minimum": 0},
+        "ml_lab_standby_guards_unset": {"type": "boolean"},
+        "path_mismatches": {"type": "integer", "minimum": 0},
+        "guard_mismatches": {"type": "integer", "minimum": 0},
+        "artifact_state_mismatches": {"type": "integer", "minimum": 0},
+        "operator_sequence_steps": {"type": "integer", "minimum": 0},
+        "validation_only_command_count": {"const": 3},
+        "guarded_execute_command_count": {"const": 2},
+        "guarded_required_env_count": {"const": 2},
+        "command_guard_boundary_preserved": {"type": "boolean"}
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

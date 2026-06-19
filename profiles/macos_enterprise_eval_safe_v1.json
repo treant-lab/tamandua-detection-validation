@@ -19,7 +19,7 @@
     "storyline": "Process, parent, command line, file, DNS, network, launchd and TCC/XPC fields are required when relevant.",
     "noise": "Low-risk tests must not emit unexpected high/critical events."
   },
-  "claim_boundary": "macOS deterministic enterprise evaluation only. Promotion requires server-backed agent evidence, EndpointSecurity entitlement proof, and backend ingestion.",
+  "claim_boundary": "macOS deterministic enterprise evaluation only. Promotion requires server-backed agent evidence, EndpointSecurity and System Extension install entitlement proof, and backend ingestion.",
   "tests": [
     {
       "id": "eval-macos-T1033-user-discovery",

@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave1_execution_environment_preflight_v1.schema.json",
+  "title": "Tamandua ML Wave 1 Execution Environment Preflight v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "source",
+    "source_artifact_hashes",
+    "mode",
+    "ready",
+    "data_root",
+    "operator_sequence",
+    "vx_policy",
+    "guard_policy",
+    "malware_bazaar_auth",
+    "source_status_summary",
+    "checks"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave1-execution-environment-preflight/v1"},
+    "kind": {"const": "MLWave1ExecutionEnvironmentPreflight"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pre_execution_checklist", "pre_execution_checklist_validation"],
+      "properties": {
+        "pre_execution_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
+        "pre_execution_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]}
+      }
+    },
+    "source_artifact_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pre_execution_checklist"],
+      "properties": {
+        "pre_execution_checklist": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        }
+      }
+    },
+    "mode": {"enum": ["pre_authorization", "guarded_execution"]},
+    "ready": {"type": "boolean"},
+    "data_root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "env",
+        "configured",
+        "raw",
+        "resolved",
+        "outside_repo",
+        "free_bytes",
+        "required_free_bytes_for_guarded_execution",
+        "capacity_sufficient_for_guarded_execution"
+      ],
+      "properties": {
+        "env": {"const": "TAMANDUA_ML_DATA_ROOT"},
+        "configured": {"type": "boolean"},
+        "raw": {"type": "string"},
+        "resolved": {"type": "string"},
+        "outside_repo": {"type": "boolean"},
+        "free_bytes": {"type": "integer", "minimum": 0},
+        "required_free_bytes_for_guarded_execution": {"const": 53687091200},
+        "capacity_sufficient_for_guarded_execution": {"type": "boolean"}
+      }
+    },
+    "operator_sequence": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "mode", "command", "required_env", "claim_boundary"],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1, "maximum": 2},
+          "mode": {"enum": ["validation_only", "guarded_execute"]},
+          "guard_set_command": {"type": "string", "minLength": 1},
+          "command": {"type": "string", "minLength": 1},
+          "required_env": {
+            "type": "object",
+            "additionalProperties": {"type": "string"}
+          },
+          "guard_cleanup_command": {"type": "string", "minLength": 1},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "vx_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_present",
+        "vx_download_authorized_by_this_packet",
+        "vx_inventory_metadata_only",
+        "vx_samples_allowed_in_training_splits",
+        "vx_guard_must_remain_unset_for_wave1_acquisition"
+      ],
+      "properties": {
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_present": {"const": false},
+        "vx_download_authorized_by_this_packet": {"const": false},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_samples_allowed_in_training_splits": {"const": false},
+        "vx_guard_must_remain_unset_for_wave1_acquisition": {"const": true}
+      }
+    },
+    "guard_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "guard_to_set",
+        "required_unset_guard_env",
+        "enabled_guard_env",
+        "expected_enabled_guard_env",
+        "prohibited_enabled_guard_env",
+        "acquisition_guard_enabled",
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_enabled",
+        "guard_state_matches_mode"
+      ],
+      "properties": {
+        "guard_to_set": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "required_unset_guard_env": {
+          "type": "array",
+          "minItems": 8,
+          "items": {"type": "string", "minLength": 1},
+          "contains": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"}
+        },
+        "enabled_guard_env": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "expected_enabled_guard_env": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "prohibited_enabled_guard_env": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "acquisition_guard_enabled": {"type": "boolean"},
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_enabled": {"const": false},
+        "guard_state_matches_mode": {"type": "boolean"}
+      }
+    },
+    "malware_bazaar_auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["env", "present", "value_redacted"],
+      "properties": {
+        "env": {"const": "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"},
+        "present": {"type": "boolean"},
+        "value_redacted": {"enum": ["present", "absent"]}
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ready",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "data_root_configured",
+        "data_root_outside_repo",
+        "data_root_free_bytes",
+        "data_root_required_free_bytes_for_guarded_execution",
+        "data_root_capacity_sufficient_for_guarded_execution",
+        "operator_sequence_steps",
+        "operator_sequence_ready",
+        "goal_snapshot_anchor_check_passed",
+        "transcript_contract_validation_before_run",
+        "transcript_contract_valid_before_run",
+        "transcript_contract_missing_before_run",
+        "wave1_pre_execution_transcript_contract_validation_before_run",
+        "wave1_pre_execution_transcript_contract_valid_before_run",
+        "wave1_pre_execution_transcript_contract_missing_before_run",
+        "wave1_acceptance_intake_transcript_contract_validation",
+        "wave1_acceptance_intake_transcript_contract_valid",
+        "wave1_transcript_contract_valid_for_manifest_publish",
+        "guard_state_matches_mode",
+        "malware_bazaar_auth_key_env",
+        "malware_bazaar_auth_key_present",
+        "vx_archive_download_guard_absent",
+        "vx_download_authorized_by_preflight",
+        "vx_inventory_metadata_only",
+        "vx_samples_allowed_in_training_splits",
+        "mode",
+        "completion_state",
+        "goal_missing_requirements",
+        "goal_required_evidence_total",
+        "goal_present_required_evidence",
+        "goal_usable_required_evidence",
+        "goal_missing_required_evidence",
+        "goal_unusable_present_required_evidence",
+        "next_unproven_requirement_id",
+        "next_unproven_requirement_phase",
+        "next_unproven_execute_guard_env",
+        "missing_requirement_ids",
+        "evidence_status_summary",
+        "next_unproven_requirement"
+      ],
+      "properties": {
+        "ready": {"type": "boolean"},
+        "check_count": {"type": "integer", "minimum": 1},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "data_root_configured": {"type": "boolean"},
+        "data_root_outside_repo": {"type": "boolean"},
+        "data_root_free_bytes": {"type": "integer", "minimum": 0},
+        "data_root_required_free_bytes_for_guarded_execution": {"const": 53687091200},
+        "data_root_capacity_sufficient_for_guarded_execution": {"type": "boolean"},
+        "operator_sequence_steps": {"const": 2},
+        "operator_sequence_ready": {"type": "boolean"},
+        "goal_snapshot_anchor_check_passed": {"const": true},
+        "transcript_contract_validation_before_run": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "transcript_contract_valid_before_run": {"type": "boolean"},
+        "transcript_contract_missing_before_run": {"type": "boolean"},
+        "wave1_pre_execution_transcript_contract_validation_before_run": {"const": "missing"},
+        "wave1_pre_execution_transcript_contract_valid_before_run": {"const": false},
+        "wave1_pre_execution_transcript_contract_missing_before_run": {"const": true},
+        "wave1_acceptance_intake_transcript_contract_validation": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "wave1_acceptance_intake_transcript_contract_valid": {"type": "boolean"},
+        "wave1_transcript_contract_valid_for_manifest_publish": {"type": "boolean"},
+        "guard_state_matches_mode": {"type": "boolean"},
+        "malware_bazaar_auth_key_env": {"const": "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"},
+        "malware_bazaar_auth_key_present": {"type": "boolean"},
+        "vx_archive_download_guard_absent": {"const": true},
+        "vx_download_authorized_by_preflight": {"const": false},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_samples_allowed_in_training_splits": {"const": false},
+        "mode": {"enum": ["pre_authorization", "guarded_execution"]},
+        "goal_complete": {"const": false},
+        "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+        "goal_missing_requirements": {"type": "integer", "minimum": 0, "maximum": 10},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+        "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string"},
+        "next_unproven_requirement_phase": {"type": "string"},
+        "next_unproven_execute_guard_env": {"type": "string"},
+        "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "evidence_status_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total_required_evidence", "present_required_evidence", "usable_required_evidence", "missing_required_evidence", "unusable_present_required_evidence", "by_status"],
+          "properties": {
+            "total_required_evidence": {"type": "integer", "minimum": 1},
+            "present_required_evidence": {"type": "integer", "minimum": 0},
+            "usable_required_evidence": {"type": "integer", "minimum": 0},
+            "missing_required_evidence": {"type": "integer", "minimum": 0},
+            "unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "by_status": {
+              "type": "object",
+              "additionalProperties": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        "next_unproven_requirement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "phase", "phase_state", "execute_guard_env", "pending_targets", "required_evidence", "missing_or_unusable_evidence"],
+          "properties": {
+            "id": {"type": "string"},
+            "phase": {"type": "string"},
+            "phase_state": {"type": "string"},
+            "execute_guard_env": {"type": "string"},
+            "pending_targets": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "required_evidence": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "missing_or_unusable_evidence": {"type": "array", "items": {"type": "string", "minLength": 1}}
+          }
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

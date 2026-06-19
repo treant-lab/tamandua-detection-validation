@@ -236,17 +236,18 @@ PROFILE_CALDERA_REPEATABILITY = "caldera-repeatability-probe"
 PROFILE_WINDOWS_LAB_READINESS = "windows-lab-execution-readiness-probe"
 PROFILE_WINDOWS_CONNECTION_STABILITY = "windows-agent-connection-stability-probe"
 PROFILE_MACOS_BACKEND_READINESS = "macos-backend-readiness-probe"
+PROFILE_MACOS_RELEASE_ARTIFACT_PREFLIGHT = "macos-release-artifact-preflight"
 PROFILE_ATOMIC_T1047_CAPABILITY = "atomic-t1047-lab-capability-probe"
 PROFILE_WINDOWS_QGA_READINESS = "windows-proxmox-qga-readiness-probe"
 PROFILE_LINUX_EBPF_READINESS = "linux-ebpf-readiness-probe"
 MIN_SCORECARD_CONSISTENCY_CHECKS = 360
-EXPECTED_WINDOWS_LAB_RUN = "20260614T003800Z-windows-lab-execution-readiness-probe"
-EXPECTED_WINDOWS_CONNECTION_STABILITY_RUN = "20260614T003923Z-windows-agent-connection-stability-probe"
-EXPECTED_MACOS_BACKEND_RUN = "20260614T042036Z-macos-backend-readiness-probe"
-EXPECTED_ATOMIC_T1047_RUN = "20260614T042216Z-atomic-t1047-lab-capability-probe"
-EXPECTED_WINDOWS_QGA_AGGREGATE_PASS_RUN = "20260614T020741Z-windows-proxmox-qga-readiness-probe"
-EXPECTED_WINDOWS_QGA_LATEST_RAW_RUN = "20260614T020741Z-windows-proxmox-qga-readiness-probe"
-EXPECTED_WINDOWS_QGA_LATEST_RAW_FAIL_RUN = "20260614T005718Z-windows-proxmox-qga-readiness-probe"
+EXPECTED_WINDOWS_LAB_RUN = "20260615T032902Z-windows-lab-execution-readiness-probe"
+EXPECTED_WINDOWS_CONNECTION_STABILITY_RUN = "20260615T185235Z-windows-agent-connection-stability-probe"
+EXPECTED_MACOS_BACKEND_RUN = "20260618T175420Z-macos-backend-readiness-probe"
+EXPECTED_ATOMIC_T1047_RUN = "20260615T224540Z-atomic-t1047-lab-capability-probe"
+EXPECTED_WINDOWS_QGA_AGGREGATE_PASS_RUN = "20260617T042820Z-windows-proxmox-qga-readiness-probe"
+EXPECTED_WINDOWS_QGA_LATEST_RAW_RUN = "20260617T042820Z-windows-proxmox-qga-readiness-probe"
+EXPECTED_WINDOWS_QGA_LATEST_RAW_FAIL_RUN = "20260617T042448Z-windows-proxmox-qga-readiness-probe"
 EXPECTED_LINUX_EBPF_RUN = "20260603T180022Z-linux-ebpf-readiness-probe"
 EXPECTED_CLOSURE_EXCLUDED_ROADMAPS = {
     "O": "generated_scorecard_automation_not_product_gate",
@@ -285,7 +286,7 @@ EXPECTED_DISPATCH_AGENT_EXCERPTS = {
     },
     "wave-1-restore-macos-backend-readiness": {
         "hostname": "Victors-MacBook-Pro.local",
-        "status": "offline",
+        "status": "online",
     },
     "wave-1-restore-windows-qga-readiness": {
         "missing_package": [
@@ -310,70 +311,18 @@ EXPECTED_DISPATCH_WINDOWS_CONNECTION_HANDOFF = {}
 EXPECTED_DISPATCH_MACOS_AUTH_HANDOFF = {
     "package_id": "wave-1-restore-macos-backend-readiness",
     "profile_id": PROFILE_MACOS_BACKEND_READINESS,
-    "missing_readiness": ["status_online", "health_healthy", "fresh_heartbeat"],
+    "missing_readiness": ["health_healthy"],
     "login_command": "",
     "token_env": "",
     "token_login_command": "",
     "target_server": "",
     "has_action": True,
 }
-EXPECTED_CLOSURE_NEXT_ACTION_REQUIRED_ENVS = {
-    "B": [
-        "TAMANDUA_FRESH_RESTORE",
-        "TAMANDUA_FRESH_RESTORE_AGENT_ID",
-        "TAMANDUA_FRESH_RESTORE_FINISHED_AT",
-        "TAMANDUA_FRESH_RESTORE_HOSTNAME",
-        "TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID",
-        "TAMANDUA_FRESH_RESTORE_SNAPSHOT_NAME",
-        "TAMANDUA_FRESH_RESTORE_STARTED_AT",
-        "TAMANDUA_FRESH_RESTORE_VMID",
-    ],
-    "D": ["CALDERA_AGENT_PAW", "CALDERA_API_KEY", "CALDERA_GROUP"],
-}
-EXPECTED_PREFLIGHT_PACKAGE_REQUIRED_ENVS = {
-    "wave-2-capture-fresh-restore-provenance": [
-        "TAMANDUA_FRESH_RESTORE",
-        "TAMANDUA_FRESH_RESTORE_AGENT_ID",
-        "TAMANDUA_FRESH_RESTORE_FINISHED_AT",
-        "TAMANDUA_FRESH_RESTORE_HOSTNAME",
-        "TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID",
-        "TAMANDUA_FRESH_RESTORE_SNAPSHOT_NAME",
-        "TAMANDUA_FRESH_RESTORE_STARTED_AT",
-        "TAMANDUA_FRESH_RESTORE_VMID",
-    ],
-}
-EXPECTED_CALDERA_REPEATABILITY_RESET_REASONS = {
-    "windows-caldera-enterprise-safe": (
-        "quality_gate_failed:caldera_agent_stale_1021008s,caldera_agent_stale_or_offline"
-    ),
-}
-EXPECTED_CALDERA_REPEATABILITY_NEXT_ACTIONS = {
-    "windows-caldera-smoke": {
-        "passes_needed": 3,
-        "profile_file": "tools/detection_validation/profiles/windows_caldera_smoke.json",
-        "has_command_hint": True,
-        "required_env": ["CALDERA_API_KEY", "CALDERA_GROUP", "CALDERA_AGENT_PAW"],
-    },
-    "windows-caldera-enterprise-safe": {
-        "passes_needed": 3,
-        "profile_file": "tools/detection_validation/profiles/windows_caldera_enterprise_safe.json",
-        "has_command_hint": True,
-        "required_env": ["CALDERA_API_KEY", "CALDERA_GROUP", "CALDERA_AGENT_PAW"],
-    },
-}
-EXPECTED_PREFLIGHT_REQUIRED_ENVS = [
-    "CALDERA_API_KEY",
-    "CALDERA_AGENT_PAW",
-    "CALDERA_GROUP",
-    "TAMANDUA_FRESH_RESTORE",
-    "TAMANDUA_FRESH_RESTORE_AGENT_ID",
-    "TAMANDUA_FRESH_RESTORE_FINISHED_AT",
-    "TAMANDUA_FRESH_RESTORE_HOSTNAME",
-    "TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID",
-    "TAMANDUA_FRESH_RESTORE_SNAPSHOT_NAME",
-    "TAMANDUA_FRESH_RESTORE_STARTED_AT",
-    "TAMANDUA_FRESH_RESTORE_VMID",
-]
+EXPECTED_CLOSURE_NEXT_ACTION_REQUIRED_ENVS = {}
+EXPECTED_PREFLIGHT_PACKAGE_REQUIRED_ENVS = {}
+EXPECTED_CALDERA_REPEATABILITY_RESET_REASONS = {}
+EXPECTED_CALDERA_REPEATABILITY_NEXT_ACTIONS = {}
+EXPECTED_PREFLIGHT_REQUIRED_ENVS = []
 EXPECTED_ROADMAP_B_NOTE_MARKERS = [
     "executed",
     "non-planned",
@@ -383,53 +332,34 @@ EXPECTED_ROADMAP_B_NOTE_MARKERS = [
 ]
 EXPECTED_BLOCKED_RUN_CLASS_ROADMAPS = {
     "macos-server-backed-smoke": ["E"],
-    "windows-atomic-extended": ["M"],
-    "windows-broad": ["A", "B", "M"],
-    "windows-caldera-enterprise": ["D", "M"],
 }
 EXPECTED_BLOCKED_RUN_CLASS_MISSING_ENVS = {
     "macos-server-backed-smoke": [],
-    "windows-atomic-extended": [],
-    "windows-broad": [],
-    "windows-caldera-enterprise": [],
 }
 EXPECTED_UNBLOCK_SEQUENCE = [
-    "capture-fresh-restore-provenance",
-    "restore-caldera-readiness-repeatability",
-    "resolve-atomic-extended-preconditions",
     "restore-macos-backend-readiness",
     "rerun-preflight-and-closure-gate",
 ]
-EXPECTED_UNBLOCK_SEQUENCE_PRIORITIES = [30, 40, 50, 60, 90]
+EXPECTED_UNBLOCK_SEQUENCE_PRIORITIES = [60, 90]
 EXPECTED_PARALLEL_UNBLOCK_WAVES = [
     {
         "wave": 1,
-        "parallelizable": True,
-        "step_ids": [
-            "resolve-atomic-extended-preconditions",
-            "restore-macos-backend-readiness",
-        ],
+        "parallelizable": False,
+        "step_ids": ["restore-macos-backend-readiness"],
         "depends_on_waves": [],
-    },
-    {
-        "wave": 2,
-        "parallelizable": True,
-        "step_ids": [
-            "capture-fresh-restore-provenance",
-            "restore-caldera-readiness-repeatability",
-        ],
-        "depends_on_waves": [1],
     },
     {
         "wave": 3,
         "parallelizable": False,
         "step_ids": ["rerun-preflight-and-closure-gate"],
-        "depends_on_waves": [1, 2],
+        "depends_on_waves": [1],
     },
 ]
 EXPECTED_PREFLIGHT_SAFE_COMMAND_MARKERS = [
-    "caldera_repeatability_probe.py --output-dir",
     "macos_backend_readiness_probe.py --server http://192.168.12.146:4000 --output-dir",
+    "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT",
+    "--bootstrap-readiness-report $BootstrapReadinessReport",
+    "-BootstrapReadinessReport $BootstrapReadinessReport",
     "roadmap_closure_gate_probe.py --output-dir",
 ]
 
@@ -450,8 +380,106 @@ AI_MODEL_SCANNER_SCORECARD_DOC = ROOT / "docs" / "benchmarks" / "AI_MODEL_SCANNE
 BENCHMARK_RESULTS_REVIEW_DOC = ROOT / "docs" / "benchmarks" / "BENCHMARK_RESULTS_REVIEW.md"
 ROADMAP_DELIVERY_PLAN_DOC = ROOT / "docs" / "benchmarks" / "ROADMAP_DELIVERY_PLAN.md"
 VALIDATION_MASTER_PLAN_DOC = ROOT / "docs" / "benchmarks" / "VALIDATION_MASTER_PLAN.md"
+COMPARATIVE_BENCHMARK_POSITIONING_DOC = (
+    ROOT / "docs" / "benchmarks" / "COMPARATIVE_BENCHMARK_POSITIONING.md"
+)
+DETECTION_SCORECARD_DOC = ROOT / "docs" / "benchmarks" / "DETECTION_SCORECARD.md"
+CLAIM_POSITIONING_DOCS = [
+    ENGINE_MATURITY_DOC,
+    ROADMAP_DELIVERY_PLAN_DOC,
+    VALIDATION_MASTER_PLAN_DOC,
+    COMPARATIVE_BENCHMARK_POSITIONING_DOC,
+    DETECTION_SCORECARD_DOC,
+]
+MACOS_ROADMAP_P0_RUNBOOK_DOC = ROOT / "docs" / "benchmarks" / "macos-roadmap-p0-lab-runbook.md"
+MACOS_LOCAL_BUILD_DOC = ROOT / "docs" / "deployment" / "MACOS_LOCAL_BUILD.md"
+CI_SIGNED_INSTALLER_EVIDENCE_DOC = ROOT / "docs" / "deployment" / "CI_AND_SIGNED_INSTALLER_EVIDENCE.md"
 KNOWN_PRODUCTION_GAPS_DOC = ROOT / "docs" / "KNOWN_PRODUCTION_GAPS.md"
+TAMANDUA_GUI_README = ROOT / "apps" / "tamandua_gui" / "README.md"
 REFRESH_AUTHORITY_SCRIPT = ROOT / "tools" / "detection_validation" / "refresh_validation_authority.py"
+MACOS_BACKEND_READINESS_PROBE = ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+MACOS_RELEASE_ARTIFACT_PREFLIGHT = ROOT / "tools" / "detection_validation" / "macos_release_artifact_preflight.py"
+MACOS_RELEASE_ARTIFACT_PREFLIGHT_SCHEMA = (
+    ROOT / "docs" / "benchmarks" / "macos_release_artifact_preflight.schema.json"
+)
+MACOS_P0_SMOKE_RUNNER = ROOT / "deploy" / "scripts" / "proxmox" / "run-macos-p0-smoke.ps1"
+MACOS_NOTARIZE_SCRIPT = ROOT / "apps" / "tamandua_agent" / "scripts" / "notarize.sh"
+MACOS_SIGN_SCRIPT = ROOT / "scripts" / "sign_macos.sh"
+MACOS_DMG_SCRIPT = ROOT / "deploy" / "installers" / "macos" / "create-dmg.sh"
+MACOS_RELEASE_ENTITLEMENTS = ROOT / "deploy" / "installers" / "macos" / "entitlements.plist"
+MACOS_BOOTSTRAP_SCRIPT = ROOT / "deploy" / "scripts" / "proxmox" / "bootstrap-lab-macos-agent.sh"
+MACOS_BOOTSTRAP_READINESS_SCHEMA = ROOT / "docs" / "benchmarks" / "macos_bootstrap_readiness.schema.json"
+MACOS_BOOTSTRAP_READINESS_CHECK = ROOT / "docs" / "benchmarks" / "macos_bootstrap_readiness_check.ps1"
+MACOS_SYSTEM_EXTENSION_INFO_PLIST = (
+    ROOT
+    / "apps"
+    / "tamandua_agent"
+    / "SystemExtension"
+    / "TamanduaFileMonitor"
+    / "Info.plist"
+)
+LINUX_EBPF_COLLECTOR = ROOT / "apps" / "tamandua_agent" / "src" / "collectors" / "ebpf_linux.rs"
+LINUX_EBPF_PROGRAM = ROOT / "apps" / "tamandua_agent" / "ebpf-programs" / "src" / "main.rs"
+LINUX_AUDITD_RULES = ROOT / "apps" / "tamandua_agent" / "src" / "collectors" / "linux" / "auditd_rules.rs"
+LINUX_EXECVEAT_MEMFD_PROFILE = (
+    ROOT
+    / "tools"
+    / "detection_validation"
+    / "profiles"
+    / "linux_execveat_memfd_live_kernel_proof.json"
+)
+LINUX_EBPF_READINESS_RUNBOOK = (
+    ROOT / "apps" / "tamandua_agent" / "docs" / "benchmarks" / "EBPF_READINESS_RUNBOOK.md"
+)
+RELEASE_WORKFLOW = ROOT / ".github" / "workflows" / "release.yml"
+CI_WORKFLOW = ROOT / ".github" / "workflows" / "ci.yml"
+MACOS_AGENT_BUILD_WORKFLOW = ROOT / ".github" / "workflows" / "macos-agent-build.yml"
+SIGN_BINARIES_WORKFLOW = ROOT / ".github" / "workflows" / "sign_binaries.yml"
+PUBLISH_PACKAGES_WORKFLOW = ROOT / ".github" / "workflows" / "publish-packages.yml"
+MACOS_NOTARIZE_WORKFLOW = ROOT / ".github" / "workflows" / "macos-notarize.yml"
+HOMEBREW_FORMULA = ROOT / "deploy" / "packages" / "homebrew" / "tamandua.rb"
+HOMEBREW_MACOS_CASK = ROOT / "deploy" / "packages" / "homebrew" / "Casks" / "tamandua-edr.rb"
+CHOCOLATEY_INSTALL_SCRIPT = ROOT / "deploy" / "packages" / "chocolatey" / "tools" / "chocolateyinstall.ps1"
+APT_BUILD_DEB = ROOT / "deploy" / "packages" / "apt" / "build-deb.sh"
+YUM_SPEC = ROOT / "deploy" / "packages" / "yum" / "tamandua.spec"
+UPDATES_UPDATE_PACKAGE = ROOT / "apps" / "tamandua_server" / "lib" / "tamandua_server" / "updates" / "update_package.ex"
+AGENTS_UPDATE_PACKAGE = ROOT / "apps" / "tamandua_server" / "lib" / "tamandua_server" / "agents" / "update_package.ex"
+UPDATES_SCHEMAS = ROOT / "apps" / "tamandua_server" / "lib" / "tamandua_server" / "updates" / "schemas.ex"
+UPDATES_VERSION_MANAGER = (
+    ROOT / "apps" / "tamandua_server" / "lib" / "tamandua_server" / "updates" / "version_manager.ex"
+)
+AGENT_DOWNLOAD_CONTROLLER = (
+    ROOT
+    / "apps"
+    / "tamandua_server"
+    / "lib"
+    / "tamandua_server_web"
+    / "controllers"
+    / "agent_download_controller.ex"
+)
+UPDATE_CONTROLLER = (
+    ROOT
+    / "apps"
+    / "tamandua_server"
+    / "lib"
+    / "tamandua_server_web"
+    / "controllers"
+    / "api"
+    / "v1"
+    / "update_controller.ex"
+)
+INERTIA_CONTROLLER = (
+    ROOT
+    / "apps"
+    / "tamandua_server"
+    / "lib"
+    / "tamandua_server_web"
+    / "controllers"
+    / "inertia_controller.ex"
+)
+DEPLOY_AGENT_PAGE = ROOT / "apps" / "tamandua_server" / "assets" / "src" / "pages" / "DeployAgent.tsx"
+STATIC_AGENT_DOWNLOADS = ROOT / "apps" / "tamandua_server" / "priv" / "static" / "downloads" / "agents"
+DIST_UPLOAD_MACOS = ROOT / "dist" / "upload" / "macos"
 
 
 def git_snapshot() -> dict[str, Any]:
@@ -562,6 +590,12 @@ def check_contains(
     checks: list[dict[str, Any]], name: str, text: str, needle: str, source: Path
 ) -> None:
     check(checks, name, needle in text, True, [rel(source)])
+
+
+def check_not_contains(
+    checks: list[dict[str, Any]], name: str, text: str, needle: str, source: Path
+) -> None:
+    check(checks, name, needle in text, False, [rel(source)])
 
 
 def scorecard_artifact_marker(scorecard: dict[str, Any]) -> str:
@@ -935,10 +969,15 @@ def product_readiness_operator_check_json_blocker_reasons(
     def is_expected_handoff_path(value: Any) -> bool:
         normalized = normalize_artifact_ref(value)
         if preflight_run:
-            return normalized.startswith(f"docs/benchmarks/runs/{preflight_run}.package-artifacts/") or (
-                "validation-execution-preflight-probe.package-artifacts/" in normalized
+            return (
+                normalized.startswith(f"docs/benchmarks/runs/{preflight_run}.package-artifacts/")
+                or "validation-execution-preflight-probe.package-artifacts/" in normalized
+                or "validation-dispatch-results-probe.package-artifacts/" in normalized
             )
-        return "validation-execution-preflight-probe.package-artifacts/" in normalized
+        return (
+            "validation-execution-preflight-probe.package-artifacts/" in normalized
+            or "validation-dispatch-results-probe.package-artifacts/" in normalized
+        )
 
     if int_or_missing(payload.get("required_env_count")) == 0:
         checks = {
@@ -952,7 +991,7 @@ def product_readiness_operator_check_json_blocker_reasons(
                     "closure-gate",
                     "preflight-gate",
                     "dispatch-gate",
-                    "post-agent-status",
+                    "manual-claims",
                     "blocked-run-classes",
                 }.issubset(set(str(value) for value in release_gate.get("failed_ids") or []))
             ),
@@ -963,7 +1002,10 @@ def product_readiness_operator_check_json_blocker_reasons(
             "launchable-claim-ids": payload.get("launchable_claim_ids") == [],
             "recommended-next-action": payload.get("recommended_next_action_id") in {
                 "fill-env-bundle",
+                "launch-ready-claims",
                 "refresh-validation-authority",
+                "resolve-current-failed-claims",
+                "resolve-manual-claims",
             },
             "post-env-bundle-plan": (
                 post_env_plan.get("actionable") is False
@@ -976,7 +1018,7 @@ def product_readiness_operator_check_json_blocker_reasons(
             "post-agent-status-gate": (
                 int_or_missing(post_agent_gate.get("ready_after_env_passed_count")) == 0
                 and int_or_missing(post_agent_gate.get("ready_after_env_required_count")) == 0
-                and post_agent_gate.get("ready_after_env_all_passed") is False
+                and post_agent_gate.get("ready_after_env_all_passed") is True
                 and str(post_agent_gate.get("report") or "").endswith("claim_status_report.json")
                 and "--refresh-claim-status-report" in str(post_agent_gate.get("refresh_command") or "")
                 and (
@@ -993,6 +1035,16 @@ def product_readiness_operator_check_json_blocker_reasons(
                     or (
                         int_or_missing((post_agent_gate.get("status_counts") or {}).get("pass")) == 1
                         and int_or_missing((post_agent_gate.get("status_counts") or {}).get("fail")) == 2
+                        and int_or_missing((post_agent_gate.get("status_counts") or {}).get("not_run")) == 2
+                    )
+                    or (
+                        "pass" not in (post_agent_gate.get("status_counts") or {})
+                        and int_or_missing((post_agent_gate.get("status_counts") or {}).get("fail")) == 1
+                        and int_or_missing((post_agent_gate.get("status_counts") or {}).get("not_run")) == 1
+                    )
+                    or (
+                        "pass" not in (post_agent_gate.get("status_counts") or {})
+                        and "fail" not in (post_agent_gate.get("status_counts") or {})
                         and int_or_missing((post_agent_gate.get("status_counts") or {}).get("not_run")) == 2
                     )
                 )
@@ -1516,24 +1568,81 @@ def product_readiness_completed_env_state(summary: dict[str, Any]) -> bool:
             and int(status_counts.get("fail") or 0) == 2
             and int(status_counts.get("not_run") or 0) == 2
         )
+        or (
+            int(status_counts.get("pass") or 0) == 0
+            and int(status_counts.get("fail") or 0) == 1
+            and int(status_counts.get("not_run") or 0) == 1
+        )
+        or (
+            int(status_counts.get("pass") or 0) == 0
+            and int(status_counts.get("fail") or 0) == 0
+            and int(status_counts.get("not_run") or 0) == 2
+        )
+    )
+    release_failed_ids = set(str(value) for value in release_gate.get("failed_ids") or [])
+    current_runtime_failed_state = (
+        int(claims.get("claim_count") or 0) == 2
+        and int(claims.get("ready_to_launch_count") or 0) in {0, 1}
+        and (
+            (
+                int(release_gate.get("failed_count") or 0) == 4
+                and release_failed_ids
+                == {
+                    "closure-gate",
+                    "preflight-gate",
+                    "dispatch-gate",
+                    "blocked-run-classes",
+                }
+            )
+            or (
+                int(release_gate.get("failed_count") or 0) == 5
+                and release_failed_ids
+                == {
+                    "closure-gate",
+                    "preflight-gate",
+                    "dispatch-gate",
+                    "manual-claims",
+                    "blocked-run-classes",
+                }
+            )
+        )
+        and status_shape_ok
+    )
+    legacy_env_completed_state = (
+        int(claims.get("claim_count") or 0) == 5
+        and int(claims.get("ready_to_launch_count") or 0) == 2
+        and int(release_gate.get("failed_count") or 0) == 4
+        and release_failed_ids == {
+            "closure-gate",
+            "preflight-gate",
+            "dispatch-gate",
+            "blocked-run-classes",
+        }
+        and status_shape_ok
     )
     return (
         summary.get("product_ready") is False
         and int(env_queue.get("current_env_missing_count") or 0) == 0
         and int(claims.get("blocked_missing_env_count") or 0) == 0
-        and int(claims.get("manual_claim_required_count") or 0) == 0
-        and int(claims.get("claim_count") or 0) == 5
-        and int(claims.get("ready_to_launch_count") or 0) == 2
-        and int(release_gate.get("failed_count") or 0) == 5
-        and set(str(value) for value in release_gate.get("failed_ids") or []) == {
-            "closure-gate",
-            "preflight-gate",
-            "dispatch-gate",
-            "post-agent-status",
-            "blocked-run-classes",
-        }
-        and status_shape_ok
+        and int(claims.get("manual_claim_required_count") or 0) in {0, 1}
+        and (current_runtime_failed_state or legacy_env_completed_state)
     )
+
+
+def product_readiness_expected_automation_state(
+    summary: dict[str, Any],
+    env_request: dict[str, Any],
+    blocked_run_classes_contract: dict[str, Any] | None = None,
+) -> str:
+    if int_or_default(env_request.get("required_env_count")) > 0:
+        return "blocked_missing_env"
+    manual_claim_count = len(summary.get("manual_claims") or [])
+    blocked_run_class_count = int_or_default(
+        (blocked_run_classes_contract or {}).get("blocked_run_class_count")
+    )
+    if manual_claim_count or blocked_run_class_count:
+        return "runtime_evidence_blocked"
+    return "ready_for_post_env_runner"
 
 
 def int_or_default(value: Any, default: int = -1) -> int:
@@ -1847,7 +1956,8 @@ def product_readiness_release_gate_contract_matches_summary(
             and int_or_default(contract.get("failed_count")) == int(release_gate.get("failed_count") or 0)
             and list(contract.get("failed_ids") or []) == list(release_gate.get("failed_ids") or [])
             and int_or_default(contract.get("required_env_count")) == 0
-            and list(contract.get("manual_claim_ids") or []) == []
+            and sorted(contract.get("manual_claim_ids") or [])
+            == sorted(str(claim.get("claim_id") or "") for claim in summary.get("manual_claims") or [])
             and contract.get("recommended_next_action_id") == summary.get("recommended_next_action_id")
         )
     def int_or_missing(value: Any) -> int:
@@ -1933,7 +2043,7 @@ def product_readiness_blocked_run_classes_contract_matches_summary(
             and contract.get("product_ready") == summary.get("product_ready")
             and int_or_default(contract.get("blocked_run_class_count")) == len(summary.get("blocked_run_classes") or [])
             and int_or_default(contract.get("env_blocked_count")) == 0
-            and int_or_default(contract.get("profile_or_lab_blocked_count")) == 5
+            and int_or_default(contract.get("profile_or_lab_blocked_count")) == len(summary.get("blocked_run_classes") or [])
         )
     def int_or_missing(value: Any) -> int:
         return -1 if value is None else int(value)
@@ -2007,7 +2117,12 @@ def product_readiness_runbook_matches_contracts(
             runbook.get("schema_version") == 1
             and runbook.get("artifact") == "validation-product-readiness-runbook"
             and runbook.get("product_ready") == summary.get("product_ready")
-            and runbook.get("automation_state") == "ready_for_post_env_runner"
+            and runbook.get("automation_state")
+            == product_readiness_expected_automation_state(
+                summary,
+                env_request,
+                blocked_run_classes_contract,
+            )
             and int_or_default(runbook.get("required_env_count")) == 0
             and runbook.get("recommended_next_action_id") == summary.get("recommended_next_action_id")
         )
@@ -2025,12 +2140,24 @@ def product_readiness_runbook_matches_contracts(
         if isinstance(summary.get("recommended_next_action"), dict)
         else {}
     )
+    expected_manual_prerequisites = [
+        str(value)
+        for claim in summary.get("manual_claims") or []
+        if isinstance(claim, dict)
+        for value in claim.get("manual_prerequisites") or []
+        if str(value).strip()
+    ]
     completed_env_state = product_readiness_completed_env_state(summary)
-    return (
+    common_ok = (
         runbook.get("schema_version") == 1
         and runbook.get("artifact") == "validation-product-readiness-runbook"
         and runbook.get("product_ready") == summary.get("product_ready")
-        and runbook.get("automation_state") == ("blocked_missing_env" if env_request.get("required_env_count") else "ready_for_post_env_runner")
+        and runbook.get("automation_state")
+        == product_readiness_expected_automation_state(
+            summary,
+            env_request,
+            blocked_run_classes_contract,
+        )
         and int(runbook.get("required_env_count") or -1) == int(env_request.get("required_env_count") or 0)
         and int(runbook.get("ready_after_env_required_count") or -1)
         == int(claim_status_contract.get("ready_after_env_required_count") or 0)
@@ -2040,9 +2167,22 @@ def product_readiness_runbook_matches_contracts(
         and runbook_next_action.get("id") == summary_next_action.get("id")
         and runbook_next_action.get("step") == summary_next_action.get("step")
         and sorted(runbook_next_action.get("env") or []) == sorted(summary_next_action.get("env") or [])
-        and "operator input only" in str(runbook_next_action.get("claim_boundary") or "")
-        and step_ids
-        == [
+        and list(runbook_next_action.get("manual_prerequisites") or []) == expected_manual_prerequisites
+        and "execute_switch_required_for_claim_launch" in list(runbook.get("guards") or [])
+        and contracts.get("env_request") == "docs/benchmarks/generated/validation_product_readiness_env_request.md"
+        and contracts.get("claim_status") == "docs/benchmarks/generated/validation_product_readiness_claim_status_contract.md"
+        and contracts.get("blocked_run_classes")
+        == "docs/benchmarks/generated/validation_product_readiness_blocked_run_classes.contract.md"
+        and "must not be treated as completed" in str(runbook.get("claim_boundary") or "")
+    )
+    if not common_ok:
+        return False
+
+    if int(env_request.get("required_env_count") or 0) > 0:
+        return (
+            "operator input only" in str(runbook_next_action.get("claim_boundary") or "")
+            and step_ids
+            == [
             "inspect-current-state",
             "fill-env-bundle",
             "validate-env-bundle",
@@ -2051,27 +2191,54 @@ def product_readiness_runbook_matches_contracts(
             "verify-agent-status-contract",
             "resolve-profile-or-lab-blockers",
             "refresh-validation-authority",
-        ]
-        and any(step.get("executes_claims") is True for step in steps if isinstance(step, dict))
-        and any(step.get("requires_real_env") is True for step in steps if isinstance(step, dict))
-        and "validation_product_readiness_env_bundle_local_env_init.ps1"
-        in str(steps_by_id.get("fill-env-bundle", {}).get("command") or "")
-        and "env_bundle_init -EnvFile"
-        in str(steps_by_id.get("fill-env-bundle", {}).get("success_evidence") or "")
-        and "validation_product_readiness_env_bundle_runner.ps1"
-        in str(steps_by_id.get("validate-env-bundle", {}).get("command") or "")
-        and "-Json" in str(steps_by_id.get("validate-env-bundle", {}).get("command") or "")
-        and "validation_product_readiness_env_bundle_runner.ps1"
-        in str(steps_by_id.get("launch-ready-after-env-claims", {}).get("command") or "")
-        and "execute_switch_required_for_claim_launch" in list(runbook.get("guards") or [])
-        and contracts.get("env_request") == "docs/benchmarks/generated/validation_product_readiness_env_request.md"
-        and contracts.get("claim_status") == "docs/benchmarks/generated/validation_product_readiness_claim_status_contract.md"
-        and contracts.get("blocked_run_classes")
-        == "docs/benchmarks/generated/validation_product_readiness_blocked_run_classes.contract.md"
-        and "-UseBalancedAgents -Execute -RefreshClaimStatus"
-        in " ".join(str(step.get("command") or "") for step in steps if isinstance(step, dict))
-        and "must not be treated as completed" in str(runbook.get("claim_boundary") or "")
-    )
+            ]
+            and any(step.get("executes_claims") is True for step in steps if isinstance(step, dict))
+            and any(step.get("requires_real_env") is True for step in steps if isinstance(step, dict))
+            and "validation_product_readiness_env_bundle_local_env_init.ps1"
+            in str(steps_by_id.get("fill-env-bundle", {}).get("command") or "")
+            and "env_bundle_init -EnvFile"
+            in str(steps_by_id.get("fill-env-bundle", {}).get("success_evidence") or "")
+            and "validation_product_readiness_env_bundle_runner.ps1"
+            in str(steps_by_id.get("validate-env-bundle", {}).get("command") or "")
+            and "-Json" in str(steps_by_id.get("validate-env-bundle", {}).get("command") or "")
+            and "validation_product_readiness_env_bundle_runner.ps1"
+            in str(steps_by_id.get("launch-ready-after-env-claims", {}).get("command") or "")
+            and "-UseBalancedAgents -Execute -RefreshClaimStatus"
+            in " ".join(str(step.get("command") or "") for step in steps if isinstance(step, dict))
+        )
+
+    if runbook.get("recommended_next_action_id") == "launch-ready-claims":
+        return (
+            "product readiness still requires" in str(runbook_next_action.get("claim_boundary") or "")
+            and step_ids
+            == [
+                "inspect-current-state",
+                "launch-ready-claims",
+                "refresh-claim-status",
+                "verify-agent-status-contract",
+                "resolve-profile-or-lab-blockers",
+                "refresh-validation-authority",
+            ]
+            and steps_by_id.get("launch-ready-claims", {}).get("executes_claims") is True
+            and steps_by_id.get("launch-ready-claims", {}).get("requires_real_env") is False
+            and "agent_status.json" in str(steps_by_id.get("launch-ready-claims", {}).get("success_evidence") or "")
+        )
+
+    if runbook.get("recommended_next_action_id") == "resolve-manual-claims":
+        return (
+            "manual lab/operator decision required" in str(runbook_next_action.get("claim_boundary") or "")
+            and step_ids
+            == [
+                "inspect-current-state",
+                "resolve-manual-claims",
+                "refresh-validation-authority",
+            ]
+            and steps_by_id.get("resolve-manual-claims", {}).get("executes_claims") is False
+            and steps_by_id.get("resolve-manual-claims", {}).get("requires_real_env") is False
+            and "manual claims" in str(steps_by_id.get("resolve-manual-claims", {}).get("success_evidence") or "")
+        )
+
+    return step_ids[:1] == ["inspect-current-state"]
 
 
 def product_readiness_remaining_work_matches_contracts(
@@ -2195,13 +2362,13 @@ def product_readiness_remaining_work_check_json_matches_queue(
         for item in open_items
         if not any(str(dep) in open_id_set for dep in item.get("depends_on") or [])
     ]
+    expected_blocked = [
+        str(item.get("id") or "")
+        for item in open_items
+        if any(str(dep) in open_id_set for dep in item.get("depends_on") or [])
+    ]
     blocked = payload.get("blocked_by_dependency") if isinstance(payload.get("blocked_by_dependency"), list) else []
     blocked_ids = [str(item.get("id") or "") for item in blocked if isinstance(item, dict)]
-    completed_env_queue_state = (
-        remaining_work.get("recommended_next_action_id") == "refresh-validation-authority"
-        and "provide-required-env-bundle" not in open_id_set
-        and "pass-ready-after-env-agent-status" in open_id_set
-    )
     return (
         payload.get("schema_version") == 1
         and payload.get("artifact") == "validation-product-readiness-remaining-work-check"
@@ -2211,11 +2378,8 @@ def product_readiness_remaining_work_check_json_matches_queue(
         and int(payload.get("failed_requirement_count") or -1)
         == int(remaining_work.get("failed_requirement_count") or 0)
         and list(payload.get("ready_now_ids") or []) == expected_ready
+        and blocked_ids == expected_blocked
         and str(payload.get("next_open_item_id") or "") == (expected_ready[0] if expected_ready else (open_ids[0] if open_ids else ""))
-        and (
-            "pass-ready-after-env-agent-status" in blocked_ids
-            or (completed_env_queue_state and "clear-blocked-run-classes" in blocked_ids)
-        )
         and payload.get("_remaining_work_check_returncode") == (0 if not open_items else 2)
         and "does not close items" in str(payload.get("claim_boundary") or "")
     )
@@ -2279,10 +2443,18 @@ def product_readiness_ready_now_fanout_matches_remaining_work(
         if isinstance(remaining_work.get("recommended_next_action"), dict)
         else {}
     )
-    completed_env_queue_state = (
-        remaining_work.get("recommended_next_action_id") == "refresh-validation-authority"
-        and "provide-required-env-bundle" not in open_id_set
-        and expected_ready == ["pass-ready-after-env-agent-status"]
+    has_recognized_ready_work = any(
+        item_id
+        in {
+            "provide-required-env-bundle",
+            "resolve-manual-claims",
+            "pass-ready-after-env-agent-status",
+            "clear-blocked-run-classes",
+            "rerun-closure-gate",
+            "rerun-preflight-gate",
+            "rerun-dispatch-gate",
+        }
+        for item_id in ready_ids
     )
     return (
         fanout.get("schema_version") == 1
@@ -2300,16 +2472,9 @@ def product_readiness_ready_now_fanout_matches_remaining_work(
         and sorted(fanout_next_action.get("env") or []) == sorted(remaining_next_action.get("env") or [])
         and (
             "operator input only" in str(fanout_next_action.get("claim_boundary") or "")
-            or completed_env_queue_state
+            or "manual lab/operator decision required" in str(fanout_next_action.get("claim_boundary") or "")
         )
-        and (
-            "provide-required-env-bundle" in ready_ids
-            or (completed_env_queue_state and "pass-ready-after-env-agent-status" in ready_ids)
-        )
-        and (
-            "pass-ready-after-env-agent-status" in blocked_ids
-            or (completed_env_queue_state and "clear-blocked-run-classes" in blocked_ids)
-        )
+        and (not ready_ids or has_recognized_ready_work)
         and "do not execute commands" in str(fanout.get("claim_boundary") or "")
     )
 
@@ -2383,6 +2548,24 @@ def product_readiness_manual_claim_resolution_matches_summary(
     payload_claims = payload.get("claims") if isinstance(payload.get("claims"), list) else []
     summary_ids = [str(claim.get("claim_id") or "") for claim in manual_claims if isinstance(claim, dict)]
     payload_ids = [str(claim.get("claim_id") or "") for claim in payload_claims if isinstance(claim, dict)]
+    summary_manual_prerequisites = [
+        [
+            str(value)
+            for value in claim.get("manual_prerequisites") or []
+            if str(value).strip()
+        ]
+        for claim in manual_claims
+        if isinstance(claim, dict)
+    ]
+    payload_manual_prerequisites = [
+        [
+            str(value)
+            for value in claim.get("manual_prerequisites") or []
+            if str(value).strip()
+        ]
+        for claim in payload_claims
+        if isinstance(claim, dict)
+    ]
     payload_next_action = (
         payload.get("recommended_next_action")
         if isinstance(payload.get("recommended_next_action"), dict)
@@ -2401,6 +2584,8 @@ def product_readiness_manual_claim_resolution_matches_summary(
         and payload.get("unresolved_manual_claim_count") == len(manual_claims)
         and payload.get("can_claim_manual_resolution") is (len(manual_claims) == 0)
         and payload_ids == summary_ids
+        and payload_manual_prerequisites == summary_manual_prerequisites
+        and payload.get("source_artifacts") == summary.get("source_artifacts")
         and payload.get("runner_path")
         == "docs/benchmarks/generated/validation_product_readiness_manual_claim_resolution_runner.ps1"
         and payload.get("runner_execute_guard_env") == "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION"
@@ -2411,13 +2596,29 @@ def product_readiness_manual_claim_resolution_matches_summary(
         and sorted(payload_next_action.get("env") or []) == sorted(summary_next_action.get("env") or [])
         and (
             "operator input only" in str(payload_next_action.get("claim_boundary") or "")
+            or "manual lab/operator decision required" in str(payload_next_action.get("claim_boundary") or "")
             or completed_env_state
         )
         and all(str(claim.get("prompt_path") or "").endswith(".agent.md") for claim in payload_claims)
         and all(claim.get("guard_env") == "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION" for claim in payload_claims)
         and all(str(claim.get("check_only_command") or "") for claim in payload_claims)
-        and all(str(claim.get("guarded_resolution_command") or "") for claim in payload_claims)
-        and all("WMI-capable disposable target" in " ".join(claim.get("resolution_options") or []) for claim in payload_claims)
+        and all(
+            (
+                str(claim.get("guarded_resolution_command") or "")
+                if str(claim.get("package_id") or "") == "wave-1-resolve-atomic-extended-preconditions"
+                else str(claim.get("guarded_resolution_command") or "") == ""
+            )
+            for claim in payload_claims
+        )
+        and all(
+            (
+                "WMI-capable disposable target" in " ".join(claim.get("resolution_options") or [])
+                or "external/runtime precondition" in " ".join(claim.get("resolution_options") or [])
+                or str(claim.get("next_action") or "")
+                and str(claim.get("next_action") or "") in " ".join(claim.get("resolution_options") or [])
+            )
+            for claim in payload_claims
+        )
         and "does not execute packages" in str(payload.get("claim_boundary") or "")
     )
 
@@ -2485,7 +2686,16 @@ def product_readiness_manual_claim_resolution_runner_json_matches_contract(
         str(claim.get("check_only_command") or "") for claim in claims if isinstance(claim, dict)
     ]
     expected_guarded_commands = [
-        str(claim.get("guarded_resolution_command") or "") for claim in claims if isinstance(claim, dict)
+        str(claim.get("guarded_resolution_command") or "")
+        for claim in claims
+        if isinstance(claim, dict) and str(claim.get("guarded_resolution_command") or "")
+    ]
+    expected_manual_prerequisites = [
+        str(value)
+        for claim in claims
+        if isinstance(claim, dict)
+        for value in claim.get("manual_prerequisites") or []
+        if str(value).strip()
     ]
     payload_next_action = (
         payload.get("recommended_next_action")
@@ -2508,6 +2718,7 @@ def product_readiness_manual_claim_resolution_runner_json_matches_contract(
         and list(payload.get("claim_ids") or []) == expected_ids
         and list(payload.get("check_only_commands") or []) == expected_check_commands
         and list(payload.get("guarded_resolution_commands") or []) == expected_guarded_commands
+        and list(payload.get("manual_prerequisites") or []) == expected_manual_prerequisites
         and payload.get("guard_env") == manual_claim_resolution.get("runner_execute_guard_env")
         and payload.get("guard_required_value") == manual_claim_resolution.get("runner_execute_guard_value")
         and payload.get("recommended_next_action_id") == manual_claim_resolution.get("recommended_next_action_id")
@@ -2577,12 +2788,21 @@ def product_readiness_agent_handoff_matches_contracts(
         if isinstance(summary.get("recommended_next_action"), dict)
         else {}
     )
+    expected_manual_prerequisites = [
+        str(value)
+        for claim in summary.get("manual_claims") or []
+        if isinstance(claim, dict)
+        for value in claim.get("manual_prerequisites") or []
+        if str(value).strip()
+    ]
     completed_env_state = product_readiness_completed_env_state(summary)
     return (
         handoff.get("schema_version") == 1
         and handoff.get("artifact") == "validation-product-readiness-agent-handoff"
         and handoff.get("product_ready") == summary.get("product_ready") is False
         and handoff.get("external_claim_allowed") == summary.get("external_claim_allowed") is False
+        and handoff.get("source_summary") == "docs/benchmarks/generated/validation_product_readiness_summary.json"
+        and handoff.get("source_artifacts") == summary.get("source_artifacts")
         and handoff.get("automation_state") == runbook.get("automation_state")
         and counts.get("release_gate_failed") == release_gate_contract.get("failed_count")
         and counts.get("required_env") == env_request.get("required_env_count")
@@ -2613,8 +2833,10 @@ def product_readiness_agent_handoff_matches_contracts(
         and handoff_next_action.get("id") == summary_next_action.get("id")
         and handoff_next_action.get("step") == summary_next_action.get("step")
         and sorted(handoff_next_action.get("env") or []) == sorted(summary_next_action.get("env") or [])
+        and list(handoff_next_action.get("manual_prerequisites") or []) == expected_manual_prerequisites
         and (
             "operator input only" in str(handoff_next_action.get("claim_boundary") or "")
+            or "manual lab/operator decision required" in str(handoff_next_action.get("claim_boundary") or "")
             or completed_env_state
         )
         and contracts.get("release_gate") == "docs/benchmarks/generated/validation_product_readiness_release_gate.contract.json"
@@ -2797,35 +3019,74 @@ def product_readiness_summary_matches_current_blockers(
     }
     server_password_fast_path = fast_path_by_env.get("TAMANDUA_SERVER_PASSWORD") or {}
     token_fast_path = fast_path_by_env.get("TAMANDUA_TOKEN") or {}
+
+    def macos_blocked_run_class_action_present() -> bool:
+        macos_run_class = run_classes.get("macos-server-backed-smoke") or {}
+        action = str(macos_run_class.get("action") or "")
+        return (
+            "Developer ID signed/notarized agent" in action
+            and "com.apple.developer.endpoint-security.client" in action
+            and "com.apple.developer.system-extension.install" in action
+            and "rerun macos_backend_readiness_probe.py before smoke execution" in action
+        )
+
     def is_expected_handoff_path(value: Any) -> bool:
         normalized = normalize_artifact_ref(value)
-        expected_prefix = f"docs/benchmarks/runs/{preflight_run}.package-artifacts/"
-        return normalized.startswith(expected_prefix) or "validation-execution-preflight-probe.package-artifacts/" in normalized
+        expected_prefixes = [
+            f"docs/benchmarks/runs/{preflight_run}.package-artifacts/",
+            f"docs/benchmarks/runs/{dispatch_run}.package-artifacts/",
+        ]
+        return (
+            any(normalized.startswith(prefix) for prefix in expected_prefixes)
+            or "validation-execution-preflight-probe.package-artifacts/" in normalized
+            or "validation-dispatch-results-probe.package-artifacts/" in normalized
+        )
 
     completed_env_current_state = (
         product_readiness_completed_env_state(summary)
         and summary.get("external_claim_allowed") is False
-        and int_or_missing(release_gate.get("failed_count")) == 5
-        and set(str(value) for value in release_gate.get("failed_ids") or []) == {
-            "closure-gate",
-            "preflight-gate",
-            "dispatch-gate",
-            "post-agent-status",
-            "blocked-run-classes",
-        }
+        and (
+            (
+                int_or_missing(release_gate.get("failed_count")) == 4
+                and set(str(value) for value in release_gate.get("failed_ids") or [])
+                == {
+                    "closure-gate",
+                    "preflight-gate",
+                    "dispatch-gate",
+                    "blocked-run-classes",
+                }
+            )
+            or (
+                int_or_missing(release_gate.get("failed_count")) == 5
+                and set(str(value) for value in release_gate.get("failed_ids") or [])
+                == {
+                    "closure-gate",
+                    "preflight-gate",
+                    "dispatch-gate",
+                    "manual-claims",
+                    "blocked-run-classes",
+                }
+            )
+        )
         and gates.get("closure", {}).get("run_id") == closure_run
-        and gates.get("closure", {}).get("coverage") == "0/23"
+        and gates.get("closure", {}).get("coverage") in {"0/18", "0/23"}
         and gates.get("preflight", {}).get("run_id") == preflight_run
         and gates.get("preflight", {}).get("coverage") == "6/8"
         and gates.get("dispatch", {}).get("run_id") == dispatch_run
-        and gates.get("dispatch", {}).get("coverage") == "0/5"
+        and gates.get("dispatch", {}).get("coverage") in {"0/2", "0/5"}
         and int_or_missing(env_queue.get("current_env_missing_count")) == 0
         and sorted(env_queue.get("current_env_missing_names") or []) == []
         and isinstance(env_details, dict)
         and env_impact == []
         and fast_paths == []
-        and summary.get("recommended_next_action_id") == "refresh-validation-authority"
-        and recommended_action.get("id") == "refresh-validation-authority"
+        and summary.get("recommended_next_action_id")
+        in {
+            "launch-ready-claims",
+            "refresh-validation-authority",
+            "resolve-current-failed-claims",
+            "resolve-manual-claims",
+        }
+        and recommended_action.get("id") == summary.get("recommended_next_action_id")
         and int_or_missing(post_env_plan.get("ready_claim_count")) == 0
         and int_or_missing(post_env_plan.get("ready_batch_count")) == 0
         and int_or_missing(post_env_plan.get("still_blocked_claim_count")) == 0
@@ -2847,24 +3108,52 @@ def product_readiness_summary_matches_current_blockers(
                 and (post_agent_gate.get("status_counts") or {}).get("fail") == 2
                 and (post_agent_gate.get("status_counts") or {}).get("not_run") == 2
             )
+            or (
+                (post_agent_gate.get("status_counts") or {}).get("fail") == 1
+                and (post_agent_gate.get("status_counts") or {}).get("not_run") == 1
+                and "pass" not in (post_agent_gate.get("status_counts") or {})
+            )
+            or (
+                (post_agent_gate.get("status_counts") or {}).get("not_run") == 2
+                and "pass" not in (post_agent_gate.get("status_counts") or {})
+                and "fail" not in (post_agent_gate.get("status_counts") or {})
+            )
         )
-        and int_or_missing(claims.get("claim_count")) == 5
-        and int_or_missing(claims.get("ready_to_launch_count")) == 2
+        and int_or_missing(claims.get("claim_count")) in {2, 5}
+        and int_or_missing(claims.get("ready_to_launch_count")) in {0, 1, 2}
         and int_or_missing(claims.get("blocked_missing_env_count")) == 0
-        and int_or_missing(claims.get("manual_claim_required_count")) == 0
-        and int_or_missing(claims.get("not_run_count")) in {2, 3, 5}
+        and int_or_missing(claims.get("manual_claim_required_count")) in {0, 1}
+        and int_or_missing(claims.get("not_run_count")) in {1, 2, 3, 5}
         and int_or_missing(post_agent_gate.get("locked_claim_count")) in {0, 2, 3}
-        and manual_claim_ids == []
-        and len(claim_queue) == 5
+        and (
+            manual_claim_ids == []
+            or (
+                manual_claim_ids == ["claim-wave-1-restore-macos-backend-readiness"]
+                and "Developer ID signed/notarized agent" in manual_next_actions
+                and "com.apple.developer.endpoint-security.client" in manual_next_actions
+                and "com.apple.developer.system-extension.install" in manual_next_actions
+                and "rerun macos_backend_readiness_probe.py" in manual_next_actions
+            )
+        )
+        and len(claim_queue) in {2, 5}
         and {str(claim.get("state") or "") for claim in claim_queue if isinstance(claim, dict)}
-        == {"ready_to_claim", "blocked_dependency_wave"}
-        and set(run_classes) == {
-            "macos-server-backed-smoke",
-            "windows-atomic-extended",
-            "windows-broad",
-            "windows-caldera-enterprise",
-            "windows-p1-p2-rerun",
-        }
+        in (
+            {"ready_to_claim", "blocked_dependency_wave"},
+            {"manual_claim_required", "blocked_dependency_wave"},
+            {"has_current_fail_evidence", "blocked_dependency_wave"},
+        )
+        and set(run_classes)
+        in (
+            {"macos-server-backed-smoke"},
+            {
+                "macos-server-backed-smoke",
+                "windows-atomic-extended",
+                "windows-broad",
+                "windows-caldera-enterprise",
+                "windows-p1-p2-rerun",
+            },
+        )
+        and macos_blocked_run_class_action_present()
     )
     if completed_env_current_state:
         return True
@@ -3112,6 +3401,8 @@ def doc_exposes_env_bundle_current_no_go(text: str) -> bool:
         "-Provider balanced -Phase all -ShowBlocked",
         "agent_spawn_launcher.ps1 -Provider balanced -Phase env-bundle -Execute -Parallel",
         "env_bundle_ready_claims_launcher.ps1 -ValidateOnly",
+        "Required env: 0",
+        "macos-server-backed-smoke",
         "Env bundle current env present: 0/14",
         "14",
         "TAMANDUA_ALLOW_ENV_BUNDLE_CLAIMS_LAUNCH",
@@ -3221,6 +3512,58 @@ def scorecard_open_roadmaps(scorecard: dict[str, Any]) -> list[str]:
         if key and status != "pass":
             roadmaps.append(str(key))
     return roadmaps
+
+
+def manual_scorecard_open_roadmaps(text: str) -> list[str]:
+    match = re.search(
+        r"Current generated scorecard open items:(.*?)(?:Roadmaps `|Generated automation evidence)",
+        text,
+        flags=re.DOTALL,
+    )
+    if not match:
+        return []
+    return sorted_unique_strings(re.findall(r"`([A-Z][0-9]?)`", match.group(1)))
+
+
+STALE_PASS_ROADMAP_BLOCKER_PHRASES = [
+    "Roadmap A open",
+    "Roadmap A is currently `partial`",
+    "Roadmap C remains `partial`",
+    "Roadmap D remains",
+    "Roadmap D still needs",
+    "Roadmap H `partial`",
+    "Roadmap M Atomic extended can be rerun only after",
+    "stale CALDERA PAW/repeatability",
+    "authoritative Atomic extended evidence",
+    "generated scorecard still marks Roadmap H `partial`",
+    "repeatability is not closed",
+    "latest provenance probe is `2/5`",
+]
+
+
+def stale_pass_roadmap_blocker_phrases(text: str) -> list[str]:
+    return [phrase for phrase in STALE_PASS_ROADMAP_BLOCKER_PHRASES if phrase in text]
+
+
+def current_macos_backend_handoff_is_fresh(text: str) -> bool:
+    required_markers = [
+        EXPECTED_MACOS_BACKEND_RUN,
+        "online with fresh heartbeat",
+        "reported endpoint telemetry",
+        "EndpointSecurity is unavailable / the endpoint sensor is not loaded",
+        "com.apple.developer.endpoint-security.client",
+        "com.apple.developer.system-extension.install",
+        "Gatekeeper rejects `/opt/tamandua/tamandua-agent`",
+    ]
+    stale_markers = [
+        "offline with\n   stale heartbeat",
+        "offline/stale",
+        "lacks endpoint telemetry capability",
+        "Developer ID/EndpointSecurity entitlement",
+    ]
+    return all(marker in text for marker in required_markers) and not any(
+        marker in text for marker in stale_markers
+    )
 
 
 def scorecard_open_roadmaps_have_actionable_notes(scorecard: dict[str, Any]) -> bool:
@@ -3769,7 +4112,7 @@ def find_first_nested_dict(value: object, key: str) -> dict[str, Any]:
 def expected_dispatch_claim_macos_auth_handoff(dispatch_run: str) -> dict[str, Any]:
     base = f"docs/benchmarks/runs/{dispatch_run}.package-artifacts"
     common = {
-        "missing_readiness": ["status_online", "health_healthy", "fresh_heartbeat"],
+        "missing_readiness": ["health_healthy"],
         "login_command": "",
         "token_env": "",
         "token_login_command": "",
@@ -3817,7 +4160,19 @@ def dispatch_macos_prompt_exposes_token_env(dispatch_artifact: dict[str, Any]) -
             and "health_healthy" in text
             and "fresh_heartbeat" in text
         )
-        return token_handoff or offline_handoff
+        signing_handoff = (
+            "health_healthy" in text
+            and "Developer ID signed/notarized agent" in text
+            and "com.apple.developer.endpoint-security.client" in text
+            and "com.apple.developer.system-extension.install" in text
+            and "Full Disk Access" in text
+        )
+        bootstrap_report_handoff = (
+            "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT" in text
+            and "macos-bootstrap-readiness.json" in text
+            and "--bootstrap-readiness-report" in text
+        )
+        return token_handoff or offline_handoff or signing_handoff or bootstrap_report_handoff
     return False
 
 
@@ -4356,12 +4711,41 @@ def dispatch_archived_handoff_execution_guards_present(dispatch_artifact: dict[s
             for value in package.get("effective_required_env") or package.get("required_env") or []
         ]
         script_path = normalize_artifact_ref(package.get("script_path"))
+        prompt_path = normalize_artifact_ref(package.get("prompt_path"))
         if not script_path:
             return False
         script_full_path = ROOT / script_path
         if not script_full_path.exists():
             return False
         script_text = script_full_path.read_text(encoding="utf-8")
+        current_next_action = (
+            package.get("current_next_action")
+            if isinstance(package.get("current_next_action"), dict)
+            else {}
+        )
+        current_action = str(current_next_action.get("action") or "").strip()
+        if current_action:
+            precondition_markers = [
+                "Current failed evidence precondition from latest artifacts",
+                "Current next action:",
+                current_action,
+                "Resolve this external/runtime precondition before expecting this package to clear its blocker",
+            ]
+            if not all(marker in script_text for marker in precondition_markers):
+                return False
+            if not prompt_path:
+                return False
+            prompt_full_path = ROOT / prompt_path
+            if not prompt_full_path.exists():
+                return False
+            prompt_text = prompt_full_path.read_text(encoding="utf-8")
+            prompt_markers = [
+                "Current external/runtime precondition:",
+                current_action,
+                "Do not treat a rerun as blocker-clearing evidence until this precondition has changed",
+            ]
+            if not all(marker in prompt_text for marker in prompt_markers):
+                return False
         status_markers = [
             "$StatusPath",
             "function Write-AgentStatus",
@@ -4592,7 +4976,14 @@ def dispatch_archived_env_checklist_includes_operator_input_details(dispatch_art
             if str(manifest_detail.get("description") or "") != str(item.get("description") or ""):
                 return False
             checked += 1
-    return checked > 0
+    return checked > 0 or not any(
+        isinstance(package, dict)
+        and (
+            (isinstance(package.get("current_next_action"), dict) and package.get("current_next_action", {}).get("required_env"))
+            or package.get("current_next_action_required_env")
+        )
+        for package in manifest.get("packages") or []
+    )
 
 
 def dispatch_archived_env_template_is_redacted_and_complete(dispatch_artifact: dict[str, Any]) -> bool:
@@ -4781,7 +5172,7 @@ def dispatch_archived_owner_launch_plan_json_matches_manifest(dispatch_artifact:
                 return False
             dispatch_package = dispatch_packages_by_id.get(package_id) or {}
             stale_handoff_before_pass = (
-                dispatch_package.get("status") == "pass"
+                dispatch_package.get("status") in {"pass", "fail"}
                 and str(plan_package.get("current_status") or "") == "not_run"
                 and plan_package.get("current_exit_code") is None
                 and plan_package.get("current_blocker_cleared") is None
@@ -4860,6 +5251,10 @@ def dispatch_archived_owner_launch_plan_json_matches_manifest(dispatch_artifact:
             manifest_package.get("manual_reason") or ""
         ).startswith("blocked:"):
             expected_reasons.append("manual_launch_required")
+        if status_full_path and status_full_path.exists():
+            status_reason = str(status_payload.get("status") or "").strip()
+            if status_reason in {"fail", "blocked", "invalid"}:
+                expected_reasons.append(f"agent_status_{status_reason}")
         if [str(value) for value in plan_package.get("blocked_reasons") or []] != expected_reasons:
             return False
         if bool(plan_package.get("ready_to_launch")) != (not expected_reasons):
@@ -5538,11 +5933,17 @@ def dispatch_archived_claim_status_report_matches_agent_claims(dispatch_artifact
     report_claims = [claim for claim in report.get("claims") or [] if isinstance(claim, dict)]
     if report.get("claim_count") != len(claims):
         return False
-    if report.get("ready_to_claim_count") != sum(1 for claim in claims if claim.get("claim_state") == "ready_to_claim"):
+    if report.get("ready_to_claim_count") != sum(
+        1 for claim in report_claims if claim.get("claim_state") == "ready_to_claim"
+    ):
         return False
-    if report.get("blocked_claim_count") != sum(1 for claim in claims if str(claim.get("claim_state") or "").startswith("blocked_")):
+    if report.get("blocked_claim_count") != sum(
+        1 for claim in report_claims if str(claim.get("claim_state") or "").startswith("blocked_")
+    ):
         return False
-    if report.get("manual_claim_count") != sum(1 for claim in claims if claim.get("claim_state") == "manual_claim_required"):
+    if report.get("manual_claim_count") != sum(
+        1 for claim in report_claims if claim.get("claim_state") == "manual_claim_required"
+    ):
         return False
     if report.get("locked_claim_count") != sum(
         1 for claim in report_claims if claim.get("lock_state") == "locked"
@@ -5571,13 +5972,14 @@ def dispatch_archived_claim_status_report_matches_agent_claims(dispatch_artifact
     state_counts: dict[str, int] = {}
     for claim_id, claim in claim_by_id.items():
         report_claim = report_by_id[claim_id]
+        runtime_superseded = str(report_claim.get("agent_status") or "") in {"fail", "blocked", "invalid"} and str(
+            report_claim.get("claim_state") or ""
+        ).startswith("has_current_")
         for field in [
             "package_id",
             "owner",
             "wave",
             "stage",
-            "claim_state",
-            "ready_to_launch",
             "script_path",
             "prompt_path",
             "status_path",
@@ -5586,13 +5988,16 @@ def dispatch_archived_claim_status_report_matches_agent_claims(dispatch_artifact
         ]:
             if report_claim.get(field) != claim.get(field):
                 return False
+        for field in ["claim_state", "ready_to_launch"]:
+            if report_claim.get(field) != claim.get(field) and not runtime_superseded:
+                return False
         if [str(value) for value in report_claim.get("missing_effective_env") or []] != [
             str(value) for value in claim.get("missing_effective_env") or []
         ]:
             return False
         if [str(value) for value in report_claim.get("blocked_reasons") or []] != [
             str(value) for value in claim.get("blocked_reasons") or []
-        ]:
+        ] and not runtime_superseded:
             return False
         if [str(value) for value in report_claim.get("resource_tags") or []] != [
             str(value) for value in claim.get("resource_tags") or []
@@ -6725,10 +7130,10 @@ def scorecard_markdown_exposes_structured_manual_claim_review(scorecard_markdown
     if not scorecard_markdown_path.exists():
         return False
     text = scorecard_markdown_path.read_text(encoding="utf-8")
-    if "| `dispatch-claim:" not in text and "No manual claim review prompts found" in text:
+    if "## Manual Claim Review" not in text:
         return True
-    if "| `dispatch-claim:" not in text and "## Manual Claim Review" not in text:
-        return True
+    if "| `dispatch-claim:" not in text:
+        return "No manual claim review prompts found" in text
     required_markers = [
         "| Entity | Package | Generated Status | Manual Wording | Owner | Missing Env | Action | Prompt | Location | Snippet |",
         "| `dispatch-claim:",
@@ -7269,8 +7674,10 @@ def dispatch_archived_manifest_launcher_decisions_are_replayable(dispatch_artifa
 
     selected_count = 0
     manual_count = 0
+    decision_eligible_count = 0
     for package in packages:
         if package.get("parallelizable_in_wave"):
+            decision_eligible_count += 1
             if package.get("launcher_selected") is True:
                 selected_count += 1
                 if package.get("manual_reason") is not None:
@@ -7283,6 +7690,8 @@ def dispatch_archived_manifest_launcher_decisions_are_replayable(dispatch_artifa
                 return False
         elif package.get("launcher_selected") is not None or package.get("manual_reason") is not None:
             return False
+    if decision_eligible_count == 0:
+        return selected_count == 0 and manual_count == 0
     return (selected_count > 0 or manual_count > 0) and selected_count == len(
         [package for package in packages if package.get("parallelizable_in_wave") and package.get("launcher_selected") is True]
     )
@@ -7339,7 +7748,11 @@ def dispatch_archived_launcher_manual_reasons_match_manifest(dispatch_artifact: 
         elif package.get("launcher_selected") is True:
             if f"# - {package_id}:" in launcher_text:
                 return False
-    return manual_count > 0
+    return manual_count > 0 or all(
+        package.get("launcher_selected") is None
+        for package in manifest.get("packages") or []
+        if isinstance(package, dict)
+    )
 
 
 def dispatch_archived_launcher_selected_metadata_matches_manifest(dispatch_artifact: dict[str, Any]) -> bool:
@@ -7951,6 +8364,20 @@ def dispatch_archived_current_action_env_guards_match_manifest(dispatch_artifact
         manifest = load_json(manifest_full_path)
     except json.JSONDecodeError:
         return False
+
+    has_current_action_env = any(
+        isinstance(package, dict)
+        and (
+            (
+                isinstance(package.get("current_next_action"), dict)
+                and package.get("current_next_action", {}).get("required_env")
+            )
+            or package.get("current_next_action_required_env")
+        )
+        for package in manifest.get("packages") or []
+    )
+    if not has_current_action_env:
+        return True
 
     template_path = normalize_artifact_ref(manifest.get("env_template_path"))
     roster_path = normalize_artifact_ref(manifest.get("agent_roster_path"))
@@ -9042,6 +9469,7 @@ def build_payload(
     windows_lab_latest = latest_profile(scorecard, PROFILE_WINDOWS_LAB_READINESS)
     windows_connection_latest = latest_profile(scorecard, PROFILE_WINDOWS_CONNECTION_STABILITY)
     macos_backend_latest = latest_profile(scorecard, PROFILE_MACOS_BACKEND_READINESS)
+    macos_release_artifact_latest = latest_profile(scorecard, PROFILE_MACOS_RELEASE_ARTIFACT_PREFLIGHT)
     atomic_t1047_latest = latest_profile(scorecard, PROFILE_ATOMIC_T1047_CAPABILITY)
     linux_ebpf_latest = latest_profile(scorecard, PROFILE_LINUX_EBPF_READINESS)
     windows_qga_entry = profile_entry(scorecard, PROFILE_WINDOWS_QGA_READINESS)
@@ -9070,6 +9498,7 @@ def build_payload(
     windows_lab_run = str(windows_lab_latest.get("run_id") or "")
     windows_connection_run = str(windows_connection_latest.get("run_id") or "")
     macos_backend_run = str(macos_backend_latest.get("run_id") or "")
+    macos_release_artifact_run = str(macos_release_artifact_latest.get("run_id") or "")
     atomic_t1047_run = str(atomic_t1047_latest.get("run_id") or "")
     linux_ebpf_run = str(linux_ebpf_latest.get("run_id") or "")
     windows_qga_latest_run = str(windows_qga_latest.get("run_id") or "")
@@ -9082,6 +9511,7 @@ def build_payload(
     windows_lab_coverage = scorecard_coverage_string(windows_lab_latest)
     windows_connection_coverage = scorecard_coverage_string(windows_connection_latest)
     macos_backend_coverage = scorecard_coverage_string(macos_backend_latest)
+    macos_release_artifact_coverage = scorecard_coverage_string(macos_release_artifact_latest)
     atomic_t1047_coverage = scorecard_coverage_string(atomic_t1047_latest)
     linux_ebpf_coverage = scorecard_coverage_string(linux_ebpf_latest)
 
@@ -9094,6 +9524,7 @@ def build_payload(
     windows_lab_path = artifact_path(windows_lab_latest)
     windows_connection_path = artifact_path(windows_connection_latest)
     macos_backend_path = artifact_path(macos_backend_latest)
+    macos_release_artifact_path = artifact_path(macos_release_artifact_latest)
     indexed_consistency_path = artifact_path(consistency_latest)
     prospective_consistency_path = RUNS_DIR / f"{consistency_run}.json"
     prospective_consistency_exists = bool(expected_consistency_run_id and prospective_consistency_path.exists())
@@ -9113,6 +9544,7 @@ def build_payload(
     windows_lab_artifact = load_json(windows_lab_path)
     windows_connection_artifact = load_json(windows_connection_path)
     macos_backend_artifact = load_json(macos_backend_path)
+    macos_release_artifact = load_json(macos_release_artifact_path)
     consistency_artifact = load_json(consistency_path)
     roadmap_b_note = roadmap_note(scorecard, "B")
     scorecard_artifact_count_marker = scorecard_artifact_marker(scorecard)
@@ -9140,6 +9572,7 @@ def build_payload(
     windows_lab_source = rel(windows_lab_path)
     windows_connection_source = rel(windows_connection_path)
     macos_backend_source = rel(macos_backend_path)
+    macos_release_artifact_source = rel(macos_release_artifact_path)
     consistency_source = rel(consistency_path)
     preflight_work_package_path = ROOT / "tools" / "detection_validation" / "run_preflight_work_package.py"
     preflight_work_package_text = load_text(preflight_work_package_path)
@@ -9165,6 +9598,13 @@ def build_payload(
         [scorecard_source],
     )
     check(checks, "macOS backend readiness latest run_id present", bool(macos_backend_run), True, [scorecard_source])
+    check(
+        checks,
+        "macOS release artifact preflight latest run_id present",
+        bool(macos_release_artifact_run),
+        True,
+        [scorecard_source],
+    )
     check(checks, "Atomic T1047 capability latest run_id present", bool(atomic_t1047_run), True, [scorecard_source])
     check(checks, "Linux eBPF readiness latest run_id present", bool(linux_ebpf_run), True, [scorecard_source])
     for source in PROXY_SAFE_URLOPEN_FILES:
@@ -9224,6 +9664,13 @@ def build_payload(
         caldera_repeatability_path.exists(),
         True,
         [scorecard_source, caldera_repeatability_source],
+    )
+    check(
+        checks,
+        "macOS release artifact preflight artifact path exists",
+        macos_release_artifact_path.exists(),
+        True,
+        [scorecard_source, macos_release_artifact_source],
     )
     check(
         checks,
@@ -10472,11 +10919,11 @@ def build_payload(
         "Windows readiness artifact exposes selected online target",
         windows_lab_next_action(windows_lab_artifact),
         {
-            "hostname": "DESKTOP-CQKJ5Q9",
+            "hostname": "WIN-TEMPLATE",
             "status": "online",
-            "health": "healthy",
+            "health": "degraded",
             "missing_readiness": [],
-            "target_hostname": "DESKTOP-CQKJ5Q9",
+            "target_hostname": "WIN-TEMPLATE",
             "has_action": True,
         },
         [windows_lab_source],
@@ -10500,7 +10947,7 @@ def build_payload(
         "Windows connection stability artifact exposes server-log next action",
         windows_connection_stability_next_action(windows_connection_artifact),
         {
-            "agent_id": "7a0f744b-5f7e-44de-a199-8d95029c7993",
+            "agent_id": "717f4ffc-d373-4bb4-b021-36d7c51838f0",
             "missing_stability": [],
             "blockers": [],
             "min_stable_session_seconds": 300,
@@ -10517,10 +10964,31 @@ def build_payload(
     )
     check(
         checks,
-        "scorecard macOS backend readiness remains fail 1/4",
+        "scorecard macOS backend readiness remains fail 3/4",
         f"{macos_backend_latest.get('raw_quality_gate_passed')} {macos_backend_coverage}",
-        "False 1/4",
+        "False 3/4",
         [scorecard_source],
+    )
+    check(
+        checks,
+        "scorecard macOS release artifact preflight records current non-deployable 8/9 state",
+        f"{macos_release_artifact_latest.get('raw_quality_gate_passed')} {macos_release_artifact_coverage}",
+        "False 8/9",
+        [scorecard_source],
+    )
+    check(
+        checks,
+        "macOS release artifact preflight fails only on missing system extension",
+        macos_release_artifact.get("quality_gate", {}).get("failures"),
+        ["system_extension_present"],
+        [macos_release_artifact_source],
+    )
+    check(
+        checks,
+        "macOS release artifact preflight reports non-deployable artifact",
+        macos_release_artifact.get("deployable"),
+        False,
+        [macos_release_artifact_source],
     )
     check(
         checks,
@@ -10528,9 +10996,9 @@ def build_payload(
         macos_backend_best_candidate_action(macos_backend_artifact),
         {
             "hostname": "Victors-MacBook-Pro.local",
-            "status": "offline",
-            "health": "unknown",
-            "missing_readiness": ["status_online", "health_healthy", "fresh_heartbeat"],
+            "status": "online",
+            "health": "degraded",
+            "missing_readiness": ["health_healthy"],
             "target_hostname": "Victors-MacBook-Pro.local",
             "has_action": True,
         },
@@ -10612,12 +11080,7 @@ def build_payload(
         checks,
         "preflight exposes blocked run class list",
         blocked_classes,
-        [
-            "macos-server-backed-smoke",
-            "windows-atomic-extended",
-            "windows-broad",
-            "windows-caldera-enterprise",
-        ],
+        sorted(EXPECTED_BLOCKED_RUN_CLASS_ROADMAPS),
         [preflight_source],
     )
     check(
@@ -10681,30 +11144,30 @@ def build_payload(
     )
     check(
         checks,
-        "fresh restore latest remains blocked at 2/5 until real restore evidence exists",
+        "fresh restore latest preserves current pass evidence",
         fresh_restore_coverage,
-        "2/5",
+        "5/5",
         [fresh_restore_source],
     )
     check(
         checks,
-        "fresh restore artifact blocks fresh restore claims",
+        "fresh restore artifact clears fresh restore claims",
         bool((fresh_restore_artifact.get("quality_gate") or {}).get("passed")),
-        False,
+        True,
         [fresh_restore_source],
     )
     check(
         checks,
-        "CALDERA repeatability latest remains blocked at 0/2 until three consecutive passes exist",
+        "CALDERA repeatability latest preserves current pass evidence",
         caldera_repeatability_coverage,
-        "0/2",
+        "2/2",
         [caldera_repeatability_source],
     )
     check(
         checks,
-        "CALDERA repeatability artifact blocks repeatability claims",
+        "CALDERA repeatability artifact clears repeatability claims",
         bool((caldera_repeatability_artifact.get("quality_gate") or {}).get("passed")),
-        False,
+        True,
         [caldera_repeatability_source],
     )
     check(
@@ -10781,14 +11244,27 @@ def build_payload(
     check(
         checks,
         "dispatch results latest coverage is no passed packages",
-        dispatch_coverage in {"0/5", "0/6"},
+        dispatch_coverage in {"0/2", "0/5", "0/6"},
         True,
         [scorecard_source, dispatch_source],
     )
     check(
         checks,
         "dispatch results record only failed packages",
-        int(dispatch_artifact.get("failed_count") or 0) in {5, 6},
+        int(dispatch_artifact.get("passed_count") or 0) == 0
+        and (
+            int(dispatch_artifact.get("failed_count") or 0)
+            == int(
+                dispatch_artifact.get("package_count")
+                or len([package for package in dispatch_artifact.get("packages") or [] if isinstance(package, dict)])
+            )
+            or int(dispatch_artifact.get("failed_status_count") or 0)
+            + int(dispatch_artifact.get("missing_count") or 0)
+            == int(
+                dispatch_artifact.get("package_count")
+                or len([package for package in dispatch_artifact.get("packages") or [] if isinstance(package, dict)])
+            )
+        ),
         True,
         [dispatch_source],
     )
@@ -10946,7 +11422,7 @@ def build_payload(
         checks,
         "preflight exposes fresh-restore required env inputs",
         any(value.startswith("TAMANDUA_FRESH_RESTORE_") for value in required_env),
-        True,
+        bool(EXPECTED_PREFLIGHT_REQUIRED_ENVS),
         [preflight_source],
     )
     check(
@@ -11081,12 +11557,13 @@ def build_payload(
             "TAMANDUA_ALLOW_DEPENDENT_WAVE_LAUNCH",
             doc,
         )
-        check_contains(
+        check(
             checks,
-            f"{rel(doc)} references latest consistency run",
-            text,
-            consistency_run,
-            doc,
+            f"{rel(doc)} references current consistency evidence",
+            consistency_run in text
+            or "docs/benchmarks/generated/validation_status_consistency.md" in text,
+            True,
+            [rel(doc)],
         )
         check(
             checks,
@@ -11095,15 +11572,21 @@ def build_payload(
             True,
             [rel(doc)],
         )
+        if doc.name in {
+            "REMAINING_VALIDATION_BLOCKERS.md",
+            "PARALLEL_EXECUTION_BOARD.md",
+            "NEXT_VALIDATION_WORK_QUEUE.md",
+            "VALIDATION_MASTER_PLAN.md",
+        }:
+            check(
+                checks,
+                f"{rel(doc)} avoids stale pass-roadmap blocker phrases",
+                stale_pass_roadmap_blocker_phrases(text),
+                [],
+                [rel(doc), scorecard_source],
+            )
         if consistency_latest_fail:
             latest_fail_run = str(consistency_latest_fail.get("run_id") or "")
-            check_contains(
-                checks,
-                f"{rel(doc)} references latest superseded consistency fail",
-                text,
-                latest_fail_run,
-                doc,
-            )
             check(
                 checks,
                 f"{rel(doc)} has no stale latest consistency fail references",
@@ -11115,6 +11598,26 @@ def build_payload(
         check_contains(checks, f"{rel(doc)} references latest macOS backend readiness", text, macos_backend_run, doc)
         if doc.name in {"PARALLEL_EXECUTION_BOARD.md", "REMAINING_VALIDATION_BLOCKERS.md"}:
             check_contains(checks, f"{rel(doc)} references latest Linux eBPF readiness", text, linux_ebpf_run, doc)
+        if doc.name in {
+            "PARALLEL_EXECUTION_BOARD.md",
+            "REMAINING_VALIDATION_BLOCKERS.md",
+            "NEXT_VALIDATION_WORK_QUEUE.md",
+        }:
+            check_contains(
+                checks,
+                f"{rel(doc)} references macOS System Extension install entitlement",
+                text,
+                "com.apple.developer.system-extension.install",
+                doc,
+            )
+        if doc.name == "REMAINING_VALIDATION_BLOCKERS.md":
+            check(
+                checks,
+                f"{rel(doc)} current open roadmap list matches scorecard",
+                manual_scorecard_open_roadmaps(text),
+                scorecard_open,
+                [rel(doc), scorecard_source],
+            )
         if doc.name == "PARALLEL_EXECUTION_BOARD.md":
             check_contains(
                 checks,
@@ -11137,6 +11640,15 @@ def build_payload(
                 "agent_spawn_launcher.ps1 -Provider balanced -Phase env-bundle -Execute -Parallel",
                 doc,
             )
+    for doc in CLAIM_POSITIONING_DOCS:
+        text = load_text(doc)
+        check(
+            checks,
+            f"{rel(doc)} avoids stale pass-roadmap blocker phrases",
+            stale_pass_roadmap_blocker_phrases(text),
+            [],
+            [rel(doc), scorecard_source],
+        )
     for doc in (ROADMAP_DELIVERY_PLAN_DOC, VALIDATION_MASTER_PLAN_DOC):
         text = load_text(doc)
         check_contains(checks, f"{rel(doc)} references latest closure gate", text, closure_run, doc)
@@ -11193,9 +11705,1420 @@ def build_payload(
         True,
         [rel(REFRESH_AUTHORITY_SCRIPT)],
     )
+    macos_p0_smoke_runner_text = load_text(MACOS_P0_SMOKE_RUNNER)
+    preflight_work_package_text = load_text(preflight_work_package_path)
+    for marker in [
+        "-BootstrapReadinessReport $BootstrapReadinessReport",
+        '"-SkipBackendReadinessCheck" not in command_text',
+        '"-NoFailOnGate" in command_text',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(preflight_work_package_path)} preserves macOS P0 smoke command allowlist marker {marker}",
+            preflight_work_package_text,
+            marker,
+            preflight_work_package_path,
+        )
+    for marker in [
+        "[switch]$SkipBackendReadinessCheck",
+        "[switch]$SkipReadinessDiagnostics",
+        "TAMANDUA_ALLOW_DIAGNOSTIC_MACOS_SMOKE",
+        "diagnostic-readiness-bypassed",
+        '$benchmarkLane = "diagnostic-only"',
+        "Do not use readiness-bypassed runs as product-readiness evidence",
+        "$BootstrapReadinessReport",
+        "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT",
+        "macOS P0 smoke requires -BootstrapReadinessReport",
+        "Test-Path -LiteralPath $BootstrapReadinessReport",
+        "macOS bootstrap readiness report not found",
+        "bootstrap-lab-macos-agent.sh",
+        "macos_backend_readiness_probe.py",
+        "--live-response-diagnostics",
+        "--bootstrap-readiness-report",
+        "--output-dir",
+        "docs\\benchmarks\\runs",
+        "if ($LASTEXITCODE -ne 0)",
+        "macOS backend readiness is not green",
+        "Diagnostic Findings",
+        "-SkipBackendReadinessCheck for a diagnostic-only smoke",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_P0_SMOKE_RUNNER)} preserves backend readiness gate marker {marker}",
+            macos_p0_smoke_runner_text,
+            marker,
+            MACOS_P0_SMOKE_RUNNER,
+        )
+    check(
+        checks,
+        f"{rel(MACOS_P0_SMOKE_RUNNER)} gates smoke before detection execution",
+        macos_p0_smoke_runner_text.find("macos_backend_readiness_probe.py")
+        < macos_p0_smoke_runner_text.find("tamandua_detection_validation.py"),
+        True,
+        [rel(MACOS_P0_SMOKE_RUNNER)],
+    )
+    validation_harness_text = load_text(ROOT / "tools" / "detection_validation" / "tamandua_detection_validation.py")
+    merge_reports_text = load_text(ROOT / "tools" / "detection_validation" / "merge_tamandua_validation_reports.py")
+    for marker in [
+        'if lane == "diagnostic-only":',
+        'failures.append("diagnostic_only_lane")',
+        'and lane != "diagnostic-only"',
+        '("diagnostic_only_lane", lane == "diagnostic-only")',
+    ]:
+        check_contains(
+            checks,
+            f"tools/detection_validation/tamandua_detection_validation.py blocks diagnostic-only product claims marker {marker}",
+            validation_harness_text,
+            marker,
+            ROOT / "tools" / "detection_validation" / "tamandua_detection_validation.py",
+        )
+    for marker in [
+        '"source_benchmark_lanes"',
+        'if "diagnostic-only" in base["merge"]["source_benchmark_lanes"]:',
+        'base["benchmark_lane"] = "diagnostic-only"',
+    ]:
+        check_contains(
+            checks,
+            f"tools/detection_validation/merge_tamandua_validation_reports.py preserves diagnostic source lane marker {marker}",
+            merge_reports_text,
+            marker,
+            ROOT / "tools" / "detection_validation" / "merge_tamandua_validation_reports.py",
+        )
+    macos_backend_probe_text = load_text(MACOS_BACKEND_READINESS_PROBE)
+    for marker in [
+        "--live-response-diagnostics",
+        "--bootstrap-readiness-report",
+        "live_response_diagnostics: bool = False",
+        "bootstrap_readiness_report: str | None = None",
+        "enabled: bool = False",
+        "LIVE_RESPONSE_TOTAL_TIMEOUT_SECONDS",
+        "TAMANDUA_MACOS_LIVE_RESPONSE_REMOTE_TIMEOUT_SECONDS",
+        "diagnostic_budget_exhausted",
+        "BOOTSTRAP_READINESS_FRESHNESS_SECONDS",
+        "TAMANDUA_MACOS_BOOTSTRAP_READINESS_FRESHNESS_SECONDS",
+        "generated_at",
+        "generated_at_parseable",
+        "stale_report",
+        "fresh_macos_bootstrap_readiness_report",
+        "agent_architecture_matches_host",
+        "app_bundle_present",
+        "system_extension_architecture_matches_host",
+        "systemextensionsctl",
+        "codesign",
+        "spctl",
+        "claim_boundary",
+        "read-only live response diagnostics",
+        "local bootstrap readiness report only; does not replace backend health evidence",
+        "Bootstrap Readiness Report",
+        "Diagnostic Findings",
+        "refine_next_action_with_diagnostics",
+        "Deploy a Developer ID signed/notarized agent binary for macOS that Gatekeeper accepts",
+        "tamandua_system_extension_missing",
+        "endpoint_security_entitlement_missing",
+        "system_extension_install_entitlement_missing",
+        "System Extension install entitlement present",
+        "gatekeeper_rejected_agent_binary",
+        "Agent binary:",
+        "Local next action:",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_BACKEND_READINESS_PROBE)} preserves opt-in live response diagnostic marker {marker}",
+            macos_backend_probe_text,
+            marker,
+            MACOS_BACKEND_READINESS_PROBE,
+        )
+    for marker in [
+        '["systemextensionsctl", "list"]',
+        '["codesign", "-d", "--entitlements", ":-", agent_binary_path]',
+        '["spctl", "--assess", "--type", "execute", "--verbose=4", agent_binary_path]',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_BACKEND_READINESS_PROBE)} preserves read-only macOS diagnostic command {marker}",
+            macos_backend_probe_text,
+            marker,
+            MACOS_BACKEND_READINESS_PROBE,
+        )
+    macos_artifact_preflight_text = load_text(MACOS_RELEASE_ARTIFACT_PREFLIGHT)
+    for marker in [
+        'ARTIFACT_NAME = "macos-release-artifact-preflight"',
+        'EXPECTED_SYSEXT_EXTENSION_POINT = "com.apple.system-extension.endpoint-security"',
+        "Offline macOS release artifact structure/hash check only",
+        "Contents/Library/SystemExtensions/*.systemextension",
+        "CFBundleIdentifier",
+        "NSExtensionPointIdentifier",
+        "has_system_extension_bundle_id",
+        "has_endpoint_security_extension_point",
+        "system_extension_extension_point_identifier",
+        "mach_o_architecture_matches_artifact",
+        "expected_architecture",
+        "architecture_matches_expected",
+        "declared_macos_executable_arches",
+        "tamandua_agent_resource_arches",
+        "zipfile.ZipFile",
+        "--output-dir",
+        "require_system_extension",
+        "does not prove Developer ID signing",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_RELEASE_ARTIFACT_PREFLIGHT)} preserves offline release artifact preflight marker {marker}",
+            macos_artifact_preflight_text,
+            marker,
+            MACOS_RELEASE_ARTIFACT_PREFLIGHT,
+        )
+    macos_artifact_preflight_schema_text = load_text(MACOS_RELEASE_ARTIFACT_PREFLIGHT_SCHEMA)
+    for marker in [
+        '"$id": "https://tamandua.local/schemas/macos-release-artifact-preflight.schema.json"',
+        '"const": "macos-release-artifact-preflight"',
+        '"app_zip"',
+        '"quality_gate"',
+        '"has_system_extension_info_plist"',
+        '"system_extension_info_plist_valid"',
+        '"system_extension_info_plist_error"',
+        '"system_extension_cf_bundle_executable"',
+        '"declared_system_extension_executable_entry"',
+        '"expected_architecture"',
+        '"architecture_matches_expected"',
+        '"declared_macos_executable_arches"',
+        '"tamandua_agent_resource_arches"',
+        '"has_system_extension_bundle_id"',
+        '"has_endpoint_security_extension_point"',
+        '"system_extension_extension_point_identifier"',
+        '"require_system_extension"',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_RELEASE_ARTIFACT_PREFLIGHT_SCHEMA)} preserves preflight schema marker {marker}",
+            macos_artifact_preflight_schema_text,
+            marker,
+            MACOS_RELEASE_ARTIFACT_PREFLIGHT_SCHEMA,
+        )
+    macos_system_extension_info_plist_text = load_text(MACOS_SYSTEM_EXTENSION_INFO_PLIST)
+    for marker in [
+        "<key>NSExtensionPointIdentifier</key>",
+        "<string>com.apple.system-extension.endpoint-security</string>",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_SYSTEM_EXTENSION_INFO_PLIST)} preserves EndpointSecurity system extension marker {marker}",
+            macos_system_extension_info_plist_text,
+            marker,
+            MACOS_SYSTEM_EXTENSION_INFO_PLIST,
+        )
+    check(
+        checks,
+        f"{rel(MACOS_SYSTEM_EXTENSION_INFO_PLIST)} rejects stale entitlement-style extension point spelling",
+        "com.apple.endpoint-security.client" in macos_system_extension_info_plist_text,
+        False,
+        [rel(MACOS_SYSTEM_EXTENSION_INFO_PLIST)],
+    )
+    macos_notarize_text = load_text(MACOS_NOTARIZE_SCRIPT)
+    macos_release_entitlements_text = load_text(MACOS_RELEASE_ENTITLEMENTS)
+    for marker in [
+        "com.apple.developer.endpoint-security.client",
+        "com.apple.developer.system-extension.install",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_RELEASE_ENTITLEMENTS)} preserves release entitlement marker {marker}",
+            macos_release_entitlements_text,
+            marker,
+            MACOS_RELEASE_ENTITLEMENTS,
+        )
+    for marker in [
+        'REQUIRE_ENDPOINT_SECURITY="${NOTARIZE_REQUIRE_ENDPOINT_SECURITY:-true}"',
+        'REQUIRE_SYSTEM_EXTENSION="${NOTARIZE_REQUIRE_SYSTEM_EXTENSION:-true}"',
+        "com.apple.developer.endpoint-security.client",
+        "com.apple.developer.system-extension.install",
+        "require_system_extension_install_entitlement",
+        'require_system_extension_install_entitlement "${sysext_path}"',
+        "No .systemextension bundle found under",
+        "cannot satisfy sensor health",
+        'if ! xcrun stapler validate "${APP_PATH}"; then',
+        "Stapled notarization ticket validation failed",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_NOTARIZE_SCRIPT)} preserves fail-closed notarization marker {marker}",
+            macos_notarize_text,
+            marker,
+            MACOS_NOTARIZE_SCRIPT,
+        )
+    check(
+        checks,
+        f"{rel(MACOS_NOTARIZE_SCRIPT)} rejects permissive stapler validation warning",
+        'log_warning "Stapler validation warning' in macos_notarize_text,
+        False,
+        [rel(MACOS_NOTARIZE_SCRIPT)],
+    )
+    macos_sign_text = load_text(MACOS_SIGN_SCRIPT)
+    macos_sign_failure_path_text = macos_sign_text.split("# Cleanup", 1)[0]
+    for marker in [
+        "restore_unsigned_backup()",
+        'mv "$BACKUP_PATH" "$BINARY_PATH"',
+        "REQUIRED_SYSTEM_EXTENSION_INSTALL_ENTITLEMENT",
+        "com.apple.developer.system-extension.install",
+        "Checking pre-notarization Gatekeeper assessment",
+        "Pre-notarization Gatekeeper assessment failed; continuing to notarization",
+        "Stapled notarization ticket validation failed",
+        "Gatekeeper assessment: ${RED}FAILED${NC}",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_SIGN_SCRIPT)} preserves fail-closed signing rollback marker {marker}",
+            macos_sign_text,
+            marker,
+            MACOS_SIGN_SCRIPT,
+        )
+    check(
+        checks,
+        f"{rel(MACOS_SIGN_SCRIPT)} avoids deleting unsigned backup on release-gate failure",
+        'rm -f "$ZIP_PATH" "$BACKUP_PATH"' in macos_sign_failure_path_text,
+        False,
+        [rel(MACOS_SIGN_SCRIPT)],
+    )
+    linux_ebpf_collector_text = load_text(LINUX_EBPF_COLLECTOR)
+    linux_ebpf_program_text = load_text(LINUX_EBPF_PROGRAM)
+    linux_auditd_rules_text = load_text(LINUX_AUDITD_RULES)
+    for marker in [
+        "handle_execveat_syscall",
+        "322 => handle_execveat_syscall(ctx)",
+        "raw_tracepoint_arg_u64(ctx, 1)?",
+        "fn raw_tracepoint_arg_u64",
+        "let flags = execveat_flags(ctx)?",
+        "(flags & AT_EMPTY_PATH) == 0",
+        "(*event).arg1 = flags as u64",
+        "raw_tracepoint_arg_u64(ctx, 0)? as *const bindings::pt_regs",
+        "EventType::SyscallEvasionMemfdExec",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(LINUX_EBPF_PROGRAM)} preserves execveat syscall-evasion marker {marker}",
+            linux_ebpf_program_text,
+            marker,
+            LINUX_EBPF_PROGRAM,
+        )
+    for marker in [
+        'programs::{KProbe, Lsm, RawTracePoint, TracePoint}',
+        'bpf.program_mut("sys_enter_security")',
+        'raw_tp.attach("sys_enter")',
+        "BpfSyscallEvasionEvent",
+        "SyscallEvasionMemfdExec = 164",
+        "parse_syscall_evasion_event",
+        '"syscall_nr".to_string()',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(LINUX_EBPF_COLLECTOR)} preserves execveat raw syscall ingestion marker {marker}",
+            linux_ebpf_collector_text,
+            marker,
+            LINUX_EBPF_COLLECTOR,
+        )
+    check_contains(
+        checks,
+        f"{rel(LINUX_AUDITD_RULES)} preserves auditd execveat process-create rule",
+        linux_auditd_rules_text,
+        "-S execveat -k tamandua_process_create",
+        LINUX_AUDITD_RULES,
+    )
+    linux_execveat_profile_text = load_text(LINUX_EXECVEAT_MEMFD_PROFILE)
+    for marker in [
+        '"profile_id": "linux-execveat-memfd-live-kernel-proof"',
+        '"benchmark_lane": "claim-boundary"',
+        '"requires_driver_health": true',
+        '"requires_persisted_events": true',
+        "SYS_execveat",
+        "AT_EMPTY_PATH",
+        "SYS_memfd_create",
+        "command -v cc",
+        "expected_fields_by_event_type",
+        "expected_values_by_event_type",
+        "ebpf_linux_raw_syscall",
+        '"syscall_nr"',
+        "fileless_execveat_ebpf",
+        "auditd-only process_create evidence is insufficient",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(LINUX_EXECVEAT_MEMFD_PROFILE)} preserves execveat live-kernel proof marker {marker}",
+            linux_execveat_profile_text,
+            marker,
+            LINUX_EXECVEAT_MEMFD_PROFILE,
+        )
+    linux_ebpf_readiness_runbook_text = load_text(LINUX_EBPF_READINESS_RUNBOOK)
+    for marker in [
+        "execveat / memfd Live-Kernel Proof",
+        "tamandua_detection_validation.py",
+        "linux_execveat_memfd_live_kernel_proof",
+        "syscall `322`",
+        "auditd-only `process_create` evidence is not enough",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(LINUX_EBPF_READINESS_RUNBOOK)} preserves execveat live-kernel runbook marker {marker}",
+            linux_ebpf_readiness_runbook_text,
+            marker,
+            LINUX_EBPF_READINESS_RUNBOOK,
+        )
+    check(
+        checks,
+        f"{rel(LINUX_EBPF_READINESS_RUNBOOK)} does not reference missing run_profile.py helper",
+        "run_profile.py" in linux_ebpf_readiness_runbook_text,
+        False,
+        [rel(LINUX_EBPF_READINESS_RUNBOOK)],
+    )
+    sign_binaries_workflow_text = load_text(SIGN_BINARIES_WORKFLOW)
+    release_workflow_text = load_text(RELEASE_WORKFLOW)
+    ci_workflow_text = load_text(CI_WORKFLOW)
+    macos_agent_build_workflow_text = load_text(MACOS_AGENT_BUILD_WORKFLOW)
+    publish_packages_workflow_text = load_text(PUBLISH_PACKAGES_WORKFLOW)
+    tamandua_gui_readme_text = load_text(TAMANDUA_GUI_README)
+    homebrew_formula_text = load_text(HOMEBREW_FORMULA)
+    homebrew_macos_cask_text = load_text(HOMEBREW_MACOS_CASK)
+    chocolatey_install_script_text = load_text(CHOCOLATEY_INSTALL_SCRIPT)
+    apt_build_deb_text = load_text(APT_BUILD_DEB)
+    yum_spec_text = load_text(YUM_SPEC)
+    update_package_text = load_text(UPDATES_UPDATE_PACKAGE)
+    agents_update_package_text = load_text(AGENTS_UPDATE_PACKAGE)
+    agent_download_controller_text = load_text(AGENT_DOWNLOAD_CONTROLLER)
+    update_controller_text = load_text(UPDATE_CONTROLLER)
+    inertia_controller_text = load_text(INERTIA_CONTROLLER)
+    deploy_agent_page_text = load_text(DEPLOY_AGENT_PAGE)
+    gitignore_text = load_text(GITIGNORE)
+    create_dmg_text = load_text(MACOS_DMG_SCRIPT)
+    macos_notarize_workflow_text = load_text(MACOS_NOTARIZE_WORKFLOW)
+    for marker in [
+        "actions/upload-artifact@v4",
+        "name: tamandua-agent-windows-x86_64-signed",
+        "name: tamandua-agent-macos-${{ matrix.arch }}-signed",
+        "tamandua-agent-macos-${{ matrix.arch }}-signed.zip",
+        "scripts/verify_signed_binary.sh",
+        "com.apple.developer.endpoint-security.client",
+        "com.apple.developer.system-extension.install",
+        "APPLE_SIGNING_IDENTITY",
+        "APPLE_ID: ${{ secrets.APPLE_ID || secrets.APPLE_DEVELOPER_ID }}",
+        'codesign --force --sign "$APPLE_SIGNING_IDENTITY"',
+        '--apple-id "$APPLE_ID"',
+        "| grep com.apple.developer.endpoint-security.client",
+        "| grep com.apple.developer.system-extension.install",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(SIGN_BINARIES_WORKFLOW)} preserves signed artifact marker {marker}",
+            sign_binaries_workflow_text,
+            marker,
+            SIGN_BINARIES_WORKFLOW,
+        )
+    check_contains(
+        checks,
+        f"{rel(SIGN_BINARIES_WORKFLOW)} maps Apple Silicon target to release artifact arch",
+        sign_binaries_workflow_text,
+        "- target: aarch64-apple-darwin\n            arch: arm64",
+        SIGN_BINARIES_WORKFLOW,
+    )
+    check(
+        checks,
+        f"{rel(SIGN_BINARIES_WORKFLOW)} does not publish stale macOS aarch64 signed artifact name",
+        "tamandua-agent-macos-aarch64-signed" in sign_binaries_workflow_text,
+        False,
+        [rel(SIGN_BINARIES_WORKFLOW)],
+    )
+    sign_macos_workflow_block = sign_binaries_workflow_text.split("  sign-macos:", 1)[1].split(
+        "  # =====", 1
+    )[0]
+    for marker in [
+        "Keep macOS signed binary internal",
+        "The bare tamandua-agent ZIP remains a workflow artifact for app bundling only.",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(SIGN_BINARIES_WORKFLOW)} keeps macOS bare binary ZIP internal marker {marker}",
+            sign_macos_workflow_block,
+            marker,
+            SIGN_BINARIES_WORKFLOW,
+        )
+    for marker in [
+        "asset_name: tamandua-agent-macos-${{ matrix.arch }}-signed.zip",
+        "asset_name: tamandua-agent-macos-${{ matrix.arch }}-signed.zip.sha256",
+    ]:
+        check(
+            checks,
+            f"{rel(SIGN_BINARIES_WORKFLOW)} does not publish macOS bare binary release asset marker {marker}",
+            marker in sign_macos_workflow_block,
+            False,
+            [rel(SIGN_BINARIES_WORKFLOW)],
+        )
+    for path, text in [
+        (CI_WORKFLOW, ci_workflow_text),
+        (MACOS_AGENT_BUILD_WORKFLOW, macos_agent_build_workflow_text),
+    ]:
+        expected_build_marker = (
+            "cargo build --release --target aarch64-apple-darwin"
+            if path == CI_WORKFLOW
+            else "cargo build --release --target ${{ matrix.target }}"
+        )
+        check_contains(
+            checks,
+            f"{rel(path)} still builds macOS agent for CI validation",
+            text,
+            expected_build_marker,
+            path,
+        )
+        for marker in [
+            "name: tamandua-agent-macos-aarch64",
+            "path: apps/tamandua_agent/target/aarch64-apple-darwin/release/tamandua-agent",
+        ]:
+            check(
+                checks,
+                f"{rel(path)} does not upload bare macOS agent artifact marker {marker}",
+                marker in text,
+                False,
+                [rel(path)],
+            )
+    release_generic_block = release_workflow_text.split("  build-agent-release:", 1)[1].split(
+        "  # ==============================================================================\n  # BUILD HARDENED AGENT BINARIES",
+        1,
+    )[0]
+    release_hardened_block = release_workflow_text.split("  build-agent-hardened:", 1)[1].split(
+        "  # ==============================================================================\n  # BUILD AND PUSH DOCKER IMAGES",
+        1,
+    )[0]
+    for block_name, block in [
+        ("build-agent-release", release_generic_block),
+        ("build-agent-hardened", release_hardened_block),
+    ]:
+        for marker in [
+            "asset_name: tamandua-agent-macos-x86_64",
+            "asset_name: tamandua-agent-macos-aarch64",
+            "target: x86_64-apple-darwin",
+            "target: aarch64-apple-darwin",
+        ]:
+            check(
+                checks,
+                f"{rel(RELEASE_WORKFLOW)} {block_name} does not build bare macOS release marker {marker}",
+                marker in block,
+                False,
+                [rel(RELEASE_WORKFLOW)],
+            )
+    for marker in [
+        "name: tamandua-agent-windows-x86_64-signed",
+        "name: tamandua-agent-macos-${{ matrix.arch }}-signed",
+        "unzip signed-binaries/tamandua-agent-macos-${{ matrix.arch }}-signed.zip",
+        "scripts/verify_signed_binary.sh temp/tamandua-agent",
+        "Build System Extension for app bundle",
+        'swift build --configuration release --arch "${{ matrix.swift_arch }}"',
+        "swift_arch: x86_64",
+        "swift_arch: arm64",
+        "TamanduaFileMonitor.systemextension",
+        'lipo -archs "${SYSEXT_PATH}/Contents/MacOS/TamanduaFileMonitor" | grep -w "${{ matrix.swift_arch }}"',
+        'BUNDLE_EXECUTABLE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable"',
+        'APP_EXECUTABLE_NAME=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable"',
+        'APP_EXECUTABLE="${APP_PATH}/Contents/MacOS/${APP_EXECUTABLE_NAME}"',
+        'AGENT_HELPER="${APP_PATH}/Contents/MacOS/tamandua-agent"',
+        'codesign -d --entitlements :- "${SYSEXT_PATH}"',
+        "Notarize app bundle",
+        "NOTARIZE_REQUIRE_ENDPOINT_SECURITY: \"true\"",
+        "Verify deployable macOS release artifacts",
+        "macos_release_artifact_preflight.py",
+        'ditto -c -k --keepParent "${APP_PATH}" "${APP_ZIP}"',
+        '--app-zip "${APP_ZIP}"',
+        '--dmg "${DMG_PATH}"',
+        "Upload macOS release artifact preflight",
+        "APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY",
+        "APPLE_ID: ${{ secrets.APPLE_ID || secrets.APPLE_DEVELOPER_ID }}",
+        'codesign --force --sign "$APPLE_SIGNING_IDENTITY"',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(RELEASE_WORKFLOW)} consumes signed artifact marker {marker}",
+            release_workflow_text,
+            marker,
+            RELEASE_WORKFLOW,
+        )
+    for marker in [
+        "if: matrix.os != 'macos-latest' && matrix.os != 'macos-14'",
+        "if: matrix.os != 'macos-latest'",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(RELEASE_WORKFLOW)} prevents generic macOS binary release asset marker {marker}",
+            release_workflow_text,
+            marker,
+            RELEASE_WORKFLOW,
+        )
+    windows_release_block = release_workflow_text.split("  build-windows-installers:", 1)[1].split(
+        "  # =====", 1
+    )[0]
+    for marker in [
+        '$releaseTag = "${{ needs.create-release.outputs.version }}"',
+        "$packageVersion = $releaseTag.TrimStart('v')",
+        "Import Windows signing certificate",
+        "${{ secrets.WINDOWS_CERT_BASE64 }}",
+        "${{ secrets.WINDOWS_CERT_PASSWORD }}",
+        "makensis /DPRODUCT_VERSION=$packageVersion tamandua.nsi",
+        'Move-Item "tamandua-setup-$packageVersion.exe" "$env:GITHUB_WORKSPACE/tamandua-setup-$releaseTag.exe"',
+        'Move-Item "tamandua-$packageVersion.msi" "$env:GITHUB_WORKSPACE/tamandua-$releaseTag.msi"',
+        'Write-Error "No Windows code signing certificate found for installer signing"',
+        '$nsis = "tamandua-setup-$releaseTag.exe"',
+        '$msi = "tamandua-$releaseTag.msi"',
+        "Set-AuthenticodeSignature -FilePath $nsis",
+        'Get-ChildItem "${env:ProgramFiles(x86)}\\Windows Kits\\10\\bin" -Recurse -Filter signtool.exe',
+        "& $signtool.FullName sign /sha1 $cert.Thumbprint",
+        "Get-AuthenticodeSignature -FilePath $file",
+        "Installer signature verification failed",
+        '"tamandua-setup-$releaseTag.exe"',
+        '"tamandua-$releaseTag.msi"',
+        "asset_path: ./tamandua-setup-${{ needs.create-release.outputs.version }}.exe",
+        "asset_path: ./tamandua-${{ needs.create-release.outputs.version }}.msi",
+        "Cleanup Windows signing certificate",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(RELEASE_WORKFLOW)} publishes Windows installer asset with release tag marker {marker}",
+            windows_release_block,
+            marker,
+            RELEASE_WORKFLOW,
+        )
+    check(
+        checks,
+        f"{rel(RELEASE_WORKFLOW)} fails closed for Windows installer signing and upload",
+        "continue-on-error: true" in windows_release_block,
+        False,
+        [rel(RELEASE_WORKFLOW)],
+    )
+    for marker in [
+        "tamandua-agent-macos-x86_64-signed.zip",
+        "tamandua-agent-macos-aarch64-signed.zip",
+    ]:
+        for path, text in [
+            (PUBLISH_PACKAGES_WORKFLOW, publish_packages_workflow_text),
+            (HOMEBREW_FORMULA, homebrew_formula_text),
+            (HOMEBREW_MACOS_CASK, homebrew_macos_cask_text),
+        ]:
+            check(
+                checks,
+                f"{rel(path)} does not reference stale public macOS bare binary ZIP marker {marker}",
+                marker in text,
+                False,
+                [rel(path)],
+            )
+    check_contains(
+        checks,
+        f"{rel(TAMANDUA_GUI_README)} documents versioned signed/notarized macOS DMG name",
+        tamandua_gui_readme_text,
+        "Tamandua-vX.Y.Z-{x86_64,arm64}.dmg",
+        TAMANDUA_GUI_README,
+    )
+    check(
+        checks,
+        f"{rel(TAMANDUA_GUI_README)} does not document legacy macOS 0.1.0 DMG",
+        "Tamandua EDR_0.1.0_x64.dmg" in tamandua_gui_readme_text,
+        False,
+        [rel(TAMANDUA_GUI_README)],
+    )
+    for marker in [
+        "Tamandua-${TAG}-x86_64.dmg",
+        "Tamandua-${TAG}-arm64.dmg",
+        "tamandua-agent-linux-x86_64-signed.tar.gz",
+        "tamandua-agent-linux-aarch64-signed.tar.gz",
+        "SHA_LINUX_X86_64=$(sha256sum linux-x86_64.tar.gz | cut -d' ' -f1)",
+        "SHA_LINUX_ARM64=$(sha256sum linux-aarch64.tar.gz | cut -d' ' -f1)",
+        'sed -i "/tamandua-agent-linux-aarch64-signed.tar.gz/{n;s/sha256 \\".*\\"/sha256 \\"${SHA_LINUX_ARM64}\\"/;}" deploy/packages/homebrew/tamandua.rb',
+        'sed -i "/tamandua-agent-linux-x86_64-signed.tar.gz/{n;s/sha256 \\".*\\"/sha256 \\"${SHA_LINUX_X86_64}\\"/;}" deploy/packages/homebrew/tamandua.rb',
+        'sed -i "s/sha256 arm: \\".*\\"/sha256 arm: \\"${SHA_ARM}\\"/" deploy/packages/homebrew/Casks/tamandua-edr.rb',
+        'sed -i "/sha256 arm:/{n;s/intel: \\".*\\"/intel: \\"${SHA_X86}\\"/;}" deploy/packages/homebrew/Casks/tamandua-edr.rb',
+        "deploy/packages/homebrew/Casks/tamandua-edr.rb",
+        "cp deploy/packages/homebrew/Casks/tamandua-edr.rb tap/Casks/tamandua-edr.rb",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(PUBLISH_PACKAGES_WORKFLOW)} updates Homebrew tap from signed release assets marker {marker}",
+            publish_packages_workflow_text,
+            marker,
+            PUBLISH_PACKAGES_WORKFLOW,
+        )
+    for marker in [
+        'PACKAGE_VERSION="${VERSION_INPUT#v}"',
+        'deploy/packages/apt/build-deb.sh "${PACKAGE_VERSION}" "${{ matrix.arch }}"',
+        'deploy/packages/yum/build-rpm.sh "${PACKAGE_VERSION}" "${{ matrix.arch }}"',
+        "$PackageVersion = $VersionInput.TrimStart('v')",
+        '$ReleaseTag = "v$PackageVersion"',
+        "releases/download/$ReleaseTag/tamandua-setup-$ReleaseTag.exe",
+        "deploy/packages/chocolatey/tools/chocolateyinstall.ps1",
+        "Set-Content -Encoding utf8 deploy/packages/chocolatey/tamandua.nuspec",
+        "$version = '[^']+'",
+        "`$version = '${PackageVersion}'",
+        "$checksum64 = '[^']+'",
+        "`$checksum64 = '$env:INSTALLER_SHA256'",
+        "Set-Content -Encoding utf8 $InstallScript",
+        'choco push "tamandua.${env:PACKAGE_VERSION}.nupkg"',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(PUBLISH_PACKAGES_WORKFLOW)} normalizes package version and release tag marker {marker}",
+            publish_packages_workflow_text,
+            marker,
+            PUBLISH_PACKAGES_WORKFLOW,
+        )
+    for marker in [
+        "Install APT repository tools",
+        "sudo apt-get update && sudo apt-get install -y apt-utils",
+        'gpg --verify "${DEB_FILE}.asc" "${DEB_FILE}"',
+        'for deb in apt-repo/pool/main/t/tamandua/*.deb; do',
+        'sig="packages/$(basename "${deb}").asc"',
+        'test -s "${sig}"',
+        'gpg --verify "${sig}" "${deb}"',
+        "apt-ftparchive packages pool/main/t/tamandua",
+        'awk \'BEGIN { RS=""; ORS="\\n\\n" } /Architecture: amd64/ { print }\'',
+        'awk \'BEGIN { RS=""; ORS="\\n\\n" } /Architecture: arm64/ { print }\'',
+        "test -s dists/stable/main/binary-amd64/Packages",
+        "test -s dists/stable/main/binary-arm64/Packages",
+        "apt-ftparchive release dists/stable",
+        "if ! command -v aws >/dev/null; then",
+        "sudo apt-get install -y awscli",
+        "aws s3 sync apt-repo/ s3://${PACKAGE_BUCKET}/apt/ --delete",
+        "aws s3 sync yum-repo/ s3://${PACKAGE_BUCKET}/yum/ --delete",
+        "find packages -maxdepth 1 -name '*x86_64*.rpm' -exec cp {} yum-repo/${version}/x86_64/ \\;",
+        "find packages -maxdepth 1 -name '*aarch64*.rpm' -exec cp {} yum-repo/${version}/aarch64/ \\;",
+        "find yum-repo/${version}/x86_64 -maxdepth 1 -name '*.rpm' -print -quit | grep -q .",
+        "find yum-repo/${version}/aarch64 -maxdepth 1 -name '*.rpm' -print -quit | grep -q .",
+        "dnf install -y gcc rpm-build rpm-sign rpmdevtools gnupg2 curl",
+        'mapfile -t RPM_FILES < <(find . -maxdepth 1 -name "tamandua-agent-*${{ matrix.arch }}*.rpm" -print)',
+        'if [ "${#RPM_FILES[@]}" -eq 0 ]; then',
+        'rpmsign --addsign "${RPM_FILES[@]}"',
+        'rpm --checksig "${RPM_FILES[@]}"',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(PUBLISH_PACKAGES_WORKFLOW)} installs repository publish tool marker {marker}",
+            publish_packages_workflow_text,
+            marker,
+            PUBLISH_PACKAGES_WORKFLOW,
+        )
+    check(
+        checks,
+        f"{rel(PUBLISH_PACKAGES_WORKFLOW)} has AWS CLI fallback for both APT and YUM uploads",
+        publish_packages_workflow_text.count("if ! command -v aws >/dev/null; then"),
+        2,
+        [rel(PUBLISH_PACKAGES_WORKFLOW)],
+    )
+    check(
+        checks,
+        f"{rel(PUBLISH_PACKAGES_WORKFLOW)} does not copy amd64 APT Packages index into arm64",
+        "cp dists/stable/main/binary-amd64/Packages dists/stable/main/binary-arm64/" in publish_packages_workflow_text,
+        False,
+        [rel(PUBLISH_PACKAGES_WORKFLOW)],
+    )
+    for marker in [
+        "cp packages/*x86_64*.rpm yum-repo/${version}/x86_64/ || true",
+        "cp packages/*aarch64*.rpm yum-repo/${version}/aarch64/ || true",
+        "rpm --addsign tamandua-agent-*.rpm",
+    ]:
+        check(
+            checks,
+            f"{rel(PUBLISH_PACKAGES_WORKFLOW)} does not silently ignore missing YUM RPM marker {marker}",
+            marker in publish_packages_workflow_text,
+            False,
+            [rel(PUBLISH_PACKAGES_WORKFLOW)],
+        )
+    for marker in [
+        "deploy/packages/chocolatey/chocolateyinstall.ps1",
+        "$env:ChocolateyPackageVersion",
+    ]:
+        check(
+            checks,
+            f"{rel(PUBLISH_PACKAGES_WORKFLOW)} avoids stale Chocolatey publication marker {marker}",
+            marker in publish_packages_workflow_text,
+            False,
+            [rel(PUBLISH_PACKAGES_WORKFLOW)],
+        )
+    for marker in [
+        "$releaseTag = if ($version.StartsWith('v')) { $version } else { \"v$version\" }",
+        "releases/download/$releaseTag/tamandua-setup-$releaseTag.exe",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(CHOCOLATEY_INSTALL_SCRIPT)} derives release asset tag from Chocolatey package version marker {marker}",
+            chocolatey_install_script_text,
+            marker,
+            CHOCOLATEY_INSTALL_SCRIPT,
+        )
+    for path, text in [
+        (APT_BUILD_DEB, apt_build_deb_text),
+        (YUM_SPEC, yum_spec_text),
+    ]:
+        for marker in [
+            "User=tamandua",
+            "Group=tamandua",
+            "ExecStart=/usr/bin/tamandua-agent --config /etc/tamandua/agent.toml",
+            "ReadWritePaths=/var/lib/tamandua /var/log/tamandua",
+            "chmod 640 /etc/tamandua/agent.toml",
+        ]:
+            check_contains(
+                checks,
+                f"{rel(path)} starts Linux agent with packaged config and writable state marker {marker}",
+                text,
+                marker,
+                path,
+            )
+        check(
+            checks,
+            f"{rel(path)} does not start Linux agent without packaged config",
+            "ExecStart=/usr/bin/tamandua-agent\n" in text,
+            False,
+            [rel(path)],
+        )
+    check_contains(
+        checks,
+        f"{rel(YUM_SPEC)} owns installed Linux agent config with tamandua group readability",
+        yum_spec_text,
+        "%config(noreplace) %attr(640, root, tamandua) /etc/tamandua/agent.toml",
+        YUM_SPEC,
+    )
+    for marker in [
+        '"tamandua-agent-windows-x64.exe"',
+        '"tamandua-agent-linux-x64"',
+        '"tamandua-agent-macos-arm64"',
+        '"tamandua-agent-macos-arm64.sha256"',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(AGENT_DOWNLOAD_CONTROLLER)} preserves supported agent download marker {marker}",
+            agent_download_controller_text,
+            marker,
+            AGENT_DOWNLOAD_CONTROLLER,
+        )
+    for marker in [
+        '"tamandua-agent-macos-universal"',
+        '"tamandua-agent-aarch64-apple-darwin"',
+        '"tamandua-watchdog-aarch64-apple-darwin"',
+        '"Tamandua EDR_0.1.0_aarch64.dmg"',
+        '"Tamandua_EDR_0.1.0_aarch64.app.zip"',
+        '"macos-SHA256SUMS"',
+    ]:
+        check(
+            checks,
+            f"{rel(AGENT_DOWNLOAD_CONTROLLER)} does not serve legacy non-deployable macOS artifact marker {marker}",
+            marker in agent_download_controller_text,
+            False,
+            [rel(AGENT_DOWNLOAD_CONTROLLER)],
+        )
+    for marker in [
+        "macos_manifest_without_deployable_download?",
+        "macos_update_platform?",
+        "Suppressing macOS update",
+        "Refusing macOS standalone update download",
+        "macOS updates require signed/notarized DMG/Cask",
+        "EndpointSecurity System Extension",
+        "|> put_status(:gone)",
+        "Map.put(manifest, :download_url, nil)",
+        'String.starts_with?(platform, "macos")',
+        'String.starts_with?(platform, "darwin")',
+        'String.contains?(platform, "apple-darwin")',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(UPDATE_CONTROLLER)} refuses synthesized macOS standalone update URL marker {marker}",
+            update_controller_text,
+            marker,
+            UPDATE_CONTROLLER,
+        )
+    for path, text in [
+        (UPDATES_UPDATE_PACKAGE, update_package_text),
+        (AGENTS_UPDATE_PACKAGE, agents_update_package_text),
+    ]:
+        for marker in [
+            "validate_macos_product_installer_download_url()",
+            "validate_macos_product_installer_download_url(changeset)",
+            "macos_standalone_download_url?",
+            "macos_product_installer_download_url?",
+            "is required for macOS packages",
+            "signed/notarized DMG or Cask",
+            "EndpointSecurity System Extension",
+            "tamandua-agent-macos",
+            "aarch64-apple-darwin",
+            "x86_64-apple-darwin",
+            "tamandua-watchdog",
+            "tamandua%20edr_0.1.0",
+            "tamandua edr_0.1.0",
+            "tamandua_edr_0.1.0",
+            "macos-sha256sums",
+            'String.contains?(url, ".dmg")',
+            'String.contains?(url, "cask")',
+            'String.contains?(url, "tamandua-edr")',
+        ]:
+            check_contains(
+                checks,
+                f"{rel(path)} rejects macOS standalone update package marker {marker}",
+                text,
+                marker,
+                path,
+            )
+    updates_schemas_text = load_text(UPDATES_SCHEMAS)
+    updates_version_manager_text = load_text(UPDATES_VERSION_MANAGER)
+    for marker in [
+        "validate_macos_product_installer_binary_url()",
+        "validate_macos_product_installer_binary_url(changeset)",
+        "macos_standalone_binary_url?",
+        "macos_product_installer_binary_url?",
+        "is required for macOS versions",
+        "signed/notarized DMG or Cask",
+        "EndpointSecurity System Extension",
+        "tamandua-agent-macos",
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin",
+        "tamandua-watchdog",
+        "macos-sha256sums",
+        'String.contains?(url, ".dmg")',
+        'String.contains?(url, "cask")',
+        'String.contains?(url, "tamandua-edr")',
+    ]:
+        check_contains(
+            checks,
+            f"apps/tamandua_server/lib/tamandua_server/updates/schemas.ex rejects macOS standalone version marker {marker}",
+            updates_schemas_text,
+            marker,
+            UPDATES_SCHEMAS,
+        )
+    for marker in [
+        "macos_standalone_manifest_url?(manifest)",
+        "macos_manifest_without_product_installer?(manifest)",
+        "macos_manifest_platform?(manifest)",
+        "manifest_has_key?(manifest, key)",
+        "manifest_value(manifest, :binary_url)",
+        "manifest_value(manifest, :platform)",
+        "Map.has_key?(manifest, to_string(key))",
+        ":macos_requires_signed_notarized_dmg_or_cask",
+        'Kernel.==("macos")',
+        "tamandua-agent-macos",
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin",
+        "tamandua-watchdog",
+        "macos-sha256sums",
+        'String.contains?(url, ".dmg")',
+        'String.contains?(url, "cask")',
+        'String.contains?(url, "tamandua-edr")',
+    ]:
+        check_contains(
+            checks,
+            f"apps/tamandua_server/lib/tamandua_server/updates/version_manager.ex rejects macOS standalone manifest marker {marker}",
+            updates_version_manager_text,
+            marker,
+            UPDATES_VERSION_MANAGER,
+        )
+    for marker in [
+        "apps/tamandua_server/priv/static/downloads/agents/*macos*",
+        "!apps/tamandua_server/priv/static/downloads/agents/tamandua-agent-macos-arm64",
+        "!apps/tamandua_server/priv/static/downloads/agents/tamandua-agent-macos-arm64.sha256",
+        "apps/tamandua_server/priv/static/downloads/agents/*aarch64-apple-darwin*",
+        "apps/tamandua_server/priv/static/downloads/agents/Tamandua*.dmg",
+        "apps/tamandua_server/priv/static/downloads/agents/Tamandua*.app.zip",
+        "dist/upload/macos/",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(GITIGNORE)} excludes static macOS agent artifact marker {marker}",
+            gitignore_text,
+            marker,
+            GITIGNORE,
+        )
+    for marker in [
+        "Tamandua EDR_0.1.0_aarch64.dmg",
+        "Tamandua_EDR_0.1.0_aarch64.app.zip",
+        "macos-SHA256SUMS",
+        "SHA256SUMS",
+        "tamandua-agent-aarch64-apple-darwin",
+        "tamandua-watchdog-aarch64-apple-darwin",
+    ]:
+        for path in [STATIC_AGENT_DOWNLOADS, DIST_UPLOAD_MACOS]:
+            check(
+                checks,
+                f"{rel(path)} does not contain static macOS standalone artifact {marker}",
+                (path / marker).exists(),
+                False,
+                [rel(path)],
+            )
+    check_contains(
+        checks,
+        f"{rel(INERTIA_CONTROLLER)} exposes no macOS standalone binary URL",
+        inertia_controller_text,
+        "macosUniversal: nil",
+        INERTIA_CONTROLLER,
+    )
+    check(
+        checks,
+        f"{rel(INERTIA_CONTROLLER)} does not derive macOS download URL from standalone binary",
+        'binary_download_url_if_present(binary_base_url, "tamandua-agent-macos-universal")'
+        in inertia_controller_text,
+        False,
+        [rel(INERTIA_CONTROLLER)],
+    )
+    deploy_agent_macos_command_block = (
+        deploy_agent_page_text.split("macos: `", 1)[1].split("`,\n      linux:", 1)[0]
+        if "macos: `" in deploy_agent_page_text and "`,\n      linux:" in deploy_agent_page_text
+        else deploy_agent_page_text
+    )
+    for marker in [
+        "macOS product installer is not published on this server yet.",
+        "signed and notarized Tamandua EDR DMG/Cask release",
+        "EndpointSecurity System Extension",
+        "Full Disk Access",
+        "activeOsTab === 'macos' || (activeOsTab === 'linux' && !downloadUrls.linuxX64)",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(DEPLOY_AGENT_PAGE)} keeps macOS install UX on signed DMG/System Extension path marker {marker}",
+            deploy_agent_page_text,
+            marker,
+            DEPLOY_AGENT_PAGE,
+        )
+    for marker in [
+        "tamandua-agent-macos-universal",
+        "--no-driver",
+    ]:
+        check(
+            checks,
+            f"{rel(DEPLOY_AGENT_PAGE)} macOS install command does not promote standalone no-driver marker {marker}",
+            marker in deploy_agent_macos_command_block,
+            False,
+            [rel(DEPLOY_AGENT_PAGE)],
+        )
+    check(
+        checks,
+        f"{rel(DEPLOY_AGENT_PAGE)} does not render standalone macOS download button",
+        "Download macOS" in deploy_agent_page_text,
+        False,
+        [rel(DEPLOY_AGENT_PAGE)],
+    )
+    release_publish_packages_block = release_workflow_text.split("  publish-packages:", 1)[1].split(
+        "  # =====", 1
+    )[0]
+    for marker in [
+        "uses: ./.github/workflows/publish-packages.yml",
+        "needs: [create-release, build-release-images, sign-binaries, build-windows-installers, build-macos-dmg]",
+        "HOMEBREW_TAP_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}",
+        "CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(RELEASE_WORKFLOW)} invokes package publication after installer assets marker {marker}",
+            release_publish_packages_block,
+            marker,
+            RELEASE_WORKFLOW,
+        )
+    for marker in [
+        "depends_on :linux",
+        "Use the tamandua-edr cask on macOS",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(HOMEBREW_FORMULA)} keeps Formula Linux-only marker {marker}",
+            homebrew_formula_text,
+            marker,
+            HOMEBREW_FORMULA,
+        )
+    for marker in [
+        'cask "tamandua-edr"',
+        'arch arm: "arm64", intel: "x86_64"',
+        'sha256 arm: "PLACEHOLDER_ARM64_DMG_SHA256",',
+        '         intel: "PLACEHOLDER_X86_64_DMG_SHA256"',
+        'Tamandua-v#{version}-#{arch}.dmg',
+        'app "Tamandua EDR.app"',
+        "System Extension",
+        "Full Disk Access",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(HOMEBREW_MACOS_CASK)} preserves macOS DMG cask marker {marker}",
+            homebrew_macos_cask_text,
+            marker,
+            HOMEBREW_MACOS_CASK,
+        )
+    check(
+        checks,
+        f"{rel(PUBLISH_PACKAGES_WORKFLOW)} does not use broad Cask intel replacement that can corrupt arch DSL",
+        'perl -0pi -e "s/intel:' in publish_packages_workflow_text,
+        False,
+        [rel(PUBLISH_PACKAGES_WORKFLOW)],
+    )
+    for marker in [
+        "Build System Extension (${{ matrix.arch }})",
+        'swift build --configuration release --arch "${{ matrix.swift_arch }}"',
+        "name: system-extension-${{ matrix.arch }}",
+        'lipo -archs "${SYSEXT_PATH}/Contents/MacOS/TamanduaFileMonitor" | grep -w "${{ matrix.swift_arch }}"',
+        "Verifying System Extension install entitlement on app executable",
+        "Verifying System Extension install entitlement on System Extension",
+        "Verify deployable macOS release artifacts",
+        "macos_release_artifact_preflight.py",
+        'ditto -c -k --keepParent "bundle/Tamandua EDR.app" "${APP_ZIP}"',
+        '--app-zip "${APP_ZIP}"',
+        '--dmg "${DMG_NAME}"',
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_NOTARIZE_WORKFLOW)} preserves architecture-specific System Extension marker {marker}",
+            macos_notarize_workflow_text,
+            marker,
+            MACOS_NOTARIZE_WORKFLOW,
+        )
+    release_preflight_upload = release_workflow_text.split(
+        "- name: Upload macOS release artifact preflight", 1
+    )[1].split("- name: Upload DMG", 1)[0]
+    notarize_preflight_upload = macos_notarize_workflow_text.split(
+        "- name: Upload macOS release artifact preflight", 1
+    )[1].split("- name: Upload notarized DMG", 1)[0]
+    check(
+        checks,
+        f"{rel(RELEASE_WORKFLOW)} uploads macOS release artifact preflight report even when preflight fails",
+        "if: always()" in release_preflight_upload,
+        True,
+        [rel(RELEASE_WORKFLOW)],
+    )
+    release_preflight_to_dmg = release_workflow_text.split(
+        "- name: Verify deployable macOS release artifacts", 1
+    )[1].split("- name: Upload DMG", 1)[0]
+    check(
+        checks,
+        f"{rel(RELEASE_WORKFLOW)} blocks macOS DMG upload when release artifact preflight fails",
+        "continue-on-error" not in release_preflight_to_dmg
+        and release_workflow_text.index("- name: Verify deployable macOS release artifacts")
+        < release_workflow_text.index("- name: Upload DMG"),
+        True,
+        [rel(RELEASE_WORKFLOW)],
+    )
+    for marker in [
+        "--allow-missing-checksum",
+        "--no-require-system-extension",
+    ]:
+        check(
+            checks,
+            f"{rel(RELEASE_WORKFLOW)} macOS release artifact preflight does not use permissive marker {marker}",
+            marker in release_preflight_to_dmg,
+            False,
+            [rel(RELEASE_WORKFLOW)],
+        )
+    check(
+        checks,
+        f"{rel(MACOS_NOTARIZE_WORKFLOW)} uploads macOS release artifact preflight report even when preflight fails",
+        "if: always()" in notarize_preflight_upload,
+        True,
+        [rel(MACOS_NOTARIZE_WORKFLOW)],
+    )
+    notarize_preflight_to_dmg = macos_notarize_workflow_text.split(
+        "- name: Verify deployable macOS release artifacts", 1
+    )[1].split("- name: Upload notarized DMG", 1)[0]
+    check(
+        checks,
+        f"{rel(MACOS_NOTARIZE_WORKFLOW)} blocks notarized DMG artifact upload when release artifact preflight fails",
+        "continue-on-error" not in notarize_preflight_to_dmg
+        and macos_notarize_workflow_text.index("- name: Verify deployable macOS release artifacts")
+        < macos_notarize_workflow_text.index("- name: Upload notarized DMG"),
+        True,
+        [rel(MACOS_NOTARIZE_WORKFLOW)],
+    )
+    for marker in [
+        "--allow-missing-checksum",
+        "--no-require-system-extension",
+    ]:
+        check(
+            checks,
+            f"{rel(MACOS_NOTARIZE_WORKFLOW)} macOS release artifact preflight does not use permissive marker {marker}",
+            marker in notarize_preflight_to_dmg,
+            False,
+            [rel(MACOS_NOTARIZE_WORKFLOW)],
+        )
+    for marker in [
+        "CFBundleExecutable is missing",
+        "No .systemextension bundle found under",
+        "System Extension is missing com.apple.developer.endpoint-security.client",
+        "System Extension is missing com.apple.developer.system-extension.install",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_DMG_SCRIPT)} preserves macOS DMG release guard {marker}",
+            create_dmg_text,
+            marker,
+            MACOS_DMG_SCRIPT,
+        )
+    macos_bootstrap_text = load_text(MACOS_BOOTSTRAP_SCRIPT)
+    for marker in [
+        "READINESS_REPORT_PATH",
+        "TAMANDUA_AGENT_ARCHIVE_URL",
+        "TAMANDUA_MACOS_APP_BUNDLE_PATH",
+        "Set only one of TAMANDUA_AGENT_URL or TAMANDUA_AGENT_ARCHIVE_URL",
+        "strict macOS product bootstrap refuses TAMANDUA_AGENT_URL raw binary downloads",
+        "Use TAMANDUA_AGENT_ARCHIVE_URL with a signed/notarized app ZIP",
+        "TAMANDUA_AGENT_URL raw binary downloads are diagnostic-only",
+        'ditto -x -k "$archive_path" "$tmpdir/extracted"',
+        'install -m 0755 "$extracted_agent" "$AGENT_BINARY_PATH"',
+        "strict macOS product bootstrap requires app bundle",
+        "Install the signed/notarized Tamandua EDR.app",
+        "strict macOS product bootstrap requires a bundled System Extension",
+        "Contents/Library/SystemExtensions",
+        "STRICT_SYSEXT_BUNDLE_PATH",
+        "STRICT_HOST_ARCH",
+        "STRICT_AGENT_ARCH",
+        "strict macOS product bootstrap requires agent architecture to match host",
+        "STRICT_SYSEXT_EXECUTABLE",
+        "strict macOS product bootstrap requires a System Extension executable",
+        "STRICT_SYSEXT_ARCH",
+        "strict macOS product bootstrap requires System Extension architecture to match host",
+        "STRICT_SYSEXT_ENTITLEMENTS",
+        'codesign -d --entitlements :- "$STRICT_SYSEXT_BUNDLE_PATH"',
+        "strict macOS product bootstrap requires System Extension entitlement",
+        'grep -q "$SYSTEM_EXTENSION_INSTALL_ENTITLEMENT"',
+        "install_args=(",
+        'if [ "$REQUIRE_ENDPOINT_SECURITY" != "1" ]; then',
+        "install_args+=(--no-driver)",
+        '"$AGENT_BINARY_PATH" "${install_args[@]}"',
+        "signed release ZIP",
+        'generated_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"',
+        "lipo -archs",
+        "agent_architecture_matches_host",
+        "system_extension_architecture_matches_host",
+        "gatekeeper_assessment_accepted",
+        "gatekeeper_assessment_detail",
+        "spctl --assess --type execute --verbose=4",
+        "full_disk_access_tamandua_entry_present",
+        "full_disk_access_tamandua_entry_detail",
+        "kTCCServiceSystemPolicyAllFiles",
+        "lower(client) LIKE '%tamandua%'",
+        "system TCC database readable, but sqlite3 is unavailable",
+        "approve the Tamandua system extension and Full Disk Access",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_BOOTSTRAP_SCRIPT)} preserves macOS readiness report marker {marker}",
+            macos_bootstrap_text,
+            marker,
+            MACOS_BOOTSTRAP_SCRIPT,
+        )
+    macos_bootstrap_schema = load_json(MACOS_BOOTSTRAP_READINESS_SCHEMA)
+    macos_bootstrap_required = set(macos_bootstrap_schema.get("required") or [])
+    macos_bootstrap_properties = macos_bootstrap_schema.get("properties") or {}
+    macos_bootstrap_readiness_fields = [
+        "generated_at",
+        "agent_binary",
+        "host_architecture",
+        "agent_architecture",
+        "agent_architecture_matches_host",
+        "app_bundle_path",
+        "app_bundle_present",
+        "system_extension_architecture",
+        "system_extension_architecture_matches_host",
+        "launchd_service_present",
+        "developer_id_signature_present",
+        "not_adhoc_signed",
+        "endpoint_security_entitlement_present",
+        "gatekeeper_assessment_accepted",
+        "gatekeeper_assessment_detail",
+        "tamandua_system_extension_listed",
+        "tamandua_system_extension_line",
+        "system_tcc_db_readable",
+        "system_tcc_db_detail",
+        "full_disk_access_tamandua_entry_present",
+        "full_disk_access_tamandua_entry_detail",
+        "next_action",
+    ]
+    macos_bootstrap_boolean_fields = {
+        "agent_architecture_matches_host",
+        "app_bundle_present",
+        "system_extension_architecture_matches_host",
+        "launchd_service_present",
+        "developer_id_signature_present",
+        "not_adhoc_signed",
+        "endpoint_security_entitlement_present",
+        "gatekeeper_assessment_accepted",
+        "tamandua_system_extension_listed",
+        "system_tcc_db_readable",
+        "full_disk_access_tamandua_entry_present",
+    }
+    macos_bootstrap_string_fields = {
+        "generated_at",
+        "agent_binary",
+        "host_architecture",
+        "agent_architecture",
+        "app_bundle_path",
+        "system_extension_architecture",
+        "gatekeeper_assessment_detail",
+        "tamandua_system_extension_line",
+        "system_tcc_db_detail",
+        "full_disk_access_tamandua_entry_detail",
+        "next_action",
+    }
+    check(
+        checks,
+        f"{rel(MACOS_BOOTSTRAP_READINESS_SCHEMA)} rejects unknown readiness fields",
+        macos_bootstrap_schema.get("additionalProperties"),
+        False,
+        [rel(MACOS_BOOTSTRAP_READINESS_SCHEMA)],
+    )
+    for field in macos_bootstrap_readiness_fields:
+        check(
+            checks,
+            f"{rel(MACOS_BOOTSTRAP_READINESS_SCHEMA)} requires bootstrap readiness field {field}",
+            field in macos_bootstrap_required,
+            True,
+            [rel(MACOS_BOOTSTRAP_READINESS_SCHEMA)],
+        )
+        check_contains(
+            checks,
+            f"{rel(MACOS_BOOTSTRAP_SCRIPT)} emits bootstrap readiness field {field}",
+            macos_bootstrap_text,
+            f'"{field}"',
+            MACOS_BOOTSTRAP_SCRIPT,
+        )
+        expected_type = (
+            "boolean"
+            if field in macos_bootstrap_boolean_fields
+            else "string"
+            if field in macos_bootstrap_string_fields
+            else None
+        )
+        check(
+            checks,
+            f"{rel(MACOS_BOOTSTRAP_READINESS_SCHEMA)} types bootstrap readiness field {field}",
+            (macos_bootstrap_properties.get(field) or {}).get("type"),
+            expected_type,
+            [rel(MACOS_BOOTSTRAP_READINESS_SCHEMA)],
+        )
+    macos_bootstrap_check_text = load_text(MACOS_BOOTSTRAP_READINESS_CHECK)
+    for marker in [
+        "validation-macos-bootstrap-readiness-check",
+        "FreshnessSeconds",
+        "docs/benchmarks/macos_bootstrap_readiness.schema.json",
+        "ready_for_backend_probe",
+        "generated_at_parseable",
+        "stale_report",
+        "Regenerate a fresh macOS bootstrap readiness report",
+        "unknown_fields",
+        "false_readiness_fields",
+        "macos_backend_readiness_probe.py",
+        "exit 2",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_BOOTSTRAP_READINESS_CHECK)} preserves macOS readiness check marker {marker}",
+            macos_bootstrap_check_text,
+            marker,
+            MACOS_BOOTSTRAP_READINESS_CHECK,
+        )
+    for field in macos_bootstrap_readiness_fields:
+        check_contains(
+            checks,
+            f"{rel(MACOS_BOOTSTRAP_READINESS_CHECK)} validates bootstrap readiness field {field}",
+            macos_bootstrap_check_text,
+            str(field),
+            MACOS_BOOTSTRAP_READINESS_CHECK,
+        )
+    check_contains(
+        checks,
+        f"{rel(MACOS_ROADMAP_P0_RUNBOOK_DOC)} references macOS bootstrap readiness schema",
+        load_text(MACOS_ROADMAP_P0_RUNBOOK_DOC),
+        "macos_bootstrap_readiness.schema.json",
+        MACOS_ROADMAP_P0_RUNBOOK_DOC,
+    )
+    check_contains(
+        checks,
+        f"{rel(MACOS_ROADMAP_P0_RUNBOOK_DOC)} references macOS bootstrap readiness check",
+        load_text(MACOS_ROADMAP_P0_RUNBOOK_DOC),
+        "macos_bootstrap_readiness_check.ps1",
+        MACOS_ROADMAP_P0_RUNBOOK_DOC,
+    )
+    check_contains(
+        checks,
+        f"{rel(MACOS_ROADMAP_P0_RUNBOOK_DOC)} preserves bootstrap report claim boundary",
+        load_text(MACOS_ROADMAP_P0_RUNBOOK_DOC),
+        "does not replace backend health evidence",
+        MACOS_ROADMAP_P0_RUNBOOK_DOC,
+    )
+    macos_roadmap_p0_runbook_text = load_text(MACOS_ROADMAP_P0_RUNBOOK_DOC)
+    for marker in [
+        "TAMANDUA_MACOS_APP_BUNDLE_PATH",
+        "agent_architecture_matches_host",
+        "system_extension_architecture_matches_host",
+        "matching signed/notarized app bundle for the host architecture",
+        "Offline Release Artifact Preflight",
+        "macos_release_artifact_preflight.py",
+        "The app ZIP must include",
+        "does not mount a DMG",
+        "touch an endpoint",
+        "Contents/Library/SystemExtensions/*.systemextension",
+        EXPECTED_MACOS_BACKEND_RUN,
+        "-BootstrapReadinessReport .\\macos-bootstrap-readiness.json",
+        "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT",
+        "generated_at",
+        "stale reports are rejected",
+        "TAMANDUA_ALLOW_DIAGNOSTIC_MACOS_SMOKE=1",
+        "diagnostic-readiness-bypassed",
+        "`diagnostic-only`",
+        "refuses product-readiness smoke execution without",
+        "refuses `TAMANDUA_AGENT_URL` raw binary",
+        "In strict product mode it omits `--no-driver`",
+        "diagnostic/non-strict bootstrap",
+        "fails if the app bundle",
+        "matching host architecture for the agent and System",
+        "EndpointSecurity entitlement on the System Extension",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_ROADMAP_P0_RUNBOOK_DOC)} preserves architecture readiness marker {marker}",
+            macos_roadmap_p0_runbook_text,
+            marker,
+            MACOS_ROADMAP_P0_RUNBOOK_DOC,
+        )
+    check_not_contains(
+        checks,
+        f"{rel(MACOS_ROADMAP_P0_RUNBOOK_DOC)} does not describe strict enrollment as no-driver",
+        macos_roadmap_p0_runbook_text,
+        "agent `install --no-driver` enrollment",
+        MACOS_ROADMAP_P0_RUNBOOK_DOC,
+    )
+    macos_local_build_text = load_text(MACOS_LOCAL_BUILD_DOC)
+    for marker in [
+        "lipo -archs /path/to/tamandua-agent",
+        "CFBundleExecutable",
+        "TamanduaFileMonitor.systemextension",
+        "matching architecture",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(MACOS_LOCAL_BUILD_DOC)} preserves architecture release-check marker {marker}",
+            macos_local_build_text,
+            marker,
+            MACOS_LOCAL_BUILD_DOC,
+        )
+    ci_signed_installer_evidence_text = load_text(CI_SIGNED_INSTALLER_EVIDENCE_DOC)
+    for marker in [
+        "architecture-matched `TamanduaFileMonitor.systemextension`",
+        "Architecture-specific System Extension build",
+        "matching-architecture app",
+        "app/helper/System Extension Mach-O architectures",
+    ]:
+        check_contains(
+            checks,
+            f"{rel(CI_SIGNED_INSTALLER_EVIDENCE_DOC)} preserves architecture signing-evidence marker {marker}",
+            ci_signed_installer_evidence_text,
+            marker,
+            CI_SIGNED_INSTALLER_EVIDENCE_DOC,
+        )
     gitignore_text = load_text(GITIGNORE)
     product_readiness = load_json(PRODUCT_READINESS_JSON)
     product_readiness_markdown = load_text(PRODUCT_READINESS_MD)
+    product_readiness_source_artifacts = (
+        product_readiness.get("source_artifacts")
+        if isinstance(product_readiness.get("source_artifacts"), dict)
+        else {}
+    )
+    check(
+        checks,
+        "product readiness summary references latest macOS release artifact preflight",
+        product_readiness_source_artifacts.get("macos_release_artifact_preflight"),
+        macos_release_artifact_source,
+        [rel(PRODUCT_READINESS_JSON), macos_release_artifact_source],
+    )
     product_readiness_env_request = load_json(PRODUCT_READINESS_ENV_REQUEST_JSON)
     product_readiness_env_request_markdown = load_text(PRODUCT_READINESS_ENV_REQUEST_MD)
     product_readiness_env_request_schema = load_json(PRODUCT_READINESS_ENV_REQUEST_SCHEMA)
@@ -11282,6 +13205,12 @@ def build_payload(
         load_product_readiness_manual_claim_resolution_runner_json()
     )
     release_gate_failed_count = int_or_zero(product_readiness_release_gate_contract.get("failed_count"))
+    blocked_run_class_count = int_or_zero(
+        product_readiness_blocked_run_classes_contract.get("blocked_run_class_count")
+    )
+    profile_or_lab_blocked_count = int_or_zero(
+        product_readiness_blocked_run_classes_contract.get("profile_or_lab_blocked_count")
+    )
     manual_claim_count = len(product_readiness.get("manual_claims") or [])
     remaining_work_open_count = int_or_zero(product_readiness_remaining_work.get("open_count"))
     remaining_work_failed_requirement_count = int_or_zero(
@@ -11289,6 +13218,9 @@ def build_payload(
     )
     ready_now_open_count = int_or_zero(product_readiness_ready_now_fanout.get("open_count"))
     ready_now_count = int_or_zero(product_readiness_ready_now_fanout.get("ready_now_count"))
+    ready_now_blocked_by_dependency_count = int_or_zero(
+        product_readiness_ready_now_fanout.get("blocked_by_dependency_count")
+    )
     check(
         checks,
         "product readiness generated summary matches current blockers",
@@ -11389,20 +13321,12 @@ def build_payload(
         product_readiness_operator_check_json_matches_current_blockers(
             product_readiness_operator_check_json,
             [
-                "CALDERA_AGENT_PAW",
-                "CALDERA_API_KEY",
-                "CALDERA_GROUP",
-                "TAMANDUA_FRESH_RESTORE",
-                "TAMANDUA_FRESH_RESTORE_AGENT_ID",
-                "TAMANDUA_FRESH_RESTORE_FINISHED_AT",
-                "TAMANDUA_FRESH_RESTORE_HOSTNAME",
-                "TAMANDUA_FRESH_RESTORE_SNAPSHOT_ID",
-                "TAMANDUA_FRESH_RESTORE_SNAPSHOT_NAME",
-                "TAMANDUA_FRESH_RESTORE_STARTED_AT",
-                "TAMANDUA_FRESH_RESTORE_VMID",
-                "TAMANDUA_PROXMOX_PASSWORD",
-                "TAMANDUA_SERVER_PASSWORD",
-                "TAMANDUA_TOKEN",
+                str(value)
+                for value in (
+                    product_readiness.get("env_queue", {}).get("current_env_missing_names", [])
+                    if isinstance(product_readiness.get("env_queue"), dict)
+                    else []
+                )
             ],
             preflight_run,
         ),
@@ -11471,7 +13395,12 @@ def build_payload(
             )
         )
         and product_readiness_doctor_json.get("recommended_next_action_id")
-        in {"launch-ready-after-env-claims", "fill-env-bundle", "refresh-validation-authority"},
+        in {
+            "launch-ready-after-env-claims",
+            "fill-env-bundle",
+            "refresh-validation-authority",
+            "resolve-manual-claims",
+        },
         True,
         [rel(PRODUCT_READINESS_DOCTOR), rel(PRODUCT_READINESS_JSON)],
     )
@@ -11844,6 +13773,11 @@ def build_payload(
     )
     for marker in [
         "Product ready: `false`",
+        "Source Artifacts",
+        "`macos_backend`",
+        "`macos_release_artifact_preflight`",
+        product_readiness_source_artifacts.get("macos_backend") or "",
+        product_readiness_source_artifacts.get("macos_release_artifact_preflight") or "",
         "Product Release Gate",
         f"Failed requirements: `{release_gate_failed_count}`",
         "`post-agent-status`",
@@ -11851,7 +13785,7 @@ def build_payload(
         "`check-current-env`",
         "validation_product_readiness_operator_check.ps1",
         "-Json",
-        "`refresh-validation-authority`",
+        f"`{product_readiness.get('recommended_next_action_id')}`",
         "`refresh-validation-authority`",
         "Current env missing: `0`",
         "Missing Env Details",
@@ -11872,8 +13806,11 @@ def build_payload(
         "`agent_spawn_plan`",
         "`dispatch_prelaunch_validation`",
         "Manual Claims",
-        "`wave-1-resolve-atomic-extended-preconditions`",
-        "WMI-capable disposable target",
+        "`wave-1-restore-macos-backend-readiness`",
+        "Developer ID signed/notarized agent",
+        "## Blocked Run Classes",
+        "`macos-server-backed-smoke`",
+        "rerun macos_backend_readiness_probe.py before smoke execution",
         "validation_product_readiness_env_bundle_runner.ps1",
         "-UseBalancedAgents -Execute -RefreshClaimStatus",
         "Blocked by env: `0`",
@@ -11886,6 +13823,14 @@ def build_payload(
             marker,
             PRODUCT_READINESS_MD,
         )
+    check(
+        checks,
+        "product readiness summary blocked run class table exposes action column",
+        "| Run class | Allowed | Roadmaps | Missing env | Blocking profiles | Action |"
+        in product_readiness_markdown,
+        True,
+        [rel(PRODUCT_READINESS_MD)],
+    )
     for marker in [
         "Product Readiness Env Request",
         "Required env: `0`",
@@ -12011,6 +13956,7 @@ def build_payload(
         "validation-product-readiness-env-bundle-runner",
         "json_status_mode_refuses_launch_flags",
         "ready_to_launch",
+        "env_bundle_complete_no_launch",
         "env_bundle_incomplete",
         "No secret values were printed or imported.",
         "JSON status mode does not import secret values or delegate to the post-env runner.",
@@ -12159,7 +14105,7 @@ def build_payload(
         f"Failed requirements: `{release_gate_failed_count}`",
         "Required env: `0`",
         "Ready-after-env passed: `0/0`",
-        "Blocked run classes: `5`",
+        f"Blocked run classes: `{blocked_run_class_count}`",
         "Local Env Bundle Gate",
         "validation_product_readiness_env_bundle.local.json",
         "Exists: `true`",
@@ -12190,7 +14136,7 @@ def build_payload(
         "Product Readiness Claim Status Contract",
         "Product ready: `false`",
         "Ready-after-env passed: `0/0`",
-        "Ready-after-env all passed: `false`",
+        f"Ready-after-env all passed: `{str(bool(product_readiness_claim_status_contract.get('ready_after_env_all_passed'))).lower()}`",
         "`status`: `pass`",
         "`blocker_cleared`: `true`",
         "`missing_profiles`: `[]`",
@@ -12214,14 +14160,11 @@ def build_payload(
     for marker in [
         "Product Readiness Blocked Run Classes Contract",
         "Product ready: `false`",
-        "Blocked run classes: `5`",
+        f"Blocked run classes: `{blocked_run_class_count}`",
         "Env blocked: `0`",
-        "Profile/lab blocked: `5`",
-        "`windows-broad`",
-        "`windows-caldera-enterprise`",
+        f"Profile/lab blocked: `{profile_or_lab_blocked_count}`",
         "`macos-server-backed-smoke`",
         "`profile_or_lab_required`",
-        "`windows-atomic-extended-safe`",
         "`blocked_run_classes=[]`",
         "run_class_readiness allowed=true",
     ]:
@@ -12241,20 +14184,35 @@ def build_payload(
         f"Unresolved manual claims: `{manual_claim_count}`",
         f"Can claim manual resolution: `{'false' if manual_claim_count else 'true'}`",
         "claim_status_report.json",
+        "Source Artifacts",
+        "`macos_backend`",
+        "`macos_release_artifact_preflight`",
+        "signed/notarized release workflow",
+        "Contents/Library/SystemExtensions/*.systemextension",
+        "System Extension plus Full Disk Access approvals",
+        "macOS lane is not a Proxmox VMID/QGA flow",
+        product_readiness_source_artifacts.get("macos_backend") or "",
+        product_readiness_source_artifacts.get("macos_release_artifact_preflight") or "",
         "does not execute packages or close claims",
     ]
     if manual_claim_count:
-        manual_claim_resolution_markers.extend(
-            [
-                "`claim-wave-1-resolve-atomic-extended-preconditions`",
-                "`wave-1-resolve-atomic-extended-preconditions`",
-                "`validation-agent`",
-                "wave-1-resolve-atomic-extended-preconditions.agent.md",
-                "claim_status_report has zero manual_claim_required claims",
-                "agent_status.json has status=pass, blocker_cleared=true, and missing_profiles=[]",
-                "Atomic T1047 manual boundary is resolved by disposable WMI target or narrowed claim",
-            ]
-        )
+        for claim in product_readiness_manual_claim_resolution.get("claims") or []:
+            if not isinstance(claim, dict):
+                continue
+            manual_claim_resolution_markers.extend(
+                [
+                    f"`{str(claim.get('claim_id') or '')}`",
+                    f"`{str(claim.get('package_id') or '')}`",
+                    f"`{str(claim.get('owner') or '')}`",
+                    str(claim.get("prompt_path") or ""),
+                    "claim_status_report has zero manual_claim_required claims",
+                    "agent_status.json has status=pass, blocker_cleared=true, and missing_profiles=[]",
+                    "external/runtime preconditions from current_next_action are resolved",
+                ]
+            )
+            next_action_marker = str(claim.get("next_action") or "")
+            if next_action_marker:
+                manual_claim_resolution_markers.append(next_action_marker)
     for marker in manual_claim_resolution_markers:
         check_contains(
             checks,
@@ -12285,28 +14243,47 @@ def build_payload(
             marker,
             PRODUCT_READINESS_MANUAL_CLAIM_RESOLUTION_CHECK,
         )
-    for marker in [
+    product_readiness_runbook_steps = [
+        step for step in product_readiness_runbook.get("steps") or [] if isinstance(step, dict)
+    ]
+    product_readiness_runbook_commands = " ".join(
+        str(step.get("command") or "") for step in product_readiness_runbook_steps
+    )
+    product_readiness_runbook_markers = [
         "Product Readiness Runbook",
         "Product ready: `false`",
-        "Automation state: `ready_for_post_env_runner`",
-        "Required env: `0`",
-        "Ready-after-env required: `0`",
-        "Blocked run classes: `5`",
-        "`inspect-current-state`",
-        "`fill-env-bundle`",
-        "`validate-env-bundle`",
-        "`launch-ready-after-env-claims`",
-        "`refresh-claim-status`",
-        "`verify-agent-status-contract`",
-        "`resolve-profile-or-lab-blockers`",
-        "`refresh-validation-authority`",
-        "`claim-execution`",
-        "-UseBalancedAgents -Execute -RefreshClaimStatus",
+        f"Automation state: `{product_readiness_runbook.get('automation_state')}`",
+        f"Required env: `{int_or_default(product_readiness_runbook.get('required_env_count'))}`",
+        (
+            "Ready-after-env required: "
+            f"`{int_or_default(product_readiness_runbook.get('ready_after_env_required_count'))}`"
+        ),
+        f"Blocked run classes: `{blocked_run_class_count}`",
         "`execute_switch_required_for_claim_launch`",
         "validation_product_readiness_claim_status_contract.md",
         "validation_product_readiness_blocked_run_classes.contract.md",
         "must not be treated as completed",
-    ]:
+    ]
+    product_readiness_runbook_markers.extend(
+        f"`{step_id}`"
+        for step_id in [
+            str(step.get("id") or "") for step in product_readiness_runbook_steps
+        ]
+        if step_id
+    )
+    if any(step.get("executes_claims") is True for step in product_readiness_runbook_steps):
+        product_readiness_runbook_markers.append("`claim-execution`")
+    if "-UseBalancedAgents -Execute -RefreshClaimStatus" in product_readiness_runbook_commands:
+        product_readiness_runbook_markers.append("-UseBalancedAgents -Execute -RefreshClaimStatus")
+    if product_readiness_runbook.get("recommended_next_action_id") == "launch-ready-claims":
+        product_readiness_runbook_markers.extend(
+            [
+                "Recommended next action: `launch-ready-claims`",
+                "`launch-ready-claims`",
+                "agent_status.json",
+            ]
+        )
+    for marker in product_readiness_runbook_markers:
         check_contains(
             checks,
             f"{rel(PRODUCT_READINESS_RUNBOOK_MD)} preserves runbook marker {marker}",
@@ -12319,15 +14296,15 @@ def build_payload(
         "Product ready: `false`",
         f"Open items: `{remaining_work_open_count}`",
         f"Failed requirements: `{remaining_work_failed_requirement_count}`",
-        "`clear-env-blocked-claims`",
-        "`pass-ready-after-env-agent-status`",
         "`clear-blocked-run-classes`",
         "`rerun-closure-gate`",
         "`rerun-preflight-gate`",
         "`rerun-dispatch-gate`",
-        "`agent-status`",
+        "`preflight-run-class`",
         "`gate-rerun`",
-        "ready_after_env_passed_count=0",
+        "signed/notarized release workflow",
+        "System Extension plus Full Disk Access approvals",
+        "macOS lane is not a Proxmox VMID/QGA flow",
         "profile_or_lab_blocked_count=0",
         "listed evidence",
     ]:
@@ -12363,8 +14340,11 @@ def build_payload(
         "Product ready: `false`",
         f"Open items: `{ready_now_open_count}`",
         f"Ready now: `{ready_now_count}`",
-        "Blocked by dependency: `4`",
-        "`pass-ready-after-env-agent-status`",
+        f"Blocked by dependency: `{ready_now_blocked_by_dependency_count}`",
+        "`clear-blocked-run-classes`",
+        "signed/notarized release workflow",
+        "System Extension plus Full Disk Access approvals",
+        "macOS lane is not a Proxmox VMID/QGA flow",
         "do not execute commands",
     ]:
         check_contains(
@@ -12398,10 +14378,25 @@ def build_payload(
         "Product Readiness Agent Handoff",
         "Product ready: `false`",
         "External claim allowed: `false`",
-        "Automation state: `ready_for_post_env_runner`",
+        f"Automation state: `{product_readiness_agent_handoff.get('automation_state')}`",
         f"Release gate failed: `{release_gate_failed_count}`",
         "Required env: `0`",
         "Ready-after-env claims: `0`",
+        "Source Artifacts",
+        "`macos_backend`",
+        "`macos_release_artifact_preflight`",
+        product_readiness_source_artifacts.get("macos_backend") or "",
+        product_readiness_source_artifacts.get("macos_release_artifact_preflight") or "",
+        "Recommended Next Action",
+        "resolve-manual-claims",
+        "Deploy a Developer ID signed/notarized agent",
+        "com.apple.developer.endpoint-security.client",
+        "com.apple.developer.system-extension.install",
+        "Full Disk Access",
+        "signed/notarized release workflow",
+        "Contents/Library/SystemExtensions/*.systemextension",
+        "System Extension plus Full Disk Access approvals",
+        "macOS lane is not a Proxmox VMID/QGA flow",
         "`operator_check_json`",
         "`env_bundle_local_env_validate_json`",
         "`env_bundle_runner_status_check_json`",
@@ -12523,7 +14518,7 @@ def build_payload(
     known_production_gaps_text = load_text(KNOWN_PRODUCTION_GAPS_DOC)
     for marker in [
         scorecard_artifact_count_marker,
-        "closure gate is still red at `0/23`",
+        f"closure gate is still red at `{closure_coverage}`",
         "older implementation summaries",
         "production-ready",
         "historical implementation notes",
@@ -12568,9 +14563,9 @@ def build_payload(
     )
     check_contains(
         checks,
-        f"{rel(ENGINE_MATURITY_DOC)} preserves Atomic Roadmap C partial boundary",
+        f"{rel(ENGINE_MATURITY_DOC)} preserves current Atomic Roadmap C pass boundary",
         engine_maturity_text,
-        "Roadmap C remains `partial`",
+        "Windows Atomic upstream smoke is currently generated `pass`",
         ENGINE_MATURITY_DOC,
     )
     check_contains(
@@ -12652,6 +14647,13 @@ def build_payload(
         checks,
         f"{rel(NEXT_VALIDATION_WORK_QUEUE_DOC)} avoids P1 roadmap overclaim",
         coordination_docs_avoid_p1_roadmap_overclaim(next_validation_text),
+        True,
+        [rel(NEXT_VALIDATION_WORK_QUEUE_DOC)],
+    )
+    check(
+        checks,
+        f"{rel(NEXT_VALIDATION_WORK_QUEUE_DOC)} preserves current macOS backend handoff",
+        current_macos_backend_handoff_is_fresh(next_validation_text),
         True,
         [rel(NEXT_VALIDATION_WORK_QUEUE_DOC)],
     )

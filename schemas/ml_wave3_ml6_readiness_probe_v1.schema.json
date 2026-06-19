@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave3_ml6_readiness_probe_v1.schema.json",
+  "title": "Tamandua ML Wave 3 ML-6 Readiness Probe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "configuration", "source", "ready_for_ml6_holdout", "blockers", "checks", "operator_sequence"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave3-ml6-readiness-probe/v1"},
+    "kind": {"const": "MLWave3ML6ReadinessProbe"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status_ref", "wave2_ml1_readiness_ref", "ml1_report", "model_contract", "model_card", "vx_inventory", "holdout_outcomes", "launcher"],
+      "properties": {
+        "status_ref": {"type": "string", "minLength": 1},
+        "wave2_ml1_readiness_ref": {"type": "string", "minLength": 1},
+        "ml1_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml1\\.json$"},
+        "model_contract": {"type": "string", "pattern": "ml-prod-candidate-v1-model-contract\\.json$"},
+        "model_card": {"type": "string", "pattern": "ml-prod-candidate-v1-model-card\\.md$"},
+        "vx_inventory": {"type": "string", "pattern": "ml-vx-inthewild-inventory\\.json$"},
+        "holdout_outcomes": {"type": "string", "pattern": "ml-prod-candidate-v1-ml6-holdout-prediction-outcomes\\.json$"},
+        "launcher": {"type": "string", "pattern": "wave_3_ml6_holdout_launcher\\.ps1$"}
+      }
+    },
+    "ready_for_ml6_holdout": {"type": "boolean"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_status",
+        "execution_status_validation",
+        "wave2_ml1_readiness",
+        "wave2_ml1_readiness_validation",
+        "ml1_report",
+        "ml1_report_validation",
+        "ml1_model_contract",
+        "ml1_model_contract_validation",
+        "ml1_model_card",
+        "vx_inventory",
+        "vx_inventory_validation",
+        "holdout_outcomes",
+        "source_status_summary"
+      ],
+      "properties": {
+        "execution_status": {"type": "string", "pattern": "20260604T-ml-execution-status\\.json$"},
+        "execution_status_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
+        "wave2_ml1_readiness": {"type": "string", "pattern": "20260604T-ml-wave2-ml1-readiness-probe\\.json$"},
+        "wave2_ml1_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
+        "ml1_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml1\\.json$"},
+        "ml1_report_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed", "missing"]},
+        "ml1_model_contract": {"type": "string", "pattern": "ml-prod-candidate-v1-model-contract\\.json$"},
+        "ml1_model_contract_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed", "missing"]},
+        "ml1_model_card": {"type": "string", "pattern": "ml-prod-candidate-v1-model-card\\.md$"},
+        "vx_inventory": {"type": "string", "pattern": "ml-vx-inthewild-inventory\\.json$"},
+        "vx_inventory_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed", "missing"]},
+        "holdout_outcomes": {"type": "string", "pattern": "ml-prod-candidate-v1-ml6-holdout-prediction-outcomes\\.json$"},
+        "source_status_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "goal_complete",
+            "completion_state",
+            "goal_missing_requirements",
+            "goal_required_evidence_total",
+            "goal_present_required_evidence",
+            "goal_usable_required_evidence",
+            "goal_missing_required_evidence",
+            "goal_unusable_present_required_evidence",
+            "next_unproven_requirement_id",
+            "next_unproven_requirement_phase",
+            "next_unproven_execute_guard_env",
+            "missing_requirement_ids",
+            "evidence_status_summary",
+            "next_unproven_requirement",
+            "wave2_ml1_ready_for_candidate",
+            "wave2_ml1_lab_guard_proof_mismatch_count",
+            "wave2_ml1_ml_lab_standby_guards_unset",
+            "ml1_benchmark_report_present",
+            "ml1_model_contract_present",
+            "ml1_model_contract_valid",
+            "ml1_model_card_present",
+            "ml1_model_card_nonempty",
+            "ml1_model_card_references_contract",
+            "training_cutoff_present",
+            "training_cutoff_iso8601",
+            "vx_inventory_present",
+            "vx_inventory_contract_valid",
+            "vx_inventory_archive_count",
+            "vx_inventory_role",
+            "vx_inventory_used_in_training",
+            "vx_inventory_metadata_only",
+            "ml6_holdout_prediction_outcomes_present",
+            "ml6_launcher_exists",
+            "required_input_count",
+            "required_inputs_present",
+            "blocker_count",
+            "blockers"
+          ],
+          "properties": {
+            "goal_complete": {"type": "boolean"},
+            "completion_state": {"enum": ["not_executed", "partial_evidence", "complete"]},
+            "goal_missing_requirements": {"type": "integer", "minimum": 0},
+            "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+            "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "next_unproven_requirement_id": {"type": "string"},
+            "next_unproven_requirement_phase": {"type": "string"},
+            "next_unproven_execute_guard_env": {"type": "string"},
+            "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_status_summary": {"type": "object"},
+            "next_unproven_requirement": {"type": "object"},
+            "wave2_ml1_ready_for_candidate": {"type": "boolean"},
+            "wave2_ml1_lab_guard_proof_mismatch_count": {"type": "integer", "minimum": 0},
+            "wave2_ml1_ml_lab_standby_guards_unset": {"type": "boolean"},
+            "ml1_benchmark_report_present": {"type": "boolean"},
+            "ml1_model_contract_present": {"type": "boolean"},
+            "ml1_model_contract_valid": {"type": "boolean"},
+            "ml1_model_card_present": {"type": "boolean"},
+            "ml1_model_card_nonempty": {"type": "boolean"},
+            "ml1_model_card_references_contract": {"type": "boolean"},
+            "training_cutoff_present": {"type": "boolean"},
+            "training_cutoff_iso8601": {"type": "boolean"},
+            "vx_inventory_present": {"type": "boolean"},
+            "vx_inventory_contract_valid": {"type": "boolean"},
+            "vx_inventory_archive_count": {"type": "integer", "minimum": 0},
+            "vx_inventory_role": {"type": "string"},
+            "vx_inventory_used_in_training": {"type": "boolean"},
+            "vx_inventory_metadata_only": {"type": "boolean"},
+            "ml6_holdout_prediction_outcomes_present": {"type": "boolean"},
+            "ml6_launcher_exists": {"type": "boolean"},
+            "required_input_count": {"type": "integer", "minimum": 0},
+            "required_inputs_present": {"type": "integer", "minimum": 0},
+            "blocker_count": {"type": "integer", "minimum": 0},
+            "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}}
+          }
+        }
+      }
+    },
+    "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    },
+    "operator_sequence": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "mode", "command", "claim_boundary"],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1},
+          "mode": {"type": "string", "enum": ["validation_only", "execute"]},
+          "required_env": {"type": "object", "additionalProperties": {"type": "string"}},
+          "guard_set_command": {"type": "string", "minLength": 1},
+          "command": {"type": "string", "minLength": 1},
+          "guard_cleanup_command": {"type": "string", "minLength": 1},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    }
+  }
+}

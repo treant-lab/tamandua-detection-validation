@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_lab_standby_readiness_v1.schema.json",
+  "title": "Tamandua ML Lab Standby Readiness v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "configuration",
+    "source_status_summary",
+    "passed",
+    "checks"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-lab-standby-readiness/v1"},
+    "kind": {"const": "MLLabStandbyReadiness"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "module_dir",
+        "readme",
+        "adr",
+        "roadmap",
+        "required_tf_files",
+        "forbidden_active_paths",
+        "forbidden_state_patterns",
+        "required_unset_guard_env"
+      ],
+      "properties": {
+        "module_dir": {"const": "infra/azure/ml-lab"},
+        "readme": {"const": "infra/azure/ml-lab/README.md"},
+        "adr": {"const": "docs/architecture/adr/ADR-0001-local-first-ml-development.md"},
+        "roadmap": {"const": "ROADMAP.md"},
+        "required_tf_files": {
+          "type": "array",
+          "minItems": 6,
+          "items": {"type": "string", "minLength": 1},
+          "contains": {"const": "versions.tf"}
+        },
+        "forbidden_active_paths": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "forbidden_state_patterns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "required_unset_guard_env": {
+          "type": "array",
+          "minItems": 8,
+          "items": {"type": "string", "minLength": 1},
+          "contains": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"}
+        }
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "module_dir_exists",
+        "required_terraform_files_present",
+        "readme_exists",
+        "readme_declares_dormant_standby",
+        "readme_references_adr_and_roadmap",
+        "adr_local_first_accepted",
+        "roadmap_local_first_section_present",
+        "terraform_state_absent",
+        "active_vm_definitions_absent",
+        "storage_public_network_disabled",
+        "key_vault_default_deny",
+        "compute_nsg_denies_inbound_internet",
+        "raw_malware_guard_documented",
+        "no_execution_claim_boundary_documented",
+        "ml_execution_guards_unset",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "passed"
+      ],
+      "properties": {
+        "module_dir_exists": {"type": "boolean"},
+        "required_terraform_files_present": {"type": "boolean"},
+        "readme_exists": {"type": "boolean"},
+        "readme_declares_dormant_standby": {"type": "boolean"},
+        "readme_references_adr_and_roadmap": {"type": "boolean"},
+        "adr_local_first_accepted": {"type": "boolean"},
+        "roadmap_local_first_section_present": {"type": "boolean"},
+        "terraform_state_absent": {"type": "boolean"},
+        "active_vm_definitions_absent": {"type": "boolean"},
+        "storage_public_network_disabled": {"type": "boolean"},
+        "key_vault_default_deny": {"type": "boolean"},
+        "compute_nsg_denies_inbound_internet": {"type": "boolean"},
+        "raw_malware_guard_documented": {"type": "boolean"},
+        "no_execution_claim_boundary_documented": {"type": "boolean"},
+        "ml_execution_guards_unset": {"type": "boolean"},
+        "check_count": {"type": "integer", "minimum": 0},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "passed": {"type": "boolean"}
+      }
+    },
+    "passed": {"type": "boolean"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

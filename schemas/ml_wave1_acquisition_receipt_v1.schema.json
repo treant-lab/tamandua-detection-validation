@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave1_acquisition_receipt_v1.schema.json",
+  "title": "Tamandua ML Wave 1 Acquisition Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source_status_summary", "vx_policy", "source", "ready_for_manifest_publish", "blockers", "configuration", "summary", "checks"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave1-acquisition-receipt/v1"},
+    "kind": {"const": "MLWave1AcquisitionReceipt"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wave1_execution_packet_validated",
+        "acquisition_readiness_validated",
+        "wave1_lab_run_intake_validated",
+        "acquisition_readiness_passed",
+        "lab_run_intake_ready_for_post_acquisition_refresh",
+        "acquisition_transcript_present",
+        "acquisition_transcript_valid",
+        "acquisition_transcript_validation",
+        "acquisition_transcript_execute_returncode",
+        "acquisition_transcript_execute_succeeded",
+        "acquisition_transcript_guarded_run_command_packet_ref",
+        "acquisition_transcript_acquisition_command_sha256",
+        "acquisition_transcript_guarded_run_command_packet_sha256",
+        "acquisition_transcript_stdout_sha256",
+        "acquisition_transcript_stderr_sha256",
+        "acquisition_transcript_vx_policy_valid",
+        "acquisition_transcript_vx_inventory_metadata_only",
+        "acquisition_transcript_vx_samples_in_training_splits",
+        "acquisition_transcript_vx_archive_download_guard_env",
+        "acquisition_transcript_vx_archive_download_guard_must_be_unset",
+        "expected_vx_inventory_ref",
+        "expected_vx_inventory_metadata_only",
+        "expected_vx_samples_in_training_splits",
+        "expected_vx_archive_download_guard_env",
+        "expected_vx_archive_download_guard_must_be_unset",
+        "production_manifest_outside_repo",
+        "production_manifest_exists",
+        "canonical_dataset_manifest_absent_before_publish",
+        "production_manifest_shape_valid",
+        "sample_count",
+        "train",
+        "validation",
+        "test",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "blocker_count",
+        "blockers",
+        "ready_for_manifest_publish"
+      ],
+      "properties": {
+        "wave1_execution_packet_validated": {"type": "boolean"},
+        "acquisition_readiness_validated": {"type": "boolean"},
+        "wave1_lab_run_intake_validated": {"type": "boolean"},
+        "acquisition_readiness_passed": {"type": "boolean"},
+        "lab_run_intake_ready_for_post_acquisition_refresh": {"type": "boolean"},
+        "acquisition_transcript_present": {"type": "boolean"},
+        "acquisition_transcript_valid": {"type": "boolean"},
+        "acquisition_transcript_validation": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "acquisition_transcript_execute_returncode": {"type": ["integer", "null"]},
+        "acquisition_transcript_execute_succeeded": {"type": "boolean"},
+        "acquisition_transcript_guarded_run_command_packet_ref": {"type": "string"},
+        "acquisition_transcript_acquisition_command_sha256": {"type": "string"},
+        "acquisition_transcript_guarded_run_command_packet_sha256": {"type": "string"},
+        "acquisition_transcript_stdout_sha256": {"type": "string"},
+        "acquisition_transcript_stderr_sha256": {"type": "string"},
+        "acquisition_transcript_vx_policy_valid": {"type": "boolean"},
+        "acquisition_transcript_vx_inventory_metadata_only": {"type": "boolean"},
+        "acquisition_transcript_vx_samples_in_training_splits": {"type": ["boolean", "null"]},
+        "acquisition_transcript_vx_archive_download_guard_env": {"type": "string"},
+        "acquisition_transcript_vx_archive_download_guard_must_be_unset": {"type": "boolean"},
+        "expected_vx_inventory_ref": {"const": "docs\\benchmarks\\runs\\ml-vx-inthewild-inventory.json"},
+        "expected_vx_inventory_metadata_only": {"const": true},
+        "expected_vx_samples_in_training_splits": {"const": false},
+        "expected_vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "expected_vx_archive_download_guard_must_be_unset": {"const": true},
+        "production_manifest_outside_repo": {"type": "boolean"},
+        "production_manifest_exists": {"type": "boolean"},
+        "canonical_dataset_manifest_absent_before_publish": {"type": "boolean"},
+        "production_manifest_shape_valid": {"type": "boolean"},
+        "sample_count": {"type": "integer", "minimum": 0},
+        "train": {"type": "integer", "minimum": 0},
+        "validation": {"type": "integer", "minimum": 0},
+        "test": {"type": "integer", "minimum": 0},
+        "check_count": {"type": "integer", "minimum": 0},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "blocker_count": {"type": "integer", "minimum": 0},
+        "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "goal_complete": {"const": false},
+        "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+        "ready_for_manifest_publish": {"type": "boolean"}
+      }
+    },
+    "vx_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vx_inventory_ref",
+        "vx_inventory_metadata_only",
+        "vx_samples_in_training_splits",
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_must_be_unset",
+        "operator_note"
+      ],
+      "properties": {
+        "vx_inventory_ref": {"const": "docs\\benchmarks\\runs\\ml-vx-inthewild-inventory.json"},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_samples_in_training_splits": {"const": false},
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_must_be_unset": {"const": true},
+        "operator_note": {"type": "string", "minLength": 40}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wave1_execution_packet",
+        "wave1_execution_packet_validation",
+        "wave1_lab_run_intake",
+        "wave1_lab_run_intake_validation",
+        "wave1_acquisition_transcript",
+        "wave1_acquisition_transcript_validation",
+        "acquisition_readiness",
+        "acquisition_readiness_validation"
+      ],
+      "properties": {
+        "wave1_execution_packet": {"type": "string", "pattern": "20260604T-ml-wave1-execution-packet\\.json$"},
+        "wave1_execution_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "wave1_lab_run_intake": {"type": "string", "pattern": "20260604T-ml-wave1-lab-run-intake\\.json$"},
+        "wave1_lab_run_intake_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "wave1_acquisition_transcript": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.json$"},
+        "wave1_acquisition_transcript_validation": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "acquisition_readiness": {"type": "string", "pattern": "20260604T-ml-acquisition-readiness\\.json$"},
+        "acquisition_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]}
+      }
+    },
+    "ready_for_manifest_publish": {"type": "boolean"},
+    "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["production_manifest", "canonical_dataset_manifest", "publish_command", "publish_guard_env"],
+      "properties": {
+        "production_manifest": {"type": "string", "minLength": 1},
+        "canonical_dataset_manifest": {"type": "string", "minLength": 1},
+        "publish_command": {"type": "string", "minLength": 1},
+        "publish_guard_env": {"const": "TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sample_count", "train", "validation", "test"],
+      "properties": {
+        "sample_count": {"type": "integer", "minimum": 0},
+        "train": {"type": "integer", "minimum": 0},
+        "validation": {"type": "integer", "minimum": 0},
+        "test": {"type": "integer", "minimum": 0}
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

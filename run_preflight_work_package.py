@@ -41,7 +41,8 @@ UNSAFE_COMMAND_TOKENS = (";", "|", "&", "`", "\r", "\n", ">", "<")
 @contextmanager
 def local_dotenv_environment():
     previous = os.environ.copy()
-    load_dotenv(REPO_ROOT / ".env")
+    if os.getenv("TAMANDUA_SKIP_DOTENV") != "1":
+        load_dotenv(REPO_ROOT / ".env")
     try:
         yield
     finally:
@@ -233,10 +234,24 @@ def command_is_allowed(command: str) -> bool:
         return True
     if any(token in command_text for token in UNSAFE_COMMAND_TOKENS):
         return False
+    if command_text == "$BootstrapReadinessReport = $env:TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT":
+        return True
+    if command_text == (
+        "if (-not $BootstrapReadinessReport) { throw "
+        "'Set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT to the copied "
+        "/var/log/tamandua/macos-bootstrap-readiness.json before macOS P0 smoke.' }"
+    ):
+        return True
     if not command_text.startswith(ALLOWED_COMMAND_PREFIXES):
         return False
     if command_text.startswith("python tools/detection_validation/"):
         return ".py" in command_text.split()[1]
+    if command_text.startswith("powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1 "):
+        return (
+            "-BootstrapReadinessReport $BootstrapReadinessReport" in command_text
+            and "-SkipBackendReadinessCheck" not in command_text
+            and "-NoFailOnGate" in command_text
+        )
     return True
 
 
@@ -244,6 +259,34 @@ def validate_safe_commands(package: dict) -> None:
     for command in package.get("safe_commands") or []:
         if not isinstance(command, str) or not command.strip() or not command_is_allowed(command):
             raise ValueError(f"package {package.get('package_id')} has unsupported command: {command}")
+
+
+def normalize_safe_commands(package: dict) -> None:
+    normalized: list[str] = []
+    for command in package.get("safe_commands") or []:
+        command_text = str(command)
+        if command_text.strip() == (
+            "powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1 "
+            "-OutputDir $Out -NoFailOnGate"
+        ):
+            normalized.extend(
+                [
+                    "$BootstrapReadinessReport = $env:TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT",
+                    (
+                        "if (-not $BootstrapReadinessReport) { throw "
+                        "'Set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT to the copied "
+                        "/var/log/tamandua/macos-bootstrap-readiness.json before macOS P0 smoke.' }"
+                    ),
+                    (
+                        "powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1 "
+                        "-OutputDir $Out -BootstrapReadinessReport $BootstrapReadinessReport "
+                        "-NoFailOnGate"
+                    ),
+                ]
+            )
+        else:
+            normalized.append(command_text)
+    package["safe_commands"] = normalized
 
 
 def missing_required_env(package: dict, environ: dict[str, str] | None = None) -> list[str]:
@@ -440,19 +483,45 @@ def package_current_next_action_or_task(package: dict, current_next_action: obje
     elif isinstance(package.get("current_next_action"), dict) and package.get("current_next_action"):
         action = dict(package.get("current_next_action") or {})
     if action.get("action"):
+        action["action"] = normalize_macos_next_action_text(str(action.get("action") or ""))
         return action
     action_text = str(package.get("action") or "").strip()
     if action_text:
-        action["action"] = action_text
+        action["action"] = normalize_macos_next_action_text(action_text)
         return action
     for roadmap_action in package.get("roadmap_next_actions") or []:
         if not isinstance(roadmap_action, dict):
             continue
         action_text = str(roadmap_action.get("action") or "").strip()
         if action_text:
-            action["action"] = action_text
+            action["action"] = normalize_macos_next_action_text(action_text)
             return action
     return action
+
+
+def dependency_blocker_next_action(
+    dependent_waves: list[int],
+    prior_package_entries: list[dict],
+) -> dict[str, object]:
+    """Return the current action for the first unresolved package blocking a dependent wave."""
+    if not dependent_waves:
+        return {}
+    dependency_set = {int(value) for value in dependent_waves}
+    for entry in sorted(
+        prior_package_entries,
+        key=lambda item: (int(item.get("wave") or 0), str(item.get("package_id") or "")),
+    ):
+        if int(entry.get("wave") or 0) not in dependency_set:
+            continue
+        action = entry.get("current_next_action") if isinstance(entry.get("current_next_action"), dict) else {}
+        if not action.get("action"):
+            continue
+        if entry.get("current_blocker_cleared") is True:
+            continue
+        status = str(entry.get("current_status") or "")
+        if status in {"fail", "blocked", "invalid", "missing", "not_run"} or entry.get("ready_to_launch") is False:
+            return dict(action)
+    return {}
 
 
 def operator_input_details_by_env(package: dict) -> dict[str, dict[str, str]]:
@@ -523,6 +592,28 @@ def render_package_script(
     package_id = str(package.get("package_id") or "")
     output_dir = package_output_dir or DEFAULT_OUTPUT_DIR / safe_filename(package_id) / "outputs"
     expected_profiles = [str(value) for value in package.get("expected_profile_ids") or []]
+    status_path_for_current_action = (
+        output_dir.parent / "agent_status.json"
+        if output_dir.name.lower() == "outputs"
+        else output_dir / "agent_status.json"
+    )
+    status_next_action: dict[str, object] = {}
+    if status_path_for_current_action.exists() and status_path_for_current_action.is_file():
+        try:
+            status_payload = load_json(status_path_for_current_action)
+            current_artifacts = [stable_artifact_ref(value) for value in status_payload.get("artifacts") or []]
+            status_next_action = current_next_action_from_artifacts(current_artifacts)
+        except (json.JSONDecodeError, OSError, ValueError):
+            status_next_action = {}
+    current_next_action = package_current_next_action_or_task(
+        package,
+        status_next_action
+        if status_next_action
+        else package.get("current_next_action")
+        if isinstance(package.get("current_next_action"), dict)
+        else {},
+    )
+    current_action_text = str(current_next_action.get("action") or "").strip()
     lines = [
         "# Generated from validation execution preflight work package.",
         f"# PackageId: {package_id}",
@@ -617,6 +708,16 @@ def render_package_script(
                 "  Write-AgentStatus 'blocked' 2 @('missing_effective_env: ' + ($MissingEnv -join ', '))",
                 "  exit 2",
                 "}",
+                "",
+            ]
+        )
+
+    if current_action_text:
+        lines.extend(
+            [
+                "# Current failed evidence precondition from latest artifacts.",
+                f"Write-Host {ps_single_quoted('Current next action: ' + current_action_text)}",
+                "Write-Host 'Resolve this external/runtime precondition before expecting this package to clear its blocker.'",
                 "",
             ]
         )
@@ -788,6 +889,22 @@ def resolve_current_artifact_ref(path_value: str) -> Path:
     return path if path.is_absolute() else REPO_ROOT / path
 
 
+def normalize_macos_next_action_text(action: str) -> str:
+    text = str(action or "").strip()
+    if (
+        "com.apple.developer.endpoint-security.client" in text
+        and "com.apple.developer.system-extension.install" not in text
+    ):
+        text = text.replace(
+            "com.apple.developer.endpoint-security.client",
+            (
+                "com.apple.developer.endpoint-security.client and "
+                "com.apple.developer.system-extension.install"
+            ),
+        )
+    return text
+
+
 def compact_next_action(action: dict) -> dict[str, object]:
     compact: dict[str, object] = {}
     for key in (
@@ -812,7 +929,8 @@ def compact_next_action(action: dict) -> dict[str, object]:
         "target_agent_id",
     ):
         if action.get(key) not in (None, "", []):
-            compact[key] = str(action.get(key))
+            value = str(action.get(key))
+            compact[key] = normalize_macos_next_action_text(value) if key == "action" else value
     if "server_matches_target" in action:
         compact["server_matches_target"] = bool(action.get("server_matches_target"))
     if (
@@ -927,6 +1045,11 @@ def render_agent_prompt(package: dict, script_path: Path, preflight_path: Path) 
     current_missing_profiles = ", ".join(str(value) for value in current_status["missing_profiles"]) or "-"
     current_exit_code = current_status["exit_code"] if current_status["exit_code"] is not None else "-"
     current_next_action = json.dumps(current_status["next_action"], sort_keys=True) if current_status["next_action"] else "-"
+    current_action_text = (
+        str(current_status["next_action"].get("action") or "").strip()
+        if isinstance(current_status["next_action"], dict)
+        else ""
+    )
     next_action_env = (
         ", ".join(ordered_unique(package_next_action_env(package) + next_action_env_from_action(current_status["next_action"])))
         or "-"
@@ -962,10 +1085,23 @@ def render_agent_prompt(package: dict, script_path: Path, preflight_path: Path) 
         f"Current missing profiles: {current_missing_profiles}",
         f"Current next action: {current_next_action}",
         "",
-        "Task:",
-        str(package.get("action") or "Run the materialized package script and report the resulting artifacts."),
-        "",
     ]
+    if current_action_text:
+        lines.extend(
+            [
+                "Current external/runtime precondition:",
+                f"- {current_action_text}",
+                "- Do not treat a rerun as blocker-clearing evidence until this precondition has changed.",
+                "",
+            ]
+        )
+    lines.extend(
+        [
+            "Task:",
+            str(package.get("action") or "Run the materialized package script and report the resulting artifacts."),
+            "",
+        ]
+    )
     references = package_references(package)
     if references:
         lines.extend(["References:", *[f"- {reference}" for reference in references], ""])
@@ -1004,6 +1140,7 @@ def render_agent_prompt(package: dict, script_path: Path, preflight_path: Path) 
             "- Do not edit unrelated files or revert another worker's changes.",
             "- Acquire the claim lock with the claim lock command above before running the package script.",
             "- Do not run the script until all required env vars above are present.",
+            "- Do not run the script until all manual prerequisites above are satisfied.",
             "- Keep outputs in the package script's output directory unless explicitly promoting official artifacts.",
             "- Write final package status to the status path above using the required JSON fields and allowed status values above.",
             "- Report command output, generated artifact paths, and whether the package cleared its blocker.",
@@ -1804,12 +1941,15 @@ def build_owner_launch_plan_json(
                 else {}
             )
             current_next_action = package_current_next_action_or_task(package, current_next_action)
+            package_dependencies = dependent_waves(package)
+            dependency_action = dependency_blocker_next_action(package_dependencies, package_entries)
+            if dependency_action:
+                current_next_action = dependency_action
             package_next_env = ordered_unique(
                 package_next_action_env(package) + next_action_env_from_action(current_next_action)
             )
             package_effective = package_effective_env_with_current_action(package, current_next_action)
             package_missing_env = missing_effective_env(package, current_next_action=current_next_action)
-            package_dependencies = dependent_waves(package)
             blocked_reasons = []
             if package_missing_env:
                 blocked_reasons.append("missing_effective_env")
@@ -1817,6 +1957,10 @@ def build_owner_launch_plan_json(
                 blocked_reasons.append("depends_on_prior_waves")
             if selected is False and not str(manual_reason or "").startswith("blocked:"):
                 blocked_reasons.append("manual_launch_required")
+            if isinstance(status_payload, dict):
+                status_reason = str(status_payload.get("status") or "").strip()
+                if status_reason in {"fail", "blocked", "invalid"}:
+                    blocked_reasons.append(f"agent_status_{status_reason}")
             package_entries.append(
                 {
                     "package_id": package_id,
@@ -2868,6 +3012,29 @@ def resolve_claim_status_path(status_path_value: str, archive_dir: Path | None =
     return status_path
 
 
+def normalize_claim_entry_runtime_state(entry: dict) -> dict:
+    normalized = dict(entry)
+    agent_status = str(normalized.get("agent_status") or "").strip()
+    if agent_status not in {"pass", "fail", "blocked", "invalid"}:
+        return normalized
+    normalized["ready_to_launch"] = False
+    blocked_reasons = [str(value) for value in normalized.get("blocked_reasons") or []]
+    if agent_status == "pass":
+        if normalized.get("agent_blocker_cleared") is True and not normalized.get("missing_profiles"):
+            normalized["claim_state"] = "has_current_pass_evidence"
+        else:
+            normalized["claim_state"] = "has_current_incomplete_pass_evidence"
+            if "agent_status_incomplete" not in blocked_reasons:
+                blocked_reasons.append("agent_status_incomplete")
+    else:
+        normalized["claim_state"] = f"has_current_{agent_status}_evidence"
+        reason = f"agent_status_{agent_status}"
+        if reason not in blocked_reasons:
+            blocked_reasons.append(reason)
+    normalized["blocked_reasons"] = blocked_reasons
+    return normalized
+
+
 def build_claim_status_report_json(claims_payload: dict, lock_dir: Path | None = None) -> dict:
     claim_entries = []
     archive_dir = lock_dir.parent if lock_dir else None
@@ -2881,7 +3048,7 @@ def build_claim_status_report_json(claims_payload: dict, lock_dir: Path | None =
         status_summary = summarize_agent_status(resolve_claim_status_path(status_path_value, archive_dir)) if status_path_value else {}
         agent_status = str(status_summary.get("agent_status") or claim.get("current_status") or "not_run")
         claim_entries.append(
-            {
+            normalize_claim_entry_runtime_state({
                 "claim_id": claim_id,
                 "package_id": str(claim.get("package_id") or ""),
                 "owner": str(claim.get("owner") or "unassigned"),
@@ -2912,7 +3079,7 @@ def build_claim_status_report_json(claims_payload: dict, lock_dir: Path | None =
                 "script_path": str(claim.get("script_path") or ""),
                 "prompt_path": claim.get("prompt_path"),
                 "command": str(claim.get("command") or ""),
-            }
+            })
         )
     claim_entries.sort(
         key=lambda item: (
@@ -3041,11 +3208,32 @@ def refresh_claim_status_report_from_manifest(manifest_path: Path) -> tuple[Path
 def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dict[str, str]:
     manifest = load_json(manifest_path)
     manifest_dir = manifest_path.parent
-    packages = [
-        package_with_latest_current_next_action(package)
-        for package in manifest.get("packages") or []
-        if isinstance(package, dict)
-    ]
+    packages = []
+    for package in manifest.get("packages") or []:
+        if not isinstance(package, dict):
+            continue
+        enriched = dict(package)
+        status_path_value = enriched.get("status_path")
+        status_next_action: dict[str, object] = {}
+        if status_path_value:
+            status_path = resolve_dispatch_manifest_path_ref(status_path_value, manifest_dir)
+            if status_path.exists() and status_path.is_file():
+                try:
+                    status_payload = load_json(status_path)
+                    current_artifacts = [
+                        stable_artifact_ref(value)
+                        for value in status_payload.get("artifacts") or []
+                    ]
+                    status_next_action = current_next_action_from_artifacts(current_artifacts)
+                except (json.JSONDecodeError, OSError, ValueError):
+                    status_next_action = {}
+        if status_next_action:
+            enriched["current_next_action"] = status_next_action
+        else:
+            latest_next_action = package_latest_current_next_action(enriched)
+            if latest_next_action:
+                enriched["current_next_action"] = latest_next_action
+        packages.append(enriched)
     for package in packages:
         for derived_key in (
             "launcher_selected",
@@ -3066,6 +3254,7 @@ def refresh_dispatch_handoff_artifacts_from_manifest(manifest_path: Path) -> dic
     refreshed_package_script_paths: list[Path] = []
     prompt_paths: dict[str, Path] = {}
     for package in packages:
+        normalize_safe_commands(package)
         package_id = str(package.get("package_id") or "")
         if not package_id:
             continue
@@ -9488,6 +9677,9 @@ def main(argv: list[str] | None = None) -> int:
     if args.execute and not args.preflight_json:
         print("--execute requires --preflight-json so execution cannot use an implicit latest artifact", file=sys.stderr)
         return 2
+
+    if os.environ.get("TAMANDUA_SKIP_DOTENV") != "1":
+        load_dotenv(REPO_ROOT / ".env")
 
     preflight_path = args.preflight_json or latest_preflight_path(args.runs_dir)
     artifact = load_json(preflight_path)

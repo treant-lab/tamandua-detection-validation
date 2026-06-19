@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_next_action_run_v1.schema.json",
+  "title": "Tamandua ML Next Action Run v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "status_ref",
+    "mode",
+    "action",
+    "command",
+    "returncode",
+    "stdout",
+    "stderr",
+    "env_snapshot",
+    "safety_assertions",
+    "validation_scope",
+    "claim_boundary"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-next-action-run/v1"},
+    "kind": {"const": "MLNextActionRun"},
+    "status_ref": {"type": "string", "minLength": 1},
+    "mode": {"enum": ["validation_only", "execute"]},
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["priority", "action_type", "package_id", "wave", "execute_guard_env"],
+      "properties": {
+        "priority": {"type": "integer", "minimum": 1},
+        "action_type": {
+          "enum": [
+            "launch_package",
+            "refresh_post_acquisition_receipts",
+            "publish_dataset_manifest",
+            "set_required_env",
+            "fix_required_env"
+          ]
+        },
+        "package_id": {"type": "string", "pattern": "^ml[a-z0-9_]+$"},
+        "wave": {"type": "integer", "minimum": 0},
+        "execute_guard_env": {"type": ["string", "null"], "pattern": "^TAMANDUA_ALLOW_[A-Z0-9_]+$"}
+      }
+    },
+    "command": {"type": "string", "minLength": 1},
+    "returncode": {"type": ["integer", "null"]},
+    "stdout": {"type": "string"},
+    "stderr": {"type": "string"},
+    "env_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status_required_env", "execute_guard_env"],
+      "properties": {
+        "status_required_env": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "present", "placeholder", "value_redacted"],
+            "properties": {
+              "name": {"type": "string", "pattern": "^TAMANDUA_[A-Z0-9_]+$"},
+              "present": {"type": "boolean"},
+              "placeholder": {"type": "boolean"},
+              "value_redacted": {"enum": ["present", "missing_or_placeholder"]},
+              "outside_repo": {"type": "boolean"}
+            }
+          }
+        },
+        "execute_guard_env": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["name", "present", "value_redacted"],
+          "properties": {
+            "name": {"type": "string", "pattern": "^TAMANDUA_ALLOW_[A-Z0-9_]+$"},
+            "present": {"type": "boolean"},
+            "value_redacted": {"enum": ["present", "missing_or_placeholder"]}
+          }
+        }
+      }
+    },
+    "safety_assertions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_validation_only",
+        "execute_guard_absent",
+        "selected_action_only",
+        "no_success_stderr",
+        "no_real_operation_evidence",
+        "guarded_command_printed",
+        "no_real_acquisition_evidence",
+        "guarded_would_run_command_printed",
+        "data_root_outside_repo"
+      ],
+      "properties": {
+        "command_validation_only": {"type": "boolean"},
+        "execute_guard_absent": {"type": "boolean"},
+        "selected_action_only": {"type": "boolean"},
+        "no_success_stderr": {"type": "boolean"},
+        "no_real_operation_evidence": {"type": "boolean"},
+        "guarded_command_printed": {"type": "boolean"},
+        "no_real_acquisition_evidence": {"type": "boolean"},
+        "guarded_would_run_command_printed": {"type": "boolean"},
+        "data_root_outside_repo": {"type": "boolean"}
+      }
+    },
+    "validation_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["scope_type", "selected_package_id", "selected_wave", "full_platform_sweep"],
+      "properties": {
+        "scope_type": {"const": "selected_action_only"},
+        "selected_package_id": {"type": "string", "pattern": "^ml[a-z0-9_]+$"},
+        "selected_wave": {"type": "integer", "minimum": 0},
+        "full_platform_sweep": {"const": false}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 10}
+  }
+}

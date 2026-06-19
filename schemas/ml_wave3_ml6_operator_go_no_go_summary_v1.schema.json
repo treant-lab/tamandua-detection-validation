@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave3_ml6_operator_go_no_go_summary_v1.schema.json",
+  "title": "Tamandua ML Wave 3 ML-6 Operator Go/No-Go Summary v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "source",
+    "source_artifact_hashes",
+    "operator_decision",
+    "source_status_summary",
+    "operator_sequence",
+    "checks"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave3-ml6-operator-go-no-go-summary/v1"},
+    "kind": {"const": "MLWave3ML6OperatorGoNoGoSummary"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wave1_acceptance_checklist",
+        "wave1_acceptance_checklist_validation",
+        "wave3_ml6_readiness",
+        "wave3_ml6_readiness_validation"
+      ],
+      "properties": {
+        "wave1_acceptance_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-acceptance-checklist\\.json$"},
+        "wave1_acceptance_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "wave3_ml6_readiness": {"type": "string", "pattern": "20260604T-ml-wave3-ml6-readiness-probe\\.json$"},
+        "wave3_ml6_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]}
+      }
+    },
+    "source_artifact_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wave1_acceptance_checklist", "wave3_ml6_readiness"],
+      "properties": {
+        "wave1_acceptance_checklist": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-wave1-acceptance-checklist\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "wave3_ml6_readiness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-wave3-ml6-readiness-probe\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        }
+      }
+    },
+    "operator_decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ready_for_ml6_holdout_go_no_go",
+        "decision",
+        "validation_command",
+        "execute_command",
+        "execute_guard_env",
+        "required_cutoff_env",
+        "holdout_outcomes",
+        "authorization_inputs_sha256",
+        "no_execution_claim_boundary"
+      ],
+      "properties": {
+        "ready_for_ml6_holdout_go_no_go": {"type": "boolean"},
+        "decision": {"enum": ["go_for_guarded_ml6_holdout", "no_go"]},
+        "validation_command": {"type": "string", "pattern": "wave_3_ml6_holdout_launcher\\.ps1'?$"},
+        "execute_command": {"type": "string", "pattern": "wave_3_ml6_holdout_launcher\\.ps1'? -Execute$"},
+        "execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_HOLDOUT"},
+        "required_cutoff_env": {"const": "TAMANDUA_ML_TRAINING_CUTOFF"},
+        "holdout_outcomes": {"type": "string", "pattern": "ml-prod-candidate-v1-ml6-holdout-prediction-outcomes\\.json$"},
+        "authorization_inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "no_execution_claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ready_for_ml6_holdout_go_no_go",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "ready_for_ml6_holdout",
+        "wave2_ml1_ready_for_candidate",
+        "ml1_benchmark_report_present",
+        "ml1_model_contract_present",
+        "ml1_model_contract_valid",
+        "ml1_model_card_present",
+        "ml1_model_card_nonempty",
+        "ml1_model_card_references_contract",
+        "training_cutoff_present",
+        "training_cutoff_iso8601",
+        "vx_inventory_present",
+        "ml6_holdout_prediction_outcomes_present",
+        "ml6_launcher_exists",
+        "required_inputs_present",
+        "required_input_count",
+        "validation_command_no_execute",
+        "execute_command_has_execute",
+        "execute_guard_env",
+        "required_cutoff_env",
+        "guard_set_command",
+        "guard_cleanup_command",
+        "operator_guard_commands_preserved",
+        "operator_sequence_steps",
+        "blocker_count",
+        "blockers",
+        "goal_complete",
+        "completion_state",
+        "goal_missing_requirements",
+        "goal_required_evidence_total",
+        "goal_present_required_evidence",
+        "goal_usable_required_evidence",
+        "goal_missing_required_evidence",
+        "goal_unusable_present_required_evidence",
+        "next_unproven_requirement_id",
+        "next_unproven_requirement_phase",
+        "next_unproven_execute_guard_env",
+        "evidence_status_summary",
+        "next_unproven_requirement"
+      ],
+      "properties": {
+        "ready_for_ml6_holdout_go_no_go": {"type": "boolean"},
+        "check_count": {"type": "integer", "minimum": 1},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "ready_for_ml6_holdout": {"type": "boolean"},
+        "wave2_ml1_ready_for_candidate": {"type": "boolean"},
+        "ml1_benchmark_report_present": {"type": "boolean"},
+        "ml1_model_contract_present": {"type": "boolean"},
+        "ml1_model_contract_valid": {"type": "boolean"},
+        "ml1_model_card_present": {"type": "boolean"},
+        "ml1_model_card_nonempty": {"type": "boolean"},
+        "ml1_model_card_references_contract": {"type": "boolean"},
+        "training_cutoff_present": {"type": "boolean"},
+        "training_cutoff_iso8601": {"type": "boolean"},
+        "vx_inventory_present": {"type": "boolean"},
+        "ml6_holdout_prediction_outcomes_present": {"type": "boolean"},
+        "ml6_launcher_exists": {"type": "boolean"},
+        "required_inputs_present": {"type": "integer", "minimum": 0},
+        "required_input_count": {"type": "integer", "minimum": 0},
+        "validation_command_no_execute": {"type": "boolean"},
+        "execute_command_has_execute": {"type": "boolean"},
+        "execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_HOLDOUT"},
+        "required_cutoff_env": {"const": "TAMANDUA_ML_TRAINING_CUTOFF"},
+        "guard_set_command": {"const": "$env:TAMANDUA_ALLOW_ML_HOLDOUT = '1'"},
+        "guard_cleanup_command": {"const": "Remove-Item Env:TAMANDUA_ALLOW_ML_HOLDOUT -ErrorAction SilentlyContinue"},
+        "operator_guard_commands_preserved": {"const": true},
+        "operator_sequence_steps": {"const": 2},
+        "blocker_count": {"type": "integer", "minimum": 0},
+        "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "goal_complete": {"const": false},
+        "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+        "goal_missing_requirements": {"const": 9},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+        "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"const": "wave1_governed_acquisition"},
+        "next_unproven_requirement_phase": {"const": "01-wave1-manifest-publication"},
+        "next_unproven_execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "evidence_status_summary": {"type": "object"},
+        "next_unproven_requirement": {"type": "object"}
+      }
+    },
+    "operator_sequence": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "mode", "command", "required_env", "claim_boundary"],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1, "maximum": 2},
+          "mode": {"enum": ["validation_only", "guarded_execute"]},
+          "guard_set_command": {"type": "string", "minLength": 1},
+          "command": {"type": "string", "minLength": 1},
+          "required_env": {
+            "type": "object",
+            "additionalProperties": {"type": "string"}
+          },
+          "guard_cleanup_command": {"type": "string", "minLength": 1},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

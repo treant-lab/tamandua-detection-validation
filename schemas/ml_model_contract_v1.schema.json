@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_model_contract_v1.schema.json",
+  "title": "Tamandua ML Model Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "model",
+    "artifact",
+    "input",
+    "output",
+    "preprocessing",
+    "decision",
+    "runtime",
+    "quality_gates"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "tamandua.io/ml-model-contract/v1"
+    },
+    "kind": {
+      "const": "MLModelContract"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_id", "version", "created_at", "created_by", "claim_boundary"],
+      "properties": {
+        "contract_id": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "created_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_type", "architecture", "num_classes", "labels", "opset_version"],
+      "properties": {
+        "model_type": {"const": "malware_smell_onnx"},
+        "architecture": {"type": "string", "minLength": 1},
+        "num_classes": {"type": "integer", "const": 8},
+        "labels": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "opset_version": {"type": "integer", "const": 17}
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file_name", "format", "metadata_file", "agent_paths"],
+      "properties": {
+        "file_name": {"type": "string", "pattern": "\\.onnx$"},
+        "format": {"const": "onnx"},
+        "metadata_file": {"type": "string", "pattern": "\\.json$"},
+        "metadata_sha256_required": {"type": "boolean"},
+        "metadata_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "metadata_size_bytes": {"type": "integer", "minimum": 1},
+        "sha256_required": {"type": "boolean"},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "signature_required": {"type": "boolean"},
+        "agent_paths": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["windows", "linux", "macos"],
+          "properties": {
+            "windows": {"type": "string", "minLength": 1},
+            "linux": {"type": "string", "minLength": 1},
+            "macos": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "format", "dtype", "layout", "sample_shape", "batch_axis", "channels", "image_size"],
+      "properties": {
+        "name": {"const": "input"},
+        "format": {"const": "image_nchw"},
+        "dtype": {"const": "float32"},
+        "layout": {"const": "NCHW"},
+        "sample_shape": {
+          "type": "array",
+          "prefixItems": [
+            {"const": 1},
+            {"const": 3},
+            {"const": 64},
+            {"const": 64}
+          ],
+          "minItems": 4,
+          "maxItems": 4
+        },
+        "batch_axis": {"enum": ["dynamic", "fixed_1"]},
+        "channels": {"const": 3},
+        "image_size": {"const": 64}
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "dtype", "shape", "activation", "benign_index", "malicious_indices", "labels"],
+      "properties": {
+        "name": {"const": "output"},
+        "dtype": {"const": "float32"},
+        "shape": {
+          "type": "array",
+          "prefixItems": [
+            {"const": 1},
+            {"const": 8}
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "activation": {"enum": ["probabilities", "softmax_probabilities"]},
+        "benign_index": {"const": 0},
+        "malicious_indices": {
+          "type": "array",
+          "prefixItems": [
+            {"const": 1},
+            {"const": 2},
+            {"const": 3},
+            {"const": 4},
+            {"const": 5},
+            {"const": 6},
+            {"const": 7}
+          ],
+          "minItems": 7,
+          "maxItems": 7
+        },
+        "labels": {
+          "type": "array",
+          "minItems": 8,
+          "maxItems": 8,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "preprocessing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "steps", "empty_input_policy", "normalization", "channel_policy"],
+      "properties": {
+        "version": {"const": "binary_to_image_64_rgb_v1"},
+        "steps": {
+          "type": "array",
+          "minItems": 4,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "empty_input_policy": {"const": "zero_tensor"},
+        "normalization": {"const": "byte_div_255"},
+        "channel_policy": {"const": "replicate_grayscale_to_rgb"}
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["malicious_threshold", "malicious_rule", "observe_before_block"],
+      "properties": {
+        "malicious_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+        "malicious_rule": {"const": "predicted_index_not_0_and_confidence_gte_threshold"},
+        "observe_before_block": {"const": true}
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_features", "ort_version", "dynamic_runtime_loading", "canonical_agent_module"],
+      "properties": {
+        "agent_features": {
+          "type": "array",
+          "contains": {"const": "onnx"},
+          "items": {"enum": ["onnx", "ml-local"]}
+        },
+        "ort_version": {"type": "string", "minLength": 1},
+        "dynamic_runtime_loading": {"type": "boolean"},
+        "canonical_agent_module": {"type": "string", "minLength": 1}
+      }
+    },
+    "quality_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "checks"],
+      "properties": {
+        "status": {"enum": ["pass", "fail", "not_run", "partial"]},
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "status"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "status": {"enum": ["pass", "fail", "not_run", "warning"]},
+              "notes": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -31,6 +31,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-credential-access-safe",
         "adversary_id": "tamandua-windows-enterprise-credential-access-safe-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1003.001",
@@ -97,6 +98,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-lateral-movement-safe",
         "adversary_id": "tamandua-windows-enterprise-lateral-movement-safe-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1021.002",
@@ -170,6 +172,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-privilege-escalation-safe",
         "adversary_id": "tamandua-windows-enterprise-privilege-escalation-safe-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1548.002",
@@ -245,6 +248,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-c2-beacon-safe",
         "adversary_id": "tamandua-windows-enterprise-c2-beacon-safe-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1071.001",
@@ -320,6 +324,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-exfiltration-safe",
         "adversary_id": "tamandua-windows-enterprise-exfiltration-safe-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1005",
@@ -395,6 +400,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-wmi-winrm-psremoting",
         "adversary_id": "tamandua-windows-enterprise-wmi-winrm-psremoting-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1047",
@@ -466,6 +472,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-service-creation-abuse",
         "adversary_id": "tamandua-windows-enterprise-service-creation-abuse-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1543.003",
@@ -529,6 +536,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-dll-search-order-hijack-safe",
         "adversary_id": "tamandua-windows-enterprise-dll-search-order-hijack-safe-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1574.001",
@@ -592,6 +600,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-lolbins-broad",
         "adversary_id": "tamandua-windows-enterprise-lolbins-broad-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1218.010",
@@ -671,6 +680,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-enterprise-tamper-defense-evasion-aggressive-safe",
         "adversary_id": "tamandua-windows-enterprise-tamper-defense-evasion-aggressive-safe-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {
             "mitre": "T1562.001",

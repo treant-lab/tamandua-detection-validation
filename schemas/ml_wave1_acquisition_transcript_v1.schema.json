@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave1_acquisition_transcript_v1.schema.json",
+  "title": "Tamandua ML Wave 1 Acquisition Transcript v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "command", "launcher_ref", "launcher_sha256", "acquisition_command", "acquisition_command_sha256", "guarded_run_command_packet_ref", "guarded_run_command_packet_sha256", "started_at", "finished_at", "returncode", "stdout_ref", "stdout_sha256", "stderr_ref", "stderr_sha256", "published_logs_are_sanitized", "hashes_cover_published_sanitized_logs", "sanitization_rules_sha256", "operator", "lab_host", "data_root_ref", "data_root_outside_repo", "guard_env", "vx_policy"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave1-acquisition-transcript/v1"},
+    "kind": {"const": "MLWave1AcquisitionTranscript"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "command": {"type": "string", "minLength": 1},
+    "launcher_ref": {"type": "string", "pattern": "20260604T-ml-execution-plan\\.handoff.*wave_1_(real_acquisition|virusshare_fallback_acquisition)_launcher\\.ps1$"},
+    "launcher_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "acquisition_command": {"type": "string", "minLength": 1},
+    "acquisition_command_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "guarded_run_command_packet_ref": {"type": "string", "pattern": "(20260604T-ml-wave1-guarded-run-command-packet|20260618T-ml-virusshare-fallback-command-packet)\\.json$"},
+    "guarded_run_command_packet_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "started_at": {"type": "string", "format": "date-time"},
+    "finished_at": {"type": "string", "format": "date-time"},
+    "returncode": {"type": "integer"},
+    "stdout_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stdout\\.txt$"},
+    "stdout_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "stderr_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stderr\\.txt$"},
+    "stderr_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "published_logs_are_sanitized": {"const": true},
+    "hashes_cover_published_sanitized_logs": {"const": true},
+    "sanitization_rules_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "operator": {"type": "string", "minLength": 1},
+    "lab_host": {"type": "string", "minLength": 1},
+    "data_root_ref": {"type": "string", "pattern": "^external://"},
+    "data_root_outside_repo": {"const": true},
+    "guard_env": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["TAMANDUA_ALLOW_ML_REAL_ACQUISITION"],
+      "properties": {
+        "TAMANDUA_ALLOW_ML_REAL_ACQUISITION": {"const": "1"}
+      }
+    },
+    "vx_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vx_inventory_ref",
+        "vx_inventory_metadata_only",
+        "vx_samples_in_training_splits",
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_must_be_unset",
+        "operator_note"
+      ],
+      "properties": {
+        "vx_inventory_ref": {"type": "string", "pattern": "ml-vx-inthewild-inventory\\.json$"},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_samples_in_training_splits": {"const": false},
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_must_be_unset": {"const": true},
+        "operator_note": {"type": "string", "pattern": "metadata-only"}
+      }
+    }
+  }
+}

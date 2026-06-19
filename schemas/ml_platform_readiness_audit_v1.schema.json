@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_platform_readiness_audit_v1.schema.json",
+  "title": "Tamandua ML Platform Readiness Audit v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "production_candidate_ready", "blockers", "lane_states", "required_artifacts", "completion_summary", "completion_requirements", "next_operator_action"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-platform-readiness-audit/v1"},
+    "kind": {"const": "MLPlatformReadinessAudit"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["readiness_inputs"],
+      "properties": {
+        "readiness_inputs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["wave1_go_no_go", "wave2_ml1_readiness", "wave2_ml2_ml3_readiness", "wave2_ml4_readiness", "wave3_ml5_readiness", "wave3_ml6_readiness"],
+          "properties": {
+            "wave1_go_no_go": {"type": "string", "pattern": "20260604T-ml-wave1-go-no-go\\.json$"},
+            "wave2_ml1_readiness": {"type": "string", "pattern": "20260604T-ml-wave2-ml1-readiness-probe\\.json$"},
+            "wave2_ml2_ml3_readiness": {"type": "string", "pattern": "20260604T-ml-wave2-ml2-ml3-readiness-probe\\.json$"},
+            "wave2_ml4_readiness": {"type": "string", "pattern": "20260604T-ml-wave2-ml4-readiness-probe\\.json$"},
+            "wave3_ml5_readiness": {"type": "string", "pattern": "20260604T-ml-wave3-ml5-readiness-probe\\.json$"},
+            "wave3_ml6_readiness": {"type": "string", "pattern": "20260604T-ml-wave3-ml6-readiness-probe\\.json$"}
+          }
+        }
+      }
+    },
+    "production_candidate_ready": {"type": "boolean"},
+    "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "lane_states": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["lane", "name", "evidence_ref", "valid", "ready", "ready_field", "detail", "blockers"],
+        "properties": {
+          "lane": {"type": "string", "enum": ["Wave 1", "Wave 2", "Wave 3"]},
+          "name": {"type": "string", "minLength": 1},
+          "evidence_ref": {"type": "string", "minLength": 1},
+          "valid": {"type": "boolean"},
+          "ready": {"type": "boolean"},
+          "ready_field": {"type": "string", "minLength": 1},
+          "detail": {"type": "string"},
+          "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "required_artifacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["wave1_acquisition_transcript", "wave1_acquisition_receipt", "wave1_manifest_publish_receipt", "wave1_acceptance_checklist", "dataset_manifest", "ml1_report", "model_contract", "model_card", "onnx_model", "ml2_report", "ml3_agent_parity_report", "ml4_service_report", "ml5_pipeline_report", "ml6_holdout_report"],
+      "properties": {
+        "wave1_acquisition_transcript": {"$ref": "#/$defs/artifact_state"},
+        "wave1_acquisition_receipt": {"$ref": "#/$defs/artifact_state"},
+        "wave1_manifest_publish_receipt": {"$ref": "#/$defs/artifact_state"},
+        "wave1_acceptance_checklist": {"$ref": "#/$defs/artifact_state"},
+        "dataset_manifest": {"$ref": "#/$defs/artifact_state"},
+        "ml1_report": {"$ref": "#/$defs/artifact_state"},
+        "model_contract": {"$ref": "#/$defs/artifact_state"},
+        "model_card": {"$ref": "#/$defs/artifact_state"},
+        "onnx_model": {"$ref": "#/$defs/artifact_state"},
+        "ml2_report": {"$ref": "#/$defs/artifact_state"},
+        "ml3_agent_parity_report": {"$ref": "#/$defs/artifact_state"},
+        "ml4_service_report": {"$ref": "#/$defs/artifact_state"},
+        "ml5_pipeline_report": {"$ref": "#/$defs/artifact_state"},
+        "ml6_holdout_report": {"$ref": "#/$defs/artifact_state"}
+      }
+    },
+    "completion_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_requirements",
+        "proven",
+        "incomplete",
+        "missing",
+        "goal_ready",
+        "goal_complete",
+        "completion_state",
+        "goal_missing_requirements",
+        "goal_required_evidence_total",
+        "goal_present_required_evidence",
+        "goal_usable_required_evidence",
+        "goal_missing_required_evidence",
+        "goal_unusable_present_required_evidence",
+        "next_unproven_requirement_id",
+        "next_unproven_requirement_phase",
+        "next_unproven_execute_guard_env",
+        "missing_requirement_ids",
+        "evidence_status_summary",
+        "next_unproven_requirement"
+      ],
+      "properties": {
+        "total_requirements": {"type": "integer", "minimum": 1},
+        "proven": {"type": "integer", "minimum": 0},
+        "incomplete": {"type": "integer", "minimum": 0},
+        "missing": {"type": "integer", "minimum": 0},
+        "goal_ready": {"type": "boolean"},
+        "goal_complete": {"type": "boolean"},
+        "completion_state": {"enum": ["partial_evidence", "complete"]},
+        "goal_missing_requirements": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+        "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+        "next_unproven_requirement_phase": {"type": "string", "minLength": 1},
+        "next_unproven_execute_guard_env": {"type": "string", "minLength": 1},
+        "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "evidence_status_summary": {"type": "object"},
+        "next_unproven_requirement": {"type": "object"}
+      }
+    },
+    "completion_requirements": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["requirement_id", "lane", "title", "status", "evidence_refs", "blockers"],
+        "properties": {
+          "requirement_id": {"type": "string", "minLength": 1},
+          "lane": {"type": "string", "enum": ["Wave 1", "ML-0", "ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]},
+          "title": {"type": "string", "minLength": 10},
+          "status": {"type": "string", "enum": ["proven", "incomplete", "missing"]},
+          "evidence_refs": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"$ref": "#/$defs/artifact_state"}
+          },
+          "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "next_operator_action": {"type": "string", "minLength": 10}
+  },
+  "$defs": {
+    "artifact_state": {
+      "type": "object",
+      "additionalProperties": false,
+        "required": ["path", "exists", "usable", "status"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1},
+          "exists": {"type": "boolean"},
+          "usable": {"type": "boolean"},
+          "status": {
+            "enum": [
+              "usable",
+              "missing",
+              "empty_file",
+              "invalid_json",
+              "invalid_content",
+              "blocked_artifact",
+              "smoke_artifact",
+              "wrong_lane",
+              "quality_gate_not_pass"
+            ]
+          }
+        }
+      }
+  }
+}

@@ -82,6 +82,33 @@ POSITIVE_HISTORICAL_CONTEXT_RE = re.compile(
     r")\b",
     re.IGNORECASE,
 )
+
+
+def normalize_macos_action_text(value: str) -> str:
+    text = str(value or "")
+    if (
+        "com.apple.developer.endpoint-security.client" in text
+        and "com.apple.developer.system-extension.install" not in text
+    ):
+        text = text.replace(
+            "com.apple.developer.endpoint-security.client",
+            (
+                "com.apple.developer.endpoint-security.client and "
+                "com.apple.developer.system-extension.install"
+            ),
+        )
+    return text
+
+
+def normalize_nested_actions(value: Any) -> Any:
+    if isinstance(value, dict):
+        normalized: dict[str, Any] = {}
+        for key, item in value.items():
+            normalized[key] = normalize_macos_action_text(item) if key == "action" else normalize_nested_actions(item)
+        return normalized
+    if isinstance(value, list):
+        return [normalize_nested_actions(item) for item in value]
+    return value
 HISTORICAL_ARTIFACT_LINE_RE = re.compile(r"^-\s*`\d{8}T\d{6}Z-[^`]+`:\s*`?\d+/\d+`?,\s*gate\s+(fail|pass)", re.IGNORECASE)
 CLAIM_BOUNDARY_CONTEXT_RE = re.compile(
     r"\b("
@@ -781,7 +808,9 @@ def compact_report(report: dict[str, Any] | None) -> dict[str, Any] | None:
         "upstream_backed_tests": int_value(summ, "upstream_backed_tests"),
         "fallback_command_tests": int_value(summ, "fallback_command_tests"),
         "gap_category_counts": summ.get("gap_category_counts") or gate.get("gap_category_counts") or {},
-        "actionable_gaps": (summ.get("actionable_gaps") or gate.get("actionable_gaps") or [])[:10],
+        "actionable_gaps": normalize_nested_actions(
+            (summ.get("actionable_gaps") or gate.get("actionable_gaps") or [])[:10]
+        ),
         "blocking_gaps": score.get("blocking_gaps") or [],
     }
 
@@ -1185,7 +1214,9 @@ def dispatch_manual_claim_review(latest: dict[str, dict[str, Any]], limit: int =
         package_id = str(claim.get("package_id") or "")
         package = packages.get(package_id, {})
         current_next_action = claim.get("current_next_action") if isinstance(claim.get("current_next_action"), dict) else {}
-        action_text = str(current_next_action.get("action") or package.get("action") or "")
+        action_text = normalize_macos_action_text(
+            str(current_next_action.get("action") or package.get("action") or "")
+        )
         owner = str(claim.get("owner") or "unassigned")
         manual_reason = str(package.get("manual_reason") or "manual launch required")
         missing_env = [str(value) for value in claim.get("missing_effective_env") or []]

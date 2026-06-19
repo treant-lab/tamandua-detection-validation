@@ -127,8 +127,17 @@ def merge_reports(paths: list[Path], args: argparse.Namespace) -> dict[str, Any]
     base["merge"] = {
         "source_run_ids": [report.get("run_id") for report in reports],
         "source_paths": [str(path) for path in paths],
+        "source_benchmark_lanes": sorted(
+            {
+                str(report.get("benchmark_lane") or "")
+                for report in reports
+                if str(report.get("benchmark_lane") or "")
+            }
+        ),
         "source_count": len(reports),
     }
+    if "diagnostic-only" in base["merge"]["source_benchmark_lanes"]:
+        base["benchmark_lane"] = "diagnostic-only"
     base["summary"] = summarize_tests(tests)
     base["quality_gate"] = evaluate_gates(base, gate_args(args, base))
     base["scorecard"] = benchmark_scorecard(base)

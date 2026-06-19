@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_prelab_contract_coverage_v1.schema.json",
+  "title": "Tamandua ML Prelab Contract Coverage v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "complete", "unexpected_missing", "missing_validator_invariants", "summary", "arguments"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-prelab-contract-coverage/v1"},
+    "kind": {"const": "MLPrelabContractCoverage"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "validator",
+        "prelab_launcher",
+        "source_contract_argument_summary",
+        "source_validator_invariant_summary",
+        "source_next_action_receipt_summary",
+        "source_status_summary"
+      ],
+      "properties": {
+        "validator": {"type": "string", "pattern": "tools[/\\\\]detection_validation[/\\\\]validate_ml_contracts\\.py$"},
+        "prelab_launcher": {"type": "string", "pattern": "ml_prelab_validation_launcher\\.ps1$"},
+        "source_contract_argument_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "validator_args",
+            "validator_arg_names",
+            "prelab_args",
+            "prelab_arg_names",
+            "intentional_exclusion_args",
+            "intentional_exclusion_arg_names"
+          ],
+          "properties": {
+            "validator_args": {"type": "integer", "minimum": 1},
+            "validator_arg_names": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "string", "pattern": "^--[a-z0-9-]+$"},
+              "uniqueItems": true
+            },
+            "prelab_args": {"type": "integer", "minimum": 0},
+            "prelab_arg_names": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^--[a-z0-9-]+$"},
+              "uniqueItems": true
+            },
+            "intentional_exclusion_args": {"type": "integer", "minimum": 0},
+            "intentional_exclusion_arg_names": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^--[a-z0-9-]+$"},
+              "uniqueItems": true
+            }
+          }
+        },
+        "source_status_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "complete",
+            "argument_count",
+            "covered_args",
+            "covered_arg_names",
+            "intentional_exclusions",
+            "intentional_exclusion_arg_names",
+            "unexpected_missing",
+            "unexpected_missing_arg_names",
+            "required_invariant_terms",
+            "missing_invariant_terms",
+            "missing_invariant_term_names",
+            "next_action_receipt_audit_passed",
+            "active_refs_to_canonical_next_action_receipt",
+            "active_refs_to_historical_next_action_receipts"
+          ],
+          "properties": {
+            "complete": {"type": "boolean"},
+            "argument_count": {"type": "integer", "minimum": 0},
+            "covered_args": {"type": "integer", "minimum": 0},
+            "covered_arg_names": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^--[a-z0-9-]+$"},
+              "uniqueItems": true
+            },
+            "intentional_exclusions": {"type": "integer", "minimum": 0},
+            "intentional_exclusion_arg_names": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^--[a-z0-9-]+$"},
+              "uniqueItems": true
+            },
+            "unexpected_missing": {"type": "integer", "minimum": 0},
+            "unexpected_missing_arg_names": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^--[a-z0-9-]+$"},
+              "uniqueItems": true
+            },
+            "required_invariant_terms": {"type": "integer", "minimum": 0},
+            "missing_invariant_terms": {"type": "integer", "minimum": 0},
+            "missing_invariant_term_names": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1},
+              "uniqueItems": true
+            },
+            "next_action_receipt_audit_passed": {"type": "boolean"},
+            "active_refs_to_canonical_next_action_receipt": {"type": "integer", "minimum": 0},
+            "active_refs_to_historical_next_action_receipts": {"type": "integer", "minimum": 0}
+          }
+        },
+        "source_validator_invariant_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required_invariant_terms",
+            "required_invariant_term_names",
+            "covered_invariant_terms",
+            "covered_invariant_term_names",
+            "missing_invariant_terms",
+            "missing_invariant_term_names"
+          ],
+          "properties": {
+            "required_invariant_terms": {"type": "integer", "minimum": 0},
+            "required_invariant_term_names": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1},
+              "uniqueItems": true
+            },
+            "covered_invariant_terms": {"type": "integer", "minimum": 0},
+            "covered_invariant_term_names": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1},
+              "uniqueItems": true
+            },
+            "missing_invariant_terms": {"type": "integer", "minimum": 0},
+            "missing_invariant_term_names": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1},
+              "uniqueItems": true
+            }
+          }
+        },
+        "source_next_action_receipt_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "canonical_receipt",
+            "canonical_receipt_exists",
+            "historical_receipt_pattern",
+            "historical_receipt_count",
+            "historical_receipts",
+            "active_reference_files_checked",
+            "active_reference_file_names",
+            "active_refs_to_canonical_receipt",
+            "active_ref_files_to_canonical_receipt",
+            "active_refs_to_historical_receipts",
+            "active_ref_files_to_historical_receipts",
+            "passed"
+          ],
+          "properties": {
+            "canonical_receipt": {
+              "type": "string",
+              "pattern": "docs[/\\\\]benchmarks[/\\\\]runs[/\\\\]20260604T-ml-prelab-next-action-validation\\.run\\.json$"
+            },
+            "canonical_receipt_exists": {"type": "boolean"},
+            "historical_receipt_pattern": {"const": "*-ml-next-action-validation-only.run.json"},
+            "historical_receipt_count": {"type": "integer", "minimum": 0},
+            "historical_receipts": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^[0-9]{8}T-ml-next-action-validation-only\\.run\\.json$"},
+              "uniqueItems": true
+            },
+            "active_reference_files_checked": {"type": "integer", "minimum": 0},
+            "active_reference_file_names": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1},
+              "uniqueItems": true
+            },
+            "active_refs_to_canonical_receipt": {"type": "integer", "minimum": 0},
+            "active_ref_files_to_canonical_receipt": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1},
+              "uniqueItems": true
+            },
+            "active_refs_to_historical_receipts": {"type": "integer", "minimum": 0},
+            "active_ref_files_to_historical_receipts": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1},
+              "uniqueItems": true
+            },
+            "passed": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "complete": {"type": "boolean"},
+    "unexpected_missing": {
+      "type": "array",
+      "items": {"type": "string", "pattern": "^--[a-z0-9-]+$"}
+    },
+    "missing_validator_invariants": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "validator_args",
+        "covered_args",
+        "intentional_exclusions",
+        "allowed_intentional_exclusions",
+        "unexpected_missing",
+        "required_invariant_terms",
+        "missing_validator_invariants",
+        "next_action_receipt_audit_passed",
+        "active_refs_to_canonical_next_action_receipt",
+        "active_refs_to_historical_next_action_receipts",
+        "historical_next_action_receipts"
+      ],
+      "properties": {
+        "validator_args": {"type": "integer", "minimum": 0},
+        "covered_args": {"type": "integer", "minimum": 0},
+        "intentional_exclusions": {"type": "integer", "minimum": 0},
+        "allowed_intentional_exclusions": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^--[a-z0-9-]+$"}
+        },
+        "unexpected_missing": {"type": "integer", "minimum": 0},
+        "required_invariant_terms": {"type": "integer", "minimum": 0},
+        "missing_validator_invariants": {"type": "integer", "minimum": 0},
+        "next_action_receipt_audit_passed": {"type": "boolean"},
+        "active_refs_to_canonical_next_action_receipt": {"type": "integer", "minimum": 0},
+        "active_refs_to_historical_next_action_receipts": {"type": "integer", "minimum": 0},
+        "historical_next_action_receipts": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^[0-9]{8}T-ml-next-action-validation-only\\.run\\.json$"},
+          "uniqueItems": true
+        }
+      }
+    },
+    "arguments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["argument", "status", "reason"],
+        "properties": {
+          "argument": {"type": "string", "pattern": "^--[a-z0-9-]+$"},
+          "status": {"enum": ["covered", "intentional_exclusion", "unexpected_missing"]},
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

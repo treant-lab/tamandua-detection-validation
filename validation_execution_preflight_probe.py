@@ -96,6 +96,24 @@ SERVER_PASSWORD_INPUT = {
     "env": "TAMANDUA_SERVER_PASSWORD",
     "description": "Tamandua backend password used by server-backed Windows readiness and connection-stability probes",
 }
+MACOS_BOOTSTRAP_READINESS_REPORT_PREREQUISITE = (
+    "Copy /var/log/tamandua/macos-bootstrap-readiness.json from the signed/notarized "
+    "macOS agent bootstrap and set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT to that local "
+    "file before running macOS backend readiness or P0 smoke."
+)
+MACOS_SIGNED_RELEASE_PREREQUISITE = (
+    "Produce and deploy a macOS release app/DMG from the signed/notarized release workflow; "
+    "the artifact preflight must pass with a bundled Contents/Library/SystemExtensions/*.systemextension "
+    "and the workflow must have Apple signing/notarization secrets configured."
+)
+MACOS_ENDPOINT_APPROVAL_PREREQUISITE = (
+    "On the approved Mac access path, install the signed/notarized app and confirm the Tamandua "
+    "System Extension plus Full Disk Access approvals before rerunning backend readiness or P0 smoke."
+)
+MACOS_NON_PROXMOX_PREREQUISITE = (
+    "macOS lane is not a Proxmox VMID/QGA flow; use the approved Mac SSH/local access path "
+    "and do not attempt qm/VMID remediation for this blocker."
+)
 PROXMOX_PASSWORD_INPUT = {
     "name": "proxmox_password",
     "flag": "",
@@ -600,7 +618,13 @@ def derive_unblock_sequence(
             60,
             "restore-macos-backend-readiness",
             "Restore macOS backend-backed readiness",
-            "Reconnect or enroll a fresh macOS agent, prove backend readiness, then rerun server-backed macOS P0 sensor smoke.",
+            (
+                "Deploy a Developer ID signed/notarized macOS agent that Gatekeeper accepts "
+                "and that includes com.apple.developer.endpoint-security.client and "
+                "com.apple.developer.system-extension.install, approve the Tamandua System "
+                "Extension and Full Disk Access on the Mac, prove backend readiness, then "
+                "rerun server-backed macOS P0 sensor smoke."
+            ),
             run_classes_for_profiles(run_class_readiness, macos_profiles),
             ["E"],
             [],
@@ -734,11 +758,21 @@ def safe_commands_for_step(step_id: str) -> list[str]:
         ],
         "restore-macos-backend-readiness": [
             "$Out = Join-Path $env:TEMP 'tamandua-macos-readiness'",
+            "$BootstrapReadinessReport = $env:TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT",
+            (
+                "if (-not $BootstrapReadinessReport) { throw "
+                "'Set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT to the copied "
+                "/var/log/tamandua/macos-bootstrap-readiness.json before macOS P0 smoke.' }"
+            ),
             (
                 "python tools/detection_validation/macos_backend_readiness_probe.py "
-                f"--server {DEFAULT_TAMANDUA_SERVER} --output-dir $Out"
+                f"--server {DEFAULT_TAMANDUA_SERVER} --output-dir $Out "
+                "--bootstrap-readiness-report $BootstrapReadinessReport"
             ),
-            "powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1 -OutputDir $Out -NoFailOnGate",
+            (
+                "powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1 "
+                "-OutputDir $Out -BootstrapReadinessReport $BootstrapReadinessReport -NoFailOnGate"
+            ),
         ],
         "rerun-preflight-and-closure-gate": [
             "$Out = Join-Path $env:TEMP 'tamandua-final-local-gates'",
@@ -826,6 +860,12 @@ def manual_prerequisites_for_step(step_id: str) -> list[str]:
             "Start a fresh sandcat/PAW in CALDERA group tamandua-lab.",
             "Set CALDERA_API_KEY, CALDERA_GROUP=tamandua-lab, and CALDERA_AGENT_PAW before readiness or enterprise runs.",
             "Require three consecutive passing artifacts before claiming repeatability.",
+        ],
+        "restore-macos-backend-readiness": [
+            MACOS_SIGNED_RELEASE_PREREQUISITE,
+            MACOS_ENDPOINT_APPROVAL_PREREQUISITE,
+            MACOS_BOOTSTRAP_READINESS_REPORT_PREREQUISITE,
+            MACOS_NON_PROXMOX_PREREQUISITE,
         ],
     }
     return prerequisites.get(step_id, [])
@@ -1368,10 +1408,11 @@ def main() -> int:
     parser.add_argument("--scorecard-json", default=str(SCORECARD_JSON))
     parser.add_argument("--closure-gate-json", default="")
     parser.add_argument("--output-dir", default=str(RUNS_DIR))
+    parser.add_argument("--run-id", default="", help="Optional explicit run id for regenerating an existing artifact.")
     args = parser.parse_args()
 
     started = utc_now()
-    run_id = f"{compact_stamp(started)}-{PROFILE_ID}"
+    run_id = args.run_id or f"{compact_stamp(started)}-{PROFILE_ID}"
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 

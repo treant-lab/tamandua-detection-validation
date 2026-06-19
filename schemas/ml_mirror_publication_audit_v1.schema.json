@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_mirror_publication_audit_v1.schema.json",
+  "title": "Tamandua ML Mirror Publication Audit v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "components", "summary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-mirror-publication-audit/v1"},
+    "kind": {"const": "MLMirrorPublicationAudit"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"const": "tamandua-ml-mirror-publication-audit"},
+        "claim_boundary": {"type": "string", "minLength": 20}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest", "staging_root", "component_count"],
+      "properties": {
+        "manifest": {"type": "string", "pattern": "tools[\\\\/]mirror_deploy[\\\\/]mirror_manifest\\.json$"},
+        "staging_root": {"type": "string", "minLength": 1},
+        "component_count": {"type": "integer", "minimum": 1}
+      }
+    },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "wave",
+          "hold",
+          "hold_reason",
+          "staging_path",
+          "staging_exists",
+          "git_repo",
+          "tracked_files",
+          "local_head",
+          "remote",
+          "dirty_count",
+          "dirty_top_levels",
+          "build_deferred",
+          "build_note",
+          "push_ready",
+          "publication_decision"
+        ],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "wave": {"type": ["integer", "string", "null"]},
+          "hold": {"type": "boolean"},
+          "hold_reason": {"type": "string"},
+          "staging_path": {"type": "string", "minLength": 1},
+          "staging_exists": {"type": "boolean"},
+          "git_repo": {"type": "boolean"},
+          "tracked_files": {"type": "integer", "minimum": 0},
+          "local_head": {"type": "string"},
+          "remote": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["state", "head", "detail"],
+            "properties": {
+              "state": {"enum": ["missing", "empty", "has_content"]},
+              "head": {"type": "string"},
+              "detail": {"type": "string", "minLength": 1}
+            }
+          },
+          "dirty_count": {"type": "integer", "minimum": 0},
+          "dirty_top_levels": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "build_deferred": {"type": "boolean"},
+          "build_note": {"type": "string"},
+          "push_ready": {"type": "boolean"},
+          "publication_decision": {"enum": ["ready_to_push", "hold_do_not_push", "not_ready"]}
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "component_count",
+        "push_ready_count",
+        "push_ready_components",
+        "held_components",
+        "dirty_components",
+        "remote_empty_components",
+        "tamandua_ml_present",
+        "tamandua_ml_hold",
+        "tamandua_ml_dirty_count",
+        "tamandua_ml_remote_state",
+        "tamandua_ml_publication_ready",
+        "tamandua_ml_publication_decision",
+        "recommended_next_action"
+      ],
+      "properties": {
+        "component_count": {"type": "integer", "minimum": 1},
+        "push_ready_count": {"type": "integer", "minimum": 0},
+        "push_ready_components": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "held_components": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "dirty_components": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "remote_empty_components": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "tamandua_ml_present": {"type": "boolean"},
+        "tamandua_ml_hold": {"type": "boolean"},
+        "tamandua_ml_dirty_count": {"type": "integer", "minimum": 0},
+        "tamandua_ml_remote_state": {"enum": ["missing", "empty", "has_content"]},
+        "tamandua_ml_publication_ready": {"type": "boolean"},
+        "tamandua_ml_publication_decision": {"enum": ["ready_to_push", "hold_do_not_push", "not_ready", "missing"]},
+        "recommended_next_action": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

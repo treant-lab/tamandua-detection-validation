@@ -1,0 +1,493 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave1_guarded_run_command_packet_v1.schema.json",
+  "title": "Tamandua ML Wave 1 Guarded Run Command Packet v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "source",
+    "operator_commands",
+    "post_execution_commands",
+    "data_root",
+    "repo_manifest",
+    "vx_policy",
+    "transcript_capture_contract",
+    "source_artifact_hashes",
+    "source_status_summary",
+    "ready_for_guarded_wave1_acquisition",
+    "checks"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave1-guarded-run-command-packet/v1"},
+    "kind": {"const": "MLWave1GuardedRunCommandPacket"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "master_handoff",
+        "master_handoff_validation",
+        "authorization_packet",
+        "authorization_packet_validation",
+        "pre_execution_checklist",
+        "pre_execution_checklist_validation",
+        "execution_environment_preflight",
+        "execution_environment_preflight_validation",
+        "operator_go_no_go_summary",
+        "operator_go_no_go_summary_validation",
+        "next_action_run",
+        "next_action_run_validation",
+        "acquisition_readiness",
+        "acquisition_readiness_validation",
+        "execute_guard_probe",
+        "execute_guard_probe_validation",
+        "launcher"
+      ],
+      "properties": {
+        "master_handoff": {"type": "string", "pattern": "20260604T-ml-execution-master-handoff\\.json$"},
+        "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "authorization_packet": {"type": "string", "pattern": "20260604T-ml-next-gate-authorization-packet\\.json$"},
+        "authorization_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "pre_execution_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
+        "pre_execution_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "execution_environment_preflight": {"type": "string", "pattern": "20260604T-ml-wave1-execution-environment-preflight\\.json$"},
+        "execution_environment_preflight_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "operator_go_no_go_summary": {"type": "string", "pattern": "20260604T-ml-wave1-operator-go-no-go-summary\\.json$"},
+        "operator_go_no_go_summary_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "next_action_run": {"type": "string", "pattern": "20260604T-ml-prelab-next-action-validation\\.run\\.json$"},
+        "next_action_run_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "acquisition_readiness": {"type": "string", "pattern": "20260604T-ml-acquisition-readiness\\.json$"},
+        "acquisition_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "execute_guard_probe": {"type": "string", "pattern": "20260604T-ml-wave1-execute-guard-probe\\.json$"},
+        "execute_guard_probe_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "launcher": {"type": "string", "pattern": "wave_1_real_acquisition_launcher\\.ps1$"}
+      }
+    },
+    "operator_commands": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "data_root_set_command",
+        "guard_set_command",
+        "validation_command",
+        "execute_command",
+        "guard_cleanup_command",
+        "acquisition_command",
+        "execute_command_has_execute",
+        "validation_command_has_execute",
+        "guard_set_separate",
+        "execute_command_inlines_guard",
+        "command_sha256"
+      ],
+      "properties": {
+        "data_root_set_command": {"type": "string", "pattern": "^\\$env:TAMANDUA_ML_DATA_ROOT = '.+'$"},
+        "guard_set_command": {"const": "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = '1'"},
+        "validation_command": {"type": "string", "pattern": "wave_1_real_acquisition_launcher\\.ps1$"},
+        "execute_command": {"type": "string", "pattern": "wave_1_real_acquisition_launcher\\.ps1 -Execute$"},
+        "guard_cleanup_command": {"const": "Remove-Item Env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION -ErrorAction SilentlyContinue"},
+        "acquisition_command": {"type": "string", "minLength": 10},
+        "execute_command_has_execute": {"const": true},
+        "validation_command_has_execute": {"const": false},
+        "guard_set_separate": {"const": true},
+        "execute_command_inlines_guard": {"const": false},
+        "command_sha256": {
+          "type": "object",
+          "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    },
+    "post_execution_commands": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "post_acquisition_refresh_command",
+        "manifest_publish_guard_set_command",
+        "manifest_publish_command",
+        "manifest_publish_guard_cleanup_command",
+        "post_manifest_refresh_command",
+        "manifest_publish_guard_env",
+        "manifest_publish_command_has_execute",
+        "refresh_commands_have_execute",
+        "manifest_publish_guard_set_separate",
+        "manifest_publish_command_inlines_guard",
+        "command_sha256"
+      ],
+      "properties": {
+        "post_acquisition_refresh_command": {"type": "string", "pattern": "wave_1_post_acquisition_refresh_launcher\\.ps1$"},
+        "manifest_publish_guard_set_command": {"const": "$env:TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH = '1'"},
+        "manifest_publish_command": {"type": "string", "pattern": "wave_1_manifest_publish_launcher\\.ps1 -Execute$"},
+        "manifest_publish_guard_cleanup_command": {"const": "Remove-Item Env:TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH -ErrorAction SilentlyContinue"},
+        "post_manifest_refresh_command": {"type": "string", "pattern": "wave_1_post_acquisition_refresh_launcher\\.ps1$"},
+        "manifest_publish_guard_env": {"const": "TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH"},
+        "manifest_publish_command_has_execute": {"const": true},
+        "refresh_commands_have_execute": {"const": false},
+        "manifest_publish_guard_set_separate": {"const": true},
+        "manifest_publish_command_inlines_guard": {"const": false},
+        "command_sha256": {
+          "type": "object",
+          "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    },
+    "data_root": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["env", "raw", "resolved", "outside_repo", "production_manifest", "production_manifest_present"],
+      "properties": {
+        "env": {"const": "TAMANDUA_ML_DATA_ROOT"},
+        "raw": {"type": "string", "minLength": 1},
+        "resolved": {"type": "string", "minLength": 1},
+        "outside_repo": {"type": "boolean"},
+        "production_manifest": {"type": "string", "pattern": "production.*manifest\\.json$"},
+        "production_manifest_present": {"type": "boolean"}
+      }
+    },
+    "repo_manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "present"],
+      "properties": {
+        "path": {"type": "string", "pattern": "ml-prod-candidate-v1-dataset-manifest\\.json$"},
+        "present": {"type": "boolean"}
+      }
+    },
+    "vx_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_present",
+        "vx_download_authorized_by_this_packet",
+        "vx_inventory_metadata_only",
+        "vx_samples_allowed_in_training_splits",
+        "vx_guard_must_remain_unset_for_wave1_acquisition"
+      ],
+      "properties": {
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_present": {"const": false},
+        "vx_download_authorized_by_this_packet": {"const": false},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_samples_allowed_in_training_splits": {"const": false},
+        "vx_guard_must_remain_unset_for_wave1_acquisition": {"const": true}
+      }
+    },
+    "transcript_capture_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "template_ref",
+        "template_validation",
+        "transcript_output",
+        "required_fields_sha256",
+        "capture_helper_shell",
+        "capture_helper_mode",
+        "capture_helper_command_count",
+        "capture_helper_requires_guard_env",
+        "capture_helper_requires_vx_download_guard_unset",
+        "published_stdout_ref",
+        "published_stderr_ref",
+        "guarded_run_command_packet_ref"
+      ],
+      "properties": {
+        "template_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.template\\.json$"},
+        "template_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "transcript_output": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.json$"},
+        "required_fields_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "capture_helper_shell": {"const": "powershell"},
+        "capture_helper_mode": {"const": "operator_copy_paste"},
+        "capture_helper_command_count": {"type": "integer", "minimum": 16},
+        "capture_helper_requires_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "capture_helper_requires_vx_download_guard_unset": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "published_stdout_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stdout\\.txt$"},
+        "published_stderr_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stderr\\.txt$"},
+        "guarded_run_command_packet_ref": {"type": "string", "pattern": "20260604T-ml-wave1-guarded-run-command-packet\\.json$"}
+      }
+    },
+    "source_artifact_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "master_handoff",
+        "authorization_packet",
+        "pre_execution_checklist",
+        "execution_environment_preflight",
+        "operator_go_no_go_summary",
+        "next_action_run",
+        "acquisition_readiness",
+        "execute_guard_probe",
+        "launcher"
+      ],
+      "properties": {
+        "master_handoff": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-execution-master-handoff\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "authorization_packet": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-next-gate-authorization-packet\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "pre_execution_checklist": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "execution_environment_preflight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-wave1-execution-environment-preflight\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "operator_go_no_go_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-wave1-operator-go-no-go-summary\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "next_action_run": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-prelab-next-action-validation\\.run\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "acquisition_readiness": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-acquisition-readiness\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "execute_guard_probe": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-wave1-execute-guard-probe\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "launcher": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "wave_1_real_acquisition_launcher\\.ps1$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        }
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ready_for_guarded_wave1_acquisition",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "master_ready",
+        "authorized_for_guarded_execution",
+        "benchmark_standalone_detection_surface_covered",
+        "benchmark_agent_onnx_detection_surface_covered",
+        "benchmark_tamandua_detection_surface_covered",
+        "benchmark_detection_surface_contract_ready",
+        "ready_to_set_real_acquisition_guard",
+        "goal_snapshot_anchor_check_passed",
+        "preflight_ready",
+        "operator_decision",
+        "next_action_run_ready",
+        "acquisition_readiness_passed",
+        "execute_guard_probe_passed",
+        "data_root_configured",
+        "data_root_outside_repo",
+        "malware_bazaar_auth_key_env",
+        "malware_bazaar_auth_key_present",
+        "production_manifest_present",
+        "repo_manifest_present",
+        "post_execution_sequence_steps",
+        "manifest_publish_guard_env",
+        "vx_inventory_metadata_only",
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_must_be_unset",
+        "vx_download_authorized_by_command_packet",
+        "vx_samples_allowed_in_training_splits",
+        "transcript_capture_contract_ready",
+        "transcript_capture_helper_command_count",
+        "transcript_capture_requires_guard_env",
+        "transcript_capture_requires_vx_download_guard_unset",
+        "transcript_contract_validation_before_run",
+        "transcript_contract_valid_before_run",
+        "transcript_contract_missing_before_run",
+        "wave1_pre_execution_transcript_contract_validation_before_run",
+        "wave1_pre_execution_transcript_contract_valid_before_run",
+        "wave1_pre_execution_transcript_contract_missing_before_run",
+        "wave1_acceptance_intake_transcript_contract_validation",
+        "wave1_acceptance_intake_transcript_contract_valid",
+        "wave1_transcript_contract_valid_for_manifest_publish",
+        "goal_complete",
+        "completion_state",
+        "goal_missing_requirements",
+        "goal_required_evidence_total",
+        "goal_present_required_evidence",
+        "goal_usable_required_evidence",
+        "goal_missing_required_evidence",
+        "goal_unusable_present_required_evidence",
+        "next_unproven_requirement_id",
+        "next_unproven_requirement_phase",
+        "next_unproven_execute_guard_env",
+        "evidence_status_summary",
+        "next_unproven_requirement"
+      ],
+      "properties": {
+        "ready_for_guarded_wave1_acquisition": {"type": "boolean"},
+        "check_count": {"type": "integer", "minimum": 1},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "master_ready": {"type": "boolean"},
+        "authorized_for_guarded_execution": {"type": "boolean"},
+        "benchmark_standalone_detection_surface_covered": {"const": true},
+        "benchmark_agent_onnx_detection_surface_covered": {"const": true},
+        "benchmark_tamandua_detection_surface_covered": {"const": true},
+        "benchmark_detection_surface_contract_ready": {"const": true},
+        "ready_to_set_real_acquisition_guard": {"type": "boolean"},
+        "goal_snapshot_anchor_check_passed": {"const": true},
+        "preflight_ready": {"type": "boolean"},
+        "operator_decision": {"enum": ["go_for_guarded_wave1_acquisition", "no_go"]},
+        "next_action_run_ready": {"type": "boolean"},
+        "acquisition_readiness_passed": {"type": "boolean"},
+        "execute_guard_probe_passed": {"type": "boolean"},
+        "data_root_configured": {"type": "boolean"},
+        "data_root_outside_repo": {"type": "boolean"},
+        "malware_bazaar_auth_key_env": {"const": "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"},
+        "malware_bazaar_auth_key_present": {"type": "boolean"},
+        "production_manifest_present": {"type": "boolean"},
+        "repo_manifest_present": {"type": "boolean"},
+        "post_execution_sequence_steps": {"const": 3},
+        "manifest_publish_guard_env": {"const": "TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH"},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_must_be_unset": {"const": true},
+        "vx_download_authorized_by_command_packet": {"const": false},
+        "vx_samples_allowed_in_training_splits": {"const": false},
+        "transcript_capture_contract_ready": {"const": true},
+        "transcript_capture_helper_command_count": {"type": "integer", "minimum": 16},
+        "transcript_capture_requires_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "transcript_capture_requires_vx_download_guard_unset": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "transcript_contract_validation_before_run": {"enum": ["missing", "failed"]},
+        "transcript_contract_valid_before_run": {"const": false},
+        "transcript_contract_missing_before_run": {"type": "boolean"},
+        "wave1_pre_execution_transcript_contract_validation_before_run": {"const": "missing"},
+        "wave1_pre_execution_transcript_contract_valid_before_run": {"const": false},
+        "wave1_pre_execution_transcript_contract_missing_before_run": {"const": true},
+        "wave1_acceptance_intake_transcript_contract_validation": {"enum": ["missing", "failed"]},
+        "wave1_acceptance_intake_transcript_contract_valid": {"const": false},
+        "wave1_transcript_contract_valid_for_manifest_publish": {"const": false},
+        "goal_complete": {"const": false},
+        "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+        "goal_missing_requirements": {"const": 9},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+        "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"const": "wave1_governed_acquisition"},
+        "next_unproven_requirement_phase": {"const": "01-wave1-manifest-publication"},
+        "next_unproven_execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "evidence_status_summary": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "total_required_evidence",
+            "present_required_evidence",
+            "usable_required_evidence",
+            "missing_required_evidence",
+            "unusable_present_required_evidence",
+            "by_status"
+          ],
+          "properties": {
+            "total_required_evidence": {"type": "integer", "minimum": 1},
+            "present_required_evidence": {"type": "integer", "minimum": 0},
+            "usable_required_evidence": {"type": "integer", "minimum": 0},
+            "missing_required_evidence": {"type": "integer", "minimum": 0},
+            "unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "by_status": {"type": "object"}
+          }
+        },
+        "next_unproven_requirement": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": [
+            "id",
+            "phase",
+            "phase_state",
+            "execute_guard_env",
+            "pending_targets",
+            "required_evidence",
+            "missing_or_unusable_evidence"
+          ],
+          "properties": {
+            "id": {"const": "wave1_governed_acquisition"},
+            "phase": {"const": "01-wave1-manifest-publication"},
+            "phase_state": {"type": "string", "minLength": 1},
+            "execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+            "pending_targets": {"type": "array", "items": {"type": "string"}},
+            "required_evidence": {"type": "array", "items": {"type": "string"}},
+            "missing_or_unusable_evidence": {"type": "array", "items": {"type": "string"}}
+          }
+        }
+      }
+    },
+    "ready_for_guarded_wave1_acquisition": {"type": "boolean"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

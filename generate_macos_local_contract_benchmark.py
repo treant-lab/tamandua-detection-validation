@@ -22,7 +22,7 @@ PROFILE_ID = "macos-local-sensor-contracts"
 PROFILE_NAME = "macOS Local Sensor Contracts"
 CLAIM_BOUNDARY = (
     "local contract only; does not prove LaunchDaemon online state, "
-    "EndpointSecurity entitlement delivery, mTLS issuance, or backend event ingestion"
+    "EndpointSecurity/System Extension install entitlement delivery, mTLS issuance, or backend event ingestion"
 )
 
 CONTRACTS = [

@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/detection_response_rule.schema.json",
+  "title": "Tamandua Detection and Response Rule",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "detect", "respond", "quality"],
+  "properties": {
+    "api_version": {
+      "const": "tamandua.io/detection-response/v1alpha1"
+    },
+    "kind": {
+      "const": "DetectionResponseRule"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "version", "status", "owner"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{2,127}$"},
+        "name": {"type": "string", "minLength": 3},
+        "version": {"type": "integer", "minimum": 1},
+        "status": {"enum": ["draft", "shadow", "active"]},
+        "owner": {"type": "string", "minLength": 2},
+        "description": {"type": "string"},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "mitre": {"type": "array", "items": {"type": "string", "pattern": "^T[0-9]{4}(\\.[0-9]{3})?$"}}
+      }
+    },
+    "detect": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "match"],
+      "properties": {
+        "source": {"enum": ["sigma", "tamandua_event", "yara", "correlation"]},
+        "sigma": {"type": "object"},
+        "event_type": {"type": "string"},
+        "required_collectors": {"type": "array", "items": {"type": "string"}},
+        "match": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["condition"],
+          "properties": {
+            "condition": {"type": "string", "minLength": 1}
+          }
+        },
+        "time_window": {"type": "string", "pattern": "^[0-9]+[smhd]$"}
+      }
+    },
+    "respond": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "actions", "safety"],
+      "properties": {
+        "mode": {"enum": ["dry_run", "approval_required", "disabled"]},
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "target"],
+            "properties": {
+              "type": {"enum": ["create_case", "collect_forensics", "kill_process", "quarantine_file", "isolate_network", "trigger_scan"]},
+              "target": {"type": "string", "minLength": 1},
+              "params": {"type": "object"},
+              "rollback": {"type": "object"},
+              "requires_approval": {"type": "boolean"}
+            }
+          }
+        },
+        "safety": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["dry_run_default", "require_reason", "require_audit", "destructive_actions_require_approval"],
+          "properties": {
+            "dry_run_default": {"const": true},
+            "require_reason": {"const": true},
+            "require_audit": {"const": true},
+            "destructive_actions_require_approval": {"const": true},
+            "deny_list": {"type": "array", "items": {"type": "string"}},
+            "allow_network_isolation_duration_seconds": {"type": "integer", "minimum": 60, "maximum": 86400}
+          }
+        }
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min_confidence", "false_positive_notes", "test_status", "rollout"],
+      "properties": {
+        "min_confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "false_positive_notes": {"type": "array", "items": {"type": "string"}},
+        "test_status": {"enum": ["not_tested", "unit_only", "replay_validated", "lab_validated"]},
+        "rollout": {"enum": ["report_only", "shadow", "canary", "tenant_opt_in"]},
+        "evidence_required": {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

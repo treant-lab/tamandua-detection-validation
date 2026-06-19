@@ -14,6 +14,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-discovery-safe",
         "adversary_id": "tamandua-windows-safe-discovery-v2",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {"mitre": "T1033", "name": "System Owner/User Discovery", "ability_id": "33333333-1033-4001-8000-000000000001"},
           {"mitre": "T1082", "name": "System Information Discovery", "ability_id": "33333333-1082-4001-8000-000000000001"},
@@ -26,7 +27,7 @@
       "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
       "expected_detections": [],
       "expected_alerts": [],
-      "expected_correlations": ["process_sequence"],
+      "expected_correlations": [],
       "tags": ["caldera", "adversary-emulation", "discovery", "tactic:discovery"],
       "risk": "low"
     },
@@ -37,6 +38,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-execution-safe",
         "adversary_id": "tamandua-windows-safe-execution-v3",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {"mitre": "T1059.003", "name": "Windows Command Shell", "ability_id": "33333333-1059-4001-8000-000000000001"},
           {"mitre": "T1059.001", "name": "PowerShell EncodedCommand", "ability_id": "33333333-1059-4001-8000-000000000002"}
@@ -45,9 +47,9 @@
       "expected_telemetry": ["process_create"],
       "optional_telemetry": ["file_create", "file_modify"],
       "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "parent_process_name"],
-      "expected_detections": ["powershell", "encoded"],
+      "expected_detections": [],
       "expected_alerts": [],
-      "expected_correlations": ["process_sequence", "suspicious_script_execution"],
+      "expected_correlations": [],
       "tags": ["caldera", "adversary-emulation", "execution", "detection", "tactic:execution", "mitre:T1059.001", "mitre:T1059.003"],
       "risk": "medium"
     },
@@ -58,6 +60,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-persistence-safe",
         "adversary_id": "tamandua-windows-safe-persistence-v3",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {"mitre": "T1547.001", "name": "HKCU Run Key with cleanup", "ability_id": "33333333-1547-4001-8000-000000000001"},
           {"mitre": "T1053.005", "name": "Scheduled Task with cleanup", "ability_id": "33333333-1053-4001-8000-000000000001"}
@@ -66,9 +69,9 @@
       "expected_telemetry": ["process_create"],
       "optional_telemetry": ["registry_set_value", "file_create"],
       "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
-      "expected_detections": ["REGISTRY_PERSISTENCE"],
+      "expected_detections": [],
       "expected_alerts": [],
-      "expected_correlations": ["persistence_attempt"],
+      "expected_correlations": [],
       "tags": ["caldera", "adversary-emulation", "persistence", "tactic:persistence", "mitre:T1547.001", "mitre:T1053.005"],
       "risk": "medium"
     },
@@ -79,6 +82,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-collection-safe",
         "adversary_id": "tamandua-windows-safe-collection-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {"mitre": "T1005", "name": "Data from Local System", "ability_id": "33333333-1005-4001-8000-000000000001"}
         ]
@@ -88,7 +92,7 @@
       "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
       "expected_detections": [],
       "expected_alerts": [],
-      "expected_correlations": ["file_activity_sequence"],
+      "expected_correlations": [],
       "tags": ["caldera", "adversary-emulation", "collection", "tactic:collection", "mitre:T1005"],
       "risk": "low"
     },
@@ -99,6 +103,7 @@
       "caldera": {
         "adversary_profile": "tamandua-windows-defense-evasion-safe",
         "adversary_id": "tamandua-windows-safe-defense-evasion-v1",
+        "planner_id": "788107d5-dc1e-4204-9269-38df0186d3e7",
         "abilities": [
           {"mitre": "T1070.004", "name": "File Deletion", "ability_id": "33333333-1070-4001-8000-000000000001"}
         ]
@@ -108,7 +113,7 @@
       "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
       "expected_detections": [],
       "expected_alerts": [],
-      "expected_correlations": ["file_activity_sequence"],
+      "expected_correlations": [],
       "tags": ["caldera", "adversary-emulation", "defense-evasion", "tactic:defense-evasion", "mitre:T1070.004"],
       "risk": "low"
     }

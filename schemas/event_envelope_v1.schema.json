@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/event_envelope_v1.schema.json",
+  "title": "Tamandua Event Envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "routing", "event"],
+  "properties": {
+    "schema_version": {
+      "const": "tamandua.io/event-envelope/v1"
+    },
+    "routing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tenant_id",
+        "agent_id",
+        "platform",
+        "collector_id",
+        "event_type",
+        "observed_at",
+        "ingested_at"
+      ],
+      "properties": {
+        "tenant_id": {"type": "string", "minLength": 1},
+        "agent_id": {"type": "string", "minLength": 1},
+        "hostname": {"type": "string"},
+        "platform": {"enum": ["windows", "linux", "macos"]},
+        "collector_id": {"type": "string", "pattern": "^[a-z0-9_.-]{2,128}$"},
+        "event_type": {"type": "string", "pattern": "^[a-z0-9_.-]{2,128}$"},
+        "severity_hint": {"enum": ["info", "low", "medium", "high", "critical"]},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "ingested_at": {"type": "string", "format": "date-time"},
+        "source_event_id": {"type": "string"},
+        "correlation_id": {"type": "string"},
+        "trace_id": {"type": "string"}
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["category", "action", "outcome"],
+      "properties": {
+        "category": {"type": "string", "minLength": 1},
+        "action": {"type": "string", "minLength": 1},
+        "outcome": {"enum": ["success", "failure", "unknown"]},
+        "process": {"type": "object"},
+        "file": {"type": "object"},
+        "network": {"type": "object"},
+        "dns": {"type": "object"},
+        "registry": {"type": "object"},
+        "user": {"type": "object"},
+        "host": {"type": "object"},
+        "labels": {"type": "array", "items": {"type": "string"}},
+        "raw": {"type": "object"}
+      }
+    },
+    "quality": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "normalized": {"type": "boolean"},
+        "required_fields_present": {"type": "boolean"},
+        "dropped_fields": {"type": "array", "items": {"type": "string"}},
+        "parser_errors": {"type": "array", "items": {"type": "string"}},
+        "collector_health": {"enum": ["healthy", "degraded", "unknown"]}
+      }
+    }
+  }
+}

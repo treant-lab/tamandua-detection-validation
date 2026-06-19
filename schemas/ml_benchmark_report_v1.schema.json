@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ml_benchmark_report_v1.schema.json",
+  "title": "Tamandua ML Benchmark Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "lane",
+    "subject",
+    "dataset",
+    "environment",
+    "metrics",
+    "quality_gate",
+    "claim_boundary"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "tamandua.io/ml-benchmark-report/v1"
+    },
+    "kind": {
+      "const": "MLBenchmarkReport"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "created_at", "created_by", "git_commit"],
+      "properties": {
+        "report_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9_.-]{2,127}$"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": "string",
+          "minLength": 2
+        },
+        "git_commit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "command": {
+          "type": "string"
+        }
+      }
+    },
+    "lane": {
+      "enum": ["ML-0", "ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "name", "version"],
+      "properties": {
+        "type": {
+          "enum": ["training_pipeline", "pytorch_model", "onnx_model", "agent_local_ml", "ml_service", "tamandua_pipeline", "holdout_robustness"]
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "artifact_hashes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "input_contract": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "name": {"type": "string"},
+            "input_name": {"type": "string"},
+            "shape": {"type": "array", "items": {"type": ["integer", "string"]}},
+            "preprocessing": {"type": "string"},
+            "threshold": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+          }
+        }
+      }
+    },
+    "dataset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dataset_id", "manifest_ref", "sample_counts"],
+      "properties": {
+        "dataset_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "manifest_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sample_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total", "malware", "goodware", "unknown"],
+          "properties": {
+            "total": {"type": "integer", "minimum": 0},
+            "malware": {"type": "integer", "minimum": 0},
+            "goodware": {"type": "integer", "minimum": 0},
+            "unknown": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["os", "python_version"],
+      "properties": {
+        "os": {"type": "string"},
+        "python_version": {"type": "string"},
+        "rust_version": {"type": ["string", "null"]},
+        "onnxruntime_version": {"type": ["string", "null"]},
+        "agent_features": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "accuracy": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "precision": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "recall": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "f1": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "false_positive_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "false_negative_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "roc_auc": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "verdict_agreement": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "confidence_delta_p95": {"type": ["number", "null"], "minimum": 0},
+        "latency_ms_p50": {"type": ["number", "null"], "minimum": 0},
+        "latency_ms_p95": {"type": ["number", "null"], "minimum": 0},
+        "latency_ms_p99": {"type": ["number", "null"], "minimum": 0},
+        "throughput_per_second": {"type": ["number", "null"], "minimum": 0},
+        "memory_mb_peak": {"type": ["number", "null"], "minimum": 0},
+        "ml_contribution": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "ml_only": {"type": "integer", "minimum": 0},
+            "ml_assisted": {"type": "integer", "minimum": 0},
+            "deterministic_only": {"type": "integer", "minimum": 0},
+            "missed": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "quality_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "checks"],
+      "properties": {
+        "status": {
+          "enum": ["pass", "fail", "not_run", "partial"]
+        },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "status"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "status": {"enum": ["pass", "fail", "not_run", "warning"]},
+              "details": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 10
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "path"],
+        "properties": {
+          "name": {"type": "string"},
+          "path": {"type": "string"},
+          "sha256": {"type": ["string", "null"], "pattern": "^[a-fA-F0-9]{64}$"}
+        }
+      }
+    }
+  }
+}

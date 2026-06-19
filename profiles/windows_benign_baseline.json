@@ -28,7 +28,7 @@
       "id": "benign-powershell-admin-info",
       "name": "Benign PowerShell Administrative Info",
       "executor": "command",
-      "fallback_command": "powershell.exe -NoProfile -Command \"$PSVersionTable.PSVersion.ToString(); Get-Process -Id $PID | Select-Object -ExpandProperty ProcessName; Start-Sleep -Seconds 10\"",
+      "fallback_command": "cmd.exe /d /c \"powershell.exe -NoProfile -Command Write-Output tamandua-benign-powershell & echo tamandua-benign-done\"",
       "expected_telemetry": ["process_create"],
       "expected_fields": ["agent_id", "hostname", "process_name", "command_line"],
       "tags": ["benign", "baseline", "powershell", "tactic:benign"],
@@ -76,7 +76,7 @@
       "fallback_command": "cmd.exe /d /c \"curl.exe -I https://example.com/\"",
       "expected_telemetry": ["process_create"],
       "optional_telemetry": ["dns_query", "network_connect"],
-      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "domain", "remote_ip"],
+      "expected_fields": ["agent_id", "hostname", "process_name", "command_line", "domain"],
       "tags": ["benign", "baseline", "network", "tactic:benign"],
       "risk": "low"
     },

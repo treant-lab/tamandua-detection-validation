@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave1_validation_only_guard_drift_probe_v1.schema.json",
+  "title": "Tamandua ML Wave 1 Validation-Only Guard Drift Probe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "probe", "source_status_summary", "passed", "checks"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave1-validation-only-guard-drift-probe/v1"},
+    "kind": {"const": "MLWave1ValidationOnlyGuardDriftProbe"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "launcher",
+        "command",
+        "forced_guard_env",
+        "returncode",
+        "stdout_sha256",
+        "stderr_sha256",
+        "stdout_preview",
+        "stderr_preview"
+      ],
+      "properties": {
+        "launcher": {"type": "string", "pattern": "wave_1_real_acquisition_launcher\\.ps1$"},
+        "command": {
+          "type": "array",
+          "minItems": 4,
+          "items": {"type": "string"}
+        },
+        "forced_guard_env": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["TAMANDUA_ALLOW_ML_REAL_ACQUISITION"],
+          "properties": {
+            "TAMANDUA_ALLOW_ML_REAL_ACQUISITION": {"const": "1"}
+          }
+        },
+        "returncode": {"type": "integer"},
+        "stdout_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "stderr_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "stdout_preview": {"type": "string"},
+        "stderr_preview": {"type": "string"}
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "passed",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "guard_drift_rejected",
+        "real_acquisition_not_started",
+        "would_run_command_not_printed"
+      ],
+      "properties": {
+        "passed": {"type": "boolean"},
+        "goal_complete": {"const": false},
+        "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+        "check_count": {"type": "integer", "minimum": 1},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "guard_drift_rejected": {"type": "boolean"},
+        "real_acquisition_not_started": {"type": "boolean"},
+        "would_run_command_not_printed": {"type": "boolean"}
+      }
+    },
+    "passed": {"type": "boolean"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

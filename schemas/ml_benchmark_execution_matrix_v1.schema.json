@@ -1,0 +1,351 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_benchmark_execution_matrix_v1.schema.json",
+  "title": "Tamandua ML Benchmark Execution Matrix v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "summary", "lanes", "recommended_batches"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-benchmark-execution-matrix/v1"},
+    "kind": {"const": "MLBenchmarkExecutionMatrix"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benchmark_plan",
+        "benchmark_plan_validation",
+        "platform_readiness_audit",
+        "platform_readiness_audit_validation",
+        "parallel_work_packages",
+        "parallel_work_packages_validation",
+        "execution_status",
+        "execution_status_validation",
+        "source_status_summary",
+        "source_parallel_work_summary"
+      ],
+      "properties": {
+        "benchmark_plan": {"type": "string", "minLength": 1},
+        "benchmark_plan_validation": {"type": "string", "enum": ["exists", "missing"]},
+        "platform_readiness_audit": {"type": "string", "minLength": 1},
+        "platform_readiness_audit_validation": {"type": "string", "pattern": "^(jsonschema\\+built-in|missing|failed:.+)$"},
+        "parallel_work_packages": {"type": "string", "minLength": 1},
+        "parallel_work_packages_validation": {"type": "string", "pattern": "^(jsonschema\\+built-in|missing|failed:.+)$"},
+        "execution_status": {"type": "string", "minLength": 1},
+        "execution_status_validation": {"type": "string", "pattern": "^(jsonschema\\+built-in|missing|failed:.+)$"},
+        "source_parallel_work_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "parallel_claims",
+            "ready_validation_only_claims",
+            "blocked_claims",
+            "evidence_exists_claims",
+            "ready_validation_only_claim_ids",
+            "blocked_claim_ids",
+            "evidence_exists_claim_ids"
+          ],
+          "properties": {
+            "parallel_claims": {"type": "integer", "minimum": 0},
+            "ready_validation_only_claims": {"type": "integer", "minimum": 0},
+            "blocked_claims": {"type": "integer", "minimum": 0},
+            "evidence_exists_claims": {"type": "integer", "minimum": 0},
+            "ready_validation_only_claim_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "blocked_claim_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_exists_claim_ids": {"type": "array", "items": {"type": "string", "minLength": 1}}
+          }
+        },
+        "source_status_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "benchmark_plan_present",
+            "platform_readiness_audit_valid",
+            "parallel_work_packages_valid",
+            "execution_status_valid",
+            "source_inputs_valid",
+            "source_input_count",
+            "total_lanes",
+            "blocked_lanes",
+            "evidence_exists_lanes",
+            "ready_validation_only_lanes",
+            "isolated_model_lanes",
+            "tamandua_integration_lanes",
+            "standalone_detection_lanes",
+            "agent_onnx_detection_lanes",
+            "tamandua_detection_lanes",
+            "standalone_detection_surface_covered",
+            "agent_onnx_detection_surface_covered",
+            "tamandua_detection_surface_covered",
+            "benchmark_detection_surface_contract_ready",
+            "lanes_with_validation_commands",
+            "lanes_with_execute_guards",
+            "lane_evidence_usable_for_goal",
+            "current_evidence_usable_for_goal",
+            "goal_complete",
+            "completion_state",
+            "goal_snapshot_anchor_check_passed",
+            "goal_missing_requirements",
+            "goal_required_evidence_total",
+            "goal_present_required_evidence",
+            "goal_usable_required_evidence",
+            "goal_missing_required_evidence",
+            "goal_unusable_present_required_evidence",
+            "next_unproven_requirement_id",
+            "next_unproven_requirement_phase",
+            "next_unproven_execute_guard_env",
+            "missing_requirement_ids",
+            "evidence_status_summary",
+            "next_unproven_requirement"
+          ],
+          "properties": {
+            "benchmark_plan_present": {"type": "boolean"},
+            "platform_readiness_audit_valid": {"type": "boolean"},
+            "parallel_work_packages_valid": {"type": "boolean"},
+            "execution_status_valid": {"type": "boolean"},
+            "source_inputs_valid": {"type": "integer", "minimum": 0},
+            "source_input_count": {"type": "integer", "minimum": 1},
+            "total_lanes": {"type": "integer", "minimum": 1},
+            "blocked_lanes": {"type": "integer", "minimum": 0},
+            "evidence_exists_lanes": {"type": "integer", "minimum": 0},
+            "ready_validation_only_lanes": {"type": "integer", "minimum": 0},
+            "isolated_model_lanes": {"type": "integer", "minimum": 0},
+            "tamandua_integration_lanes": {"type": "integer", "minimum": 0},
+            "standalone_detection_lanes": {"type": "integer", "minimum": 0},
+            "agent_onnx_detection_lanes": {"type": "integer", "minimum": 0},
+            "tamandua_detection_lanes": {"type": "integer", "minimum": 0},
+            "standalone_detection_surface_covered": {"const": true},
+            "agent_onnx_detection_surface_covered": {"const": true},
+            "tamandua_detection_surface_covered": {"const": true},
+            "benchmark_detection_surface_contract_ready": {"const": true},
+            "lanes_with_validation_commands": {"type": "integer", "minimum": 0},
+            "lanes_with_execute_guards": {"type": "integer", "minimum": 0},
+            "lane_evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+            "current_evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+            "goal_complete": {"const": false},
+            "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+            "goal_snapshot_anchor_check_passed": {"type": "boolean"},
+            "goal_missing_requirements": {"const": 9},
+            "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+            "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "next_unproven_requirement_id": {"const": "wave1_governed_acquisition"},
+            "next_unproven_requirement_phase": {"const": "01-wave1-manifest-publication"},
+            "next_unproven_execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+            "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_status_summary": {"type": "object"},
+            "next_unproven_requirement": {"type": "object"}
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_lanes",
+        "evidence_exists",
+        "ready_validation_only",
+        "blocked",
+        "evidence_usable_for_goal",
+        "goal_complete",
+        "completion_state",
+        "goal_snapshot_anchor_check_passed",
+        "goal_usable_required_evidence",
+        "goal_required_evidence_total",
+        "next_unproven_requirement_id",
+        "next_unproven_execute_guard_env",
+        "upstream_ready_validation_only",
+        "upstream_blocked",
+        "isolated_model_lanes",
+        "tamandua_integration_lanes",
+        "standalone_detection_lanes",
+        "agent_onnx_detection_lanes",
+        "tamandua_detection_lanes",
+        "standalone_detection_surface_covered",
+        "agent_onnx_detection_surface_covered",
+        "tamandua_detection_surface_covered",
+        "benchmark_detection_surface_contract_ready"
+      ],
+      "properties": {
+        "total_lanes": {"type": "integer", "minimum": 1},
+        "evidence_exists": {"type": "integer", "minimum": 0},
+        "ready_validation_only": {"type": "integer", "minimum": 0},
+        "blocked": {"type": "integer", "minimum": 0},
+        "evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+        "goal_complete": {"const": false},
+        "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+        "goal_snapshot_anchor_check_passed": {"type": "boolean"},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+        "next_unproven_requirement_id": {"const": "wave1_governed_acquisition"},
+        "next_unproven_execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+        "upstream_blocked": {"type": "integer", "minimum": 0},
+        "isolated_model_lanes": {"type": "integer", "minimum": 0},
+        "tamandua_integration_lanes": {"type": "integer", "minimum": 0},
+        "standalone_detection_lanes": {"type": "integer", "minimum": 0},
+        "agent_onnx_detection_lanes": {"type": "integer", "minimum": 0},
+        "tamandua_detection_lanes": {"type": "integer", "minimum": 0},
+        "standalone_detection_surface_covered": {"const": true},
+        "agent_onnx_detection_surface_covered": {"const": true},
+        "tamandua_detection_surface_covered": {"const": true},
+        "benchmark_detection_surface_contract_ready": {"const": true}
+      }
+    },
+    "lanes": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "lane_id",
+          "title",
+          "scope",
+          "benchmark_modality",
+          "parallel_group",
+          "current_status",
+          "evidence_status",
+          "evidence_usable_for_goal",
+          "dependencies",
+          "required_evidence",
+          "current_evidence",
+          "guarded_commands",
+          "blockers",
+          "promotion_gate",
+          "claim_boundary"
+        ],
+        "properties": {
+          "lane_id": {"enum": ["ML-0", "ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]},
+          "title": {"type": "string", "minLength": 1},
+          "scope": {"enum": ["pipeline_smoke", "isolated_model", "onnx_parity", "agent_local", "service_api", "platform_replay", "cross_time_holdout"]},
+          "benchmark_modality": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "mode",
+              "execution_surface",
+              "detection_target",
+              "integration_level",
+              "requires_candidate_model",
+              "requires_agent_onnx",
+              "requires_tamandua_integration"
+            ],
+            "properties": {
+              "mode": {
+                "enum": [
+                  "pipeline_smoke",
+                  "standalone_model_detection",
+                  "pytorch_onnx_parity",
+                  "agent_onnx_local_detection",
+                  "tamandua_service_detection",
+                  "tamandua_end_to_end_replay",
+                  "cross_time_holdout_detection"
+                ]
+              },
+              "execution_surface": {
+                "enum": [
+                  "planning_smoke",
+                  "python_model",
+                  "python_onnxruntime",
+                  "rust_agent_onnx",
+                  "fastapi_ml_service",
+                  "tamandua_platform_replay",
+                  "python_model_holdout"
+                ]
+              },
+              "detection_target": {
+                "enum": [
+                  "none",
+                  "model_verdict",
+                  "onnx_verdict_parity",
+                  "agent_local_verdict",
+                  "service_prediction_response",
+                  "pipeline_alert_and_verdict",
+                  "post_cutoff_model_verdict"
+                ]
+              },
+              "integration_level": {
+                "enum": [
+                  "contract_only",
+                  "standalone",
+                  "export_parity",
+                  "agent_local",
+                  "service_api",
+                  "full_platform",
+                  "robustness_holdout"
+                ]
+              },
+              "requires_candidate_model": {"type": "boolean"},
+              "requires_agent_onnx": {"type": "boolean"},
+              "requires_tamandua_integration": {"type": "boolean"}
+            }
+          },
+          "parallel_group": {"type": "string", "minLength": 1},
+          "current_status": {"enum": ["evidence_exists", "ready_validation_only", "blocked_dependency", "blocked_artifact", "blocked_env"]},
+          "evidence_status": {"enum": ["validation_only_not_evidence", "blocked_env", "blocked_artifact", "blocked_dependency", "smoke_artifact", "contract_dry_run", "fixture_only", "metadata_only", "candidate_required_artifact", "coordination_only"]},
+          "evidence_usable_for_goal": {"type": "boolean"},
+          "dependencies": {"type": "array", "items": {"enum": ["ML-0", "ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6", "Wave-1"]}},
+          "required_evidence": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "current_evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "path", "exists", "evidence_status", "evidence_usable_for_goal", "claim"],
+              "properties": {
+                "name": {"type": "string", "minLength": 1},
+                "path": {"type": "string", "minLength": 1},
+                "exists": {"type": "boolean"},
+                "evidence_status": {"enum": ["missing", "smoke_artifact", "contract_dry_run", "fixture_only", "metadata_only", "candidate_required_artifact"]},
+                "evidence_usable_for_goal": {"type": "boolean"},
+                "claim": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "guarded_commands": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["validation_command", "execute_command", "execute_guard_env"],
+            "properties": {
+              "validation_command": {"type": ["string", "null"]},
+              "execute_command": {"type": ["string", "null"]},
+              "execute_guard_env": {"type": ["string", "null"]}
+            }
+          },
+          "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "promotion_gate": {"type": "string", "minLength": 1},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "recommended_batches": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["batch_id", "lane_ids", "mode", "claim_boundary"],
+        "properties": {
+          "batch_id": {"type": "string", "minLength": 1},
+          "lane_ids": {"type": "array", "items": {"enum": ["ML-0", "ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]}},
+          "mode": {"enum": ["evidence_review", "validation_only", "dependency_followup"]},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    }
+  }
+}

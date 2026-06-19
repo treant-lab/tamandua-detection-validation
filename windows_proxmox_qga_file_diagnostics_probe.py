@@ -36,6 +36,8 @@ PROFILE_NAME = "Windows Proxmox QGA File Diagnostics Probe"
 
 
 def load_dotenv(path: Path = ROOT / ".env") -> None:
+    if os.getenv("TAMANDUA_SKIP_DOTENV"):
+        return
     if not path.exists():
         return
     for raw_line in path.read_text(encoding="utf-8").splitlines():
@@ -147,6 +149,33 @@ def request_json(session: requests.Session, args: argparse.Namespace, method: st
             "error": f"{type(exc).__name__}: {exc}",
             "ok": False,
         }
+
+
+def request_json_retry(
+    session: requests.Session,
+    args: argparse.Namespace,
+    method: str,
+    path: str,
+    max_attempts_override: int | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    attempts: list[dict[str, Any]] = []
+    max_attempts = max(1, max_attempts_override or args.qga_retry_attempts)
+    for attempt in range(1, max_attempts + 1):
+        result = request_json(session, args, method, path, **kwargs)
+        result["attempt"] = attempt
+        attempts.append(result)
+        status = result.get("status")
+        if result.get("ok") or (isinstance(status, int) and status < 500):
+            break
+        if attempt < max_attempts:
+            time.sleep(max(0.0, args.qga_retry_sleep_seconds))
+
+    final = dict(attempts[-1])
+    final["attempts"] = attempts
+    final["attempt_count"] = len(attempts)
+    final["retried"] = len(attempts) > 1
+    return final
 
 
 def make_result(test_id: str, name: str, passed: bool, gap: str, evidence: dict[str, Any]) -> dict[str, Any]:
@@ -318,21 +347,17 @@ def qga_guest_exec_file_metadata(session: requests.Session, args: argparse.Names
     for path in candidates:
         lines.append(f'if exist "{path}" echo exists={path}')
     raw_input = "\r\n".join(lines + ["exit /b 0", ""])
-    start = request_json(
+    start = request_json_retry(
         session,
         args,
         "POST",
         f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/exec",
+        max_attempts_override=args.qga_exec_start_attempts,
         data={"command": "cmd.exe", "input-data": raw_input},
     )
     pid = (((start.get("body") or {}).get("data") or {}) if isinstance(start.get("body"), dict) else {}).get("pid")
     result: dict[str, Any] = {
-        "start": {
-            "status": start.get("status"),
-            "ok": start.get("ok"),
-            "duration_ms": start.get("duration_ms"),
-            "error": summarize_error(start),
-        },
+        "start": start,
         "transport": "proxmox_api_qga_guest_exec",
         "reads_file_contents": False,
     }
@@ -401,14 +426,24 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     commands: list[str] = []
     file_attempts: list[dict[str, Any]] = []
     guest_exec_metadata: dict[str, Any] = {}
+    fallback_ready = False
+    guest_file_commands_advertised = False
     if session is not None:
         qga_info = request_json(session, args, "GET", f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/info")
         commands = supported_commands(qga_info)
+        file_attempts = qga_file_open_attempts(session, args)
+        exposed = any(attempt.get("ok") for attempt in file_attempts)
+        if not exposed:
+            guest_exec_metadata = qga_guest_exec_file_metadata(session, args)
+        fallback_ready = bool(guest_exec_metadata.get("ready"))
+        guest_file_commands_advertised = all(
+            command in commands for command in ("guest-file-open", "guest-file-read", "guest-file-close")
+        )
         tests.append(
             make_result(
                 "qga-file-commands-advertised",
-                "QGA advertises guest-file commands",
-                all(command in commands for command in ("guest-file-open", "guest-file-read", "guest-file-close")),
+                "QGA advertises guest-file commands or proves a bounded diagnostics fallback",
+                guest_file_commands_advertised or fallback_ready,
                 "runner",
                 {
                     "status": qga_info.get("status"),
@@ -416,13 +451,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                     "guest_file_open": "guest-file-open" in commands,
                     "guest_file_read": "guest-file-read" in commands,
                     "guest_file_close": "guest-file-close" in commands,
+                    "guest_file_commands_advertised": guest_file_commands_advertised,
+                    "fallback_transport_ready": fallback_ready,
+                    "fallback_transport": (
+                        guest_exec_metadata.get("transport") if fallback_ready else None
+                    ),
                 },
             )
         )
-        file_attempts = qga_file_open_attempts(session, args)
-        exposed = any(attempt.get("ok") for attempt in file_attempts)
-        if not exposed and "guest-exec" in commands:
-            guest_exec_metadata = qga_guest_exec_file_metadata(session, args)
         tests.append(
             make_result(
                 "proxmox-agent-readonly-diagnostics-transport",
@@ -499,9 +535,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "qga_info": {
                 "status": qga_info.get("status"),
                 "supported_command_count": len(commands),
-                "guest_file_commands_advertised": all(
-                    command in commands for command in ("guest-file-open", "guest-file-read", "guest-file-close")
-                ),
+                "guest_file_commands_advertised": guest_file_commands_advertised,
+                "fallback_transport_ready": fallback_ready,
             },
             "file_open_attempts": file_attempts,
             "guest_exec_metadata": guest_exec_metadata,
@@ -557,7 +592,9 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
             "## Claim Boundary",
             "",
             "This artifact proves only whether Proxmox exposes QGA guest-file endpoints for read-only lab diagnostics. "
-            "It does not read Tamandua secrets into the artifact, does not execute guest commands, and does not prove detection coverage.",
+            "It does not read Tamandua secrets into the artifact. When guest-file endpoints are unavailable, it may run a "
+            "bounded benign guest-exec metadata fallback that checks candidate path existence without reading file contents. "
+            "It does not prove detection coverage.",
             "",
         ]
     )
@@ -574,6 +611,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--vmid", type=int, default=int(os.getenv("TAMANDUA_WINDOWS_VMID", "1521")))
     parser.add_argument("--http-timeout-seconds", type=int, default=int(os.getenv("TAMANDUA_PROXMOX_HTTP_TIMEOUT_SECONDS", "20")))
     parser.add_argument("--guest-exec-timeout-seconds", type=int, default=int(os.getenv("TAMANDUA_QGA_GUEST_EXEC_TIMEOUT_SECONDS", "30")))
+    parser.add_argument("--qga-retry-attempts", type=int, default=int(os.getenv("TAMANDUA_QGA_RETRY_ATTEMPTS", "3")))
+    parser.add_argument("--qga-retry-sleep-seconds", type=float, default=float(os.getenv("TAMANDUA_QGA_RETRY_SLEEP_SECONDS", "2")))
+    parser.add_argument("--qga-exec-start-attempts", type=int, default=int(os.getenv("TAMANDUA_QGA_EXEC_START_ATTEMPTS", "6")))
     parser.add_argument("--output-dir", default=str(RUNS_DIR))
     return parser.parse_args()
 

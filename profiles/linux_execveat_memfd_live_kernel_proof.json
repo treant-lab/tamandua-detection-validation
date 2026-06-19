@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-execveat-memfd-live-kernel-proof",
+  "name": "Linux execveat memfd Live Kernel Proof",
+  "description": "Lab-only Linux live-kernel proof that the eBPF raw syscall path observes memfd_create followed by execveat(AT_EMPTY_PATH) and surfaces fileless_execveat telemetry/detection evidence. This profile must run only on a disposable or approved Linux lab endpoint with the eBPF collector active.",
+  "platform": "linux",
+  "default_observation_seconds": 90,
+  "benchmark_lane": "claim-boundary",
+  "quality_bar": {
+    "purpose": "linux_execveat_memfd_live_kernel_proof",
+    "requires_persisted_events": true,
+    "requires_driver_health": true,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Lab-only live-kernel eBPF proof for execveat(AT_EMPTY_PATH) syscall visibility. Passing this profile proves the selected lab host emitted and persisted the expected fileless_execveat evidence for this fixture only; it does not prove broad Linux eBPF production readiness, kernel matrix coverage, or fallback auditd parity.",
+  "preconditions": [
+    "linux_ebpf_readiness_probe artifact for the exact host is active or explicitly accepted degraded",
+    "Tamandua Linux agent is enrolled and eBPF collector health is healthy",
+    "BPF object is installed and sys_enter_security raw tracepoint is attached",
+    "cc is available on the lab endpoint to build the temporary helper",
+    "Runner is a disposable or approved Linux lab endpoint, not the operator workstation"
+  ],
+  "tests": [
+    {
+      "id": "linux-execveat-memfd-at-empty-path-live",
+      "name": "memfd_create followed by execveat(AT_EMPTY_PATH) reaches telemetry",
+      "executor": "command",
+      "fallback_command": "sh -lc 'set -eu; command -v cc >/dev/null || { echo \"tamandua_execveat_memfd_live missing=cc\"; exit 125; }; work=$(mktemp -d /tmp/tamandua-execveat.XXXXXX); trap \"rm -rf $work\" EXIT; cat > \"$work/execveat_memfd.c\" <<\"EOF\"\n#define _GNU_SOURCE\n#include <errno.h>\n#include <fcntl.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include <string.h>\n#include <sys/sendfile.h>\n#include <sys/syscall.h>\n#include <sys/wait.h>\n#include <unistd.h>\n#ifndef AT_EMPTY_PATH\n#define AT_EMPTY_PATH 0x1000\n#endif\n#ifndef MFD_CLOEXEC\n#define MFD_CLOEXEC 0x0001U\n#endif\nstatic int xmemfd_create(const char *name, unsigned int flags) { return (int)syscall(SYS_memfd_create, name, flags); }\nstatic int xexecveat(int dirfd, const char *path, char *const argv[], char *const envp[], int flags) { return (int)syscall(SYS_execveat, dirfd, path, argv, envp, flags); }\nint main(void) {\n  int in = open(\"/bin/true\", O_RDONLY);\n  if (in < 0) { perror(\"open /bin/true\"); return 2; }\n  int memfd = xmemfd_create(\"tamandua_execveat_memfd_live\", 0);\n  if (memfd < 0) { perror(\"memfd_create\"); return 3; }\n  char buf[8192];\n  for (;;) {\n    ssize_t n = read(in, buf, sizeof(buf));\n    if (n < 0) { perror(\"read\"); return 4; }\n    if (n == 0) break;\n    if (write(memfd, buf, (size_t)n) != n) { perror(\"write memfd\"); return 5; }\n  }\n  close(in);\n  lseek(memfd, 0, SEEK_SET);\n  char *argv[] = {\"tamandua-execveat-memfd-live\", NULL};\n  char *envp[] = {\"TAMANDUA_EXECVEAT_MEMFD_LIVE=1\", NULL};\n  xexecveat(memfd, \"\", argv, envp, AT_EMPTY_PATH);\n  perror(\"execveat\");\n  return 6;\n}\nEOF\ncc \"$work/execveat_memfd.c\" -O2 -Wall -Wextra -o \"$work/execveat_memfd\"; \"$work/execveat_memfd\"; printf \"tamandua_execveat_memfd_live completed=true marker=tamandua_execveat_memfd_live\\n\"'",
+      "expected_telemetry": [
+        "memory_permission_change",
+        "process_create"
+      ],
+      "expected_detections": [
+        "fileless_execveat_ebpf"
+      ],
+      "expected_alerts": [
+        "fileless_execveat"
+      ],
+      "expected_fields": [
+        "agent_id",
+        "hostname",
+        "event_type"
+      ],
+      "expected_fields_by_event_type": {
+        "memory_permission_change": [
+          "source",
+          "syscall_nr",
+          "evasion_type",
+          "confidence",
+          "fd"
+        ]
+      },
+      "expected_values_by_event_type": {
+        "memory_permission_change": {
+          "source": [
+            "ebpf_linux_raw_syscall"
+          ],
+          "syscall_nr": [
+            "322"
+          ]
+        }
+      },
+      "optional_telemetry": [
+        "live_response_command_completed"
+      ],
+      "tags": [
+        "linux",
+        "ebpf",
+        "raw-tracepoint",
+        "execveat",
+        "memfd",
+        "at-empty-path",
+        "fileless-execution",
+        "mitre:T1620",
+        "claim-boundary"
+      ],
+      "risk": "lab-only-safe",
+      "validation_category": "kernel_contract",
+      "claim_boundary": "Requires live eBPF sensor evidence from this lab host; auditd-only process_create evidence is insufficient for pass."
+    }
+  ]
+}

@@ -180,7 +180,7 @@ def enterprise_eval_profile() -> dict[str, Any]:
             "storyline": "Process, parent, command line, file, DNS, network, launchd and TCC/XPC fields are required when relevant.",
             "noise": "Low-risk tests must not emit unexpected high/critical events.",
         },
-        "claim_boundary": "macOS deterministic enterprise evaluation only. Promotion requires server-backed agent evidence, EndpointSecurity entitlement proof, and backend ingestion.",
+        "claim_boundary": "macOS deterministic enterprise evaluation only. Promotion requires server-backed agent evidence, EndpointSecurity and System Extension install entitlement proof, and backend ingestion.",
         "tests": tests,
     }
 
@@ -319,7 +319,7 @@ def release_readiness_profile() -> dict[str, Any]:
             "evidence_scope": ["LaunchDaemon status report-only", "binary path, version, signature and hash metadata", "plist lint and ownership metadata", "release manifest, SBOM and compatibility matrix presence", "rollback and uninstall command surfaces recorded as planned/not executed"],
             "promotion_requires": ["signed/notarized pkg or app artifact evidence", "generated SBOM attached to the release pack", "successful install/update/rollback/uninstall execution on a clean macOS host", "explicit separation from lab-only or unsigned builds"],
         },
-        "claim_boundary": "Dry-run release/readiness contract only. Passing this profile does not prove notarization, installer success, update success, rollback success, clean uninstall, EndpointSecurity coverage, or server-backed parity.",
+        "claim_boundary": "Dry-run release/readiness contract only. Passing this profile does not prove notarization, installer success, update success, rollback success, clean uninstall, EndpointSecurity/System Extension coverage, or server-backed parity.",
         "tests": tests,
     }
 

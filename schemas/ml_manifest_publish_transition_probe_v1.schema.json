@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_manifest_publish_transition_probe_v1.schema.json",
+  "title": "Tamandua ML Manifest Publish Transition Probe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "source_status_summary",
+    "configuration",
+    "passed",
+    "checks",
+    "selected_action"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-manifest-publish-transition-probe/v1"},
+    "kind": {"const": "MLManifestPublishTransitionProbe"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "simulation_root_outside_repo",
+        "synthetic_external_manifest_exists",
+        "next_action_is_post_acquisition_refresh",
+        "refresh_has_no_execute_guard",
+        "validation_only_refreshed_without_publish",
+        "selected_action_type",
+        "selected_package_id",
+        "selected_wave",
+        "selected_priority",
+        "selected_execute_guard_env",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "passed"
+      ],
+      "properties": {
+        "simulation_root_outside_repo": {"type": "boolean"},
+        "synthetic_external_manifest_exists": {"type": "boolean"},
+        "next_action_is_post_acquisition_refresh": {"type": "boolean"},
+        "refresh_has_no_execute_guard": {"type": "boolean"},
+        "validation_only_refreshed_without_publish": {"type": "boolean"},
+        "selected_action_type": {"const": "refresh_post_acquisition_receipts"},
+        "selected_package_id": {"const": "ml_data_governed_acquisition"},
+        "selected_wave": {"const": 1},
+        "selected_priority": {"const": 1},
+        "selected_execute_guard_env": {"type": "null"},
+        "check_count": {"type": "integer", "minimum": 0},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "passed": {"type": "boolean"}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["simulation_root", "source_manifest", "status_ref", "next_action_run_ref"],
+      "properties": {
+        "simulation_root": {"type": "string", "minLength": 1},
+        "source_manifest": {"type": "string", "minLength": 1},
+        "status_ref": {"type": "string", "minLength": 1},
+        "next_action_run_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "passed": {"type": "boolean"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    },
+    "selected_action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action_type",
+        "package_id",
+        "wave",
+        "priority",
+        "description",
+        "source_artifact",
+        "validation_command",
+        "execute_guard_env",
+        "claim_boundary"
+      ],
+      "properties": {
+        "action_type": {"const": "refresh_post_acquisition_receipts"},
+        "package_id": {"const": "ml_data_governed_acquisition"},
+        "wave": {"const": 1},
+        "priority": {"const": 1},
+        "description": {"type": "string", "minLength": 1},
+        "source_artifact": {"type": "string", "minLength": 1},
+        "validation_command": {"type": "string", "minLength": 1},
+        "execute_guard_env": {"type": "null"},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    }
+  }
+}

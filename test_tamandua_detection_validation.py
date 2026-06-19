@@ -4,7 +4,9 @@ import json
 import os
 import subprocess
 import sys
+import zipfile
 from argparse import Namespace
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -16,6 +18,2213 @@ validation = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 sys.modules[SPEC.name] = validation
 SPEC.loader.exec_module(validation)
+REPO_ROOT = MODULE_PATH.parents[2]
+
+MACOS_ARTIFACT_PREFLIGHT_MODULE_PATH = Path(__file__).with_name(
+    "macos_release_artifact_preflight.py"
+)
+MACOS_ARTIFACT_PREFLIGHT_SPEC = importlib.util.spec_from_file_location(
+    "macos_release_artifact_preflight",
+    MACOS_ARTIFACT_PREFLIGHT_MODULE_PATH,
+)
+macos_artifact_preflight = importlib.util.module_from_spec(MACOS_ARTIFACT_PREFLIGHT_SPEC)
+assert MACOS_ARTIFACT_PREFLIGHT_SPEC.loader is not None
+sys.modules[MACOS_ARTIFACT_PREFLIGHT_SPEC.name] = macos_artifact_preflight
+MACOS_ARTIFACT_PREFLIGHT_SPEC.loader.exec_module(macos_artifact_preflight)
+
+
+def test_verify_signed_binary_enforces_macos_endpointsecurity_release_gate():
+    script = (REPO_ROOT / "scripts" / "verify_signed_binary.sh").read_text(encoding="utf-8")
+
+    assert "TAMANDUA_REQUIRE_MACOS_ENDPOINT_SECURITY" in script
+    assert "TAMANDUA_ALLOW_MACOS_GATEKEEPER_WARN" in script
+    assert "com.apple.developer.endpoint-security.client" in script
+    assert "com.apple.developer.system-extension.install" in script
+    assert "REQUIRED_SYSTEM_EXTENSION_INSTALL_ENTITLEMENT" in script
+    assert "System Extension installation entitlement present" in script
+    assert "spctl --assess --type execute --verbose=4" in script
+    assert "Signature=adhoc" in script
+    assert "TeamIdentifier=not set" in script
+    assert "exit 1" in script
+
+
+def test_code_signing_doc_requires_macos_system_extension_entitlement():
+    doc = (REPO_ROOT / "docs" / "CODE_SIGNING.md").read_text(encoding="utf-8")
+    macos_section = doc.split("### macOS: Developer ID + Notarization", 1)[1].split(
+        "### Linux: GPG Signatures", 1
+    )[0]
+
+    assert "missing EndpointSecurity/System Extension entitlements" in macos_section
+    assert "com.apple.developer.endpoint-security.client" in macos_section
+    assert "com.apple.developer.system-extension.install" in macos_section
+    assert "System Extension installation entitlement approved" in macos_section
+    assert "activate the bundled sensor" in macos_section
+
+
+def test_sign_macos_restores_unsigned_backup_on_release_gate_failures():
+    script = (REPO_ROOT / "scripts" / "sign_macos.sh").read_text(encoding="utf-8")
+    failure_path_script = script.split("# Cleanup", 1)[0]
+
+    assert "restore_unsigned_backup()" in script
+    assert 'mv "$BACKUP_PATH" "$BINARY_PATH"' in script
+    assert "Pre-notarization Gatekeeper assessment failed; continuing to notarization" in script
+    assert "Stapled notarization ticket validation failed" in script
+    assert "Gatekeeper assessment: ${RED}FAILED${NC}" in script
+    assert 'rm -f "$ZIP_PATH" "$BACKUP_PATH"' not in failure_path_script
+
+
+def test_bootstrap_macos_strict_mode_uses_signed_binary_verifier():
+    script = (
+        REPO_ROOT / "deploy" / "scripts" / "proxmox" / "bootstrap-lab-macos-agent.sh"
+    ).read_text(encoding="utf-8")
+    schema = json.loads(
+        (REPO_ROOT / "docs" / "benchmarks" / "macos_bootstrap_readiness.schema.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    check_script = (
+        REPO_ROOT / "docs" / "benchmarks" / "macos_bootstrap_readiness_check.ps1"
+    ).read_text(encoding="utf-8")
+    runbook = (
+        REPO_ROOT / "docs" / "benchmarks" / "macos-roadmap-p0-lab-runbook.md"
+    ).read_text(encoding="utf-8")
+    required_fields = set(schema["required"])
+    schema_properties = schema["properties"]
+    boolean_fields = {
+        "agent_architecture_matches_host",
+        "app_bundle_present",
+        "system_extension_architecture_matches_host",
+        "launchd_service_present",
+        "developer_id_signature_present",
+        "not_adhoc_signed",
+        "endpoint_security_entitlement_present",
+        "system_extension_install_entitlement_present",
+        "gatekeeper_assessment_accepted",
+        "tamandua_system_extension_listed",
+        "system_tcc_db_readable",
+        "full_disk_access_tamandua_entry_present",
+    }
+    string_fields = {
+        "generated_at",
+        "agent_binary",
+        "host_architecture",
+        "agent_architecture",
+        "app_bundle_path",
+        "system_extension_architecture",
+        "gatekeeper_assessment_detail",
+        "tamandua_system_extension_line",
+        "system_tcc_db_detail",
+        "full_disk_access_tamandua_entry_detail",
+        "next_action",
+    }
+
+    assert 'REQUIRE_ENDPOINT_SECURITY="${TAMANDUA_REQUIRE_MACOS_ENDPOINT_SECURITY:-0}"' in script
+    assert "VERIFY_SIGNED_BINARY" in script
+    assert "TAMANDUA_AGENT_ARCHIVE_URL" in script
+    assert "Set only one of TAMANDUA_AGENT_URL or TAMANDUA_AGENT_ARCHIVE_URL" in script
+    assert "strict macOS product bootstrap refuses TAMANDUA_AGENT_URL raw binary downloads" in script
+    assert "Use TAMANDUA_AGENT_ARCHIVE_URL with a signed/notarized app ZIP" in script
+    assert "TAMANDUA_AGENT_URL raw binary downloads are diagnostic-only" in script
+    assert "generated_at" in runbook
+    assert "stale reports are rejected" in runbook
+    assert 'ditto -x -k "$archive_path" "$tmpdir/extracted"' in script
+    assert 'install -m 0755 "$extracted_agent" "$AGENT_BINARY_PATH"' in script
+    assert "strict macOS product bootstrap requires app bundle" in script
+    assert "Install the signed/notarized Tamandua EDR.app" in script
+    assert "strict macOS product bootstrap requires a bundled System Extension" in script
+    assert "Contents/Library/SystemExtensions" in script
+    assert "STRICT_SYSEXT_BUNDLE_PATH" in script
+    assert "STRICT_HOST_ARCH" in script
+    assert "STRICT_AGENT_ARCH" in script
+    assert "strict macOS product bootstrap requires agent architecture to match host" in script
+    assert "STRICT_SYSEXT_EXECUTABLE" in script
+    assert "strict macOS product bootstrap requires a System Extension executable" in script
+    assert "STRICT_SYSEXT_ARCH" in script
+    assert "strict macOS product bootstrap requires System Extension architecture to match host" in script
+    assert "STRICT_SYSEXT_ENTITLEMENTS" in script
+    assert 'codesign -d --entitlements :- "$STRICT_SYSEXT_BUNDLE_PATH"' in script
+    assert "strict macOS product bootstrap requires System Extension entitlement" in script
+    assert "install_args=(" in script
+    assert 'if [ "$REQUIRE_ENDPOINT_SECURITY" != "1" ]; then' in script
+    assert "install_args+=(--no-driver)" in script
+    assert '"$AGENT_BINARY_PATH" "${install_args[@]}"' in script
+    assert "signed release ZIP" in script
+    assert 'if [ "$REQUIRE_ENDPOINT_SECURITY" = "1" ]; then' in script
+    assert 'TAMANDUA_REQUIRE_MACOS_ENDPOINT_SECURITY=1 bash "$VERIFY_SIGNED_BINARY" "$AGENT_BINARY_PATH"' in script
+    assert "strict macOS product bootstrap requires verifier" in script
+    assert "server-backed macOS P0 readiness cannot pass" in script
+    assert "READINESS_REPORT_PATH" in script
+    assert 'generated_at="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"' in script
+    assert "write_readiness_report()" in script
+    assert "macOS readiness report written" in script
+    assert "endpoint_security_entitlement_present" in script
+    assert "SYSTEM_EXTENSION_INSTALL_ENTITLEMENT" in script
+    assert "system_extension_install_entitlement_present" in script
+    assert "com.apple.developer.system-extension.install" in script
+    assert "gatekeeper_assessment_accepted" in script
+    assert "gatekeeper_assessment_detail" in script
+    assert "tamandua_system_extension_listed" in script
+    assert "system_tcc_db_readable" in script
+    assert "full_disk_access_tamandua_entry_present" in script
+    assert "kTCCServiceSystemPolicyAllFiles" in script
+    assert "lower(client) LIKE '%tamandua%'" in script
+    assert "systemextensionsctl list" in script
+    assert "agent `install --no-driver` enrollment" not in runbook
+    assert "In strict product mode it omits `--no-driver`" in runbook
+    assert "diagnostic/non-strict bootstrap" in runbook
+    assert schema["additionalProperties"] is False
+    for field in [
+        "generated_at",
+        "agent_binary",
+        "host_architecture",
+        "agent_architecture",
+        "agent_architecture_matches_host",
+        "app_bundle_path",
+        "app_bundle_present",
+        "system_extension_architecture",
+        "system_extension_architecture_matches_host",
+        "launchd_service_present",
+        "developer_id_signature_present",
+        "not_adhoc_signed",
+        "endpoint_security_entitlement_present",
+        "system_extension_install_entitlement_present",
+        "gatekeeper_assessment_accepted",
+        "gatekeeper_assessment_detail",
+        "tamandua_system_extension_listed",
+        "tamandua_system_extension_line",
+        "system_tcc_db_readable",
+        "system_tcc_db_detail",
+        "full_disk_access_tamandua_entry_present",
+        "full_disk_access_tamandua_entry_detail",
+        "next_action",
+    ]:
+        assert field in required_fields
+        assert f'"{field}"' in script
+        assert field in check_script
+    for field in boolean_fields:
+        assert schema_properties[field]["type"] == "boolean"
+    for field in string_fields:
+        assert schema_properties[field]["type"] == "string"
+    assert "validation-macos-bootstrap-readiness-check" in check_script
+    assert "ready_for_backend_probe" in check_script
+    assert "FreshnessSeconds" in check_script
+    assert "generated_at_parseable" in check_script
+    assert "stale_report" in check_script
+    assert "Regenerate a fresh macOS bootstrap readiness report" in check_script
+    assert "unknown_fields" in check_script
+    assert "false_readiness_fields" in check_script
+    assert "macos_backend_readiness_probe.py" in check_script
+
+
+def macos_bootstrap_readiness_report(**overrides):
+    report = {
+        "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "agent_binary": "/opt/tamandua/tamandua-agent",
+        "host_architecture": "arm64",
+        "agent_architecture": "arm64",
+        "agent_architecture_matches_host": True,
+        "app_bundle_path": "/Applications/Tamandua EDR.app",
+        "app_bundle_present": True,
+        "system_extension_architecture": "arm64",
+        "system_extension_architecture_matches_host": True,
+        "launchd_service_present": True,
+        "developer_id_signature_present": True,
+        "not_adhoc_signed": True,
+        "endpoint_security_entitlement_present": True,
+        "system_extension_install_entitlement_present": True,
+        "gatekeeper_assessment_accepted": True,
+        "gatekeeper_assessment_detail": "/opt/tamandua/tamandua-agent: accepted",
+        "tamandua_system_extension_listed": True,
+        "tamandua_system_extension_line": "enabled active TEAMID com.tamandua.agent.sysext.filemonitor",
+        "system_tcc_db_readable": True,
+        "system_tcc_db_detail": "system TCC database is readable by bootstrap process",
+        "full_disk_access_tamandua_entry_present": True,
+        "full_disk_access_tamandua_entry_detail": "Tamandua Full Disk Access entry observed in system TCC database",
+        "next_action": "Rerun macos_backend_readiness_probe.py against the Tamandua backend.",
+    }
+    for key, value in overrides.items():
+        if value is None:
+            report.pop(key, None)
+        else:
+            report[key] = value
+    return report
+
+
+def run_macos_bootstrap_readiness_check(tmp_path, report):
+    report_path = tmp_path / "macos-bootstrap-readiness.json"
+    report_path.write_text(json.dumps(report), encoding="utf-8")
+    completed = subprocess.run(
+        [
+            "powershell",
+            "-NoProfile",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(REPO_ROOT / "docs" / "benchmarks" / "macos_bootstrap_readiness_check.ps1"),
+            "-ReportPath",
+            str(report_path),
+            "-Json",
+        ],
+        cwd=REPO_ROOT,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    payload = json.loads(completed.stdout)
+    return completed, payload
+
+
+def test_macos_bootstrap_readiness_check_accepts_ready_report(tmp_path):
+    completed, payload = run_macos_bootstrap_readiness_check(
+        tmp_path,
+        macos_bootstrap_readiness_report(),
+    )
+
+    assert completed.returncode == 0
+    assert payload["valid_shape"] is True
+    assert payload["ready_for_backend_probe"] is True
+    assert payload["false_readiness_fields"] == []
+    assert payload["generated_at_parseable"] is True
+    assert payload["stale_report"] is False
+
+
+def test_macos_bootstrap_readiness_check_rejects_missing_and_wrong_type_fields(tmp_path):
+    completed, payload = run_macos_bootstrap_readiness_check(
+        tmp_path,
+        macos_bootstrap_readiness_report(
+            endpoint_security_entitlement_present="true",
+            full_disk_access_tamandua_entry_detail=None,
+        ),
+    )
+
+    assert completed.returncode == 2
+    assert payload["valid_shape"] is False
+    assert payload["ready_for_backend_probe"] is False
+    assert payload["wrong_type_fields"] == ["endpoint_security_entitlement_present"]
+    assert payload["missing_fields"] == ["full_disk_access_tamandua_entry_detail"]
+
+
+def test_macos_bootstrap_readiness_check_rejects_unknown_fields(tmp_path):
+    completed, payload = run_macos_bootstrap_readiness_check(
+        tmp_path,
+        macos_bootstrap_readiness_report(extra_runtime_claim=True),
+    )
+
+    assert completed.returncode == 2
+    assert payload["valid_shape"] is False
+    assert payload["ready_for_backend_probe"] is False
+    assert payload["unknown_fields"] == ["extra_runtime_claim"]
+
+
+def test_macos_bootstrap_readiness_check_rejects_false_readiness_fields(tmp_path):
+    completed, payload = run_macos_bootstrap_readiness_check(
+        tmp_path,
+        macos_bootstrap_readiness_report(
+            tamandua_system_extension_listed=False,
+            full_disk_access_tamandua_entry_present=False,
+        ),
+    )
+
+    assert completed.returncode == 2
+    assert payload["valid_shape"] is True
+    assert payload["ready_for_backend_probe"] is False
+    assert payload["false_readiness_fields"] == [
+        "tamandua_system_extension_listed",
+        "full_disk_access_tamandua_entry_present",
+    ]
+
+
+def test_macos_bootstrap_readiness_check_rejects_stale_report(tmp_path):
+    completed, payload = run_macos_bootstrap_readiness_check(
+        tmp_path,
+        macos_bootstrap_readiness_report(generated_at="2026-01-01T00:00:00Z"),
+    )
+
+    assert completed.returncode == 2
+    assert payload["valid_shape"] is True
+    assert payload["generated_at_parseable"] is True
+    assert payload["stale_report"] is True
+    assert payload["ready_for_backend_probe"] is False
+    assert "Regenerate a fresh macOS bootstrap readiness report" in payload["next_action"]
+
+
+def test_live_response_macos_diagnostics_are_read_only_allowlisted():
+    script = (REPO_ROOT / "apps" / "tamandua_agent" / "src" / "response" / "live_response.rs").read_text(
+        encoding="utf-8"
+    )
+
+    assert '"codesign"' in script
+    assert '"spctl"' in script
+    assert '"systemextensionsctl"' in script
+    assert "Only 'systemextensionsctl list' is allowed" in script
+    assert "Only 'spctl --assess' or 'spctl --status' is allowed" in script
+    assert "Only 'codesign --verify' or 'codesign --display/-d' is allowed" in script
+    assert "--master-disable" in script
+    assert "--remove-signature" in script
+    assert "--sign" in script
+    assert "Only read-only spctl assessment/status commands are allowed" in script
+    assert "Only read-only codesign verification/display commands are allowed" in script
+
+
+def test_linux_ebpf_execveat_raw_syscall_path_is_wired():
+    collector = (
+        REPO_ROOT / "apps" / "tamandua_agent" / "src" / "collectors" / "ebpf_linux.rs"
+    ).read_text(encoding="utf-8")
+    program = (
+        REPO_ROOT / "apps" / "tamandua_agent" / "ebpf-programs" / "src" / "main.rs"
+    ).read_text(encoding="utf-8")
+    auditd_rules = (
+        REPO_ROOT / "apps" / "tamandua_agent" / "src" / "collectors" / "linux" / "auditd_rules.rs"
+    ).read_text(encoding="utf-8")
+    linux_bootstrap = (
+        REPO_ROOT / "deploy" / "scripts" / "proxmox" / "bootstrap-lab-linux-agent.sh"
+    ).read_text(encoding="utf-8")
+
+    assert "handle_execveat_syscall" in program
+    assert "322 => handle_execveat_syscall(ctx)" in program
+    assert "raw_tracepoint_arg_u64(ctx, 1)?" in program
+    assert "fn raw_tracepoint_arg_u64" in program
+    assert "let flags = execveat_flags(ctx)?" in program
+    assert "(flags & AT_EMPTY_PATH) == 0" in program
+    assert "(*event).arg1 = flags as u64" in program
+    assert "raw_tracepoint_arg_u64(ctx, 0)? as *const bindings::pt_regs" in program
+    assert 'raw_tp.attach("sys_enter")' in collector
+    assert 'bpf.program_mut("sys_enter_security")' in collector
+    assert "BpfSyscallEvasionEvent" in collector
+    assert "SyscallEvasionMemfdExec = 164" in collector
+    assert "parse_syscall_evasion_event" in collector
+    assert 'metadata\n                .insert("syscall_nr".to_string()' in collector
+    assert "-S execveat -k tamandua_process_create" in auditd_rules
+    assert "-S execveat -k tamandua_process_exec" in linux_bootstrap
+
+
+def test_linux_execveat_memfd_live_kernel_profile_is_claim_scoped():
+    profile = json.loads(
+        (
+            REPO_ROOT
+            / "tools"
+            / "detection_validation"
+            / "profiles"
+            / "linux_execveat_memfd_live_kernel_proof.json"
+        ).read_text(encoding="utf-8")
+    )
+    runbook = (
+        REPO_ROOT
+        / "apps"
+        / "tamandua_agent"
+        / "docs"
+        / "benchmarks"
+        / "EBPF_READINESS_RUNBOOK.md"
+    ).read_text(encoding="utf-8")
+
+    assert profile["profile_id"] == "linux-execveat-memfd-live-kernel-proof"
+    assert profile["benchmark_lane"] == "claim-boundary"
+    assert profile["quality_bar"]["requires_driver_health"] is True
+    assert profile["quality_bar"]["requires_persisted_events"] is True
+    assert "auditd parity" in profile["claim_boundary"]
+    assert "auditd-only process_create evidence is insufficient" in json.dumps(profile)
+    test = profile["tests"][0]
+    assert test["risk"] == "lab-only-safe"
+    assert test["validation_category"] == "kernel_contract"
+    assert "SYS_execveat" in test["fallback_command"]
+    assert "AT_EMPTY_PATH" in test["fallback_command"]
+    assert "SYS_memfd_create" in test["fallback_command"]
+    assert "command -v cc" in test["fallback_command"]
+    assert "fileless_execveat_ebpf" in test["expected_detections"]
+    assert "fileless_execveat" in test["expected_alerts"]
+    assert "memory_permission_change" in test["expected_telemetry"]
+    assert test["expected_fields_by_event_type"]["memory_permission_change"] == [
+        "source",
+        "syscall_nr",
+        "evasion_type",
+        "confidence",
+        "fd",
+    ]
+    assert test["expected_values_by_event_type"]["memory_permission_change"] == {
+        "source": ["ebpf_linux_raw_syscall"],
+        "syscall_nr": ["322"],
+    }
+    assert "tamandua_detection_validation.py" in runbook
+    assert "linux_execveat_memfd_live_kernel_proof" in runbook
+    assert "run_profile.py" not in runbook
+    assert "syscall `322`" in runbook
+    assert "auditd-only `process_create` evidence is not enough" in runbook
+
+
+def test_macos_p0_smoke_runner_gates_on_backend_readiness():
+    script = (
+        REPO_ROOT / "deploy" / "scripts" / "proxmox" / "run-macos-p0-smoke.ps1"
+    ).read_text(encoding="utf-8")
+    runbook = (REPO_ROOT / "docs" / "benchmarks" / "macos-roadmap-p0-lab-runbook.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "SkipBackendReadinessCheck" in script
+    assert "SkipReadinessDiagnostics" in script
+    assert "TAMANDUA_ALLOW_DIAGNOSTIC_MACOS_SMOKE" in script
+    assert "diagnostic-readiness-bypassed" in script
+    assert '$benchmarkLane = "diagnostic-only"' in script
+    assert "Do not use readiness-bypassed runs as product-readiness evidence" in script
+    assert "BootstrapReadinessReport" in script
+    assert "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT" in script
+    assert "macos_backend_readiness_probe.py" in script
+    assert "--live-response-diagnostics" in script
+    assert "--bootstrap-readiness-report" in script
+    assert "macOS P0 smoke requires -BootstrapReadinessReport" in script
+    assert "Test-Path -LiteralPath $BootstrapReadinessReport" in script
+    assert "macOS bootstrap readiness report not found" in script
+    assert "bootstrap-lab-macos-agent.sh" in script
+    assert 'Write-Host "Running macOS backend readiness gate before P0 smoke' in script
+    assert "if ($LASTEXITCODE -ne 0)" in script
+    assert "macOS backend readiness is not green" in script
+    assert "Diagnostic Findings" in script
+    assert "health_healthy/EndpointSecurity/System Extension/FDA" in script
+    assert "tamandua_detection_validation.py" in script
+    assert "20260618T094143Z-macos-backend-readiness-probe" in runbook
+    assert "-BootstrapReadinessReport .\\macos-bootstrap-readiness.json" in runbook
+    assert "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT" in runbook
+    assert "refuses product-readiness smoke execution without" in runbook
+    assert "TAMANDUA_ALLOW_DIAGNOSTIC_MACOS_SMOKE=1" in runbook
+    assert "diagnostic-readiness-bypassed" in runbook
+    assert "`diagnostic-only`" in runbook
+
+
+def test_macos_release_does_not_publish_bare_binary_zip_as_product_artifact():
+    release = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    sign_binaries = (
+        REPO_ROOT / ".github" / "workflows" / "sign_binaries.yml"
+    ).read_text(encoding="utf-8")
+    ci = (REPO_ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
+    macos_agent_build = (
+        REPO_ROOT / ".github" / "workflows" / "macos-agent-build.yml"
+    ).read_text(encoding="utf-8")
+    gui_readme = (REPO_ROOT / "apps" / "tamandua_gui" / "README.md").read_text(
+        encoding="utf-8"
+    )
+
+    sign_macos_block = sign_binaries.split("  sign-macos:", 1)[1].split("  # =====", 1)[0]
+    assert "name: tamandua-agent-macos-${{ matrix.arch }}-signed" in sign_macos_block
+    assert "Keep macOS signed binary internal" in sign_macos_block
+    assert "The bare tamandua-agent ZIP remains a workflow artifact for app bundling only." in sign_macos_block
+    assert "asset_name: tamandua-agent-macos-${{ matrix.arch }}-signed.zip" not in sign_macos_block
+    assert "asset_name: tamandua-agent-macos-${{ matrix.arch }}-signed.zip.sha256" not in sign_macos_block
+
+    assert "if: matrix.os != 'macos-latest' && matrix.os != 'macos-14'" in release
+    assert "if: matrix.os != 'macos-latest'" in release
+    macos_dmg_block = release.split("  build-macos-dmg:", 1)[1].split("  # =====", 1)[0]
+    assert "TamanduaFileMonitor.systemextension" in macos_dmg_block
+    assert "macos_release_artifact_preflight.py" in macos_dmg_block
+    assert 'ditto -c -k --keepParent "${APP_PATH}" "${APP_ZIP}"' in macos_dmg_block
+    assert "asset_name: Tamandua-${{ needs.create-release.outputs.version }}-${{ matrix.arch }}.dmg" in macos_dmg_block
+
+    release_generic_block = release.split("  build-agent-release:", 1)[1].split(
+        "  # ==============================================================================\n  # BUILD HARDENED AGENT BINARIES",
+        1,
+    )[0]
+    release_hardened_block = release.split("  build-agent-hardened:", 1)[1].split(
+        "  # ==============================================================================\n  # BUILD AND PUSH DOCKER IMAGES",
+        1,
+    )[0]
+    for release_block in [release_generic_block, release_hardened_block]:
+        assert "asset_name: tamandua-agent-macos-x86_64" not in release_block
+        assert "asset_name: tamandua-agent-macos-aarch64" not in release_block
+        assert "target: x86_64-apple-darwin" not in release_block
+        assert "target: aarch64-apple-darwin" not in release_block
+
+    assert "cargo build --release --target aarch64-apple-darwin" in ci
+    assert "cargo build --release --target ${{ matrix.target }}" in macos_agent_build
+    for workflow in [ci, macos_agent_build]:
+        assert "name: tamandua-agent-macos-aarch64" not in workflow
+        assert "path: apps/tamandua_agent/target/aarch64-apple-darwin/release/tamandua-agent" not in workflow
+
+    assert "Tamandua-vX.Y.Z-{x86_64,arm64}.dmg" in gui_readme
+    assert "Tamandua EDR_0.1.0_x64.dmg" not in gui_readme
+
+
+def test_homebrew_macos_uses_dmg_cask_not_bare_binary_zip():
+    release = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    publish_packages = (
+        REPO_ROOT / ".github" / "workflows" / "publish-packages.yml"
+    ).read_text(encoding="utf-8")
+    formula = (REPO_ROOT / "deploy" / "packages" / "homebrew" / "tamandua.rb").read_text(
+        encoding="utf-8"
+    )
+    cask = (
+        REPO_ROOT / "deploy" / "packages" / "homebrew" / "Casks" / "tamandua-edr.rb"
+    ).read_text(encoding="utf-8")
+
+    for text in [publish_packages, formula, cask]:
+        assert "tamandua-agent-macos-x86_64-signed.zip" not in text
+        assert "tamandua-agent-macos-aarch64-signed.zip" not in text
+
+    assert "depends_on :linux" in formula
+    assert "Use the tamandua-edr cask on macOS" in formula
+    assert "Tamandua-${TAG}-x86_64.dmg" in publish_packages
+    assert "Tamandua-${TAG}-arm64.dmg" in publish_packages
+    assert "tamandua-agent-linux-x86_64-signed.tar.gz" in publish_packages
+    assert "tamandua-agent-linux-aarch64-signed.tar.gz" in publish_packages
+    assert "SHA_LINUX_X86_64=$(sha256sum linux-x86_64.tar.gz | cut -d' ' -f1)" in publish_packages
+    assert "SHA_LINUX_ARM64=$(sha256sum linux-aarch64.tar.gz | cut -d' ' -f1)" in publish_packages
+    assert 'sed -i "/tamandua-agent-linux-aarch64-signed.tar.gz/{n;s/sha256 \\".*\\"/sha256 \\"${SHA_LINUX_ARM64}\\"/;}" deploy/packages/homebrew/tamandua.rb' in publish_packages
+    assert 'sed -i "/tamandua-agent-linux-x86_64-signed.tar.gz/{n;s/sha256 \\".*\\"/sha256 \\"${SHA_LINUX_X86_64}\\"/;}" deploy/packages/homebrew/tamandua.rb' in publish_packages
+    assert 'sed -i "s/sha256 arm: \\".*\\"/sha256 arm: \\"${SHA_ARM}\\"/" deploy/packages/homebrew/Casks/tamandua-edr.rb' in publish_packages
+    assert 'sed -i "/sha256 arm:/{n;s/intel: \\".*\\"/intel: \\"${SHA_X86}\\"/;}" deploy/packages/homebrew/Casks/tamandua-edr.rb' in publish_packages
+    assert 'perl -0pi -e "s/intel:' not in publish_packages
+    assert "deploy/packages/homebrew/Casks/tamandua-edr.rb" in publish_packages
+    assert "cp deploy/packages/homebrew/Casks/tamandua-edr.rb tap/Casks/tamandua-edr.rb" in publish_packages
+    release_publish_block = release.split("  publish-packages:", 1)[1].split("  # =====", 1)[0]
+    assert "uses: ./.github/workflows/publish-packages.yml" in release_publish_block
+    assert "needs: [create-release, build-release-images, sign-binaries, build-windows-installers, build-macos-dmg]" in release_publish_block
+    assert 'cask "tamandua-edr"' in cask
+    assert 'arch arm: "arm64", intel: "x86_64"' in cask
+    assert 'sha256 arm: "PLACEHOLDER_ARM64_DMG_SHA256",' in cask
+    assert '         intel: "PLACEHOLDER_X86_64_DMG_SHA256"' in cask
+    assert 'url "https://github.com/treant-lab/tamandua-detection-validation/releases/download/v#{version}/Tamandua-v#{version}-#{arch}.dmg"' in cask
+    assert 'app "Tamandua EDR.app"' in cask
+    assert "System Extension" in cask
+    assert "Full Disk Access" in cask
+
+
+def test_publish_packages_normalizes_release_tag_and_package_version():
+    publish_packages = (
+        REPO_ROOT / ".github" / "workflows" / "publish-packages.yml"
+    ).read_text(encoding="utf-8")
+    chocolatey_install = (
+        REPO_ROOT / "deploy" / "packages" / "chocolatey" / "tools" / "chocolateyinstall.ps1"
+    ).read_text(encoding="utf-8")
+
+    assert 'PACKAGE_VERSION="${VERSION_INPUT#v}"' in publish_packages
+    assert 'deploy/packages/apt/build-deb.sh "${PACKAGE_VERSION}" "${{ matrix.arch }}"' in publish_packages
+    assert 'deploy/packages/yum/build-rpm.sh "${PACKAGE_VERSION}" "${{ matrix.arch }}"' in publish_packages
+    assert '$PackageVersion = $VersionInput.TrimStart(\'v\')' in publish_packages
+    assert '$ReleaseTag = "v$PackageVersion"' in publish_packages
+    assert 'releases/download/$ReleaseTag/tamandua-setup-$ReleaseTag.exe' in publish_packages
+    assert 'deploy/packages/chocolatey/tools/chocolateyinstall.ps1' in publish_packages
+    assert 'Set-Content -Encoding utf8 deploy/packages/chocolatey/tamandua.nuspec' in publish_packages
+    assert '$version = \'[^\']+\'' in publish_packages
+    assert "`$version = '${PackageVersion}'" in publish_packages
+    assert '$checksum64 = \'[^\']+\'' in publish_packages
+    assert "`$checksum64 = '$env:INSTALLER_SHA256'" in publish_packages
+    assert 'Set-Content -Encoding utf8 $InstallScript' in publish_packages
+    assert "deploy/packages/chocolatey/chocolateyinstall.ps1" not in publish_packages
+    assert "$env:ChocolateyPackageVersion" not in publish_packages
+    assert 'choco push "tamandua.${env:PACKAGE_VERSION}.nupkg"' in publish_packages
+    assert '$releaseTag = if ($version.StartsWith(\'v\')) { $version } else { "v$version" }' in chocolatey_install
+    assert 'releases/download/$releaseTag/tamandua-setup-$releaseTag.exe' in chocolatey_install
+
+
+def test_publish_packages_installs_repository_publish_tools():
+    publish_packages = (
+        REPO_ROOT / ".github" / "workflows" / "publish-packages.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "Install APT repository tools" in publish_packages
+    assert "sudo apt-get update && sudo apt-get install -y apt-utils" in publish_packages
+    assert 'gpg --verify "${DEB_FILE}.asc" "${DEB_FILE}"' in publish_packages
+    assert 'for deb in apt-repo/pool/main/t/tamandua/*.deb; do' in publish_packages
+    assert 'sig="packages/$(basename "${deb}").asc"' in publish_packages
+    assert 'test -s "${sig}"' in publish_packages
+    assert 'gpg --verify "${sig}" "${deb}"' in publish_packages
+    assert "apt-ftparchive packages pool/main/t/tamandua" in publish_packages
+    assert 'awk \'BEGIN { RS=""; ORS="\\n\\n" } /Architecture: amd64/ { print }\'' in publish_packages
+    assert 'awk \'BEGIN { RS=""; ORS="\\n\\n" } /Architecture: arm64/ { print }\'' in publish_packages
+    assert "test -s dists/stable/main/binary-amd64/Packages" in publish_packages
+    assert "test -s dists/stable/main/binary-arm64/Packages" in publish_packages
+    assert "cp dists/stable/main/binary-amd64/Packages dists/stable/main/binary-arm64/" not in publish_packages
+    assert "apt-ftparchive release dists/stable" in publish_packages
+    assert publish_packages.count("if ! command -v aws >/dev/null; then") == 2
+    assert publish_packages.count("sudo apt-get install -y awscli") == 2
+    assert "aws s3 sync apt-repo/ s3://${PACKAGE_BUCKET}/apt/ --delete" in publish_packages
+    assert "aws s3 sync yum-repo/ s3://${PACKAGE_BUCKET}/yum/ --delete" in publish_packages
+    assert "find packages -maxdepth 1 -name '*x86_64*.rpm' -exec cp {} yum-repo/${version}/x86_64/ \\;" in publish_packages
+    assert "find packages -maxdepth 1 -name '*aarch64*.rpm' -exec cp {} yum-repo/${version}/aarch64/ \\;" in publish_packages
+    assert "find yum-repo/${version}/x86_64 -maxdepth 1 -name '*.rpm' -print -quit | grep -q ." in publish_packages
+    assert "find yum-repo/${version}/aarch64 -maxdepth 1 -name '*.rpm' -print -quit | grep -q ." in publish_packages
+    assert "cp packages/*x86_64*.rpm yum-repo/${version}/x86_64/ || true" not in publish_packages
+    assert "cp packages/*aarch64*.rpm yum-repo/${version}/aarch64/ || true" not in publish_packages
+    assert "dnf install -y gcc rpm-build rpm-sign rpmdevtools gnupg2 curl" in publish_packages
+    assert 'mapfile -t RPM_FILES < <(find . -maxdepth 1 -name "tamandua-agent-*${{ matrix.arch }}*.rpm" -print)' in publish_packages
+    assert 'if [ "${#RPM_FILES[@]}" -eq 0 ]; then' in publish_packages
+    assert 'rpmsign --addsign "${RPM_FILES[@]}"' in publish_packages
+    assert 'rpm --checksig "${RPM_FILES[@]}"' in publish_packages
+    assert "rpm --addsign tamandua-agent-*.rpm" not in publish_packages
+
+
+def test_linux_packages_systemd_units_use_packaged_config_and_state_paths():
+    apt_build = (REPO_ROOT / "deploy" / "packages" / "apt" / "build-deb.sh").read_text(
+        encoding="utf-8"
+    )
+    yum_spec = (REPO_ROOT / "deploy" / "packages" / "yum" / "tamandua.spec").read_text(
+        encoding="utf-8"
+    )
+
+    for text in [apt_build, yum_spec]:
+        assert "User=tamandua" in text
+        assert "Group=tamandua" in text
+        assert "ExecStart=/usr/bin/tamandua-agent --config /etc/tamandua/agent.toml" in text
+        assert "ExecStart=/usr/bin/tamandua-agent\n" not in text
+        assert "ReadWritePaths=/var/lib/tamandua /var/log/tamandua" in text
+        assert "chmod 640 /etc/tamandua/agent.toml" in text
+
+    assert "%config(noreplace) %attr(640, root, tamandua) /etc/tamandua/agent.toml" in yum_spec
+    assert "/etc/tamandua/agent.toml" in apt_build
+
+
+def test_agent_download_controller_does_not_allow_legacy_macos_artifacts():
+    controller = (
+        REPO_ROOT
+        / "apps"
+        / "tamandua_server"
+        / "lib"
+        / "tamandua_server_web"
+        / "controllers"
+        / "agent_download_controller.ex"
+    ).read_text(encoding="utf-8")
+
+    assert '"tamandua-agent-windows-x64.exe"' in controller
+    assert '"tamandua-agent-linux-x64"' in controller
+    assert '"tamandua-agent-macos-arm64"' in controller
+    assert '"tamandua-agent-macos-arm64.sha256"' in controller
+    assert '"tamandua-agent-macos-universal"' not in controller
+    assert '"tamandua-agent-aarch64-apple-darwin"' not in controller
+    assert '"tamandua-watchdog-aarch64-apple-darwin"' not in controller
+    assert '"Tamandua EDR_0.1.0_aarch64.dmg"' not in controller
+    assert '"Tamandua_EDR_0.1.0_aarch64.app.zip"' not in controller
+    assert '"macos-SHA256SUMS"' not in controller
+
+
+def test_static_agent_downloads_only_ship_current_macos_arm64_binary():
+    gitignore = (REPO_ROOT / ".gitignore").read_text(encoding="utf-8")
+    static_agents = REPO_ROOT / "apps" / "tamandua_server" / "priv" / "static" / "downloads" / "agents"
+    dist_upload_macos = REPO_ROOT / "dist" / "upload" / "macos"
+    forbidden = [
+        "Tamandua EDR_0.1.0_aarch64.dmg",
+        "Tamandua_EDR_0.1.0_aarch64.app.zip",
+        "macos-SHA256SUMS",
+        "SHA256SUMS",
+        "tamandua-agent-aarch64-apple-darwin",
+        "tamandua-watchdog-aarch64-apple-darwin",
+    ]
+
+    for filename in forbidden:
+        assert not (static_agents / filename).exists()
+        assert not (dist_upload_macos / filename).exists()
+
+    macos_binary = static_agents / "tamandua-agent-macos-arm64"
+    macos_checksum = static_agents / "tamandua-agent-macos-arm64.sha256"
+    assert macos_binary.exists()
+    assert macos_checksum.exists()
+    assert "tamandua-agent-macos-arm64" in macos_checksum.read_text(encoding="utf-8")
+
+    assert "apps/tamandua_server/priv/static/downloads/agents/*macos*" in gitignore
+    assert "!apps/tamandua_server/priv/static/downloads/agents/tamandua-agent-macos-arm64" in gitignore
+    assert "!apps/tamandua_server/priv/static/downloads/agents/tamandua-agent-macos-arm64.sha256" in gitignore
+    assert "apps/tamandua_server/priv/static/downloads/agents/*aarch64-apple-darwin*" in gitignore
+    assert "apps/tamandua_server/priv/static/downloads/agents/Tamandua*.dmg" in gitignore
+    assert "apps/tamandua_server/priv/static/downloads/agents/Tamandua*.app.zip" in gitignore
+    assert "dist/upload/macos/" in gitignore
+
+
+def test_deploy_agent_page_does_not_promote_macos_standalone_no_driver_install():
+    inertia = (
+        REPO_ROOT
+        / "apps"
+        / "tamandua_server"
+        / "lib"
+        / "tamandua_server_web"
+        / "controllers"
+        / "inertia_controller.ex"
+    ).read_text(encoding="utf-8")
+    page = (
+        REPO_ROOT / "apps" / "tamandua_server" / "assets" / "src" / "pages" / "DeployAgent.tsx"
+    ).read_text(encoding="utf-8")
+    macos_command_block = page.split("macos: `", 1)[1].split("`,\n      linux:", 1)[0]
+
+    assert "macOS product installer is not published on this server yet." in macos_command_block
+    assert "signed and notarized Tamandua EDR DMG/Cask release" in macos_command_block
+    assert "EndpointSecurity System Extension" in macos_command_block
+    assert "Full Disk Access" in macos_command_block
+    assert "tamandua-agent-macos-universal" not in macos_command_block
+    assert "--no-driver" not in macos_command_block
+    assert "macosUniversal: nil" in inertia
+    assert 'binary_download_url_if_present(binary_base_url, "tamandua-agent-macos-universal")' not in inertia
+    assert 'activeOsTab === \'macos\' || (activeOsTab === \'linux\' && !downloadUrls.linuxX64)' in page
+    assert "Download macOS" not in page
+
+
+def test_update_controller_does_not_synthesize_macos_standalone_update_urls():
+    controller = (
+        REPO_ROOT
+        / "apps"
+        / "tamandua_server"
+        / "lib"
+        / "tamandua_server_web"
+        / "controllers"
+        / "api"
+        / "v1"
+        / "update_controller.ex"
+    ).read_text(encoding="utf-8")
+
+    assert "macos_manifest_without_deployable_download?" in controller
+    assert "macos_update_platform?" in controller
+    assert "Suppressing macOS update" in controller
+    assert "Refusing macOS standalone update download" in controller
+    assert "macOS updates require signed/notarized DMG/Cask" in controller
+    assert "EndpointSecurity System Extension" in controller
+    assert "|> put_status(:gone)" in controller
+    assert "Map.put(manifest, :download_url, nil)" in controller
+    assert 'String.starts_with?(platform, "macos")' in controller
+    assert 'String.starts_with?(platform, "darwin")' in controller
+    assert 'String.contains?(platform, "apple-darwin")' in controller
+    assert "tamandua-agent-#{version}-#{platform}#{extension}" in controller
+
+
+def test_update_package_changesets_require_macos_product_installer_urls():
+    update_package_paths = [
+        REPO_ROOT
+        / "apps"
+        / "tamandua_server"
+        / "lib"
+        / "tamandua_server"
+        / "updates"
+        / "update_package.ex",
+        REPO_ROOT
+        / "apps"
+        / "tamandua_server"
+        / "lib"
+        / "tamandua_server"
+        / "agents"
+        / "update_package.ex",
+    ]
+
+    for path in update_package_paths:
+        text = path.read_text(encoding="utf-8")
+
+        assert "validate_macos_product_installer_download_url()" in text
+        assert "validate_macos_product_installer_download_url(changeset)" in text
+        assert "macos_standalone_download_url?" in text
+        assert "macos_product_installer_download_url?" in text
+        assert "is required for macOS packages" in text
+        assert "signed/notarized DMG or Cask" in text
+        assert "EndpointSecurity System Extension" in text
+        assert "tamandua-agent-macos" in text
+        assert "aarch64-apple-darwin" in text
+        assert "x86_64-apple-darwin" in text
+        assert "tamandua-watchdog" in text
+        assert "tamandua%20edr_0.1.0" in text
+        assert "tamandua edr_0.1.0" in text
+        assert "tamandua_edr_0.1.0" in text
+        assert "macos-sha256sums" in text
+        assert 'String.contains?(url, ".dmg")' in text
+        assert 'String.contains?(url, "cask")' in text
+        assert 'String.contains?(url, "tamandua-edr")' in text
+
+    version_schema = (
+        REPO_ROOT
+        / "apps"
+        / "tamandua_server"
+        / "lib"
+        / "tamandua_server"
+        / "updates"
+        / "schemas.ex"
+    ).read_text(encoding="utf-8")
+    version_manager = (
+        REPO_ROOT
+        / "apps"
+        / "tamandua_server"
+        / "lib"
+        / "tamandua_server"
+        / "updates"
+        / "version_manager.ex"
+    ).read_text(encoding="utf-8")
+
+    for marker in [
+        "validate_macos_product_installer_binary_url()",
+        "validate_macos_product_installer_binary_url(changeset)",
+        "macos_standalone_binary_url?",
+        "macos_product_installer_binary_url?",
+        "is required for macOS versions",
+        "signed/notarized DMG or Cask",
+        "EndpointSecurity System Extension",
+        "tamandua-agent-macos",
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin",
+        "tamandua-watchdog",
+        "macos-sha256sums",
+        'String.contains?(url, ".dmg")',
+        'String.contains?(url, "cask")',
+        'String.contains?(url, "tamandua-edr")',
+    ]:
+        assert marker in version_schema
+
+    for marker in [
+        "macos_standalone_manifest_url?(manifest)",
+        "macos_manifest_without_product_installer?(manifest)",
+        "macos_manifest_platform?(manifest)",
+        "manifest_has_key?(manifest, key)",
+        "manifest_value(manifest, :binary_url)",
+        "manifest_value(manifest, :platform)",
+        "Map.has_key?(manifest, to_string(key))",
+        ":macos_requires_signed_notarized_dmg_or_cask",
+        'Kernel.==("macos")',
+        "tamandua-agent-macos",
+        "aarch64-apple-darwin",
+        "x86_64-apple-darwin",
+        "tamandua-watchdog",
+        "macos-sha256sums",
+        'String.contains?(url, ".dmg")',
+        'String.contains?(url, "cask")',
+        'String.contains?(url, "tamandua-edr")',
+    ]:
+        assert marker in version_manager
+
+
+def test_windows_release_assets_use_release_tag_names_for_package_publishers():
+    release = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
+    publish_packages = (
+        REPO_ROOT / ".github" / "workflows" / "publish-packages.yml"
+    ).read_text(encoding="utf-8")
+    chocolatey_install = (
+        REPO_ROOT / "deploy" / "packages" / "chocolatey" / "tools" / "chocolateyinstall.ps1"
+    ).read_text(encoding="utf-8")
+    windows_block = release.split("  build-windows-installers:", 1)[1].split("  # =====", 1)[0]
+
+    assert '$releaseTag = "${{ needs.create-release.outputs.version }}"' in windows_block
+    assert "$packageVersion = $releaseTag.TrimStart('v')" in windows_block
+    assert "Import Windows signing certificate" in windows_block
+    assert "${{ secrets.WINDOWS_CERT_BASE64 }}" in windows_block
+    assert "${{ secrets.WINDOWS_CERT_PASSWORD }}" in windows_block
+    assert "makensis /DPRODUCT_VERSION=$packageVersion tamandua.nsi" in windows_block
+    assert 'Move-Item "tamandua-setup-$packageVersion.exe" "$env:GITHUB_WORKSPACE/tamandua-setup-$releaseTag.exe"' in windows_block
+    assert 'Move-Item "tamandua-$packageVersion.msi" "$env:GITHUB_WORKSPACE/tamandua-$releaseTag.msi"' in windows_block
+    assert 'Write-Error "No Windows code signing certificate found for installer signing"' in windows_block
+    assert '$nsis = "tamandua-setup-$releaseTag.exe"' in windows_block
+    assert '$msi = "tamandua-$releaseTag.msi"' in windows_block
+    assert "Set-AuthenticodeSignature -FilePath $nsis" in windows_block
+    assert "Get-ChildItem \"${env:ProgramFiles(x86)}\\Windows Kits\\10\\bin\" -Recurse -Filter signtool.exe" in windows_block
+    assert "& $signtool.FullName sign /sha1 $cert.Thumbprint" in windows_block
+    assert "Get-AuthenticodeSignature -FilePath $file" in windows_block
+    assert "Installer signature verification failed" in windows_block
+    assert '"tamandua-setup-$releaseTag.exe"' in windows_block
+    assert '"tamandua-$releaseTag.msi"' in windows_block
+    assert "asset_path: ./tamandua-setup-${{ needs.create-release.outputs.version }}.exe" in windows_block
+    assert "asset_path: ./tamandua-${{ needs.create-release.outputs.version }}.msi" in windows_block
+    assert "Cleanup Windows signing certificate" in windows_block
+    assert "continue-on-error: true" not in windows_block
+    assert "tamandua-setup-$ReleaseTag.exe" in publish_packages
+    assert "tamandua-setup-$releaseTag.exe" in chocolatey_install
+
+
+def test_macos_backend_readiness_live_response_diagnostics_are_opt_in():
+    script = (REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "--live-response-diagnostics" in script
+    assert "--bootstrap-readiness-report" in script
+    assert "LIVE_RESPONSE_TOTAL_TIMEOUT_SECONDS" in script
+    assert "TAMANDUA_MACOS_LIVE_RESPONSE_REMOTE_TIMEOUT_SECONDS" in script
+    assert "diagnostic_budget_exhausted" in script
+    assert '"agent_architecture_matches_host"' in script
+    assert '"app_bundle_present"' in script
+    assert '"generated_at"' in script
+    assert "BOOTSTRAP_READINESS_FRESHNESS_SECONDS" in script
+    assert "fresh_macos_bootstrap_readiness_report" in script
+    assert "generated_at_parseable" in script
+    assert "stale_report" in script
+    assert '"system_extension_architecture_matches_host"' in script
+    assert "Collect read-only live response diagnostics" in script
+    assert "live_response_diagnostics=args.live_response_diagnostics" in script
+    assert "bootstrap_readiness_report=args.bootstrap_readiness_report" in script
+    assert "Bootstrap Readiness Report" in script
+    assert "Diagnostic Findings" in script
+    assert "tamandua_system_extension_missing" in script
+    assert "endpoint_security_entitlement_missing" in script
+    assert "system_extension_install_entitlement_missing" in script
+    assert "System Extension install entitlement present" in script
+    assert "gatekeeper_rejected_agent_binary" in script
+    assert "Agent binary:" in script
+    assert "Local next action:" in script
+    assert '"claim_boundary": "read-only live response diagnostics; not a smoke execution"' in script
+    assert "local bootstrap readiness report only; does not replace backend health evidence" in script
+    assert '["systemextensionsctl", "list"]' in script
+    assert '["codesign", "-d", "--entitlements", ":-", agent_binary_path]' in script
+    assert '["spctl", "--assess", "--type", "execute", "--verbose=4", agent_binary_path]' in script
+    assert "remote" in script and "command" in script and "--json" in script
+
+
+def test_macos_backend_readiness_default_disables_live_response_diagnostics():
+    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_for_test", module_path)
+    diagnostics = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = diagnostics
+    spec.loader.exec_module(diagnostics)
+    candidate = {
+        "id": "agent-1",
+        "hostname": "mac.local",
+        "status": "online",
+    }
+
+    disabled = diagnostics.collect_live_response_diagnostics(None, candidate, enabled=False)
+
+    assert disabled["enabled"] is False
+    assert disabled["commands"] == []
+    assert "error" not in disabled
+
+
+def test_macos_backend_live_response_timeout_is_bounded(monkeypatch):
+    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_timeout_for_test", module_path)
+    diagnostics = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = diagnostics
+    spec.loader.exec_module(diagnostics)
+
+    captured = {}
+
+    def fake_run(*args, **kwargs):
+        captured["args"] = args[0]
+        raise subprocess.TimeoutExpired(cmd=kwargs.get("args") or args[0], timeout=kwargs.get("timeout"))
+
+    monkeypatch.setattr(diagnostics.subprocess, "run", fake_run)
+
+    evidence = diagnostics.run_live_response_command(
+        "http://example.test",
+        "agent-1",
+        ["hostname"],
+        process_timeout_seconds=7,
+        remote_timeout_seconds=3,
+    )
+
+    assert evidence["ok"] is False
+    assert evidence["error"] == "TimeoutExpired"
+    assert evidence["process_timeout_seconds"] == 7
+    assert evidence["remote_timeout_seconds"] == 3
+    assert "--shell-start-timeout" in captured["args"]
+    assert captured["args"][captured["args"].index("--shell-start-timeout") + 1] == "2"
+    assert "--idle-timeout" in captured["args"]
+
+
+def test_macos_backend_readiness_summarizes_live_response_findings():
+    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_findings_for_test", module_path)
+    diagnostics = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = diagnostics
+    spec.loader.exec_module(diagnostics)
+
+    summary = diagnostics.summarize_live_response_diagnostics(
+        [
+            {
+                "command": ["systemextensionsctl", "list"],
+                "output_tail": "enabled active 5RHFAZ9D4P com.asix.dext.usbdevice",
+            },
+            {
+                "command": ["codesign", "-d", "--entitlements", ":-", "/opt/tamandua/tamandua-agent"],
+                "output_tail": "Executable=/opt/tamandua/tamandua-agent",
+            },
+            {
+                "command": ["spctl", "--assess", "--type", "execute", "--verbose=4", "/opt/tamandua/tamandua-agent"],
+                "output_tail": "/opt/tamandua/tamandua-agent: rejected",
+            },
+        ]
+    )
+
+    assert summary["tamandua_system_extension_present"] is False
+    assert summary["endpoint_security_entitlement_present"] is False
+    assert summary["system_extension_install_entitlement_present"] is False
+    assert summary["gatekeeper_accepted"] is False
+    assert summary["gatekeeper_rejected"] is True
+    assert summary["findings"] == [
+        "tamandua_system_extension_missing",
+        "endpoint_security_entitlement_missing",
+        "system_extension_install_entitlement_missing",
+        "gatekeeper_rejected_agent_binary",
+    ]
+
+
+def test_macos_backend_readiness_summarizes_combined_live_response_sections():
+    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_combined_for_test", module_path)
+    diagnostics = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = diagnostics
+    spec.loader.exec_module(diagnostics)
+
+    output = """
+__TAMANDUA_DIAG_SYSTEMEXTENSIONSCTL_BEGIN__
+1 extension(s)
+* * TEAMID com.tamandua.endpoint.security TamanduaFileMonitor [activated enabled]
+__TAMANDUA_DIAG_SYSTEMEXTENSIONSCTL_EXIT__:0
+__TAMANDUA_DIAG_SYSTEMEXTENSIONSCTL_END__
+__TAMANDUA_DIAG_CODESIGN_BEGIN__
+<key>com.apple.developer.endpoint-security.client</key>
+<key>com.apple.developer.system-extension.install</key>
+__TAMANDUA_DIAG_CODESIGN_EXIT__:0
+__TAMANDUA_DIAG_CODESIGN_END__
+__TAMANDUA_DIAG_SPCTL_BEGIN__
+/opt/tamandua/tamandua-agent: accepted
+__TAMANDUA_DIAG_SPCTL_EXIT__:0
+__TAMANDUA_DIAG_SPCTL_END__
+"""
+    summary = diagnostics.summarize_live_response_diagnostics(
+        [
+            {
+                "command": [diagnostics.macos_live_response_diagnostic_script()],
+                "command_confirmed": True,
+                "status": "completed",
+                "ok": True,
+                "output_tail": output,
+            }
+        ]
+    )
+
+    assert summary["diagnostics_conclusive"] is True
+    assert summary["inconclusive_commands"] == []
+    assert summary["tamandua_system_extension_present"] is True
+    assert summary["endpoint_security_entitlement_present"] is True
+    assert summary["system_extension_install_entitlement_present"] is True
+    assert summary["gatekeeper_accepted"] is True
+    assert summary["gatekeeper_rejected"] is False
+    assert summary["findings"] == []
+
+
+def test_macos_backend_readiness_ignores_live_response_banner_for_sysext():
+    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_sysext_banner_for_test", module_path)
+    diagnostics = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = diagnostics
+    spec.loader.exec_module(diagnostics)
+
+    summary = diagnostics.summarize_live_response_diagnostics(
+        [
+            {
+                "command": ["systemextensionsctl", "list"],
+                "output_tail": (
+                    "[Tamandua shell ready]\n"
+                    "sh-3.2# systemextensionsctl list\n"
+                    "1 extension(s)\n"
+                    "--- com.apple.system_extension.driver_extension\n"
+                    "enabled active teamID bundleID (version) name [state]\n"
+                    "* * 5RHFAZ9D4P com.asix.dext.usbdevice com.asix.dext.usbdevice [activated enabled]\n"
+                    "__TAMANDUA_CTL_DONE_1__:0\n"
+                ),
+            }
+        ]
+    )
+
+    assert summary["tamandua_system_extension_present"] is False
+    assert summary["findings"] == ["tamandua_system_extension_missing"]
+
+
+def test_macos_backend_readiness_does_not_infer_missing_findings_from_unconfirmed_dispatch():
+    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_unconfirmed_for_test", module_path)
+    diagnostics = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = diagnostics
+    spec.loader.exec_module(diagnostics)
+
+    summary = diagnostics.summarize_live_response_diagnostics(
+        [
+            {
+                "command": ["systemextensionsctl", "list"],
+                "command_confirmed": False,
+                "status": "not_dispatched",
+                "output_tail": "[Tamandua shell ready]\nsh-3.2# ",
+            },
+            {
+                "command": ["codesign", "-d", "--entitlements", ":-", "/opt/tamandua/tamandua-agent"],
+                "command_confirmed": False,
+                "status": "not_dispatched",
+                "output_tail": "[Tamandua shell ready]\nsh-3.2# ",
+            },
+            {
+                "command": ["spctl", "--assess", "--type", "execute", "--verbose=4", "/opt/tamandua/tamandua-agent"],
+                "command_confirmed": False,
+                "status": "not_dispatched",
+                "output_tail": "[Tamandua shell ready]\nsh-3.2# ",
+            },
+        ]
+    )
+
+    assert summary["diagnostics_conclusive"] is False
+    assert summary["inconclusive_commands"] == ["systemextensionsctl", "codesign", "spctl"]
+    assert summary["tamandua_system_extension_present"] is None
+    assert summary["endpoint_security_entitlement_present"] is None
+    assert summary["gatekeeper_accepted"] is None
+    assert summary["gatekeeper_rejected"] is None
+    assert summary["findings"] == []
+
+
+def test_macos_backend_readiness_refines_next_action_from_diagnostics():
+    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_action_for_test", module_path)
+    diagnostics = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = diagnostics
+    spec.loader.exec_module(diagnostics)
+    next_action = {
+        "target_agent_id": "agent-1",
+        "target_hostname": "mac.local",
+        "missing_readiness": ["health_healthy"],
+        "action": "Resolve the selected macOS agent health degradation before smoke execution.",
+    }
+
+    refined = diagnostics.refine_next_action_with_diagnostics(
+        next_action,
+        {
+            "diagnostic_findings": {
+                "findings": [
+                    "endpoint_security_entitlement_missing",
+                    "system_extension_install_entitlement_missing",
+                    "gatekeeper_rejected_agent_binary",
+                ],
+            },
+        },
+    )
+
+    assert refined["diagnostic_findings"] == [
+        "endpoint_security_entitlement_missing",
+        "system_extension_install_entitlement_missing",
+        "gatekeeper_rejected_agent_binary",
+    ]
+    assert "Gatekeeper accepts" in refined["action"]
+    assert "com.apple.developer.endpoint-security.client" in refined["action"]
+    assert "com.apple.developer.system-extension.install" in refined["action"]
+
+
+def test_macos_backend_readiness_can_attach_bootstrap_report(tmp_path):
+    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_bootstrap_for_test", module_path)
+    diagnostics = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = diagnostics
+    spec.loader.exec_module(diagnostics)
+    report_path = tmp_path / "macos-bootstrap-readiness.json"
+    report_path.write_text(json.dumps(macos_bootstrap_readiness_report()), encoding="utf-8")
+
+    evidence = diagnostics.load_bootstrap_readiness_report(str(report_path))
+
+    assert evidence["enabled"] is True
+    assert evidence["report_exists"] is True
+    assert evidence["valid_shape"] is True
+    assert evidence["ready_for_backend_probe"] is True
+    assert evidence["claim_boundary"] == "local bootstrap readiness report only; does not replace backend health evidence"
+
+
+def test_macos_backend_readiness_bootstrap_report_missing_or_invalid(tmp_path):
+    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_bootstrap_error_for_test", module_path)
+    diagnostics = importlib.util.module_from_spec(spec)
+    assert spec and spec.loader
+    sys.modules[spec.name] = diagnostics
+    spec.loader.exec_module(diagnostics)
+    missing = diagnostics.load_bootstrap_readiness_report(str(tmp_path / "missing.json"))
+    invalid_path = tmp_path / "invalid.json"
+    invalid_path.write_text("{not-json", encoding="utf-8")
+
+    invalid = diagnostics.load_bootstrap_readiness_report(str(invalid_path))
+
+    assert missing["enabled"] is True
+    assert missing["report_exists"] is False
+    assert missing["valid_shape"] is False
+    assert missing["ready_for_backend_probe"] is False
+    assert missing["error"] == "report_not_found"
+    assert invalid["enabled"] is True
+    assert invalid["report_exists"] is True
+    assert invalid["valid_shape"] is False
+    assert invalid["ready_for_backend_probe"] is False
+    assert invalid["error"] == "report_invalid_json"
+
+
+def test_macos_release_workflows_enforce_endpointsecurity_verification():
+    sign_binaries = (REPO_ROOT / ".github" / "workflows" / "sign_binaries.yml").read_text(
+        encoding="utf-8"
+    )
+    notarize = (REPO_ROOT / ".github" / "workflows" / "macos-notarize.yml").read_text(
+        encoding="utf-8"
+    )
+    release = (REPO_ROOT / ".github" / "workflows" / "release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "deploy/installers/macos/entitlements.plist" in sign_binaries
+    assert "scripts/verify_signed_binary.sh" in sign_binaries
+    assert "actions/upload-artifact@v4" in sign_binaries
+    assert "APPLE_SIGNING_IDENTITY" in sign_binaries
+    assert "APPLE_ID: ${{ secrets.APPLE_ID || secrets.APPLE_DEVELOPER_ID }}" in sign_binaries
+    assert 'codesign --force --sign "$APPLE_SIGNING_IDENTITY"' in sign_binaries
+    assert '--apple-id "$APPLE_ID"' in sign_binaries
+    assert "name: tamandua-agent-windows-x86_64-signed" in sign_binaries
+    assert "name: tamandua-agent-macos-${{ matrix.arch }}-signed" in sign_binaries
+    assert "- target: aarch64-apple-darwin\n            arch: arm64" in sign_binaries
+    assert 'codesign -d --entitlements :- "$BINARY_PATH"' in sign_binaries
+    assert "| grep com.apple.developer.endpoint-security.client" in sign_binaries
+    assert "| grep com.apple.developer.system-extension.install" in sign_binaries
+    assert "com.apple.developer.endpoint-security.client" in notarize
+    assert "Build System Extension (${{ matrix.arch }})" in notarize
+    assert 'swift build --configuration release --arch "${{ matrix.swift_arch }}"' in notarize
+    assert "name: system-extension-${{ matrix.arch }}" in notarize
+    assert "lipo -archs" in notarize
+    assert "Signing app executable" in notarize
+    assert '"${APP_PATH}/Contents/MacOS/tamandua-agent"' in notarize
+    assert "Verifying EndpointSecurity entitlement on app executable" in notarize
+    assert "Verifying EndpointSecurity entitlement on System Extension" in notarize
+    assert "Verifying System Extension install entitlement on app executable" in notarize
+    assert "Verifying System Extension install entitlement on System Extension" in notarize
+    assert "com.apple.developer.system-extension.install" in notarize
+    assert "Verify notarized app entitlements" in notarize
+    assert "spctl --assess --type execute --verbose=4" in notarize
+    assert 'xcrun stapler validate "${DMG_NAME}"' in notarize
+    assert "spctl --assess --type open --context context:primary-signature" in notarize
+    assert "Verify deployable macOS release artifacts" in notarize
+    assert "macos_release_artifact_preflight.py" in notarize
+    assert '"com.tamandua.agent"' in notarize
+    assert 'ditto -c -k --keepParent "bundle/Tamandua EDR.app" "${APP_ZIP}"' in notarize
+    assert "--app-zip \"${APP_ZIP}\"" in notarize
+    assert "--dmg \"${DMG_NAME}\"" in notarize
+    assert "Upload macOS release artifact preflight" in notarize
+    notarize_preflight_upload = notarize.split("- name: Upload macOS release artifact preflight", 1)[1].split(
+        "- name: Upload notarized DMG", 1
+    )[0]
+    assert "if: always()" in notarize_preflight_upload
+    notarize_preflight_to_dmg = notarize.split("- name: Verify deployable macOS release artifacts", 1)[1].split(
+        "- name: Upload notarized DMG", 1
+    )[0]
+    assert "continue-on-error" not in notarize_preflight_to_dmg
+    assert "--allow-missing-checksum" not in notarize_preflight_to_dmg
+    assert "--no-require-system-extension" not in notarize_preflight_to_dmg
+    assert notarize.index("- name: Verify deployable macOS release artifacts") < notarize.index(
+        "- name: Upload notarized DMG"
+    )
+    assert "scripts/verify_signed_binary.sh temp/tamandua-agent" in release
+    assert "APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY" in release
+    assert "APPLE_ID: ${{ secrets.APPLE_ID || secrets.APPLE_DEVELOPER_ID }}" in release
+    assert 'codesign --force --sign "$APPLE_SIGNING_IDENTITY"' in release
+    assert "Build System Extension for app bundle" in release
+    assert 'swift build --configuration release --arch "${{ matrix.swift_arch }}"' in release
+    assert "swift_arch: x86_64" in release
+    assert "swift_arch: arm64" in release
+    assert "TamanduaFileMonitor.systemextension" in release
+    assert 'lipo -archs "${SYSEXT_PATH}/Contents/MacOS/TamanduaFileMonitor" | grep -w "${{ matrix.swift_arch }}"' in release
+    assert 'BUNDLE_EXECUTABLE=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable"' in release
+    assert 'APP_EXECUTABLE_NAME=$(/usr/libexec/PlistBuddy -c "Print :CFBundleExecutable"' in release
+    assert 'APP_EXECUTABLE="${APP_PATH}/Contents/MacOS/${APP_EXECUTABLE_NAME}"' in release
+    assert 'AGENT_HELPER="${APP_PATH}/Contents/MacOS/tamandua-agent"' in release
+    assert 'codesign -d --entitlements :- "${APP_EXECUTABLE}"' in release
+    assert 'codesign -d --entitlements :- "${SYSEXT_PATH}"' in release
+    assert "com.apple.developer.endpoint-security.client" in release
+    assert "com.apple.developer.system-extension.install" in release
+    assert "Notarize app bundle" in release
+    assert "NOTARIZE_REQUIRE_ENDPOINT_SECURITY: \"true\"" in release
+    assert "apps/tamandua_agent/scripts/notarize.sh" in release
+    assert '"com.tamandua.agent"' in release
+    assert '"com.tamandua.edr"' not in release
+    assert "Verify deployable macOS release artifacts" in release
+    assert "macos_release_artifact_preflight.py" in release
+    assert 'ditto -c -k --keepParent "${APP_PATH}" "${APP_ZIP}"' in release
+    assert "--app-zip \"${APP_ZIP}\"" in release
+    assert "--dmg \"${DMG_PATH}\"" in release
+    assert "Upload macOS release artifact preflight" in release
+    release_preflight_upload = release.split("- name: Upload macOS release artifact preflight", 1)[1].split(
+        "- name: Upload DMG", 1
+    )[0]
+    assert "if: always()" in release_preflight_upload
+    release_preflight_to_dmg = release.split("- name: Verify deployable macOS release artifacts", 1)[1].split(
+        "- name: Upload DMG", 1
+    )[0]
+    assert "continue-on-error" not in release_preflight_to_dmg
+    assert "--allow-missing-checksum" not in release_preflight_to_dmg
+    assert "--no-require-system-extension" not in release_preflight_to_dmg
+    assert release.index("- name: Verify deployable macOS release artifacts") < release.index("- name: Upload DMG")
+    assert "name: tamandua-agent-macos-${{ matrix.arch }}-signed" in release
+    assert "unzip signed-binaries/tamandua-agent-macos-${{ matrix.arch }}-signed.zip" in release
+
+    create_dmg = (REPO_ROOT / "deploy" / "installers" / "macos" / "create-dmg.sh").read_text(
+        encoding="utf-8"
+    )
+    assert "CFBundleExecutable is missing" in create_dmg
+    assert 'BUNDLE_ID="com.tamandua.agent"' in create_dmg
+    assert "No .systemextension bundle found under" in create_dmg
+    assert "System Extension is missing com.apple.developer.endpoint-security.client" in create_dmg
+    assert "System Extension is missing com.apple.developer.system-extension.install" in create_dmg
+    assert "Bundle executable is missing com.apple.developer.system-extension.install" in create_dmg
+
+    notarize_script = (REPO_ROOT / "apps" / "tamandua_agent" / "scripts" / "notarize.sh").read_text(
+        encoding="utf-8"
+    )
+    assert "require_system_extension_install_entitlement" in notarize_script
+    assert 'require_system_extension_install_entitlement "${sysext_path}"' in notarize_script
+    assert "com.apple.developer.system-extension.install" in notarize_script
+
+    info_plist_template = (
+        REPO_ROOT / "deploy" / "installers" / "macos" / "Info.plist.template"
+    ).read_text(encoding="utf-8")
+    entitlements = (
+        REPO_ROOT / "deploy" / "installers" / "macos" / "entitlements.plist"
+    ).read_text(encoding="utf-8")
+    assert "<string>com.tamandua.agent</string>" in info_plist_template
+    assert "<string>com.tamandua.edr</string>" not in info_plist_template
+    assert "$(AppIdentifierPrefix)com.tamandua.agent" in entitlements
+    assert "com.apple.developer.endpoint-security.client" in entitlements
+    assert "com.apple.developer.system-extension.install" in entitlements
+
+
+def test_macos_system_extension_info_plist_uses_endpointsecurity_extension_point():
+    plist = (
+        REPO_ROOT
+        / "apps"
+        / "tamandua_agent"
+        / "SystemExtension"
+        / "TamanduaFileMonitor"
+        / "Info.plist"
+    ).read_text(encoding="utf-8")
+
+    assert "<key>NSExtensionPointIdentifier</key>" in plist
+    assert "<string>com.apple.system-extension.endpoint-security</string>" in plist
+    assert "com.apple.endpoint-security.client" not in plist
+
+
+def test_sign_macos_script_fails_closed_on_gatekeeper_and_stapler():
+    script = (REPO_ROOT / "scripts" / "sign_macos.sh").read_text(encoding="utf-8")
+
+    assert "com.apple.developer.endpoint-security.client" in script
+    assert "com.apple.developer.system-extension.install" in script
+    assert "REQUIRED_SYSTEM_EXTENSION_INSTALL_ENTITLEMENT" in script
+    assert "Checking pre-notarization Gatekeeper assessment" in script
+    assert "Pre-notarization Gatekeeper assessment failed; continuing to notarization" in script
+    assert 'if ! spctl --assess --type execute --verbose=4 "$BINARY_PATH"; then' in script
+    assert "Stapled notarization ticket validation failed" in script
+    assert "Release signing requires a locally verifiable notarization ticket" in script
+    assert 'if ! xcrun stapler validate "$BINARY_PATH"; then' in script
+    assert 'spctl --assess --type execute --verbose=4 "$BINARY_PATH" || true' not in script
+    assert "Refusing to submit a binary that Gatekeeper rejects for notarization" not in script
+    assert 'xcrun stapler validate "$BINARY_PATH" || log_warn' not in script
+
+
+def test_macos_dmg_creator_fails_without_signed_notarized_app():
+    script = (REPO_ROOT / "deploy" / "installers" / "macos" / "create-dmg.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'error "Application is not signed or signature is invalid"' in script
+    assert 'error "Application is not notarized"' in script
+    assert '[[ "${SKIP_NOTARIZATION}" == "true" ]]' in script
+    assert 'error "Signing identity' in script
+    assert "Missing APPLE_ID, APPLE_APP_PASSWORD, or APPLE_TEAM_ID" in script
+    assert "spctl --assess --type open --context context:primary-signature" in script
+
+
+def test_macos_notarize_script_enforces_endpointsecurity_entitlement():
+    script = (REPO_ROOT / "apps" / "tamandua_agent" / "scripts" / "notarize.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'REQUIRE_ENDPOINT_SECURITY="${NOTARIZE_REQUIRE_ENDPOINT_SECURITY:-true}"' in script
+    assert 'REQUIRE_SYSTEM_EXTENSION="${NOTARIZE_REQUIRE_SYSTEM_EXTENSION:-true}"' in script
+    assert "com.apple.developer.endpoint-security.client" in script
+    assert "app_executable_path()" in script
+    assert "CFBundleExecutable" in script
+    assert "require_endpointsecurity_entitlement()" in script
+    assert "verify_endpointsecurity_entitlements" in script
+    assert "A notarized macOS EDR bundle without this entitlement" in script
+    assert "No .systemextension bundle found under" in script
+    assert "cannot satisfy sensor health" in script
+    assert "Stapled notarization ticket validation failed" in script
+    assert 'if ! xcrun stapler validate "${APP_PATH}"; then' in script
+    assert 'log_warning "Stapler validation warning' not in script
+
+
+MACOS_APP_INFO_PLIST = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>Tamandua EDR</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.tamandua.agent</string>
+</dict>
+</plist>
+"""
+
+MACOS_SYSEXT_INFO_PLIST = """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleIdentifier</key>
+  <string>com.tamandua.agent.sysext.filemonitor</string>
+  <key>CFBundleExecutable</key>
+  <string>TamanduaFileMonitor</string>
+    <key>NSExtension</key>
+  <dict>
+    <key>NSExtensionPointIdentifier</key>
+    <string>com.apple.system-extension.endpoint-security</string>
+  </dict>
+</dict>
+</plist>
+"""
+
+
+def macho64_bytes(arch: str) -> bytes:
+    cpu_type = {
+        "x86_64": 0x01000007,
+        "arm64": 0x0100000C,
+    }[arch]
+    return b"\xcf\xfa\xed\xfe" + cpu_type.to_bytes(4, "little") + (0).to_bytes(24, "little")
+
+
+def fat_macho_bytes(*arches: str, fat64: bool = False) -> bytes:
+    cpu_types = {
+        "x86_64": 0x01000007,
+        "arm64": 0x0100000C,
+    }
+    header = (b"\xca\xfe\xba\xbf" if fat64 else b"\xca\xfe\xba\xbe") + len(arches).to_bytes(4, "big")
+    entries = []
+    for index, arch in enumerate(arches):
+        entry = cpu_types[arch].to_bytes(4, "big") + (0).to_bytes(4, "big")
+        if fat64:
+            entry += (4096 + index * 4096).to_bytes(8, "big")
+            entry += (256).to_bytes(8, "big")
+            entry += (12).to_bytes(4, "big")
+            entry += (0).to_bytes(4, "big")
+        else:
+            entry += (4096 + index * 4096).to_bytes(4, "big")
+            entry += (256).to_bytes(4, "big")
+            entry += (12).to_bytes(4, "big")
+        entries.append(entry)
+    return header + b"".join(entries)
+
+
+def test_macos_release_artifact_preflight_parses_macho_architectures():
+    assert macos_artifact_preflight.macho_arches(macho64_bytes("arm64")) == ["arm64"]
+    assert macos_artifact_preflight.macho_arches(macho64_bytes("x86_64")) == ["x86_64"]
+    assert macos_artifact_preflight.macho_arches(fat_macho_bytes("x86_64", "arm64")) == [
+        "x86_64",
+        "arm64",
+    ]
+    assert macos_artifact_preflight.macho_arches(
+        fat_macho_bytes("x86_64", "arm64", fat64=True)
+    ) == ["x86_64", "arm64"]
+
+
+def write_macos_app_zip(path: Path, *, include_system_extension: bool = True) -> None:
+    entries = {
+        "Tamandua EDR.app/Contents/Info.plist": MACOS_APP_INFO_PLIST,
+        "Tamandua EDR.app/Contents/MacOS/Tamandua EDR": macho64_bytes("arm64"),
+        "Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent": macho64_bytes("arm64"),
+    }
+    if include_system_extension:
+        entries[
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist"
+        ] = MACOS_SYSEXT_INFO_PLIST
+        entries[
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor"
+        ] = macho64_bytes("arm64")
+
+    with zipfile.ZipFile(path, "w") as archive:
+        for name, content in entries.items():
+            archive.writestr(name, content)
+
+
+def write_sha256sums(path: Path, artifacts: list[Path]) -> None:
+    lines = [
+        f"{macos_artifact_preflight.sha256_file(artifact)}  {artifact.name}"
+        for artifact in artifacts
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def check_passed(payload: dict, check_id: str) -> bool:
+    return next(check["passed"] for check in payload["checks"] if check["id"] == check_id)
+
+
+def test_macos_release_artifact_preflight_accepts_structured_app_zip(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    write_macos_app_zip(app_zip, include_system_extension=True)
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    assert payload["artifact"] == "macos-release-artifact-preflight"
+    assert payload["deployable"] is True
+    assert "does not prove Developer ID signing" in payload["claim_boundary"]
+    assert payload["app_zip"]["checksum_matches"] is True
+    assert payload["app_zip"]["structure"]["has_system_extension"] is True
+    assert check_passed(payload, "system_extension_present") is True
+
+
+def test_macos_release_artifact_preflight_schema_tracks_payload_contract(tmp_path):
+    schema_path = REPO_ROOT / "docs" / "benchmarks" / "macos_release_artifact_preflight.schema.json"
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    dmg = tmp_path / "Tamandua_EDR_1.0.0_aarch64.dmg"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    write_macos_app_zip(app_zip, include_system_extension=True)
+    dmg.write_text("dmg-bytes", encoding="utf-8")
+    write_sha256sums(checksums, [app_zip, dmg])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=dmg,
+        checksums=checksums,
+    )
+
+    assert schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
+    assert schema["properties"]["schema_version"]["const"] == 1
+    assert schema["properties"]["artifact"]["const"] == "macos-release-artifact-preflight"
+    assert schema["properties"]["profile_id"]["const"] == "macos-release-artifact-preflight"
+    assert {"app_zip", "checks", "summary", "quality_gate"}.issubset(schema["required"])
+    assert set(schema["required"]).issubset(payload)
+
+    structure = payload["app_zip"]["structure"]
+    required_structure = set(schema["$defs"]["app_zip_structure"]["required"])
+    assert required_structure.issubset(structure)
+    assert {
+        "has_system_extension_info_plist",
+        "system_extension_info_plist_valid",
+        "system_extension_info_plist_error",
+        "system_extension_cf_bundle_executable",
+        "app_cf_bundle_identifier",
+        "expected_architecture",
+        "architecture_checks_supported",
+        "architecture_matches_expected",
+        "declared_macos_executable_arches",
+        "declared_system_extension_executable_arches",
+        "tamandua_agent_resource_entry",
+        "tamandua_agent_resource_arches",
+        "declared_system_extension_executable_entry",
+        "system_extension_contained_by_app_bundle_id",
+    }.issubset(required_structure)
+    assert structure["has_endpoint_security_extension_point"] is True
+    assert structure["has_system_extension_info_plist"] is True
+    assert structure["system_extension_info_plist_valid"] is True
+    assert structure["system_extension_cf_bundle_executable"] == "TamanduaFileMonitor"
+    assert structure["app_cf_bundle_identifier"] == "com.tamandua.agent"
+    assert structure["system_extension_contained_by_app_bundle_id"] is True
+    assert structure["expected_architecture"] == "arm64"
+    assert structure["architecture_checks_supported"] is True
+    assert structure["architecture_matches_expected"] is True
+    assert structure["declared_macos_executable_arches"] == ["arm64"]
+    assert structure["declared_system_extension_executable_arches"] == ["arm64"]
+    assert structure["tamandua_agent_resource_arches"] == ["arm64"]
+    assert structure["tamandua_agent_resource_entry"].endswith(
+        ".app/Contents/Resources/tamandua-agent/tamandua-agent"
+    )
+    assert structure["declared_system_extension_executable_entry"].endswith(
+        ".systemextension/Contents/MacOS/TamanduaFileMonitor"
+    )
+    assert (
+        structure["system_extension_extension_point_identifier"]
+        == "com.apple.system-extension.endpoint-security"
+    )
+    required_dmg = set(schema["properties"]["dmg"]["required"])
+    assert required_dmg.issubset(payload["dmg"])
+    assert payload["dmg"]["checksum_present"] is True
+    assert payload["dmg"]["checksum_matches"] is True
+    assert check_passed(payload, "dmg_exists") is True
+    assert check_passed(payload, "dmg_checksum") is True
+
+
+def test_macos_release_artifact_preflight_rejects_missing_declared_app_executable(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", MACOS_APP_INFO_PLIST)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Other", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent", "agent-binary")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            MACOS_SYSEXT_INFO_PLIST,
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor",
+            "system-extension-binary",
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    structure = payload["app_zip"]["structure"]
+    assert payload["deployable"] is False
+    assert structure["cf_bundle_executable"] == "Tamandua EDR"
+    assert structure["has_macos_executable"] is True
+    assert structure["has_declared_macos_executable"] is False
+    assert check_passed(payload, "macos_executable_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_missing_cf_bundle_executable(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Info.plist",
+            """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>Tamandua EDR</string>
+</dict>
+</plist>
+""",
+        )
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent", "agent-binary")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            MACOS_SYSEXT_INFO_PLIST,
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor",
+            "system-extension-binary",
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    structure = payload["app_zip"]["structure"]
+    assert payload["deployable"] is False
+    assert structure["app_info_plist_valid"] is True
+    assert structure["app_info_plist_error"] == "CFBundleExecutable missing or empty"
+    assert structure["has_declared_macos_executable"] is False
+    assert check_passed(payload, "macos_executable_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_app_zip_without_system_extension(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    write_macos_app_zip(app_zip, include_system_extension=False)
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    assert payload["deployable"] is False
+    assert payload["app_zip"]["checksum_matches"] is True
+    assert payload["app_zip"]["structure"]["has_system_extension"] is False
+    assert check_passed(payload, "system_extension_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_checksum_mismatch(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    write_macos_app_zip(app_zip, include_system_extension=True)
+    checksums.write_text(f"{'0' * 64}  {app_zip.name}\n", encoding="utf-8")
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    assert payload["deployable"] is False
+    assert payload["app_zip"]["checksum_matches"] is False
+    assert check_passed(payload, "app_zip_checksum") is False
+
+
+def test_macos_release_artifact_preflight_accepts_checksum_paths(tmp_path):
+    artifact_dir = tmp_path / "deploy" / "installers" / "macos"
+    artifact_dir.mkdir(parents=True)
+    app_zip = artifact_dir / "Tamandua-1.0.0-arm64.app.zip"
+    dmg = artifact_dir / "Tamandua-1.0.0-arm64.dmg"
+    checksums = artifact_dir / "macos-release-preflight-SHA256SUMS"
+    write_macos_app_zip(app_zip, include_system_extension=True)
+    dmg.write_text("dmg-bytes", encoding="utf-8")
+    checksums.write_text(
+        "\n".join(
+            [
+                f"{macos_artifact_preflight.sha256_file(app_zip)}  deploy/installers/macos/{app_zip.name}",
+                f"{macos_artifact_preflight.sha256_file(dmg)}  deploy/installers/macos/{dmg.name}",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=dmg,
+        checksums=checksums,
+    )
+
+    assert payload["deployable"] is True
+    assert payload["app_zip"]["checksum_matches"] is True
+    assert payload["dmg"]["checksum_matches"] is True
+    assert check_passed(payload, "dmg_exists") is True
+    assert check_passed(payload, "dmg_checksum") is True
+
+
+def test_macos_release_artifact_preflight_rejects_dmg_checksum_mismatch(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    dmg = tmp_path / "Tamandua_EDR_1.0.0_aarch64.dmg"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    write_macos_app_zip(app_zip, include_system_extension=True)
+    dmg.write_text("dmg-bytes", encoding="utf-8")
+    checksums.write_text(
+        "\n".join(
+            [
+                f"{macos_artifact_preflight.sha256_file(app_zip)}  {app_zip.name}",
+                f"{'0' * 64}  {dmg.name}",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=dmg,
+        checksums=checksums,
+    )
+
+    assert payload["deployable"] is False
+    assert payload["dmg"]["checksum_present"] is True
+    assert payload["dmg"]["checksum_matches"] is False
+    assert check_passed(payload, "dmg_exists") is True
+    assert check_passed(payload, "dmg_checksum") is False
+
+
+def test_macos_release_artifact_preflight_rejects_helper_directory_without_file(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", MACOS_APP_INFO_PLIST)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/", "")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            MACOS_SYSEXT_INFO_PLIST,
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor",
+            "system-extension-binary",
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    assert payload["deployable"] is False
+    assert payload["app_zip"]["structure"]["has_tamandua_agent_resource"] is False
+    assert check_passed(payload, "tamandua_agent_resource_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_system_extension_without_executable(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", MACOS_APP_INFO_PLIST)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent", "agent-binary")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            MACOS_SYSEXT_INFO_PLIST,
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    assert payload["deployable"] is False
+    assert payload["app_zip"]["structure"]["has_system_extension"] is False
+    assert payload["app_zip"]["structure"]["has_declared_system_extension_executable"] is False
+    assert check_passed(payload, "system_extension_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_missing_declared_system_extension_executable(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", MACOS_APP_INFO_PLIST)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent", "agent-binary")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            MACOS_SYSEXT_INFO_PLIST,
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/Other",
+            "system-extension-binary",
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    structure = payload["app_zip"]["structure"]
+    assert payload["deployable"] is False
+    assert structure["system_extension_cf_bundle_executable"] == "TamanduaFileMonitor"
+    assert structure["has_system_extension_executable"] is True
+    assert structure["has_declared_system_extension_executable"] is False
+    assert structure["has_system_extension"] is False
+    assert check_passed(payload, "system_extension_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_system_extension_missing_cf_bundle_executable(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", MACOS_APP_INFO_PLIST)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent", "agent-binary")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleName</key>
+  <string>TamanduaFileMonitor</string>
+</dict>
+</plist>
+""",
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor",
+            "system-extension-binary",
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    structure = payload["app_zip"]["structure"]
+    assert payload["deployable"] is False
+    assert structure["system_extension_info_plist_valid"] is True
+    assert structure["system_extension_info_plist_error"] == "CFBundleExecutable missing or empty"
+    assert structure["has_declared_system_extension_executable"] is False
+    assert structure["has_system_extension"] is False
+    assert check_passed(payload, "system_extension_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_system_extension_missing_bundle_id(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", MACOS_APP_INFO_PLIST)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent", "agent-binary")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleExecutable</key>
+  <string>TamanduaFileMonitor</string>
+    <key>NSExtension</key>
+  <dict>
+    <key>NSExtensionPointIdentifier</key>
+    <string>com.apple.system-extension.endpoint-security</string>
+  </dict>
+</dict>
+</plist>
+""",
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor",
+            "system-extension-binary",
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    structure = payload["app_zip"]["structure"]
+    assert payload["deployable"] is False
+    assert structure["has_declared_system_extension_executable"] is True
+    assert structure["has_system_extension_bundle_id"] is False
+    assert structure["has_endpoint_security_extension_point"] is True
+    assert structure["has_system_extension"] is False
+    assert check_passed(payload, "system_extension_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_system_extension_outside_app_bundle_id(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    mismatched_app_info_plist = MACOS_APP_INFO_PLIST.replace(
+        "<string>com.tamandua.agent</string>",
+        "<string>com.tamandua.edr</string>",
+    )
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", mismatched_app_info_plist)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent", "agent-binary")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            MACOS_SYSEXT_INFO_PLIST,
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor",
+            "system-extension-binary",
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    structure = payload["app_zip"]["structure"]
+    assert payload["deployable"] is False
+    assert structure["app_cf_bundle_identifier"] == "com.tamandua.edr"
+    assert structure["system_extension_cf_bundle_identifier"] == "com.tamandua.agent.sysext.filemonitor"
+    assert structure["system_extension_contained_by_app_bundle_id"] is False
+    assert structure["has_declared_system_extension_executable"] is True
+    assert structure["has_system_extension_bundle_id"] is True
+    assert structure["has_endpoint_security_extension_point"] is True
+    assert structure["has_system_extension"] is False
+    assert check_passed(payload, "system_extension_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_architecture_mismatch(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", MACOS_APP_INFO_PLIST)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", macho64_bytes("arm64"))
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent",
+            macho64_bytes("x86_64"),
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            MACOS_SYSEXT_INFO_PLIST,
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor",
+            macho64_bytes("arm64"),
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    structure = payload["app_zip"]["structure"]
+    assert payload["deployable"] is False
+    assert structure["expected_architecture"] == "arm64"
+    assert structure["declared_macos_executable_arches"] == ["arm64"]
+    assert structure["declared_system_extension_executable_arches"] == ["arm64"]
+    assert structure["tamandua_agent_resource_arches"] == ["x86_64"]
+    assert structure["architecture_matches_expected"] is False
+    assert check_passed(payload, "system_extension_present") is True
+    assert check_passed(payload, "mach_o_architecture_matches_artifact") is False
+
+
+def test_macos_release_artifact_preflight_rejects_system_extension_wrong_extension_point(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", MACOS_APP_INFO_PLIST)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent", "agent-binary")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/Info.plist",
+            """<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleIdentifier</key>
+  <string>com.tamandua.agent.sysext.filemonitor</string>
+  <key>CFBundleExecutable</key>
+  <string>TamanduaFileMonitor</string>
+  <key>NSExtension</key>
+  <dict>
+    <key>NSExtensionPointIdentifier</key>
+    <string>com.apple.networkextension.packet-tunnel</string>
+  </dict>
+</dict>
+</plist>
+""",
+        )
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor",
+            "system-extension-binary",
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    structure = payload["app_zip"]["structure"]
+    assert payload["deployable"] is False
+    assert structure["has_declared_system_extension_executable"] is True
+    assert structure["has_system_extension_bundle_id"] is True
+    assert structure["system_extension_extension_point_identifier"] == "com.apple.networkextension.packet-tunnel"
+    assert structure["has_endpoint_security_extension_point"] is False
+    assert structure["has_system_extension"] is False
+    assert check_passed(payload, "system_extension_present") is False
+
+
+def test_macos_release_artifact_preflight_rejects_system_extension_without_info_plist(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    with zipfile.ZipFile(app_zip, "w") as archive:
+        archive.writestr("Tamandua EDR.app/Contents/Info.plist", MACOS_APP_INFO_PLIST)
+        archive.writestr("Tamandua EDR.app/Contents/MacOS/Tamandua EDR", "app-binary")
+        archive.writestr("Tamandua EDR.app/Contents/Resources/tamandua-agent/tamandua-agent", "agent-binary")
+        archive.writestr(
+            "Tamandua EDR.app/Contents/Library/SystemExtensions/"
+            "TamanduaFileMonitor.systemextension/Contents/MacOS/TamanduaFileMonitor",
+            "system-extension-binary",
+        )
+    write_sha256sums(checksums, [app_zip])
+
+    payload = macos_artifact_preflight.build_payload(
+        app_zip=app_zip,
+        dmg=None,
+        checksums=checksums,
+    )
+
+    assert payload["deployable"] is False
+    assert payload["app_zip"]["structure"]["has_system_extension_executable"] is True
+    assert payload["app_zip"]["structure"]["has_system_extension_info_plist"] is False
+    assert payload["app_zip"]["structure"]["has_system_extension"] is False
+    assert check_passed(payload, "system_extension_present") is False
+
+
+def test_macos_release_artifact_preflight_output_dir_writes_scorecard_artifacts(tmp_path, capsys):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    output_dir = tmp_path / "runs"
+    write_macos_app_zip(app_zip, include_system_extension=False)
+    write_sha256sums(checksums, [app_zip])
+
+    exit_code = macos_artifact_preflight.main(
+        [
+            "--app-zip",
+            str(app_zip),
+            "--checksums",
+            str(checksums),
+            "--output-dir",
+            str(output_dir),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    json_path = output_dir / f"{payload['run_id']}.json"
+    markdown_path = output_dir / f"{payload['run_id']}.md"
+    written = json.loads(json_path.read_text(encoding="utf-8"))
+
+    assert exit_code == 2
+    assert json_path.exists()
+    assert markdown_path.exists()
+    assert written["profile_id"] == "macos-release-artifact-preflight"
+    assert written["quality_gate"]["passed"] is False
+    assert written["quality_gate"]["failures"] == ["system_extension_present"]
+    assert "Deployable: `false`" in markdown_path.read_text(encoding="utf-8")
+
+
+def test_macos_release_artifact_preflight_accepts_explicit_run_id(tmp_path, capsys):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    output_dir = tmp_path / "runs"
+    run_id = "20260618T010136Z-macos-release-artifact-preflight"
+    write_macos_app_zip(app_zip, include_system_extension=True)
+    write_sha256sums(checksums, [app_zip])
+
+    exit_code = macos_artifact_preflight.main(
+        [
+            "--app-zip",
+            str(app_zip),
+            "--checksums",
+            str(checksums),
+            "--output-dir",
+            str(output_dir),
+            "--run-id",
+            run_id,
+        ]
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+
+    assert exit_code == 0
+    assert payload["run_id"] == run_id
+    assert (output_dir / f"{run_id}.json").exists()
+    assert (output_dir / f"{run_id}.md").exists()
+
+
+def test_macos_release_artifact_preflight_rejects_invalid_explicit_run_id(tmp_path):
+    app_zip = tmp_path / "Tamandua_EDR_1.0.0_aarch64.app.zip"
+    checksums = tmp_path / "macos-SHA256SUMS"
+    write_macos_app_zip(app_zip, include_system_extension=True)
+    write_sha256sums(checksums, [app_zip])
+
+    try:
+        macos_artifact_preflight.build_payload(
+            app_zip=app_zip,
+            dmg=None,
+            checksums=checksums,
+            run_id="not-a-run-id",
+        )
+    except ValueError as exc:
+        assert "run_id must match" in str(exc)
+    else:
+        raise AssertionError("invalid run id was accepted")
 
 ROADMAP_MODULE_PATH = Path(__file__).with_name("generate_windows_roadmap_300.py")
 ROADMAP_SPEC = importlib.util.spec_from_file_location("generate_windows_roadmap_300", ROADMAP_MODULE_PATH)
@@ -302,6 +2511,107 @@ def test_status_consistency_rejects_refresh_authority_plan_without_closure_bindi
     assert consistency.refresh_authority_dry_run_plan_is_sequential(payload) is False
 
 
+def test_product_readiness_normalizes_failed_agent_claim_state():
+    payload = product_readiness.merged_claims_payload(
+        {
+            "artifact": "validation-agent-claims",
+            "claims": [
+                {
+                    "claim_id": "claim-wave-1",
+                    "claim_state": "ready_to_claim",
+                    "ready_to_launch": True,
+                    "blocked_reasons": [],
+                }
+            ],
+        },
+        {
+            "artifact": "validation-claim-status-report",
+            "claims": [
+                {
+                    "claim_id": "claim-wave-1",
+                    "agent_status": "fail",
+                    "agent_blocker_cleared": False,
+                    "missing_profiles": ["macos-backend-readiness-probe"],
+                }
+            ],
+        },
+    )
+
+    assert payload is not None
+    claim = payload["claims"][0]
+    assert claim["claim_state"] == "has_current_fail_evidence"
+    assert claim["ready_to_launch"] is False
+    assert "agent_status_fail" in claim["blocked_reasons"]
+
+
+def test_product_readiness_blocks_ready_claim_with_unresolved_current_next_action():
+    payload = product_readiness.merged_claims_payload(
+        {
+            "artifact": "validation-agent-claims",
+            "claims": [
+                {
+                    "claim_id": "claim-wave-1",
+                    "claim_state": "ready_to_claim",
+                    "ready_to_launch": True,
+                    "blocked_reasons": [],
+                    "current_next_action": {
+                        "action": "Deploy the signed macOS agent, then rerun readiness.",
+                        "missing_readiness": ["health_healthy"],
+                    },
+                }
+            ],
+        },
+        None,
+    )
+
+    assert payload is not None
+    claim = payload["claims"][0]
+    assert claim["claim_state"] == "manual_claim_required"
+    assert claim["ready_to_launch"] is False
+    assert claim["missing_readiness"] == ["health_healthy"]
+    assert "current_next_action_unresolved" in claim["blocked_reasons"]
+
+
+def test_product_readiness_recommends_failed_claim_resolution_before_refresh():
+    actions = product_readiness.next_action_order(
+        {"current_env_missing_names": []},
+        [
+            {
+                "claim_id": "claim-wave-1",
+                "state": "has_current_fail_evidence",
+                "next_action": "Reconnect the selected macOS agent.",
+                "command": "powershell -File wave-1.ps1",
+            }
+        ],
+    )
+    recommended = product_readiness.recommended_next_action(actions)
+
+    assert recommended["id"] == "resolve-current-failed-claims"
+    assert recommended["claim_ids"] == ["claim-wave-1"]
+    assert recommended["actions"] == ["Reconnect the selected macOS agent."]
+
+
+def test_product_readiness_recommends_ready_claim_launch_before_refresh():
+    actions = product_readiness.next_action_order(
+        {"current_env_missing_names": []},
+        [
+            {
+                "claim_id": "claim-wave-1",
+                "state": "ready_to_claim",
+                "ready_to_launch": True,
+                "next_action": "Deploy the signed macOS agent, then rerun readiness.",
+                "command": "powershell -File wave-1.ps1",
+            }
+        ],
+    )
+    recommended = product_readiness.recommended_next_action(actions)
+
+    assert recommended["id"] == "launch-ready-claims"
+    assert recommended["claim_ids"] == ["claim-wave-1"]
+    assert recommended["commands"] == ["powershell -File wave-1.ps1"]
+    assert "product readiness still requires" in recommended["claim_boundary"]
+
+
 def test_product_readiness_summary_consolidates_current_blockers(tmp_path):
     runs_dir = tmp_path / "runs"
     generated_dir = tmp_path / "generated"
@@ -579,6 +2889,135 @@ def test_product_readiness_summary_consolidates_current_blockers(tmp_path):
     assert summary["blocked_run_classes"][0]["run_class"] == "windows-broad"
 
 
+def test_product_readiness_run_class_digest_uses_claim_next_action_fallback():
+    preflight = {
+        "run_class_readiness": [
+            {
+                "run_class": "macos-server-backed-smoke",
+                "allowed": False,
+                "roadmaps": ["E"],
+                "missing_env": [],
+                "blocking_profiles": ["macos-backend-readiness-probe"],
+                "action": "",
+            }
+        ]
+    }
+    claims = [
+        {
+            "claim_id": "claim-wave-1-restore-macos-backend-readiness",
+            "blocked_run_classes": ["macos-server-backed-smoke"],
+            "next_action": (
+                "Deploy a Developer ID signed/notarized agent with "
+                "com.apple.developer.endpoint-security.client and "
+                "com.apple.developer.system-extension.install, approve the system extension "
+                "and Full Disk Access, then rerun macos_backend_readiness_probe.py."
+            ),
+        }
+    ]
+
+    digest = product_readiness.run_class_digest(preflight, claims)
+
+    assert digest[0]["run_class"] == "macos-server-backed-smoke"
+    assert "Developer ID signed/notarized agent" in digest[0]["action"]
+    assert "com.apple.developer.endpoint-security.client" in digest[0]["action"]
+    assert "com.apple.developer.system-extension.install" in digest[0]["action"]
+
+    digest_without_explicit_class = product_readiness.run_class_digest(
+        preflight,
+        [
+            {
+                "claim_id": "claim-wave-1-restore-macos-backend-readiness",
+                "missing_effective_env": [],
+                "next_action": claims[0]["next_action"],
+            }
+        ],
+    )
+    assert digest_without_explicit_class[0]["action"] == (
+        "Deploy a Developer ID signed/notarized agent with "
+        "com.apple.developer.endpoint-security.client and "
+        "com.apple.developer.system-extension.install, approve the system extension and "
+        "Full Disk Access, then rerun macos_backend_readiness_probe.py before smoke execution."
+    )
+
+
+def test_product_readiness_enriches_macos_action_from_backend_diagnostic_findings():
+    macos_backend = {
+        "quality_gate": {
+            "actionable_gaps": [
+                {
+                    "evidence": {
+                        "next_action": {
+                            "action": (
+                                "Deploy a Developer ID signed/notarized agent binary for macOS "
+                                "that Gatekeeper accepts and that includes "
+                                "com.apple.developer.endpoint-security.client and "
+                                "com.apple.developer.system-extension.install, confirm Full Disk Access "
+                                "remains approved, then rerun macos_backend_readiness_probe.py before smoke execution."
+                            ),
+                            "diagnostic_findings": [
+                                "tamandua_system_extension_missing",
+                                "endpoint_security_entitlement_missing",
+                                "system_extension_install_entitlement_missing",
+                                "gatekeeper_rejected_agent_binary",
+                            ],
+                        }
+                    }
+                }
+            ]
+        }
+    }
+
+    action = product_readiness.latest_macos_backend_runtime_action(macos_backend)
+
+    assert "Current read-only diagnostics confirm" in action
+    assert "macOS lane is not a Proxmox VMID/QGA flow" in action
+    assert "Tamandua system extension is not listed/active" in action
+    assert "com.apple.developer.endpoint-security.client" in action
+    assert "com.apple.developer.system-extension.install" in action
+    assert "Gatekeeper rejects /opt/tamandua/tamandua-agent" in action
+    digest = product_readiness.run_class_digest(
+        {
+            "run_class_readiness": [
+                {
+                    "run_class": "macos-server-backed-smoke",
+                    "allowed": False,
+                    "roadmaps": ["E"],
+                    "missing_env": [],
+                    "blocking_profiles": ["macos-backend-readiness-probe"],
+                    "action": "",
+                }
+            ]
+        },
+        [],
+        action,
+    )
+    assert digest[0]["action"] == action
+
+
+def test_product_readiness_manual_claims_mark_macos_non_proxmox_boundary():
+    claims = [
+        {
+            "claim_id": "claim-wave-1-restore-macos-backend-readiness",
+            "package_id": "wave-1-restore-macos-backend-readiness",
+            "wave": 1,
+            "owner": "validation-agent",
+            "state": "manual_claim_required",
+            "manual_prerequisites": [
+                "Copy /var/log/tamandua/macos-bootstrap-readiness.json and set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT."
+            ],
+        }
+    ]
+
+    manual = product_readiness.manual_claims(claims)
+
+    assert manual[0]["manual_prerequisites"] == [
+        "Copy /var/log/tamandua/macos-bootstrap-readiness.json and set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT.",
+        product_readiness.MACOS_SIGNED_RELEASE_PREREQUISITE,
+        product_readiness.MACOS_ENDPOINT_APPROVAL_PREREQUISITE,
+        product_readiness.MACOS_LAB_ACCESS_BOUNDARY,
+    ]
+
+
 def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
     summary = {
         "generated_at": "2026-06-12T00:00:00Z",
@@ -756,6 +3195,7 @@ def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
             "step": 2,
             "title": "Fill env",
             "claim_boundary": "operator input only",
+            "actions": ["Populate TAMANDUA_SERVER_PASSWORD in the local env bundle, then rerun the runner."],
             "commands": [],
             "claim_ids": [],
             "env": ["TAMANDUA_SERVER_PASSWORD"],
@@ -791,6 +3231,7 @@ def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
                 "roadmaps": ["A"],
                 "missing_env": ["TAMANDUA_SERVER_PASSWORD"],
                 "blocking_profiles": ["windows-agent-connection-stability-probe"],
+                "action": "Set TAMANDUA_SERVER_PASSWORD, then rerun Windows readiness.",
             }
         ],
         "claim_boundary": "derived only",
@@ -833,7 +3274,9 @@ def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
     assert "Manual Claims" in markdown
     assert "`wave-manual`" in markdown
     assert "WMI-capable disposable target" in markdown
+    assert "| Run class | Allowed | Roadmaps | Missing env | Blocking profiles | Action |" in markdown
     assert "windows-agent-connection-stability-probe" in markdown
+    assert "Set TAMANDUA_SERVER_PASSWORD, then rerun Windows readiness." in markdown
     operator_check = operator_check_path.read_text(encoding="utf-8")
     assert "Product Readiness Operator Check" in operator_check
     assert "schema_version = 1" in operator_check
@@ -1108,6 +3551,9 @@ def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
     assert release_gate_contract["recommended_next_action_id"] == "fill-env-bundle"
     assert release_gate_contract["recommended_next_action"]["id"] == "fill-env-bundle"
     assert release_gate_contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert release_gate_contract["blocked_run_classes"][0]["action"]
+    assert release_gate_contract["blocked_run_classes"][0]["claim_ids"] == []
+    assert release_gate_contract["blocked_run_classes"][0]["commands"] == []
     assert all(requirement["evidence_required"] for requirement in release_gate_contract["requirements"])
     assert release_gate_contract_schema["$schema"] == "https://json-schema.org/draft/2020-12/schema"
     assert release_gate_contract_schema["properties"]["schema_version"]["const"] == 1
@@ -1159,6 +3605,9 @@ def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
     assert blocked_run_classes_contract["profile_or_lab_blocked_count"] == 0
     assert blocked_run_classes_contract["classes"][0]["run_class"] == "windows-broad"
     assert blocked_run_classes_contract["classes"][0]["resolution_class"] == "env_required"
+    assert blocked_run_classes_contract["classes"][0]["action"]
+    assert blocked_run_classes_contract["classes"][0]["claim_ids"] == []
+    assert blocked_run_classes_contract["classes"][0]["commands"] == []
     assert blocked_run_classes_contract["recommended_next_action_id"] == "fill-env-bundle"
     assert blocked_run_classes_contract["recommended_next_action"]["id"] == "fill-env-bundle"
     assert blocked_run_classes_contract["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
@@ -1172,6 +3621,9 @@ def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
     assert "recommended_next_action_id" in blocked_run_classes_contract_schema["required"]
     assert "recommended_next_action" in blocked_run_classes_contract_schema["required"]
     assert "resolution_class" in blocked_run_classes_contract_schema["properties"]["classes"]["items"]["required"]
+    assert "action" in blocked_run_classes_contract_schema["properties"]["classes"]["items"]["required"]
+    assert "claim_ids" in blocked_run_classes_contract_schema["properties"]["classes"]["items"]["required"]
+    assert "commands" in blocked_run_classes_contract_schema["properties"]["classes"]["items"]["required"]
     assert "Product Readiness Blocked Run Classes Contract" in blocked_run_classes_contract_markdown
     assert "Blocked run classes: `1`" in blocked_run_classes_contract_markdown
     assert "Recommended next action: `fill-env-bundle`" in blocked_run_classes_contract_markdown
@@ -1298,6 +3750,7 @@ def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
     )
     assert "execute_allowed" in manual_claim_resolution_runner_schema["required"]
     assert "guarded_resolution_commands" in manual_claim_resolution_runner_schema["required"]
+    assert "manual_prerequisites" in manual_claim_resolution_runner_schema["required"]
     assert agent_handoff["artifact"] == "validation-product-readiness-agent-handoff"
     assert agent_handoff["product_ready"] is False
     assert agent_handoff["automation_state"] == "blocked_missing_env"
@@ -1399,6 +3852,8 @@ def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
     assert agent_handoff_schema["properties"]["artifact"]["const"] == "validation-product-readiness-agent-handoff"
     assert "commands" in agent_handoff_schema["required"]
     assert "Product Readiness Agent Handoff" in agent_handoff_markdown
+    assert "## Recommended Next Action" in agent_handoff_markdown
+    assert "Populate TAMANDUA_SERVER_PASSWORD in the local env bundle" in agent_handoff_markdown
     assert "validation_product_readiness_claim_status_contract.json" in agent_handoff_markdown
     assert "validation_product_readiness_blocked_run_classes.contract.json" in agent_handoff_markdown
     assert "validation_product_readiness_runbook.json" in agent_handoff_markdown
@@ -1552,6 +4007,7 @@ def test_product_readiness_summary_writes_markdown_and_json(tmp_path):
     )
     assert "status_reason" in env_bundle_runner_schema["required"]
     assert "ready_to_launch" in env_bundle_runner_schema["properties"]["status_reason"]["enum"]
+    assert "env_bundle_complete_no_launch" in env_bundle_runner_schema["properties"]["status_reason"]["enum"]
     assert "json_status_mode_refuses_launch_flags" in env_bundle_runner_schema["properties"]["status_reason"]["enum"]
     assert "Product Readiness Env Bundle Runner Status Check" in env_bundle_runner_status_check
     assert "validation-product-readiness-env-bundle-runner-status-check" in env_bundle_runner_status_check
@@ -2634,6 +5090,7 @@ def test_status_consistency_accepts_current_product_readiness_summary_shape():
             "step": 2,
             "title": "Fill the complete redacted env bundle locally",
             "claim_boundary": "operator input only; do not paste secret values into reports",
+            "actions": ["Populate TAMANDUA_SERVER_PASSWORD in the local env bundle, then rerun the runner."],
             "commands": [],
             "claim_ids": [],
             "env": [
@@ -2685,6 +5142,43 @@ def test_status_consistency_accepts_current_product_readiness_summary_shape():
             "dispatch-run",
         )
         is True
+    )
+
+
+def test_status_consistency_requires_current_macos_blocked_run_class_action():
+    summary = json.loads(
+        (
+            REPO_ROOT
+            / "docs"
+            / "benchmarks"
+            / "generated"
+            / "validation_product_readiness_summary.json"
+        ).read_text(encoding="utf-8")
+    )
+    dispatch_run = Path(summary["source_artifacts"]["dispatch"]).stem
+    closure_run = Path(summary["source_artifacts"]["closure"]).stem
+    preflight_run = Path(summary["source_artifacts"]["preflight"]).stem
+
+    assert (
+        consistency.product_readiness_summary_matches_current_blockers(
+            summary,
+            closure_run,
+            preflight_run,
+            dispatch_run,
+        )
+        is True
+    )
+
+    stale_summary = copy.deepcopy(summary)
+    stale_summary["blocked_run_classes"][0]["action"] = ""
+    assert (
+        consistency.product_readiness_summary_matches_current_blockers(
+            stale_summary,
+            closure_run,
+            preflight_run,
+            dispatch_run,
+        )
+        is False
     )
 
 
@@ -2804,17 +5298,14 @@ def test_status_consistency_accepts_operator_check_json_shape():
             "-Provider balanced -Phase env-bundle -Execute -Parallel",
         ],
         "post_env_bundle_plan": {
-            "actionable": True,
+            "actionable": False,
             "provider_mode": "balanced",
             "phase": "env-bundle",
-            "ready_claim_count": 4,
-            "ready_batch_count": 2,
+            "ready_claim_count": 1,
+            "ready_batch_count": 1,
             "still_blocked_claim_count": 3,
             "ready_claim_ids": [
-                "claim-wave-1-provide-required-preflight-env",
                 "claim-wave-1-restore-macos-backend-readiness",
-                "claim-wave-1-restore-windows-backend-readiness",
-                "claim-wave-1-restore-windows-qga-readiness",
             ],
             "still_blocked_claim_ids": [
                 "claim-wave-2-capture-fresh-restore-provenance",
@@ -2822,8 +5313,7 @@ def test_status_consistency_accepts_operator_check_json_shape():
                 "claim-wave-3-rerun-preflight-and-closure-gate",
             ],
             "ready_batches": [
-                {"batch": 1, "claim_count": 3, "claim_ids": ["claim-wave-1-provide-required-preflight-env"]},
-                {"batch": 2, "claim_count": 1, "claim_ids": ["claim-wave-1-restore-windows-qga-readiness"]},
+                {"batch": 1, "claim_count": 1, "claim_ids": ["claim-wave-1-restore-macos-backend-readiness"]},
             ],
             "agent_spawn_plan": (
                 "docs/benchmarks/runs/20260612T120038Z-validation-execution-preflight-probe.package-artifacts/"
@@ -2852,25 +5342,19 @@ def test_status_consistency_accepts_operator_check_json_shape():
                 "dispatch_manifest.json'"
             ),
             "claim_count": 8,
-            "status_counts": {"not_run": 8},
-            "claim_state_counts": {"blocked_missing_env": 7, "manual_claim_required": 1},
+            "status_counts": {"not_run": 5},
+            "claim_state_counts": {"blocked_dependency_wave": 3, "manual_claim_required": 1, "not_run": 1},
             "locked_claim_count": 0,
             "invalid_lock_count": 0,
             "ready_after_env_claim_ids": [
-                "claim-wave-1-provide-required-preflight-env",
                 "claim-wave-1-restore-macos-backend-readiness",
-                "claim-wave-1-restore-windows-backend-readiness",
-                "claim-wave-1-restore-windows-qga-readiness",
             ],
             "ready_after_env_passed_claim_ids": [],
             "ready_after_env_passed_count": 0,
-            "ready_after_env_required_count": 4,
+            "ready_after_env_required_count": 1,
             "ready_after_env_all_passed": False,
             "incomplete_ready_after_env_claims": [
-                {"claim_id": "claim-wave-1-provide-required-preflight-env", "agent_status": "not_run"},
                 {"claim_id": "claim-wave-1-restore-macos-backend-readiness", "agent_status": "not_run"},
-                {"claim_id": "claim-wave-1-restore-windows-backend-readiness", "agent_status": "not_run"},
-                {"claim_id": "claim-wave-1-restore-windows-qga-readiness", "agent_status": "not_run"},
             ],
             "required_agent_status_contract": {
                 "status": "pass",
@@ -2948,6 +5432,7 @@ def test_status_consistency_accepts_env_request_schema_shape():
             "step": 2,
             "title": "Fill the complete redacted env bundle locally",
             "claim_boundary": "operator input only; do not paste secret values into reports",
+            "actions": ["Populate TAMANDUA_SERVER_PASSWORD in the local env bundle, then rerun the runner."],
             "commands": [],
             "claim_ids": [],
             "env": ["TAMANDUA_SERVER_PASSWORD"],
@@ -3254,6 +5739,9 @@ def test_status_consistency_accepts_blocked_run_classes_contract_shape():
         "env_required",
         "profile_or_lab_required",
     }
+    assert all("action" in item for item in contract["classes"])
+    assert all("claim_ids" in item for item in contract["classes"])
+    assert all("commands" in item for item in contract["classes"])
 
     stale_contract = copy.deepcopy(contract)
     stale_contract["env_blocked_count"] = 2
@@ -3270,6 +5758,90 @@ def test_status_consistency_accepts_blocked_run_classes_contract_shape():
     )
 
 
+def test_blocked_run_classes_contract_carries_current_macos_runtime_action():
+    summary = {
+        "generated_at": "2026-06-17T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "resolve-current-failed-claims",
+        "recommended_next_action": {
+            "id": "resolve-current-failed-claims",
+            "step": 2,
+            "title": "Resolve claims with current failed or incomplete agent evidence",
+            "claim_boundary": "requires external runtime state to change before rerunning the failed claim",
+            "actions": [
+                "Deploy a Developer ID signed/notarized agent with "
+                "com.apple.developer.endpoint-security.client and "
+                "com.apple.developer.system-extension.install, confirm the Tamandua system extension "
+                "is active and Full Disk Access is approved on the Mac, then rerun "
+                "macos_backend_readiness_probe.py."
+            ],
+            "commands": [
+                "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                "'docs/benchmarks/runs/preflight.package-artifacts/wave-1-restore-macos-backend-readiness.ps1'"
+            ],
+            "claim_ids": ["claim-wave-1-restore-macos-backend-readiness"],
+            "env": [],
+        },
+        "blocked_run_classes": [
+            {
+                "run_class": "macos-server-backed-smoke",
+                "allowed": False,
+                "roadmaps": ["E"],
+                "missing_env": [],
+                "blocking_profiles": [
+                    "macos-backend-readiness-probe",
+                    "macos-roadmap-p0-sensor-contract-smoke",
+                ],
+            }
+        ],
+    }
+
+    contract = product_readiness.blocked_run_classes_contract_payload(summary)
+    markdown = product_readiness.render_blocked_run_classes_contract_markdown(contract)
+
+    macos_class = contract["classes"][0]
+    assert macos_class["run_class"] == "macos-server-backed-smoke"
+    assert macos_class["resolution_class"] == "profile_or_lab_required"
+    assert "Developer ID signed/notarized agent" in macos_class["action"]
+    assert "com.apple.developer.endpoint-security.client" in macos_class["action"]
+    assert "com.apple.developer.system-extension.install" in macos_class["action"]
+    assert macos_class["claim_ids"] == ["claim-wave-1-restore-macos-backend-readiness"]
+    assert macos_class["commands"] == summary["recommended_next_action"]["commands"]
+    release_gate = product_readiness.release_gate_contract_payload(
+        {
+            **summary,
+            "product_release_gate": {
+                "passed": False,
+                "failed_count": 1,
+                "failed_ids": ["blocked-run-classes"],
+                "requirements": [
+                    {
+                        "id": "blocked-run-classes",
+                        "passed": False,
+                        "current": "1",
+                        "required": "0 blocked run classes",
+                    }
+                ],
+            },
+            "external_claim_allowed": False,
+            "env_queue": {"current_env_missing_count": 0, "current_env_missing_names": []},
+            "post_agent_status_gate": {
+                "ready_after_env_required_count": 0,
+                "ready_after_env_passed_count": 0,
+            },
+            "manual_claims": [],
+        }
+    )
+    release_macos_class = release_gate["blocked_run_classes"][0]
+    assert "Developer ID signed/notarized agent" in release_macos_class["action"]
+    assert "com.apple.developer.system-extension.install" in release_macos_class["action"]
+    assert release_macos_class["claim_ids"] == ["claim-wave-1-restore-macos-backend-readiness"]
+    assert release_macos_class["commands"] == summary["recommended_next_action"]["commands"]
+    assert "Developer ID signed/notarized agent" in markdown
+    assert "claim-wave-1-restore-macos-backend-readiness" in markdown
+    assert "wave-1-restore-macos-backend-readiness.ps1" in markdown
+
+
 def test_status_consistency_accepts_product_readiness_runbook_shape():
     summary = {
         "generated_at": "2026-06-12T00:00:00Z",
@@ -3283,6 +5855,12 @@ def test_status_consistency_accepts_product_readiness_runbook_shape():
             "commands": [],
             "claim_ids": [],
             "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "source_artifacts": {
+            "macos_backend": "docs/benchmarks/runs/example-macos-backend.json",
+            "macos_release_artifact_preflight": (
+                "docs/benchmarks/runs/example-macos-release-artifact-preflight.json"
+            ),
         },
     }
     env_request = {"required_env_count": 1}
@@ -3363,6 +5941,80 @@ def test_status_consistency_accepts_product_readiness_runbook_shape():
     )
 
 
+def test_product_readiness_runbook_marks_runtime_evidence_blocked_without_env():
+    summary = {
+        "generated_at": "2026-06-18T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "resolve-manual-claims",
+        "recommended_next_action": {
+            "id": "resolve-manual-claims",
+            "step": 2,
+            "title": "Resolve manual claims that launchers intentionally skip",
+            "claim_boundary": "manual lab/operator decision required before automation can claim progress",
+            "commands": [],
+            "claim_ids": ["claim-wave-1-restore-macos-backend-readiness"],
+            "env": [],
+        },
+        "manual_claims": [
+            {
+                "claim_id": "claim-wave-1-restore-macos-backend-readiness",
+                "manual_prerequisites": [
+                    "Copy /var/log/tamandua/macos-bootstrap-readiness.json and set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT."
+                ],
+            }
+        ],
+        "product_release_gate": {
+            "failed_count": 5,
+            "failed_ids": [
+                "closure-gate",
+                "preflight-gate",
+                "dispatch-gate",
+                "manual-claims",
+                "blocked-run-classes",
+            ],
+        },
+        "env_queue": {"current_env_missing_count": 0, "current_env_missing_names": []},
+        "claims": {
+            "blocked_missing_env_count": 0,
+            "claim_count": 2,
+            "manual_claim_required_count": 1,
+            "ready_to_launch_count": 0,
+        },
+        "post_agent_status_gate": {"status_counts": {"not_run": 2}},
+    }
+    env_request = {"required_env_count": 0}
+    post_env_contract = {"guards": ["execute_switch_required_for_claim_launch"]}
+    claim_status_contract = {"ready_after_env_required_count": 0}
+    blocked_run_classes_contract = {"blocked_run_class_count": 1}
+
+    runbook = product_readiness.product_readiness_runbook_payload(
+        summary,
+        env_request,
+        post_env_contract,
+        claim_status_contract,
+        blocked_run_classes_contract,
+    )
+
+    assert runbook["automation_state"] == "runtime_evidence_blocked"
+    assert "runtime_evidence_blocked" in product_readiness.product_readiness_runbook_schema()[
+        "properties"
+    ]["automation_state"]["enum"]
+    assert runbook["recommended_next_action"]["manual_prerequisites"] == [
+        "Copy /var/log/tamandua/macos-bootstrap-readiness.json and set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT."
+    ]
+    assert (
+        consistency.product_readiness_runbook_matches_contracts(
+            runbook,
+            summary,
+            env_request,
+            post_env_contract,
+            claim_status_contract,
+            blocked_run_classes_contract,
+        )
+        is True
+    )
+
+
 def test_status_consistency_accepts_remaining_work_shape():
     summary = {
         "generated_at": "2026-06-12T00:00:00Z",
@@ -3381,6 +6033,9 @@ def test_status_consistency_accepts_remaining_work_shape():
             {
                 "claim_id": "claim-manual",
                 "prompt_path": "runs/wave-manual.agent.md",
+                "manual_prerequisites": [
+                    "Copy /var/log/tamandua/macos-bootstrap-readiness.json and set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT."
+                ],
             }
         ],
     }
@@ -3422,7 +6077,10 @@ def test_status_consistency_accepts_remaining_work_shape():
     env_request = {"required_env_count": 1}
     claim_status_contract = {"ready_after_env_required_count": 1, "ready_after_env_passed_count": 0}
     blocked_run_classes_contract = {"blocked_run_class_count": 1, "profile_or_lab_blocked_count": 1}
-    runbook = {"steps": [{"id": "inspect-current-state"}, {"id": "fill-env-bundle"}]}
+    runbook = {
+        "automation_state": "blocked_missing_env",
+        "steps": [{"id": "inspect-current-state"}, {"id": "fill-env-bundle"}],
+    }
     remaining_work = product_readiness.remaining_work_payload(
         summary,
         release_gate_contract,
@@ -3462,6 +6120,11 @@ def test_status_consistency_accepts_remaining_work_shape():
         "pass-ready-after-env-agent-status",
         "clear-blocked-run-classes",
     ]
+    manual_item = next(item for item in remaining_work["items"] if item["id"] == "resolve-manual-claims")
+    assert any(
+        "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT" in evidence
+        for evidence in manual_item["evidence_required"]
+    )
 
     stale_remaining_work = copy.deepcopy(remaining_work)
     stale_remaining_work["items"][0]["id"] = "wrong"
@@ -3704,9 +6367,16 @@ def test_status_consistency_accepts_agent_handoff_manifest_shape():
             "step": 2,
             "title": "Fill the complete redacted env bundle locally",
             "claim_boundary": "operator input only; do not paste secret values into reports",
+            "actions": ["Populate TAMANDUA_SERVER_PASSWORD in the local env bundle, then rerun the runner."],
             "commands": [],
             "claim_ids": [],
             "env": ["TAMANDUA_SERVER_PASSWORD"],
+        },
+        "source_artifacts": {
+            "macos_backend": "docs/benchmarks/runs/example-macos-backend.json",
+            "macos_release_artifact_preflight": (
+                "docs/benchmarks/runs/example-macos-release-artifact-preflight.json"
+            ),
         },
     }
     env_request = {
@@ -3782,7 +6452,10 @@ def test_status_consistency_accepts_agent_handoff_manifest_shape():
         "env_blocked_count": 1,
         "profile_or_lab_blocked_count": 0,
     }
-    runbook = {"steps": [{"id": "inspect-current-state"}, {"id": "fill-env-bundle"}]}
+    runbook = {
+        "automation_state": "blocked_missing_env",
+        "steps": [{"id": "inspect-current-state"}, {"id": "fill-env-bundle"}],
+    }
     remaining_work = {"open_count": 2}
     ready_now_fanout = {"ready_now_count": 1}
     manual_claim_resolution = {
@@ -3819,7 +6492,15 @@ def test_status_consistency_accepts_agent_handoff_manifest_shape():
     )
     assert handoff["recommended_next_action_id"] == "fill-env-bundle"
     assert handoff["recommended_next_action"]["id"] == "fill-env-bundle"
+    assert handoff["recommended_next_action"]["actions"] == [
+        "Populate TAMANDUA_SERVER_PASSWORD in the local env bundle, then rerun the runner."
+    ]
     assert handoff["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert handoff["source_artifacts"] == summary["source_artifacts"]
+    markdown = product_readiness.render_agent_handoff_manifest_markdown(handoff)
+    assert "Source Artifacts" in markdown
+    assert "`macos_backend`" in markdown
+    assert "example-macos-release-artifact-preflight.json" in markdown
     assert handoff["contracts"]["manual_claim_resolution_runner_schema"].endswith(
         "validation_product_readiness_manual_claim_resolution_runner.schema.json"
     )
@@ -3884,6 +6565,12 @@ def test_status_consistency_accepts_manual_claim_resolution_contract_shape():
             }
         ],
         "post_agent_status_gate": {"report": "claim_status_report.json"},
+        "source_artifacts": {
+            "macos_backend": "docs/benchmarks/runs/example-macos-backend.json",
+            "macos_release_artifact_preflight": (
+                "docs/benchmarks/runs/example-macos-release-artifact-preflight.json"
+            ),
+        },
     }
     payload = product_readiness.manual_claim_resolution_payload(summary)
 
@@ -3908,6 +6595,10 @@ def test_status_consistency_accepts_manual_claim_resolution_contract_shape():
     assert payload["recommended_next_action_id"] == "fill-env-bundle"
     assert payload["recommended_next_action"]["id"] == "fill-env-bundle"
     assert payload["recommended_next_action"]["env"] == ["TAMANDUA_SERVER_PASSWORD"]
+    assert payload["source_artifacts"] == summary["source_artifacts"]
+    markdown = product_readiness.render_manual_claim_resolution_markdown(payload)
+    assert "Source Artifacts" in markdown
+    assert "`macos_release_artifact_preflight`" in markdown
 
     check_payload = {
         "schema_version": 1,
@@ -3949,6 +6640,7 @@ def test_status_consistency_accepts_manual_claim_resolution_contract_shape():
         "claim_ids": ["claim-wave-1-resolve-atomic-extended-preconditions"],
         "check_only_commands": [payload["claims"][0]["check_only_command"]],
         "guarded_resolution_commands": [payload["claims"][0]["guarded_resolution_command"]],
+        "manual_prerequisites": [],
         "guard_env": "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION",
         "guard_required_value": "1",
         "recommended_next_action_id": "fill-env-bundle",
@@ -3969,6 +6661,88 @@ def test_status_consistency_accepts_manual_claim_resolution_contract_shape():
         consistency.product_readiness_manual_claim_resolution_runner_schema_matches_payload(
             product_readiness.manual_claim_resolution_runner_schema(),
             runner_payload,
+        )
+        is True
+    )
+
+
+def test_manual_claim_resolution_blocks_macos_runtime_claim_execution():
+    summary = {
+        "generated_at": "2026-06-18T00:00:00Z",
+        "product_ready": False,
+        "recommended_next_action_id": "resolve-manual-claims",
+        "recommended_next_action": {
+            "id": "resolve-manual-claims",
+            "step": 2,
+            "title": "Resolve manual claims that launchers intentionally skip",
+            "claim_boundary": "manual lab/operator decision required before automation can claim progress",
+            "commands": [],
+            "claim_ids": ["claim-wave-1-restore-macos-backend-readiness"],
+            "env": [],
+        },
+        "manual_claims": [
+            {
+                "claim_id": "claim-wave-1-restore-macos-backend-readiness",
+                "package_id": "wave-1-restore-macos-backend-readiness",
+                "wave": 1,
+                "owner": "validation-agent",
+                "prompt_path": "docs/benchmarks/runs/dispatch.package-artifacts/macos.agent.md",
+                "script_path": "docs/benchmarks/runs/dispatch.package-artifacts/macos.ps1",
+                "command": "powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1",
+                "next_action": "Deploy a Developer ID signed/notarized agent binary for macOS.",
+                "manual_prerequisites": [
+                    "Copy /var/log/tamandua/macos-bootstrap-readiness.json from the signed/notarized macOS bootstrap and set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT to that local file before macOS backend readiness/P0 smoke."
+                ],
+                "claim_boundary": "manual operator decision required before automation can claim this blocker",
+            }
+        ],
+        "post_agent_status_gate": {"report": "claim_status_report.json"},
+        "source_artifacts": {
+            "macos_backend": "docs/benchmarks/runs/example-macos-backend.json",
+            "macos_release_artifact_preflight": (
+                "docs/benchmarks/runs/example-macos-release-artifact-preflight.json"
+            ),
+        },
+    }
+    payload = product_readiness.manual_claim_resolution_payload(summary)
+    claim = payload["claims"][0]
+
+    assert claim["command"].endswith("run-macos-p0-smoke.ps1")
+    assert claim["guarded_resolution_command"] == ""
+    assert claim["manual_prerequisites"] == [
+        "Copy /var/log/tamandua/macos-bootstrap-readiness.json from the signed/notarized macOS bootstrap and set TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT to that local file before macOS backend readiness/P0 smoke."
+    ]
+    assert "manual_claim_resolution_check.ps1 -Json" in claim["check_only_command"]
+    assert "external/runtime preconditions" in " ".join(claim["evidence_required"])
+    assert "manual prerequisite satisfied: Copy /var/log/tamandua/macos-bootstrap-readiness.json" in " ".join(
+        claim["evidence_required"]
+    )
+    assert consistency.product_readiness_manual_claim_resolution_matches_summary(payload, summary) is True
+
+    runner_payload = {
+        "schema_version": 1,
+        "artifact": "validation-product-readiness-manual-claim-resolution-runner",
+        "product_ready": False,
+        "execute_requested": False,
+        "execute_allowed": False,
+        "unresolved_manual_claim_count": 1,
+        "claim_ids": ["claim-wave-1-restore-macos-backend-readiness"],
+        "check_only_commands": [claim["check_only_command"]],
+        "guarded_resolution_commands": [],
+        "manual_prerequisites": claim["manual_prerequisites"],
+        "guard_env": "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION",
+        "guard_required_value": "1",
+        "recommended_next_action_id": "resolve-manual-claims",
+        "recommended_next_action": payload["recommended_next_action"],
+        "claim_boundary": (
+            "manual resolution runner; execution requires explicit guard and may close manual claims only "
+            "after refreshed evidence"
+        ),
+    }
+    assert (
+        consistency.product_readiness_manual_claim_resolution_runner_json_matches_contract(
+            runner_payload,
+            payload,
         )
         is True
     )
@@ -4656,6 +7430,40 @@ def test_scorecard_manual_claim_review_includes_dispatch_manual_claims(tmp_path)
     assert "preserve the full remediation text for handoff." in review[0]["snippet"]
 
 
+def test_scorecard_compact_report_normalizes_legacy_macos_entitlement_action():
+    report = {
+        "_run_id": "20260618T094143Z-macos-backend-readiness-probe",
+        "_path": "docs/benchmarks/runs/20260618T094143Z-macos-backend-readiness-probe.json",
+        "_timestamp": "2026-06-18T09:41:43Z",
+        "profile_id": "macos-backend-readiness-probe",
+        "summary": {"tests": 1, "covered": 0, "partial": 0, "missed": 1},
+        "quality_gate": {
+            "passed": False,
+            "actionable_gaps": [
+                {
+                    "evidence": {
+                        "next_action": {
+                            "action": (
+                                "Deploy a Developer ID signed/notarized agent binary for macOS "
+                                "that Gatekeeper accepts and that includes "
+                                "com.apple.developer.endpoint-security.client, confirm Full Disk "
+                                "Access remains approved, then rerun macos_backend_readiness_probe.py "
+                                "before smoke execution."
+                            )
+                        }
+                    }
+                }
+            ],
+        },
+    }
+
+    compact = scorecard.compact_report(report)
+    action = compact["actionable_gaps"][0]["evidence"]["next_action"]["action"]
+
+    assert "com.apple.developer.endpoint-security.client" in action
+    assert "com.apple.developer.system-extension.install" in action
+
+
 def test_scorecard_payload_manual_claim_review_is_dispatch_only(monkeypatch, tmp_path):
     dispatch_review = [
         {
@@ -4772,7 +7580,7 @@ def test_status_consistency_requires_structured_manual_claim_review_markdown(tmp
     )
     assert not consistency.scorecard_markdown_matches_manual_claim_review(scorecard_payload, scorecard_md)
     scorecard_md.write_text(
-        "| Entity | Generated Status | Manual Wording | Location | Snippet |\n",
+        "## Manual Claim Review\n\n| Entity | Generated Status | Manual Wording | Location | Snippet |\n",
         encoding="utf-8",
     )
     assert not consistency.scorecard_markdown_exposes_structured_manual_claim_review(scorecard_md)
@@ -5343,6 +8151,20 @@ def test_closure_gate_roadmap_e_prioritizes_macos_auth():
     assert "reconnect or re-enroll" in action
 
 
+def test_closure_gate_roadmap_e_targets_macos_runtime_signing_after_auth():
+    action = closure_gate.roadmap_action_text(
+        "E",
+        [{"profile_id": "macos-backend-readiness-probe", "missing_values": []}],
+        [],
+    )
+
+    assert "Developer ID signed/notarized macOS agent" in action
+    assert "com.apple.developer.endpoint-security.client" in action
+    assert "com.apple.developer.system-extension.install" in action
+    assert "Full Disk Access" in action
+    assert "Reconnect or re-enroll" not in action
+
+
 def test_closure_gate_markdown_renders_next_actions(tmp_path):
     report = {
         "run_id": "20260604T000000Z-roadmap-closure-gate-probe",
@@ -5874,14 +8696,11 @@ def test_status_consistency_explicit_run_id_can_be_prospective_latest(tmp_path):
 def test_status_consistency_prospective_run_accepts_pre_aligned_doc_checks(tmp_path):
     prospective_run = "20990101T000000Z-validation-status-consistency-probe"
     scorecard = consistency.load_json(consistency.SCORECARD_JSON)
-    consistency_entry = consistency.profile_entry(scorecard, "validation-status-consistency-probe")
-    latest_fail = consistency_entry.get("latest_fail", {}).get("run_id")
     status_docs = []
     for index in range(len(consistency.STATUS_DOCS)):
         doc = tmp_path / f"status-{index}.md"
         doc.write_text(
-            f"latest consistency run {prospective_run}\n"
-            f"latest superseded consistency fail {latest_fail}\n",
+            "docs/benchmarks/generated/validation_status_consistency.md is green\n",
             encoding="utf-8",
         )
         status_docs.append(doc)
@@ -5896,17 +8715,10 @@ def test_status_consistency_prospective_run_accepts_pre_aligned_doc_checks(tmp_p
     doc_checks = [
         item
         for item in payload["checks"]
-        if item["name"].endswith("references latest consistency run")
+        if item["name"].endswith("references current consistency evidence")
     ]
     assert len(doc_checks) == len(consistency.STATUS_DOCS)
     assert {item["status"] for item in doc_checks} == {"PASS"}
-    fail_doc_checks = [
-        item
-        for item in payload["checks"]
-        if item["name"].endswith("references latest superseded consistency fail")
-    ]
-    assert len(fail_doc_checks) == len(consistency.STATUS_DOCS)
-    assert {item["status"] for item in fail_doc_checks} == {"PASS"}
     no_stale_fail_doc_checks = [
         item
         for item in payload["checks"]
@@ -5916,8 +8728,7 @@ def test_status_consistency_prospective_run_accepts_pre_aligned_doc_checks(tmp_p
     assert {item["status"] for item in no_stale_fail_doc_checks} == {"PASS"}
 
     status_docs[0].write_text(
-        f"latest consistency run {prospective_run}\n"
-        f"latest superseded consistency fail {latest_fail}\n"
+        "docs/benchmarks/generated/validation_status_consistency.md is green\n"
         "latest consistency fail 20260604T185533Z-validation-status-consistency-probe\n",
         encoding="utf-8",
     )
@@ -6806,6 +9617,7 @@ def test_status_consistency_validates_dispatch_package_summaries_against_artifac
         artifact["packages"][0]["evidence_excerpt"]["missing"] = ["required_env"]
         artifact["packages"][0]["first_gap"] = None
         artifact["packages"][0]["evidence_excerpt"] = {}
+        artifact["packages"][0]["profile_results"] = []
         assert not consistency.dispatch_package_evidence_excerpt_is_actionable(artifact)
         artifact["packages"][0]["first_gap"] = {"test_id": "target-offline", "missing": ["required_env"]}
         artifact["packages"][0]["evidence_excerpt"] = {
@@ -6816,6 +9628,17 @@ def test_status_consistency_validates_dispatch_package_summaries_against_artifac
                 "health": "unknown",
             }
         }
+        artifact["packages"][0]["profile_results"] = [
+            {
+                "profile_id": "windows-agent-connection-stability-probe",
+                "evidence_excerpt": {
+                    "next_action": {
+                        "missing_stability": ["server_log_access", "telemetry_batches"],
+                        "action": "Set TAMANDUA_SERVER_PASSWORD.",
+                    }
+                },
+            }
+        ]
         dispatch_md.write_text(dispatch_md.read_text(encoding="utf-8").replace("20260603T180000Z-example-probe.json", "wrong.json"), encoding="utf-8")
         assert not consistency.dispatch_markdown_matches_package_summaries(artifact)
         dispatch_md.write_text(
@@ -7233,6 +10056,90 @@ def test_status_consistency_validates_dispatch_handoff_execution_guards(tmp_path
         consistency.ROOT = old_root
 
 
+def test_status_consistency_requires_current_action_precondition_in_dispatch_handoff(tmp_path):
+    run_id = "20260617T045207Z-validation-dispatch-results-probe"
+    archive_root = tmp_path / "docs" / "benchmarks" / "runs" / f"{run_id}.package-artifacts"
+    package_dir = archive_root / "wave-1-macos"
+    package_dir.mkdir(parents=True)
+    script_path = package_dir / "wave-1-macos.ps1"
+    prompt_path = package_dir / "wave-1-macos.agent.md"
+    current_action = (
+        "Deploy a Developer ID signed/notarized agent with "
+        "com.apple.developer.endpoint-security.client and "
+        "com.apple.developer.system-extension.install, approve the Tamandua system extension "
+        "and Full Disk Access, then rerun macos_backend_readiness_probe.py."
+    )
+    base_script = (
+        "$StatusPath = 'agent_status.json'\n"
+        "$PackageId = 'wave-1-macos'\n"
+        "$ClaimId = 'claim-wave-1-macos'\n"
+        "$AgentId = 'agent-a'\n"
+        "function Write-AgentStatus {\n"
+        "  param([string]$Status, [int]$ExitCode, [string[]]$Notes)\n"
+        "  $Artifacts = @()\n"
+        "  $Payload = [pscustomobject]@{ profile_id = 'x'; quality_gate = [pscustomobject]@{ passed = $true } }\n"
+        "  $ProfileIdProperty = $Payload.PSObject.Properties['profile_id']\n"
+        "  $QualityGateProperty = $Payload.PSObject.Properties['quality_gate']\n"
+        "  $PassedProperty = $QualityGateProperty.Value.PSObject.Properties['passed']\n"
+        "  $BlockerCleared = ($Status -eq 'pass')\n"
+        "  $Payload = [ordered]@{\n"
+        "    package_id = $PackageId\n"
+        "    claim_id = $ClaimId\n"
+        "    agent_id = $AgentId\n"
+        "    status = $Status\n"
+        "    artifacts = @($Artifacts)\n"
+        "    blocker_cleared = [bool]$BlockerCleared\n"
+        "    notes = @($Notes)\n"
+        "  }\n"
+        "}\n"
+        "# Current failed evidence precondition from latest artifacts.\n"
+        f"Write-Host 'Current next action: {current_action}'\n"
+        "Write-Host 'Resolve this external/runtime precondition before expecting this package to clear its blocker.'\n"
+        "$RequiredEnv = @('TAMANDUA_TOKEN')\n"
+        "$MissingEnv = @($RequiredEnv | Where-Object { -not [Environment]::GetEnvironmentVariable($_) })\n"
+        "if ($MissingEnv.Count -gt 0) { Write-Error 'Missing effective env for package'; Write-AgentStatus 'blocked' 2 @('missing_effective_env: TAMANDUA_TOKEN'); exit 2 }\n"
+        "Write-Error 'Missing claim lock helper for direct package execution.'\n"
+    )
+    script_path.write_text(base_script, encoding="utf-8")
+    prompt_path.write_text(
+        "Current external/runtime precondition:\n"
+        f"- {current_action}\n"
+        "- Do not treat a rerun as blocker-clearing evidence until this precondition has changed.\n",
+        encoding="utf-8",
+    )
+    manifest = {
+        "packages": [
+                {
+                    "package_id": "wave-1-macos",
+                    "required_env": ["TAMANDUA_TOKEN"],
+                    "script_path": f"docs/benchmarks/runs/{run_id}.package-artifacts/wave-1-macos/wave-1-macos.ps1",
+                "prompt_path": f"docs/benchmarks/runs/{run_id}.package-artifacts/wave-1-macos/wave-1-macos.agent.md",
+                "current_next_action": {"action": current_action},
+            }
+        ],
+    }
+    (archive_root / "dispatch_manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
+    artifact = {
+        "dispatch_manifest": f"docs/benchmarks/runs/{run_id}.package-artifacts/dispatch_manifest.json",
+    }
+    old_root = consistency.ROOT
+    consistency.ROOT = tmp_path
+    try:
+        assert consistency.dispatch_archived_handoff_execution_guards_present(artifact)
+        prompt_path.write_text("Task:\nRun the script.\n", encoding="utf-8")
+        assert not consistency.dispatch_archived_handoff_execution_guards_present(artifact)
+        prompt_path.write_text(
+            "Current external/runtime precondition:\n"
+            f"- {current_action}\n"
+            "- Do not treat a rerun as blocker-clearing evidence until this precondition has changed.\n",
+            encoding="utf-8",
+        )
+        script_path.write_text(base_script.replace(current_action, "stale action"), encoding="utf-8")
+        assert not consistency.dispatch_archived_handoff_execution_guards_present(artifact)
+    finally:
+        consistency.ROOT = old_root
+
+
 def test_status_consistency_validates_dependent_launcher_evidence_guards(tmp_path):
     run_id = "20260603T182929Z-validation-dispatch-results-probe"
     archive_root = tmp_path / "docs" / "benchmarks" / "runs" / f"{run_id}.package-artifacts"
@@ -7295,19 +10202,19 @@ def test_status_consistency_validates_one_shot_runner_guard(tmp_path):
     status_file.parent.mkdir(parents=True)
     status_file.write_text(
         json.dumps(
-            {
-                "package_id": "wave-1-caldera",
-                "claim_id": "claim-wave-1-caldera",
-                "agent_id": "agent-a",
-                "status": "blocked",
-                "artifacts": [],
-                "blocker_cleared": False,
-                "notes": ["missing_env"],
-                "exit_code": 2,
-                "expected_profiles": ["caldera-api-shape-probe"],
-                "missing_profiles": ["caldera-api-shape-probe"],
-            }
-        ),
+                {
+                    "package_id": "wave-1-caldera",
+                    "claim_id": "claim-wave-1-caldera",
+                    "agent_id": "agent-a",
+                    "status": "not_run",
+                    "artifacts": [],
+                    "blocker_cleared": None,
+                    "notes": [],
+                    "exit_code": None,
+                    "expected_profiles": ["caldera-api-shape-probe"],
+                    "missing_profiles": [],
+                }
+            ),
         encoding="utf-8",
     )
     runner_path = archive_root / "dispatch_one_shot_runner.ps1"
@@ -7664,13 +10571,13 @@ def test_status_consistency_validates_owner_launch_plan_json_matches_manifest(tm
                 "package_id": "wave-1-caldera",
                 "claim_id": "claim-wave-1-caldera",
                 "agent_id": "agent-a",
-                "status": "blocked",
+                "status": "not_run",
                 "artifacts": [],
-                "blocker_cleared": False,
-                "notes": ["missing_env"],
-                "exit_code": 2,
+                "blocker_cleared": None,
+                "notes": [],
+                "exit_code": None,
                 "expected_profiles": ["caldera-api-shape-probe"],
-                "missing_profiles": ["caldera-api-shape-probe"],
+                "missing_profiles": [],
             }
         ),
         encoding="utf-8",
@@ -7708,15 +10615,19 @@ def test_status_consistency_validates_owner_launch_plan_json_matches_manifest(tm
                                 "missing_effective_env": ["CALDERA_API_KEY"],
                                 "ready_to_launch": False,
                                 "blocked_reasons": ["missing_effective_env"],
-                                "current_status": "blocked",
-                                "current_exit_code": 2,
-                                "current_notes": ["missing_env"],
+                                "current_status": "not_run",
+                                "current_exit_code": None,
+                                "current_notes": [],
                                 "current_artifacts": [],
-                                "current_missing_profiles": ["caldera-api-shape-probe"],
-                                "current_blocker_cleared": False,
-                                "current_next_action": {
-                                    "action": "Provide CALDERA_API_KEY before rerunning the API shape probe."
-                                },
+                                "current_missing_profiles": [],
+                                "current_blocker_cleared": None,
+                                    "current_next_action": {
+                                        "action": "Provide CALDERA_API_KEY before rerunning the API shape probe.",
+                                        "required_env": ["CALDERA_API_KEY"],
+                                    },
+                                    "current_next_action_required_env": ["CALDERA_API_KEY"],
+                                    "next_action_required_env": ["CALDERA_API_KEY"],
+                                    "effective_required_env": ["CALDERA_API_KEY"],
                             }
                         ],
                     }
@@ -8316,7 +11227,7 @@ def test_agent_spawn_and_parallel_launchers_surface_current_next_action(tmp_path
                 "wave": 1,
                 "stage": 1,
                 "missing_effective_env": ["TAMANDUA_TOKEN"],
-                "blocked_reasons": ["missing_effective_env"],
+                                    "blocked_reasons": ["missing_effective_env", "agent_status_blocked"],
                 "prompt_path": str(prompt_path),
                 "current_next_action": next_action,
             },
@@ -9544,6 +12455,105 @@ def test_owner_launch_plan_blocks_current_macos_token_next_action(tmp_path, monk
     assert "Next-action env: TAMANDUA_TOKEN" in prompt
     assert "Effective env checklist: TAMANDUA_TOKEN" in prompt
     assert token_login_command in prompt
+
+
+def test_owner_launch_plan_dependency_wave_inherits_current_blocker_next_action(tmp_path):
+    wave1_script = tmp_path / "wave-1-macos.ps1"
+    wave3_script = tmp_path / "wave-3-gates.ps1"
+    wave1_script.write_text("Write-Host wave1", encoding="utf-8")
+    wave3_script.write_text("Write-Host wave3", encoding="utf-8")
+    artifact_path = tmp_path / "20260617T173839Z-macos-backend-readiness-probe.json"
+    blocker_action = {
+        "target_agent_id": "mac-agent-1",
+        "target_hostname": "Victors-MacBook-Pro.local",
+        "missing_readiness": ["health_healthy"],
+        "action": (
+            "Resolve the selected macOS agent health degradation before smoke execution. "
+            "Deploy a Developer ID signed/notarized agent with "
+            "com.apple.developer.endpoint-security.client and "
+            "com.apple.developer.system-extension.install, confirm the Tamandua system extension "
+            "is active and Full Disk Access is approved on the Mac, then rerun "
+            "macos_backend_readiness_probe.py."
+        ),
+    }
+    artifact_path.write_text(
+        json.dumps(
+            {
+                "profile_id": "macos-backend-readiness-probe",
+                "quality_gate": {
+                    "status": "fail",
+                    "passed": False,
+                    "actionable_gaps": [
+                        {
+                            "test_id": "macos-backend-agent-online-healthy",
+                            "missing": ["health_healthy"],
+                            "evidence": {"next_action": blocker_action},
+                        }
+                    ],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    status_path = preflight_work_package.package_status_path_for_script(wave1_script)
+    status_path.parent.mkdir(parents=True)
+    status_path.write_text(
+        json.dumps(
+            {
+                "package_id": "wave-1-macos",
+                "status": "fail",
+                "exit_code": 1,
+                "artifacts": [str(artifact_path)],
+                "missing_profiles": ["macos-backend-readiness-probe"],
+                "notes": ["health_healthy is still missing"],
+            }
+        ),
+        encoding="utf-8",
+    )
+    packages = [
+        {
+            "package_id": "wave-1-macos",
+            "title": "Restore macOS readiness",
+            "wave": 1,
+            "parallelizable_in_wave": False,
+            "recommended_owner_role": "validation-agent",
+            "resource_tags": ["macos-agent"],
+            "required_env": [],
+            "roadmaps": ["E"],
+            "expected_profile_ids": ["macos-backend-readiness-probe"],
+        },
+        {
+            "package_id": "wave-3-gates",
+            "title": "Rerun gates",
+            "wave": 3,
+            "parallelizable_in_wave": False,
+            "recommended_owner_role": "validation-agent",
+            "resource_tags": ["macos-agent"],
+            "depends_on_waves": [1],
+            "required_env": [],
+            "roadmaps": ["E"],
+            "expected_profile_ids": ["roadmap-closure-gate-probe"],
+            "current_next_action": {
+                "missing_readiness": ["health_healthy"],
+                "action": "Resolve the selected macOS agent health degradation before smoke execution. Check EndpointSecurity/system extension and Full Disk Access approval on the Mac, then rerun macos_backend_readiness_probe.py.",
+            },
+        },
+    ]
+
+    plan = preflight_work_package.build_owner_launch_plan_json(
+        packages,
+        {"wave-1-macos": wave1_script, "wave-3-gates": wave3_script},
+    )
+    entries = {
+        package["package_id"]: package
+        for owner in plan["owners"]
+        for package in owner["packages"]
+    }
+
+    assert entries["wave-3-gates"]["ready_to_launch"] is False
+    assert "depends_on_prior_waves" in entries["wave-3-gates"]["blocked_reasons"]
+    assert entries["wave-3-gates"]["current_next_action"]["action"] == blocker_action["action"]
+    assert "Developer ID signed/notarized agent" in entries["wave-3-gates"]["current_next_action"]["action"]
 
 
 def test_current_next_action_infers_macos_token_handoff_from_auth_error(tmp_path):
@@ -13323,114 +16333,53 @@ def test_status_consistency_extracts_caldera_repeatability_reset_reasons():
 def test_status_consistency_validates_closure_next_actions():
     artifact = {
         "roadmap_next_actions": [
-            {
-                "roadmap": "A",
-                "blocking_profiles": ["windows-lab-execution-readiness-probe"],
-                "required_env": [],
-                "action": "Restore Windows readiness.",
-            },
-            {
-                "roadmap": "B",
-                "blocking_profiles": ["fresh-restore-provenance-probe"],
-                "required_env": consistency.EXPECTED_CLOSURE_NEXT_ACTION_REQUIRED_ENVS["B"],
-                "action": "Run fresh restore batches.",
-            },
-            {
-                "roadmap": "C",
-                "blocking_profiles": ["windows-atomic-upstream-smoke"],
-                "required_env": [],
-                "action": "Install Invoke-AtomicTest and rerun with --require-upstream.",
-            },
-            {
-                "roadmap": "D",
-                "blocking_profiles": ["caldera-api-shape-probe"],
-                "required_env": consistency.EXPECTED_CLOSURE_NEXT_ACTION_REQUIRED_ENVS["D"],
-                "action": "Restore CALDERA readiness.",
-            },
-            {
-                "roadmap": "E",
-                "blocking_profiles": ["macos-backend-readiness-probe"],
-                "required_env": [],
-                "action": "Reconnect macOS.",
-            },
-            {
-                "roadmap": "M",
-                "blocking_profiles": ["windows-atomic-extended-safe"],
-                "required_env": [],
-                "action": "Close Atomic extended.",
-            },
+                {
+                    "roadmap": "E",
+                    "blocking_profiles": ["macos-backend-readiness-probe"],
+                    "required_env": [],
+                    "action": "Reconnect macOS.",
+                },
         ]
     }
 
     summary = consistency.closure_next_action_summary(artifact)
 
-    assert summary["D"] == {
-        "blocking_profiles": ["caldera-api-shape-probe"],
-        "required_env": ["CALDERA_AGENT_PAW", "CALDERA_API_KEY", "CALDERA_GROUP"],
+    assert summary["E"] == {
+        "blocking_profiles": ["macos-backend-readiness-probe"],
+        "required_env": [],
         "has_action": True,
     }
-    assert consistency.closure_next_actions_valid(artifact, ["A", "B", "C", "D", "E", "M"])
+    assert consistency.closure_next_actions_valid(artifact, ["E"])
 
 
 def test_status_consistency_rejects_closure_next_actions_missing_required_env():
     artifact = {
         "roadmap_next_actions": [
             {
-                "roadmap": roadmap,
-                "blocking_profiles": [f"roadmap-{roadmap.lower()}-profile"],
+                "roadmap": "E",
+                "blocking_profiles": ["macos-backend-readiness-probe"],
                 "required_env": [],
-                "action": f"Close roadmap {roadmap}.",
+                "action": "",
             }
-            for roadmap in ["A", "B", "C", "D", "E", "M"]
         ]
     }
 
-    assert not consistency.closure_next_actions_valid(artifact, ["A", "B", "C", "D", "E", "M"])
+    assert not consistency.closure_next_actions_valid(artifact, ["E"])
 
 
 def test_status_consistency_validates_preflight_roadmap_next_actions():
     artifact = {
         "roadmap_next_actions": [
             {
-                "roadmap": "A",
-                "blocking_profiles": ["windows-lab-execution-readiness-probe"],
-                "required_env": ["TAMANDUA_SERVER_PASSWORD"],
-                "action": "Restore Windows readiness.",
-            },
-            {
-                "roadmap": "B",
-                "blocking_profiles": ["fresh-restore-provenance-probe"],
-                "required_env": consistency.EXPECTED_CLOSURE_NEXT_ACTION_REQUIRED_ENVS["B"],
-                "action": "Run fresh restore batches.",
-            },
-            {
-                "roadmap": "C",
-                "blocking_profiles": ["windows-atomic-upstream-smoke"],
-                "required_env": [],
-                "action": "Install Invoke-AtomicTest and rerun with --require-upstream.",
-            },
-            {
-                "roadmap": "D",
-                "blocking_profiles": ["caldera-api-shape-probe"],
-                "required_env": consistency.EXPECTED_CLOSURE_NEXT_ACTION_REQUIRED_ENVS["D"],
-                "action": "Restore CALDERA readiness.",
-            },
-            {
                 "roadmap": "E",
                 "blocking_profiles": ["macos-backend-readiness-probe"],
                 "required_env": [],
                 "action": "Reconnect macOS.",
             },
-            {
-                "roadmap": "M",
-                "blocking_profiles": ["windows-atomic-extended-safe"],
-                "required_env": [],
-                "action": "Close Atomic extended.",
-            },
         ]
     }
 
-    assert consistency.preflight_roadmap_next_actions_valid(artifact, ["A", "B", "C", "D", "E", "M"])
+    assert consistency.preflight_roadmap_next_actions_valid(artifact, ["E"])
 
 
 def test_status_consistency_extracts_caldera_repeatability_next_actions():
@@ -13859,6 +16808,62 @@ def test_status_consistency_scorecard_open_roadmaps_only_excludes_roadmap_o_gene
     assert consistency.scorecard_open_roadmaps(scorecard) == ["A", "Q"]
 
 
+def test_status_consistency_extracts_manual_scorecard_open_roadmaps():
+    text = (
+        "Current generated scorecard open items: `B`, `B1`, `B2`, `E`,\n"
+        "`F`, `G`, `I`, `J`, `K`, `L`, `N`, `P`, `Q`, `R`, `S`, `T`, `U`,\n"
+        "and `V`. Roadmaps `A`, `C`, `D`, `H`, and `M` are currently generated `pass`."
+    )
+
+    assert consistency.manual_scorecard_open_roadmaps(text) == [
+        "B",
+        "B1",
+        "B2",
+        "E",
+        "F",
+        "G",
+        "I",
+        "J",
+        "K",
+        "L",
+        "N",
+        "P",
+        "Q",
+        "R",
+        "S",
+        "T",
+        "U",
+        "V",
+    ]
+
+
+def test_status_consistency_flags_stale_pass_roadmap_blocker_phrases():
+    assert consistency.stale_pass_roadmap_blocker_phrases(
+        "Roadmap C remains `partial` until a fresh upstream run succeeds."
+    ) == ["Roadmap C remains `partial`"]
+    assert consistency.stale_pass_roadmap_blocker_phrases(
+        "Roadmap C is currently generated `pass` and should be preserved."
+    ) == []
+
+
+def test_status_consistency_preserves_current_macos_backend_handoff():
+    current = (
+        "20260618T175420Z-macos-backend-readiness-probe sees the Mac online with fresh heartbeat "
+        "and reported endpoint telemetry. EndpointSecurity is unavailable / the endpoint sensor is not loaded. "
+        "Deploy with com.apple.developer.endpoint-security.client and "
+        "com.apple.developer.system-extension.install. Gatekeeper rejects `/opt/tamandua/tamandua-agent`."
+    )
+    stale = (
+        "20260618T094143Z-macos-backend-readiness-probe says the Mac is online with fresh heartbeat "
+        "and reported endpoint telemetry. EndpointSecurity is unavailable / the endpoint sensor is not loaded. "
+        "Deploy after the Developer ID/EndpointSecurity entitlement is ready. "
+        "Gatekeeper rejects `/opt/tamandua/tamandua-agent`."
+    )
+
+    assert consistency.current_macos_backend_handoff_is_fresh(current)
+    assert not consistency.current_macos_backend_handoff_is_fresh(stale)
+
+
 def test_status_consistency_validates_closure_excluded_roadmaps_against_scorecard():
     scorecard = {
         "roadmaps": [
@@ -14003,7 +17008,7 @@ def test_status_consistency_extracts_parallel_unblock_wave_shape():
 
 
 def test_status_consistency_reports_missing_expected_values():
-    assert "TAMANDUA_FRESH_RESTORE" in consistency.EXPECTED_PREFLIGHT_REQUIRED_ENVS
+    assert consistency.EXPECTED_PREFLIGHT_REQUIRED_ENVS == []
     assert consistency.missing_expected_values(["A", "C"], ["A", "B", "C"]) == ["B"]
     assert consistency.missing_expected_values(["A", "B"], ["A", "B"]) == []
     assert consistency.missing_expected_values(
@@ -14323,6 +17328,28 @@ def test_preflight_blocks_windows_transport_run_classes_for_readiness_gap():
     assert backend_step["required_env"] == []
 
 
+def test_preflight_macos_backend_step_targets_runtime_signing_not_reconnect():
+    blockers = [
+        {
+            "roadmap": "E",
+            "profile_id": "macos-backend-readiness-probe",
+            "required_env": [],
+            "blocking_gaps": ["macos_backend_readiness_missing"],
+        }
+    ]
+    readiness = preflight.classify_run_classes({"tests": []}, {}, [], blockers)
+
+    sequence = preflight.derive_unblock_sequence({}, [], blockers, readiness)
+    macos_step = next(item for item in sequence if item["step_id"] == "restore-macos-backend-readiness")
+
+    assert "Developer ID signed/notarized macOS agent" in macos_step["action"]
+    assert "com.apple.developer.endpoint-security.client" in macos_step["action"]
+    assert "com.apple.developer.system-extension.install" in macos_step["action"]
+    assert "Full Disk Access" in macos_step["action"]
+    assert "Reconnect or enroll" not in macos_step["action"]
+    assert "Reconnect or re-enroll" not in macos_step["action"]
+
+
 def test_preflight_derives_parallel_unblock_waves():
     sequence = [
         {"priority": 10, "step_id": "provide-required-preflight-env", "roadmaps": ["B", "D"], "blocked_run_classes": ["windows-broad"]},
@@ -14454,6 +17481,32 @@ def test_preflight_safe_commands_cover_all_unblock_steps():
         + preflight.safe_commands_for_step("restore-macos-backend-readiness")
     )
     assert endpoint_commands.count("--server http://192.168.12.146:4000") == 2
+    macos_commands = " ".join(preflight.safe_commands_for_step("restore-macos-backend-readiness"))
+    assert "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT" in macos_commands
+    assert "--bootstrap-readiness-report $BootstrapReadinessReport" in macos_commands
+    assert "-BootstrapReadinessReport $BootstrapReadinessReport" in macos_commands
+
+
+def test_preflight_work_package_allows_only_macos_bootstrap_report_guard_commands():
+    allowed = preflight.safe_commands_for_step("restore-macos-backend-readiness")
+
+    assert all(preflight_work_package.command_is_allowed(command) for command in allowed)
+    assert preflight_work_package.command_is_allowed(
+        "$BootstrapReadinessReport = $env:TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT"
+    )
+    assert not preflight_work_package.command_is_allowed("$Other = $env:TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT")
+    assert not preflight_work_package.command_is_allowed(
+        "if (-not $BootstrapReadinessReport) { Write-Host 'continue anyway' }"
+    )
+    assert not preflight_work_package.command_is_allowed(
+        "powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1 -OutputDir $Out -NoFailOnGate"
+    )
+    assert not preflight_work_package.command_is_allowed(
+        "powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1 -OutputDir $Out -BootstrapReadinessReport $BootstrapReadinessReport -SkipBackendReadinessCheck -NoFailOnGate"
+    )
+    assert preflight_work_package.command_is_allowed(
+        "powershell -File deploy/scripts/proxmox/run-macos-p0-smoke.ps1 -OutputDir $Out -BootstrapReadinessReport $BootstrapReadinessReport -NoFailOnGate"
+    )
 
 
 def test_preflight_operator_inputs_cover_fresh_restore_and_caldera():
@@ -14493,6 +17546,7 @@ def test_preflight_operator_inputs_cover_fresh_restore_and_caldera():
         "TAMANDUA_PROXMOX_PASSWORD",
         "TAMANDUA_SERVER_PASSWORD",
     }
+    assert preflight.operator_inputs_for_step("restore-macos-backend-readiness") == []
     assert {item["env"] for item in aggregate_inputs} >= {
         "CALDERA_API_KEY",
         "CALDERA_GROUP",
@@ -14506,6 +17560,15 @@ def test_preflight_operator_inputs_cover_fresh_restore_and_caldera():
     assert "three consecutive" in " ".join(
         preflight.manual_prerequisites_for_step("restore-caldera-readiness-repeatability")
     )
+    macos_prerequisites = " ".join(
+        preflight.manual_prerequisites_for_step("restore-macos-backend-readiness")
+    )
+    assert "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT" in macos_prerequisites
+    assert "macos-bootstrap-readiness.json" in macos_prerequisites
+    assert "signed/notarized release workflow" in macos_prerequisites
+    assert "Contents/Library/SystemExtensions/*.systemextension" in macos_prerequisites
+    assert "System Extension plus Full Disk Access approvals" in macos_prerequisites
+    assert "not a Proxmox VMID/QGA flow" in macos_prerequisites
 
 
 def test_preflight_work_package_finds_latest_preflight_artifact(tmp_path):
@@ -14800,11 +17863,85 @@ def test_preflight_work_package_prompt_and_manifest_include_roadmap_next_actions
         "expected_profiles",
         "missing_profiles",
     ]
-    assert manifest["packages"][0]["claim_output_contract"]["status_allowed_values"] == [
-        "pass",
-        "fail",
-        "blocked",
-    ]
+
+
+def test_preflight_package_prompt_and_script_surface_current_runtime_precondition(tmp_path):
+    preflight_path = tmp_path / "20260617T043926Z-validation-execution-preflight-probe.json"
+    output_dir = tmp_path / "wave-1-restore-macos-backend-readiness" / "outputs"
+    action = (
+        "Deploy a Developer ID signed/notarized agent with "
+        "com.apple.developer.endpoint-security.client, confirm the Tamandua system extension "
+        "is active and Full Disk Access is approved on the Mac, then rerun macos_backend_readiness_probe.py."
+    )
+    package = {
+        "package_id": "wave-1-restore-macos-backend-readiness",
+        "title": "Restore macOS backend readiness",
+        "wave": 1,
+        "recommended_owner_role": "validation-agent",
+        "expected_profile_ids": ["macos-backend-readiness-probe"],
+        "current_next_action": {
+            "action": "Check EndpointSecurity/system extension and Full Disk Access approval.",
+            "missing_readiness": ["health_healthy"],
+        },
+        "safe_commands": [
+            "python tools/detection_validation/macos_backend_readiness_probe.py --server http://192.168.12.146:4000 --output-dir $Out",
+        ],
+        "manual_prerequisites": preflight.manual_prerequisites_for_step(
+            "restore-macos-backend-readiness"
+        ),
+    }
+    output_dir.parent.mkdir(parents=True)
+    artifact_path = tmp_path / "macos-backend-readiness-probe.json"
+    artifact_path.write_text(
+        json.dumps(
+            {
+                "profile_id": "macos-backend-readiness-probe",
+                "quality_gate": {
+                    "passed": False,
+                    "actionable_gaps": [
+                        {
+                            "next_action": {
+                                "action": action,
+                                "missing_readiness": ["health_healthy"],
+                            }
+                        }
+                    ],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    (output_dir.parent / "agent_status.json").write_text(
+        json.dumps({"status": "fail", "artifacts": [str(artifact_path)]}),
+        encoding="utf-8",
+    )
+    script_path = tmp_path / "wave-1-restore-macos-backend-readiness.ps1"
+    script_text = preflight_work_package.render_package_script(
+        package,
+        preflight_path,
+        package_output_dir=output_dir,
+    )
+    script_path.write_text(script_text, encoding="utf-8")
+
+    prompt = preflight_work_package.render_agent_prompt(package, script_path, preflight_path)
+
+    assert "Current failed evidence precondition from latest artifacts" in script_text
+    assert "Current next action: Deploy a Developer ID signed/notarized agent" in script_text
+    assert "com.apple.developer.endpoint-security.client and com.apple.developer.system-extension.install" in script_text
+    assert "com.apple.developer.endpoint-security.client and com.apple.developer.system-extension.install" in prompt
+    assert "Check EndpointSecurity/system extension and Full Disk Access approval" not in script_text
+    assert "Resolve this external/runtime precondition before expecting this package to clear its blocker" in script_text
+    assert "Current external/runtime precondition:" in prompt
+    assert "Developer ID signed/notarized agent" in prompt
+    assert "Manual prerequisites:" in prompt
+    assert "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT" in prompt
+    assert "macos-bootstrap-readiness.json" in prompt
+    assert "signed/notarized release workflow" in prompt
+    assert "Contents/Library/SystemExtensions/*.systemextension" in prompt
+    assert "System Extension plus Full Disk Access approvals" in prompt
+    assert "not a Proxmox VMID/QGA flow" in prompt
+    assert "Do not run the script until all manual prerequisites above are satisfied." in prompt
+    assert "Do not treat a rerun as blocker-clearing evidence until this precondition has changed" in prompt
 
 
 def test_preflight_work_package_renders_continue_on_failure_script(tmp_path):
@@ -14857,6 +17994,7 @@ def test_preflight_work_package_main_lists_packages(tmp_path, capsys):
 
 
 def test_preflight_work_package_main_lists_package_details(tmp_path, capsys, monkeypatch):
+    monkeypatch.setenv("TAMANDUA_SKIP_DOTENV", "1")
     monkeypatch.delenv("CALDERA_API_KEY", raising=False)
     preflight_path = tmp_path / "20260603T110000Z-validation-execution-preflight-probe.json"
     preflight_path.write_text(
@@ -14909,7 +18047,8 @@ def test_preflight_work_package_main_lists_package_details(tmp_path, capsys, mon
     assert exit_code == 0
     assert "resources: caldera" in output
     assert "depends_on_waves: 1" in output
-    assert "handoff_notes: parallelizable, depends-on-waves:1, env-blocked:CALDERA_API_KEY" in output
+    assert "handoff_notes: parallelizable, depends-on-waves:1" in output
+    assert "missing_env: CALDERA_API_KEY" in output
     assert "missing_env: CALDERA_API_KEY" in output
     assert "env_details: CALDERA_API_KEY flag=-" in output
     assert "roadmap_next_actions:" in output
@@ -15035,7 +18174,11 @@ def test_preflight_work_package_selects_wave_and_all_packages():
     assert [package["package_id"] for package in all_packages] == ["wave-1-a", "wave-1-c", "wave-2-b"]
 
 
-def test_preflight_work_package_main_writes_wave_prompts_and_launcher(tmp_path):
+def test_preflight_work_package_main_writes_wave_prompts_and_launcher(tmp_path, monkeypatch):
+    monkeypatch.setenv("TAMANDUA_SKIP_DOTENV", "1")
+    monkeypatch.delenv("CALDERA_API_KEY", raising=False)
+    monkeypatch.delenv("CALDERA_AGENT_PAW", raising=False)
+    monkeypatch.delenv("CALDERA_GROUP", raising=False)
     preflight_path = tmp_path / "20260603T110000Z-validation-execution-preflight-probe.json"
     output_dir = tmp_path / "out"
     preflight_path.write_text(
@@ -15167,6 +18310,7 @@ def test_preflight_work_package_execute_requires_explicit_artifact_and_env(tmp_p
         '"safe_commands":["python tools/detection_validation/caldera_api_shape_probe.py --output-dir $Out"]}]}',
         encoding="utf-8",
     )
+    monkeypatch.setenv("TAMANDUA_SKIP_DOTENV", "1")
     monkeypatch.delenv("CALDERA_API_KEY", raising=False)
 
     implicit_exit = preflight_work_package.main(
@@ -15478,7 +18622,11 @@ def test_preflight_dependent_staged_launcher_execute_requires_ack_before_lock_he
     assert not marker_path.exists()
 
 
-def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
+def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path, monkeypatch):
+    monkeypatch.setenv("TAMANDUA_SKIP_DOTENV", "1")
+    monkeypatch.delenv("CALDERA_API_KEY", raising=False)
+    monkeypatch.delenv("CALDERA_AGENT_PAW", raising=False)
+    monkeypatch.delenv("CALDERA_GROUP", raising=False)
     preflight_path = tmp_path / "20260603T110000Z-validation-execution-preflight-probe.json"
     output_dir = tmp_path / "out"
     preflight_path.write_text(
@@ -15489,11 +18637,11 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
         '"recommended_owner_role":"validation-agent","title":"Windows high",'
         '"blocking_profiles":["windows-a","windows-b"],"blocked_run_classes":["windows-broad"],'
         '"safe_commands":["python tools/detection_validation/windows_lab_execution_readiness_probe.py --output-dir $Out"]},'
-        '{"package_id":"wave-1-windows-low","wave":1,"parallelizable_in_wave":true,'
-        '"recommended_owner_role":"validation-agent","title":"Windows low",'
-        '"blocking_profiles":["windows-c"],'
+        '{"package_id":"wave-1-repo-low","wave":1,"parallelizable_in_wave":true,'
+        '"recommended_owner_role":"validation-agent","title":"Repo low",'
+        '"blocking_profiles":["repo-c"],'
         '"action":"Use a WMI-capable disposable target, then rerun Atomic extended.",'
-        '"safe_commands":["python tools/detection_validation/atomic_t1047_lab_capability_probe.py --output-dir $Out"]},'
+        '"safe_commands":["python tools/detection_validation/validation_status_consistency.py --skip-run-artifact"]},'
         '{"package_id":"wave-1-caldera","wave":1,"parallelizable_in_wave":true,'
         '"recommended_owner_role":"operator-or-secret-holder","title":"Caldera",'
         '"required_env":["CALDERA_API_KEY","CALDERA_AGENT_PAW"],'
@@ -15537,10 +18685,11 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert manifest["expected_waves"] == [1]
     assert manifest["expected_package_ids"] == [
         "wave-1-caldera",
+        "wave-1-repo-low",
         "wave-1-windows-high",
-        "wave-1-windows-low",
     ]
-    assert manifest["launcher_paths"] == []
+    assert len(manifest["launcher_paths"]) == 1
+    assert manifest["launcher_paths"][0].endswith("wave-1-parallel-launcher.ps1")
     assert manifest["staged_launcher_paths"]
     assert manifest["agent_roster_path"].endswith("agent_roster.md")
     assert manifest["env_checklist_path"].endswith("env_checklist.md")
@@ -15565,7 +18714,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert manifest["dispatch_prelaunch_validation_path"].endswith("dispatch_prelaunch_validation.ps1")
     assert manifest["dispatch_brief_path"].endswith("dispatch_brief.md")
     assert manifest["dispatch_runner_path"].endswith("dispatch_one_shot_runner.ps1")
-    assert by_id["wave-1-windows-low"]["current_next_action"] == {
+    assert by_id["wave-1-repo-low"]["current_next_action"] == {
         "action": "Use a WMI-capable disposable target, then rerun Atomic extended."
     }
     assert by_id["wave-1-caldera"]["current_next_action"]["action"] == (
@@ -15624,7 +18773,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     dispatch_runner_text = Path(manifest["dispatch_runner_path"]).read_text(encoding="utf-8")
     runner_text = Path(manifest["dispatch_runner_path"]).read_text(encoding="utf-8")
     assert "# Validation Dispatch Brief" in brief_text
-    assert "Launcher command:" not in brief_text
+    assert "Launcher command:" in brief_text
     assert "Env template:" in brief_text
     assert "Owner launch plan:" in brief_text
     assert "Owner launch plan JSON:" in brief_text
@@ -15637,10 +18786,10 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "Agent spawn launcher:" in brief_text
     assert "Agent spawn launcher command:" in brief_text
     assert "Agent spawn launcher dry-run all command:" in brief_text
-    assert "Agent spawn launcher Codex parallel execute command:" not in brief_text
-    assert "Agent spawn launcher Claude parallel execute command:" not in brief_text
-    assert "Agent spawn launcher current-env parallel status:" in brief_text
-    assert "current_env_multi_agent_actionable=false" in brief_text
+    assert "Agent spawn launcher Codex parallel execute command:" in brief_text
+    assert "Agent spawn launcher Claude parallel execute command:" in brief_text
+    assert "Agent spawn launcher current-env parallel status:" not in brief_text
+    assert "current_env_multi_agent_actionable=false" not in brief_text
     assert "Agent spawn launcher Codex env-bundle execute command:" in brief_text
     assert "Agent spawn launcher Claude env-bundle execute command:" in brief_text
     assert "Agent spawn launcher preferred env-bundle balanced execute command:" not in brief_text
@@ -15649,9 +18798,9 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "TAMANDUA_ALLOW_DUPLICATE_PROVIDER_PER_CLAIM=1" in brief_text
     assert "[duplicate-provider-override]" in brief_text
     assert "-Provider all -Phase all -ShowBlocked" in brief_text
-    assert "-Provider codex -Phase ready -Execute -Parallel" not in brief_text
-    assert "-Provider claude -Phase ready -Execute -Parallel" not in brief_text
-    assert "-Provider balanced -Phase ready -Execute -Parallel" not in brief_text
+    assert "-Provider codex -Phase ready -Execute -Parallel" in brief_text
+    assert "-Provider claude -Phase ready -Execute -Parallel" in brief_text
+    assert "-Provider balanced -Phase ready -Execute -Parallel" in brief_text
     assert "-Provider codex -Phase env-bundle -Execute -Parallel" in brief_text
     assert "-Provider claude -Phase env-bundle -Execute -Parallel" in brief_text
     assert "-Provider balanced -Phase env-bundle -Execute -Parallel" in brief_text
@@ -15694,7 +18843,9 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "## Recommended Launch Sequence" in brief_text
     assert "1. Dispatch prelaunch validation:" in brief_text
     assert "This runs no-execution checks for env queue shape" in brief_text
-    assert "1a. Current-env agent execution is not multi-agent actionable:" in brief_text
+    assert "1a. Optional Codex current-env agent execution:" in brief_text
+    assert "1b. Optional Claude current-env agent execution:" in brief_text
+    assert "1c. Preferred balanced Codex/Claude current-env agent execution:" in brief_text
     assert "1b. Optional env-bundle prelaunch validation after env fill:" in brief_text
     assert "1c. Optional Codex env-bundle agent execution after complete env fill:" in brief_text
     assert "1d. Optional Claude env-bundle agent execution after complete env fill:" in brief_text
@@ -15753,7 +18904,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "powershell -NoProfile -ExecutionPolicy Bypass -File" in owner_plan_text
     assert owner_plan_json["artifact"] == "validation-owner-launch-plan"
     assert owner_plan_json["package_count"] == 3
-    assert owner_plan_json["launchable_package_count"] == 0
+    assert owner_plan_json["launchable_package_count"] == 2
     assert owner_plan_json["blocked_package_count"] >= 1
     assert any(owner["owner"] == "operator-or-secret-holder" for owner in owner_plan_json["owners"])
     caldera_owner = next(owner for owner in owner_plan_json["owners"] if owner["owner"] == "operator-or-secret-holder")
@@ -15772,8 +18923,8 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert any(claim["claim_id"] == "claim-wave-1-caldera" for claim in agent_claims_json["claims"])
     assert "# Validation Agent Spawn Plan" in agent_spawn_plan_text
     assert agent_spawn_plan_json["artifact"] == "validation-agent-spawn-plan"
-    assert agent_spawn_plan_json["ready_claim_count"] == 0
-    assert agent_spawn_plan_json["current_env_multi_agent_actionable"] is False
+    assert agent_spawn_plan_json["ready_claim_count"] == 2
+    assert agent_spawn_plan_json["current_env_multi_agent_actionable"] is True
     assert agent_spawn_plan_json["env_bundle_ready_claim_count"] == 1
     assert agent_spawn_plan_json["post_env_bundle_multi_agent_actionable"] is False
     assert agent_spawn_plan_json["env_bundle_still_blocked_claim_count"] == 0
@@ -15783,18 +18934,18 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
         "override_switch": "-AllowDuplicateProviderPerClaim",
         "parallel_switch": "-Parallel",
     }
-    assert agent_spawn_plan_json["not_multi_agent_actionable_reason"] == "fewer than two ready claims"
+    assert "not_multi_agent_actionable_reason" not in agent_spawn_plan_json
     assert (
         agent_spawn_plan_json["post_env_bundle_not_multi_agent_actionable_reason"]
         == "fewer than two env-bundle ready claims"
     )
-    assert "Current-env multi-agent actionable: `false`" in agent_spawn_plan_text
+    assert "Current-env multi-agent actionable: `true`" in agent_spawn_plan_text
     assert "Post-env-bundle multi-agent actionable: `false`" in agent_spawn_plan_text
     assert "claim-wave-1-windows-high" in agent_spawn_plan_text
     assert "Execute policy: one provider per claim" in agent_spawn_plan_text
     assert "Ready After Env Bundle" in agent_spawn_plan_text
     assert "Copy/Paste Env-Bundle Spawn Prompts" in agent_spawn_plan_text
-    assert "Copy/Paste Spawn Prompts" not in agent_spawn_plan_text
+    assert "Copy/Paste Spawn Prompts" in agent_spawn_plan_text
     assert "Codex spawn template:" in agent_spawn_plan_text
     assert "Claude spawn template:" in agent_spawn_plan_text
     assert "# Validation Agent Spawn Launcher" in agent_spawn_launcher_text
@@ -15842,9 +18993,9 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "Refusing env-bundle spawn while placeholder env values remain" in agent_spawn_launcher_text
     assert "Dry run only" in agent_spawn_launcher_text
     assert "Invoke-Expression $Row.command" in agent_spawn_launcher_text
-    assert agent_spawn_plan_json["batches"] == []
+    assert len(agent_spawn_plan_json["batches"]) == 1
+    assert agent_spawn_plan_json["batches"][0]["claim_count"] == 2
     assert agent_spawn_plan_json["env_bundle_ready_batches"][0]["claims"][0]["claim_id"] == "claim-wave-1-caldera"
-    assert any(claim["claim_id"] == "claim-wave-1-caldera" for claim in agent_spawn_plan_json["blocked_or_manual_claims"])
     assert "--refresh-claim-status-report" in agent_spawn_plan_text
     assert "# Validation Claim Status Report" in claim_status_report_text
     assert claim_status_report_json["artifact"] == "validation-claim-status-report"
@@ -15852,7 +19003,7 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert claim_status_report_json["locked_claim_count"] == 0
     assert claim_status_report_json["invalid_lock_count"] == 0
     assert any(
-        claim["package_id"] == "wave-1-windows-low"
+        claim["package_id"] == "wave-1-repo-low"
         and claim["current_next_action"] == {
             "action": "Use a WMI-capable disposable target, then rerun Atomic extended."
         }
@@ -15948,8 +19099,9 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "claim_lock_helper.ps1" in ready_claims_launcher_text
     assert "Invoke-ClaimStatusRefresh" in ready_claims_launcher_text
     assert "--refresh-claim-status-report" in ready_claims_launcher_text
-    assert "[ready-claim] no ready_to_claim packages found" in ready_claims_launcher_text
-    assert "claim-wave-1-windows-high" not in ready_claims_launcher_text
+    assert "[ready-claim] no ready_to_claim packages found" not in ready_claims_launcher_text
+    assert "claim-wave-1-windows-high" in ready_claims_launcher_text
+    assert "claim-wave-1-repo-low" in ready_claims_launcher_text
     assert "claim-wave-1-caldera" not in ready_claims_launcher_text
     assert "# Validation Ready Claims Parallel Launcher" in ready_claims_parallel_launcher_text
     assert "[switch]$ValidateOnly" in ready_claims_parallel_launcher_text
@@ -15967,8 +19119,9 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "--refresh-claim-status-report" in ready_claims_parallel_launcher_text
     assert "Start-Job" in ready_claims_parallel_launcher_text
     assert "Wait-ReadyClaimBatch" in ready_claims_parallel_launcher_text
-    assert "[ready-claim] no ready_to_claim packages found" in ready_claims_parallel_launcher_text
-    assert "claim-wave-1-windows-high" not in ready_claims_parallel_launcher_text
+    assert "[ready-claim] no ready_to_claim packages found" not in ready_claims_parallel_launcher_text
+    assert "claim-wave-1-windows-high" in ready_claims_parallel_launcher_text
+    assert "claim-wave-1-repo-low" in ready_claims_parallel_launcher_text
     assert "claim-wave-1-caldera" not in ready_claims_parallel_launcher_text
     assert "# Validation Env-Bundle Ready Claims Launcher" in env_bundle_ready_claims_launcher_text
     assert "[switch]$ValidateOnly" in env_bundle_ready_claims_launcher_text
@@ -16307,25 +19460,22 @@ def test_preflight_work_package_main_writes_dispatch_manifest(tmp_path):
     assert "AgentId may only contain letters" in dispatch_runner_text
     assert "claim_id = 'claim-' + [string]$Package.package_id" in dispatch_runner_text
     assert "agent_id = $script:DispatchAgentId" in dispatch_runner_text
-    assert "`wave-1-windows-low` | manual: resource overlap: windows-lab" in brief_text
-    assert "`wave-1-windows-low` | manual: resource overlap: windows-lab | stage 2" in brief_text
+    assert "`wave-1-repo-low` | auto" in brief_text
+    assert "`wave-1-repo-low` | auto | stage 1" in brief_text
     assert "`CALDERA_API_KEY`" in brief_text
     assert str(manifest_path).replace("\\", "/") in brief_text
-    assert by_id["wave-1-windows-high"]["launcher_selected"] is False
-    assert (
-        by_id["wave-1-windows-high"]["manual_reason"]
-        == "parallel launcher not emitted: fewer than two non-overlapping packages"
-    )
+    assert by_id["wave-1-windows-high"]["launcher_selected"] is True
+    assert by_id["wave-1-windows-high"].get("manual_reason") is None
     assert by_id["wave-1-windows-high"]["staged_launcher_selected"] is True
     assert by_id["wave-1-windows-high"]["staged_stage"] == 1
-    assert by_id["wave-1-windows-low"]["launcher_selected"] is False
-    assert by_id["wave-1-windows-low"]["manual_reason"] == "resource overlap: windows-lab"
-    assert by_id["wave-1-windows-low"]["staged_launcher_selected"] is True
-    assert by_id["wave-1-windows-low"]["staged_stage"] == 2
-    assert by_id["wave-1-windows-low"]["handoff_notes"] == [
+    assert by_id["wave-1-repo-low"]["launcher_selected"] is True
+    assert by_id["wave-1-repo-low"].get("manual_reason") is None
+    assert by_id["wave-1-repo-low"]["staged_launcher_selected"] is True
+    assert by_id["wave-1-repo-low"]["staged_stage"] == 1
+    assert by_id["wave-1-repo-low"]["handoff_notes"] == [
         "parallelizable",
-        "parallel-launcher:manual:resource overlap: windows-lab",
-        "staged-launcher:stage-2",
+        "parallel-launcher:auto",
+        "staged-launcher:stage-1",
     ]
     assert by_id["wave-1-caldera"]["required_env"] == ["CALDERA_API_KEY", "CALDERA_AGENT_PAW"]
     assert by_id["wave-1-caldera"]["expected_profile_ids"] == ["caldera-api-shape-probe"]
@@ -19201,7 +22351,7 @@ def test_macos_backend_load_agents_passes_explicit_server(monkeypatch):
 
     assert agents == []
     assert calls[0][-2:] == ["--server", "http://192.168.12.146:4000"]
-    assert envs[0]["HTTP_PROXY"] == "http://127.0.0.1:9"
+    assert "HTTP_PROXY" not in envs[0]
     assert envs[0]["NO_PROXY"] == "localhost,127.0.0.1,192.168.12.146"
     assert envs[0]["no_proxy"] == envs[0]["NO_PROXY"]
     assert "--server http://192.168.12.146:4000" in evidence["command"]
@@ -19299,6 +22449,8 @@ def macos_inventory_agent(
     health: str = "healthy",
     last_seen: str = "2026-06-03T10:04:30Z",
     endpoint_status: str = "available",
+    health_metrics: dict[str, object] | None = None,
+    health_reasons: list[str] | None = None,
 ) -> dict[str, object]:
     return {
         "id": "macos-agent-1",
@@ -19306,7 +22458,11 @@ def macos_inventory_agent(
         "os_type": "macos",
         "os_version": "14.5",
         "status": status,
-        "health_status": {"status": health},
+        "health_status": {
+            "status": health,
+            "metrics": health_metrics or {},
+            "reasons": health_reasons or [],
+        },
         "last_seen": last_seen,
         "platform_capabilities": [
             {
@@ -19333,6 +22489,213 @@ def test_macos_backend_build_tests_accepts_online_healthy_fresh_endpoint_agent(m
     assert [test["status"] for test in tests] == ["covered"] * 4
     endpoint = next(test for test in tests if test["id"] == "macos-backend-endpoint-telemetry-capability")
     assert endpoint["evidence"]["macos_agents"][0]["last_seen_age_seconds"] == 30
+
+
+def test_macos_backend_build_tests_embeds_bootstrap_readiness_report(monkeypatch, tmp_path):
+    now = macos_backend.datetime(2026, 6, 3, 10, 5, 0, tzinfo=macos_backend.timezone.utc)
+    report_path = tmp_path / "macos-bootstrap-readiness.json"
+    report_path.write_text(json.dumps(macos_bootstrap_readiness_report()), encoding="utf-8")
+    monkeypatch.setattr(macos_backend, "utc_now", lambda: now)
+    monkeypatch.setattr(
+        macos_backend,
+        "load_agents",
+        lambda server=None: ([macos_inventory_agent()], {"exit_code": 0, "server": server}),
+    )
+
+    tests = macos_backend.build_tests(
+        "http://192.168.12.146:4000",
+        bootstrap_readiness_report=str(report_path),
+    )
+
+    for test in tests:
+        bootstrap = test["evidence"]["bootstrap_readiness_report"]
+        assert bootstrap["enabled"] is True
+        assert bootstrap["report_exists"] is True
+        assert bootstrap["valid_shape"] is True
+        assert bootstrap["ready_for_backend_probe"] is True
+        assert bootstrap["summary"]["agent_binary"] == "/opt/tamandua/tamandua-agent"
+    bootstrap_test = next(test for test in tests if test["id"] == "macos-backend-bootstrap-readiness-report")
+    assert bootstrap_test["status"] == "covered"
+    assert bootstrap_test["missing_expected_fields"] == []
+
+
+def test_macos_backend_build_tests_blocks_false_bootstrap_readiness(monkeypatch, tmp_path):
+    now = macos_backend.datetime(2026, 6, 3, 10, 5, 0, tzinfo=macos_backend.timezone.utc)
+    report_path = tmp_path / "macos-bootstrap-readiness.json"
+    report_path.write_text(
+        json.dumps(
+            macos_bootstrap_readiness_report(
+                endpoint_security_entitlement_present=False,
+                tamandua_system_extension_listed=False,
+                full_disk_access_tamandua_entry_present=False,
+            )
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(macos_backend, "utc_now", lambda: now)
+    monkeypatch.setattr(
+        macos_backend,
+        "load_agents",
+        lambda server=None: ([macos_inventory_agent()], {"exit_code": 0, "server": server}),
+    )
+
+    tests = macos_backend.build_tests(
+        "http://192.168.12.146:4000",
+        bootstrap_readiness_report=str(report_path),
+    )
+    by_id = {test["id"]: test for test in tests}
+
+    assert by_id["macos-backend-agent-online-healthy"]["status"] == "covered"
+    bootstrap_test = by_id["macos-backend-bootstrap-readiness-report"]
+    assert bootstrap_test["status"] == "missed"
+    assert bootstrap_test["gap_category"] == "infrastructure"
+    assert bootstrap_test["missing_expected_fields"] == [
+        "endpoint_security_entitlement_present",
+        "tamandua_system_extension_listed",
+        "full_disk_access_tamandua_entry_present",
+    ]
+    bootstrap = bootstrap_test["evidence"]["bootstrap_readiness_report"]
+    assert bootstrap["valid_shape"] is True
+    assert bootstrap["ready_for_backend_probe"] is False
+
+
+def test_macos_backend_build_tests_blocks_stale_bootstrap_readiness(monkeypatch, tmp_path):
+    now = macos_backend.datetime(2026, 6, 3, 10, 5, 0, tzinfo=macos_backend.timezone.utc)
+    report_path = tmp_path / "macos-bootstrap-readiness.json"
+    report_path.write_text(
+        json.dumps(macos_bootstrap_readiness_report(generated_at="2026-06-03T09:00:00Z")),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(macos_backend, "utc_now", lambda: now)
+    monkeypatch.setattr(
+        macos_backend,
+        "load_agents",
+        lambda server=None: ([macos_inventory_agent()], {"exit_code": 0, "server": server}),
+    )
+
+    tests = macos_backend.build_tests(
+        "http://192.168.12.146:4000",
+        bootstrap_readiness_report=str(report_path),
+    )
+
+    bootstrap_test = next(test for test in tests if test["id"] == "macos-backend-bootstrap-readiness-report")
+    assert bootstrap_test["status"] == "missed"
+    assert bootstrap_test["missing_expected_fields"] == ["fresh_macos_bootstrap_readiness_report"]
+    bootstrap = bootstrap_test["evidence"]["bootstrap_readiness_report"]
+    assert bootstrap["valid_shape"] is True
+    assert bootstrap["generated_at_parseable"] is True
+    assert bootstrap["stale_report"] is True
+    assert bootstrap["ready_for_backend_probe"] is False
+
+
+def test_macos_backend_build_tests_blocks_missing_bootstrap_readiness_report(monkeypatch, tmp_path):
+    now = macos_backend.datetime(2026, 6, 3, 10, 5, 0, tzinfo=macos_backend.timezone.utc)
+    missing_report = tmp_path / "missing-macos-bootstrap-readiness.json"
+    monkeypatch.setattr(macos_backend, "utc_now", lambda: now)
+    monkeypatch.setattr(
+        macos_backend,
+        "load_agents",
+        lambda server=None: ([macos_inventory_agent()], {"exit_code": 0, "server": server}),
+    )
+
+    tests = macos_backend.build_tests(
+        "http://192.168.12.146:4000",
+        bootstrap_readiness_report=str(missing_report),
+    )
+    bootstrap_test = next(test for test in tests if test["id"] == "macos-backend-bootstrap-readiness-report")
+
+    assert bootstrap_test["status"] == "missed"
+    assert bootstrap_test["missing_expected_fields"] == [
+        "macos_bootstrap_readiness_report",
+        "valid_macos_bootstrap_readiness_shape",
+    ]
+    assert bootstrap_test["evidence"]["bootstrap_readiness_report"]["error"] == "report_not_found"
+
+
+def test_macos_backend_build_tests_default_disables_bootstrap_report(monkeypatch):
+    now = macos_backend.datetime(2026, 6, 3, 10, 5, 0, tzinfo=macos_backend.timezone.utc)
+    monkeypatch.setattr(macos_backend, "utc_now", lambda: now)
+    monkeypatch.setattr(
+        macos_backend,
+        "load_agents",
+        lambda server=None: ([macos_inventory_agent()], {"exit_code": 0, "server": server}),
+    )
+
+    tests = macos_backend.build_tests("http://192.168.12.146:4000")
+
+    for test in tests:
+        bootstrap = test["evidence"]["bootstrap_readiness_report"]
+        assert bootstrap["enabled"] is False
+        assert bootstrap["report_exists"] is False
+        assert bootstrap["ready_for_backend_probe"] is False
+        assert "error" not in bootstrap
+
+
+def test_macos_backend_build_tests_accepts_fresh_health_metric_when_last_seen_is_stale(monkeypatch):
+    now = macos_backend.datetime(2026, 6, 3, 10, 5, 0, tzinfo=macos_backend.timezone.utc)
+    monkeypatch.setattr(macos_backend, "utc_now", lambda: now)
+    monkeypatch.setattr(
+        macos_backend,
+        "load_agents",
+        lambda server=None: (
+            [
+                macos_inventory_agent(
+                    last_seen="2026-06-03T09:00:00Z",
+                    health_metrics={
+                        "heartbeat_age_ms": 3000,
+                        "driver_state": "loaded",
+                        "driver_last_error": None,
+                        "platform_coverage": 100,
+                    },
+                )
+            ],
+            {"exit_code": 0, "server": server},
+        ),
+    )
+
+    tests = macos_backend.build_tests("http://192.168.12.146:4000")
+    by_id = {test["id"]: test for test in tests}
+
+    assert by_id["macos-backend-agent-fresh"]["status"] == "covered"
+    best = by_id["macos-backend-agent-fresh"]["evidence"]["best_candidate"]
+    assert best["last_seen_age_seconds"] == 3900
+    assert best["heartbeat_age_ms"] == 3000
+    assert best["driver_state"] == "loaded"
+    assert best["platform_coverage"] == 100
+
+
+def test_macos_backend_build_tests_health_only_gap_points_to_endpointsecurity(monkeypatch):
+    now = macos_backend.datetime(2026, 6, 3, 10, 5, 0, tzinfo=macos_backend.timezone.utc)
+    monkeypatch.setattr(macos_backend, "utc_now", lambda: now)
+    monkeypatch.setattr(
+        macos_backend,
+        "load_agents",
+        lambda server=None: (
+            [
+                macos_inventory_agent(
+                    health="degraded",
+                    health_metrics={
+                        "heartbeat_age_ms": 3000,
+                        "driver_state": "not_loaded",
+                        "driver_last_error": "EndpointSecurity.framework is not available on this macOS host",
+                    },
+                    health_reasons=["driver_or_endpoint_sensor_degraded"],
+                )
+            ],
+            {"exit_code": 0, "server": server},
+        ),
+    )
+
+    tests = macos_backend.build_tests("http://192.168.12.146:4000")
+    row = next(test for test in tests if test["id"] == "macos-backend-agent-online-healthy")
+    evidence = row["evidence"]
+
+    assert row["status"] == "missed"
+    assert evidence["best_candidate"]["missing_readiness"] == ["health_healthy"]
+    assert evidence["best_candidate"]["driver_state"] == "not_loaded"
+    assert "Developer ID signed/notarized agent" in evidence["next_action"]["action"]
+    assert "com.apple.developer.endpoint-security.client" in evidence["next_action"]["action"]
+    assert "com.apple.developer.system-extension.install" in evidence["next_action"]["action"]
 
 
 def test_macos_backend_build_tests_rejects_stale_offline_agent(monkeypatch):
@@ -19402,6 +22765,18 @@ def test_macos_backend_markdown_renders_best_candidate_and_next_action(tmp_path)
                         "missing_readiness": ["status_online", "health_healthy"],
                         "action": "Reconnect the selected macOS agent, then rerun.",
                     },
+                    "bootstrap_readiness_report": {
+                        "enabled": True,
+                        "path": "macos-bootstrap-readiness.json",
+                        "report_exists": True,
+                        "valid_shape": True,
+                        "ready_for_backend_probe": False,
+                        "false_readiness_fields": ["full_disk_access_tamandua_entry_present"],
+                        "summary": {
+                            "agent_binary": "/opt/tamandua/tamandua-agent",
+                            "next_action": "Approve Full Disk Access, then rerun macos_backend_readiness_probe.py.",
+                        },
+                    },
                 },
             }
         ],
@@ -19416,6 +22791,9 @@ def test_macos_backend_markdown_renders_best_candidate_and_next_action(tmp_path)
     assert "status_online, health_healthy" in text
     assert "## Next Action" in text
     assert "Reconnect the selected macOS agent" in text
+    assert "## Bootstrap Readiness Report" in text
+    assert "Agent binary: `/opt/tamandua/tamandua-agent`" in text
+    assert "Local next action: Approve Full Disk Access" in text
 
 
 def test_atomic_t1047_probe_writes_to_explicit_output_dir(tmp_path):
@@ -19491,6 +22869,7 @@ def test_macos_p0_smoke_wrapper_exposes_output_dir_and_local_target():
 
 
 def test_windows_qga_probes_write_to_explicit_output_dir(tmp_path, monkeypatch):
+    monkeypatch.setenv("TAMANDUA_SKIP_DOTENV", "1")
     monkeypatch.delenv("TAMANDUA_PROXMOX_PASSWORD", raising=False)
     modules = [
         ("windows-proxmox-qga-readiness-probe", windows_qga_readiness),
@@ -20353,7 +23732,7 @@ def test_windows_connection_stability_accepts_active_stable_session_with_telemet
         ),
     ]
 
-    tests, stability = windows_connection_stability.build_tests({"ok": True}, sessions, 300)
+    tests, stability = windows_connection_stability.build_tests({"ok": True}, sessions, 300, "WIN-TEMPLATE")
 
     assert [test["status"] for test in tests] == ["covered"] * 5
     assert stability["ready_for_windows_broad_runs"] is True
@@ -20379,6 +23758,7 @@ def test_windows_connection_stability_rejects_missing_auth_logs_and_disconnected
         {"ok": True, "command": "ssh tamandua-server tail agent.log"},
         sessions,
         300,
+        "WIN-TEMPLATE",
     )
     by_id = {test["id"]: test for test in tests}
 
@@ -20399,6 +23779,7 @@ def test_windows_connection_stability_next_action_for_missing_server_password():
         {"ok": False, "error": "missing_server_password", "required_env": "TAMANDUA_SERVER_PASSWORD"},
         [],
         300,
+        "WIN-TEMPLATE",
     )
 
     assert tests[0]["missing_expected_fields"] == ["infra"]
@@ -20820,6 +24201,106 @@ def test_tamandua_ctl_command_requires_semantic_marker_in_output(monkeypatch):
     assert result["error_code"] == "live_response_command_marker_missing"
 
 
+def test_tamandua_ctl_command_accepts_marker_confirmed_unconfirmed_dispatch(monkeypatch):
+    def fake_local_command(_invocation, cwd=None, timeout=120, env=None):
+        return validation.CommandResult(
+            host="local",
+            command="tamandua-ctl remote command",
+            exit_code=0,
+            stdout=(
+                '{"status":"dispatched_unconfirmed","shell_ready":true,'
+                '"unconfirmed_dispatch":true,"command_confirmed":false,'
+                '"end_reason":"overall_timeout",'
+                '"output":"\\r\\n[Tamandua shell ready]\\r\\n'
+                "tamandua-semantic-rewrite-test-case\\r\\n\","
+                '"events":[{"event":"session_started"}]}'
+            ),
+            stderr="",
+            duration_ms=1000,
+        )
+
+    monkeypatch.setattr(validation, "local_command", fake_local_command)
+    args = Namespace(
+        agent_id="agent-1",
+        live_response_idle_timeout_seconds=2,
+        live_response_shell_start_timeout_seconds=20,
+        live_response_supervisor_mode=False,
+        tamandua_ctl_path="tamandua-ctl",
+        tamandua_ctl_server="https://tamandua.example",
+        tamandua_ctl_token=None,
+    )
+
+    result = validation.tamandua_ctl_command(
+        args,
+        "sh -lc 'echo tamandua-semantic-rewrite-test-case; id'",
+        30,
+    )
+
+    assert result["outer_exit_code"] == 0
+    assert "error_code" not in result
+    assert result["guest_exit_code"] == 0
+    assert result["live_response_audit"]["marker_confirmed_unconfirmed_dispatch"] is True
+
+
+def test_tamandua_ctl_command_accepts_roadmap_marker_confirmed_unconfirmed_dispatch(monkeypatch):
+    def fake_local_command(_invocation, cwd=None, timeout=120, env=None):
+        return validation.CommandResult(
+            host="local",
+            command="tamandua-ctl remote command",
+            exit_code=0,
+            stdout=(
+                '{"status":"dispatched_unconfirmed","shell_ready":true,'
+                '"unconfirmed_dispatch":true,"command_confirmed":false,'
+                '"output":"tamandua-phishing-attachment\\r\\n",'
+                '"events":[{"event":"session_started"}]}'
+            ),
+            stderr="",
+            duration_ms=1000,
+        )
+
+    monkeypatch.setattr(validation, "local_command", fake_local_command)
+    args = Namespace(
+        agent_id="agent-1",
+        live_response_idle_timeout_seconds=2,
+        live_response_shell_start_timeout_seconds=20,
+        live_response_supervisor_mode=False,
+        tamandua_ctl_path="tamandua-ctl",
+        tamandua_ctl_server="https://tamandua.example",
+        tamandua_ctl_token=None,
+    )
+
+    result = validation.tamandua_ctl_command(
+        args,
+        'cmd.exe /d /c "echo tamandua-phishing-attachment > %TEMP%\\tamandua-phishing-attachment.txt"',
+        30,
+    )
+
+    assert result["outer_exit_code"] == 0
+    assert "error_code" not in result
+    assert result["live_response_audit"]["marker_confirmed_unconfirmed_dispatch"] is True
+
+
+def test_live_response_execution_evidence_accepts_marker_confirmed_unconfirmed_dispatch():
+    evidence = validation.live_response_execution_evidence(
+        {
+            "transport": "tamandua_ctl_live_response",
+            "live_response_audit": {"marker_confirmed_unconfirmed_dispatch": True},
+            "tamandua_ctl_payload": {
+                "status": "dispatched_unconfirmed",
+                "session_id": "session-1",
+                "agent_id": "agent-1",
+                "hostname": "WIN-TEMPLATE",
+                "command": "cmd.exe /d /c echo tamandua-marker",
+                "output": "tamandua-marker",
+            },
+        }
+    )
+
+    assert evidence
+    assert evidence[0]["event_type"] == "live_response_command_completed"
+    assert evidence[0]["payload"]["session_id"] == "session-1"
+
+
 def test_tamandua_ctl_runner_env_adds_server_to_no_proxy():
     env = validation.tamandua_ctl_env(
         "http://192.168.12.146:4000",
@@ -21026,6 +24507,43 @@ def test_summarize_tests_exposes_actionable_gap_categories():
     assert summary["actionable_gaps"][0]["validation_category"] == "atomic-upstream-candidate"
 
 
+def test_score_test_excludes_defender_maintenance_noise():
+    for value_name in [
+        "ServiceStartStates",
+        "ServiceCrashExceptionCode",
+        "ServiceCrashFaultingModuleName",
+        "Miscellaneous Configuration",
+    ]:
+        score = validation.score_test(
+            {"id": "atomic-upstream-T1033-user-discovery", "expected_telemetry": ["process_create"]},
+            [
+                {
+                    "source_name": "kernel_driver_inferred",
+                    "event_type": "process_create",
+                    "severity": "info",
+                    "count": 1,
+                    "process_name": "cmd.exe",
+                },
+                {
+                    "source_name": "kernel_driver_inferred",
+                    "event_type": "registry_set_value",
+                    "severity": "high",
+                    "detection_name": "registry_t1562_001",
+                    "count": 1,
+                    "process_name": "unknown",
+                    "key_path": "HKLM\\SOFTWARE\\Microsoft\\Windows Defender",
+                    "value_name": value_name,
+                },
+            ],
+            [],
+            [],
+            [],
+        )
+
+        assert score["status"] == "covered"
+        assert score["unexpected_high_or_critical_event_count"] == 0
+
+
 def test_executed_without_server_evidence_fails_quality_gate():
     summary = validation.summarize_tests(
         [
@@ -21065,6 +24583,50 @@ def test_executed_without_server_evidence_fails_quality_gate():
     assert "executed_without_server_evidence" in gate["failures"]
     assert scorecard["maturity_band"] == "prototype"
     assert "missing_server_evidence" in scorecard["blocking_gaps"]
+
+
+def test_diagnostic_only_lane_blocks_quality_gate_and_external_claim():
+    summary = validation.summarize_tests(
+        [
+            {
+                "id": f"diagnostic-test-{idx}",
+                "tags": ["tactic:execution", "mitre:T1059", "category:telemetry"],
+                "validation_category": "telemetry",
+                "execution_class": "upstream",
+                "score": {
+                    "status": "covered",
+                    "missing_expected_telemetry": [],
+                    "missing_expected_fields": [],
+                    "missing_expected_values": [],
+                    "missing_expected_detections": [],
+                    "missing_expected_alerts": [],
+                },
+            }
+            for idx in range(5)
+        ]
+    )
+    report = {"execute": True, "benchmark_lane": "diagnostic-only", "summary": summary}
+
+    gate = validation.evaluate_gates(
+        report,
+        Namespace(
+            benchmark_lane="diagnostic-only",
+            fail_on_missed=True,
+            fail_on_partial=True,
+            max_driver_channel_drops=0,
+            max_driver_kernel_drops=0,
+            max_unexpected_high_critical=0,
+            max_unknown_source=0,
+            require_upstream=False,
+        ),
+    )
+    report["quality_gate"] = gate
+    scorecard = validation.benchmark_scorecard(report)
+
+    assert gate["passed"] is False
+    assert "diagnostic_only_lane" in gate["failures"]
+    assert scorecard["external_claim_allowed"] is False
+    assert "diagnostic_only_lane" in scorecard["blocking_gaps"]
 
 
 def test_windows_roadmap_scenarios_have_traceability_by_technique_category_and_lane():
@@ -21144,8 +24706,58 @@ def test_cmd_fallback_commands_get_observable_dwell():
     normalized = validation.normalize_guest_command(command)
 
     assert normalized.startswith('cmd.exe /d /c "curl.exe')
+    assert "echo tamandua-live-response-marker-" in normalized
     assert "ping -n 9 127.0.0.1 > nul" in normalized
     assert normalized.endswith('"')
+
+
+def test_cmd_fallback_commands_keep_existing_marker_without_duplicate():
+    command = 'cmd.exe /d /c "echo tamandua-existing-marker"'
+
+    normalized = validation.normalize_guest_command(command)
+
+    assert "echo tamandua-existing-marker" in normalized
+    assert "tamandua-live-response-marker-" not in normalized
+    assert "ping -n 9 127.0.0.1 > nul" in normalized
+
+
+def test_powershell_fallback_commands_get_cmd_marker_and_dwell():
+    command = "powershell.exe -NoProfile -ExecutionPolicy Bypass -EncodedCommand QQ=="
+
+    normalized = validation.normalize_guest_command(command)
+
+    assert normalized.startswith('cmd.exe /d /c "powershell.exe')
+    assert "echo tamandua-live-response-marker-" in normalized
+    assert "ping -n 9 127.0.0.1 > nul" in normalized
+    assert normalized.endswith('"')
+
+
+def test_unattributed_kernel_driver_probe_noise_is_narrowly_benign():
+    assert validation.is_unattributed_kernel_driver_probe_noise(
+        {
+            "source_name": "kernel_driver",
+            "detection_name": "kernel_syscall_0x0062",
+            "event_type": "defense_evasion",
+            "severity": "critical",
+            "process_name": None,
+            "process_path": None,
+            "operation": None,
+            "key_path": None,
+            "value_name": None,
+        }
+    )
+
+
+def test_unattributed_kernel_driver_probe_noise_keeps_attributed_events():
+    assert not validation.is_unattributed_kernel_driver_probe_noise(
+        {
+            "source_name": "kernel_driver",
+            "detection_name": "kernel_tamper_0x0065",
+            "event_type": "amsi_bypass",
+            "severity": "critical",
+            "process_name": "powershell.exe",
+        }
+    )
 
 
 def test_merge_tamandua_validation_reports_recomputes_summary_and_gate(tmp_path):
@@ -21304,6 +24916,82 @@ def test_merge_tamandua_validation_reports_dedupes_prefer_covered(tmp_path):
     assert report["quality_gate"]["passed"] is True
 
 
+def test_merge_tamandua_validation_reports_preserves_diagnostic_source_lane(tmp_path):
+    base = {
+        "run_id": "enterprise-slice",
+        "started_at": "2026-06-15T08:00:00Z",
+        "finished_at": "2026-06-15T08:01:00Z",
+        "execute": True,
+        "benchmark_lane": "enterprise-eval",
+        "profile": {"profile_id": "macos-roadmap-p0-sensor-contract-smoke"},
+        "quality_gate": {
+            "thresholds": {
+                "benchmark_lane": "enterprise-eval",
+                "fail_on_missed": True,
+                "fail_on_partial": True,
+                "max_driver_channel_drops": 0,
+                "max_driver_kernel_drops": 0,
+                "max_unexpected_high_critical": 0,
+                "max_unknown_source": 0,
+                "require_upstream": False,
+            }
+        },
+        "selected_tests": ["test-a"],
+        "tests": [
+            {
+                "id": "test-a",
+                "status": "covered",
+                "executor_used": "command",
+                "execution_class": "upstream",
+                "claim_level": "upstream",
+                "tags": ["tactic:execution", "mitre:T1059", "category:telemetry"],
+                "score": {
+                    "status": "covered",
+                    "missing_expected_telemetry": [],
+                    "missing_expected_fields": [],
+                    "missing_expected_values": [],
+                    "missing_expected_detections": [],
+                    "missing_expected_alerts": [],
+                },
+            }
+        ],
+    }
+    diagnostic = copy.deepcopy(base)
+    diagnostic["run_id"] = "diagnostic-slice"
+    diagnostic["benchmark_lane"] = "diagnostic-only"
+    diagnostic["selected_tests"] = ["test-b"]
+    diagnostic["tests"][0]["id"] = "test-b"
+    first_path = tmp_path / "enterprise.json"
+    diagnostic_path = tmp_path / "diagnostic.json"
+    first_path.write_text(json.dumps(base), encoding="utf-8")
+    diagnostic_path.write_text(json.dumps(diagnostic), encoding="utf-8")
+
+    report = merge_reports.merge_reports(
+        [first_path, diagnostic_path],
+        Namespace(
+            run_id="merged-diagnostic",
+            profile_id=None,
+            benchmark_lane=None,
+            allow_duplicates=False,
+            dedupe_tests=None,
+            allow_missed=None,
+            allow_partial=None,
+            require_upstream=None,
+            max_driver_channel_drops=None,
+            max_driver_kernel_drops=None,
+            max_unexpected_high_critical=None,
+            max_unknown_source=None,
+        ),
+    )
+
+    assert report["benchmark_lane"] == "diagnostic-only"
+    assert report["merge"]["source_benchmark_lanes"] == ["diagnostic-only", "enterprise-eval"]
+    assert report["quality_gate"]["passed"] is False
+    assert "diagnostic_only_lane" in report["quality_gate"]["failures"]
+    assert report["scorecard"]["external_claim_allowed"] is False
+    assert "diagnostic_only_lane" in report["scorecard"]["blocking_gaps"]
+
+
 def test_benchmark_setup_alert_filter_is_path_scoped_for_caldera_harness():
     assert validation.is_benchmark_setup_alert(
         {
@@ -21408,3 +25096,41 @@ def test_benchmark_setup_alert_filter_excludes_safe_masquerade_marker_only():
             },
         }
     )
+
+
+def test_build_atomic_command_uses_explicit_module_path():
+    command = validation.build_atomic_command(
+        {
+            "id": "atomic-test",
+            "atomic": {"technique": "T1082", "test_numbers": [1]},
+        },
+        Namespace(
+            atomic_path_to_atomics=r"D:\AtomicRedTeam\atomics",
+            atomic_module_path=(
+                r"D:\Program Files\WindowsPowerShell\Modules"
+                r"\Invoke-AtomicRedTeam\Invoke-AtomicRedTeam.psd1"
+            ),
+        ),
+    )
+
+    assert (
+        "Import-Module 'D:\\Program Files\\WindowsPowerShell\\Modules\\Invoke-AtomicRedTeam\\Invoke-AtomicRedTeam.psd1'"
+        in command
+    )
+    assert "-PathToAtomicsFolder 'D:\\AtomicRedTeam\\atomics'" in command
+
+
+def test_command_exists_via_tamandua_ctl_imports_explicit_module(monkeypatch):
+    calls = []
+
+    def fake_tamandua_ctl_command(args, command, timeout):
+        calls.append((args, command, timeout))
+        return {"guest_stdout": "yes"}
+
+    monkeypatch.setattr(validation, "tamandua_ctl_command", fake_tamandua_ctl_command)
+    args = Namespace(atomic_module_path=r"D:\Atomic\Invoke-AtomicRedTeam.psd1")
+
+    assert validation.command_exists_via_tamandua_ctl(args, "Invoke-AtomicTest") is True
+    assert calls[0][2] == 60
+    assert "Import-Module 'D:\\Atomic\\Invoke-AtomicRedTeam.psd1'" in calls[0][1]
+    assert "Get-Command 'Invoke-AtomicTest'" in calls[0][1]

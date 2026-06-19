@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_production_acquisition_dry_run_v1.schema.json",
+  "title": "Tamandua ML Production Acquisition Dry Run v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "configuration",
+    "safety_gates",
+    "planned_phases",
+    "holdout_sources",
+    "vx_policy",
+    "next_real_command"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-production-acquisition-dry-run/v1"},
+    "kind": {"const": "MLProductionAcquisitionDryRun"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["created_at", "dataset_version", "claim_boundary"],
+      "properties": {
+        "created_at": {"type": "string", "format": "date-time"},
+        "dataset_version": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "output_dir",
+        "output_dir_inside_current_repo",
+        "samples_per_class",
+        "vt_validation",
+        "resume",
+        "vx_inventory",
+        "malware_bazaar_auth_key_env",
+        "malware_bazaar_auth_key_present",
+        "use_virusshare_fallback",
+        "virusshare_api_key_env",
+        "virusshare_api_key_present",
+        "virusshare_archive_range",
+        "virusshare_count_per_archive"
+      ],
+      "properties": {
+        "output_dir": {"type": "string", "minLength": 1},
+        "output_dir_inside_current_repo": {"type": "boolean"},
+        "samples_per_class": {"type": "integer", "minimum": 1},
+        "vt_validation": {"enum": ["enabled", "disabled"]},
+        "resume": {"type": "boolean"},
+        "vx_inventory": {"type": ["string", "null"]},
+        "malware_bazaar_auth_key_env": {"const": "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"},
+        "malware_bazaar_auth_key_present": {"type": "boolean"},
+        "use_virusshare_fallback": {"type": "boolean"},
+        "virusshare_api_key_env": {"const": "VIRUSSHARE_API_KEY"},
+        "virusshare_api_key_present": {"type": "boolean"},
+        "virusshare_archive_range": {
+          "type": ["array", "null"],
+          "items": {"type": "string", "pattern": "^\\d{5}$"},
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "virusshare_count_per_archive": {"type": ["integer", "null"], "minimum": 1}
+      }
+    },
+    "safety_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "requires_isolated_lab",
+        "requires_output_outside_git",
+        "downloads_raw_malware",
+        "collects_goodware",
+        "executes_samples"
+      ],
+      "properties": {
+        "requires_isolated_lab": {"const": true},
+        "requires_output_outside_git": {"const": true},
+        "downloads_raw_malware": {"const": false},
+        "collects_goodware": {"const": false},
+        "executes_samples": {"const": false}
+      }
+    },
+    "planned_phases": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["phase", "name", "executed_in_dry_run"],
+        "properties": {
+          "phase": {"type": "integer", "minimum": 1},
+          "name": {"type": "string", "minLength": 1},
+          "executed_in_dry_run": {"const": false}
+        }
+      }
+    },
+    "holdout_sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["source_id", "role", "used_in_training", "claim_boundary"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "role": {"type": "string", "minLength": 1},
+          "used_in_training": {"const": false},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "vx_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vx_inventory_ref",
+        "vx_inventory_metadata_only",
+        "vx_samples_in_training_splits",
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_must_be_unset",
+        "operator_note"
+      ],
+      "properties": {
+        "vx_inventory_ref": {"type": ["string", "null"]},
+        "vx_inventory_metadata_only": {"type": "boolean"},
+        "vx_samples_in_training_splits": {"const": false},
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_must_be_unset": {"const": true},
+        "operator_note": {
+          "type": "string",
+          "pattern": "metadata.*holdout_candidate|holdout_candidate.*metadata"
+        }
+      }
+    },
+    "next_real_command": {"type": "string", "minLength": 1}
+  }
+}

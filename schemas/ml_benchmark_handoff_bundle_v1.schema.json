@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_benchmark_handoff_bundle_v1.schema.json",
+  "title": "Tamandua ML Benchmark Handoff Bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "output_dir", "readme", "lane_files", "summary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-benchmark-handoff-bundle/v1"},
+    "kind": {"const": "MLBenchmarkHandoffBundle"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benchmark_execution_matrix",
+        "benchmark_execution_matrix_validation",
+        "source_matrix_summary",
+        "source_status_summary",
+        "source_parallel_work_summary"
+      ],
+      "properties": {
+        "benchmark_execution_matrix": {"type": "string", "minLength": 1},
+        "benchmark_execution_matrix_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "source_matrix_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["lanes", "lane_ids"],
+          "properties": {
+            "lanes": {"type": "integer", "minimum": 0},
+            "lane_ids": {
+              "type": "array",
+              "items": {"enum": ["ML-0", "ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]}
+            }
+          }
+        },
+        "source_parallel_work_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "parallel_claims",
+            "ready_validation_only_claims",
+            "blocked_claims",
+            "evidence_exists_claims",
+            "ready_validation_only_claim_ids",
+            "blocked_claim_ids",
+            "evidence_exists_claim_ids"
+          ],
+          "properties": {
+            "parallel_claims": {"type": "integer", "minimum": 0},
+            "ready_validation_only_claims": {"type": "integer", "minimum": 0},
+            "blocked_claims": {"type": "integer", "minimum": 0},
+            "evidence_exists_claims": {"type": "integer", "minimum": 0},
+            "ready_validation_only_claim_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "blocked_claim_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_exists_claim_ids": {"type": "array", "items": {"type": "string", "minLength": 1}}
+          }
+        },
+        "source_status_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "matrix_validated",
+            "source_matrix_lanes",
+            "source_matrix_lane_ids",
+            "readme_written",
+            "lane_files_written",
+            "validation_command_lanes",
+            "execute_guard_lanes",
+            "evidence_exists",
+            "evidence_usable_for_goal",
+            "ready_validation_only",
+            "blocked",
+            "goal_complete",
+            "completion_state",
+            "goal_snapshot_anchor_check_passed",
+            "goal_missing_requirements",
+            "goal_required_evidence_total",
+            "goal_present_required_evidence",
+            "goal_usable_required_evidence",
+            "goal_missing_required_evidence",
+            "goal_unusable_present_required_evidence",
+            "next_unproven_requirement_id",
+            "next_unproven_requirement_phase",
+            "next_unproven_execute_guard_env",
+            "missing_requirement_ids",
+            "evidence_status_summary",
+            "next_unproven_requirement"
+          ],
+          "properties": {
+            "matrix_validated": {"type": "boolean"},
+            "source_matrix_lanes": {"type": "integer", "minimum": 0},
+            "source_matrix_lane_ids": {
+              "type": "array",
+              "items": {"enum": ["ML-0", "ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]}
+            },
+            "readme_written": {"type": "boolean"},
+            "lane_files_written": {"type": "integer", "minimum": 0},
+            "validation_command_lanes": {"type": "integer", "minimum": 0},
+            "execute_guard_lanes": {"type": "integer", "minimum": 0},
+            "evidence_exists": {"type": "integer", "minimum": 0},
+            "evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+            "ready_validation_only": {"type": "integer", "minimum": 0},
+            "blocked": {"type": "integer", "minimum": 0},
+            "goal_complete": {"type": "boolean"},
+            "completion_state": {"enum": ["partial_evidence", "complete"]},
+            "goal_snapshot_anchor_check_passed": {"const": true},
+            "goal_missing_requirements": {"type": "integer", "minimum": 0},
+            "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+            "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+            "next_unproven_requirement_phase": {"type": "string", "minLength": 1},
+            "next_unproven_execute_guard_env": {"type": "string", "minLength": 1},
+            "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_status_summary": {"type": "object"},
+            "next_unproven_requirement": {"type": "object"}
+          }
+        }
+      }
+    },
+    "output_dir": {"type": "string", "minLength": 1},
+    "readme": {"type": "string", "minLength": 1},
+    "lane_files": {
+      "type": "array",
+      "minItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["lane_id", "scope", "current_status", "evidence_status", "evidence_usable_for_goal", "path", "validation_command_present", "execute_guard_env", "guarded_command_fingerprints"],
+        "properties": {
+          "lane_id": {"enum": ["ML-0", "ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]},
+          "scope": {"enum": ["pipeline_smoke", "isolated_model", "onnx_parity", "agent_local", "service_api", "platform_replay", "cross_time_holdout"]},
+          "current_status": {"enum": ["evidence_exists", "ready_validation_only", "blocked_dependency", "blocked_artifact", "blocked_env"]},
+          "evidence_status": {"enum": ["validation_only_not_evidence", "blocked_env", "blocked_artifact", "blocked_dependency", "smoke_artifact", "contract_dry_run", "fixture_only", "metadata_only", "candidate_required_artifact", "coordination_only"]},
+          "evidence_usable_for_goal": {"type": "boolean"},
+          "path": {"type": "string", "minLength": 1},
+          "validation_command_present": {"type": "boolean"},
+          "execute_guard_env": {"type": ["string", "null"]},
+          "guarded_command_fingerprints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["name", "command_sha256"],
+              "properties": {
+                "name": {"enum": ["validation_command", "execute_command"]},
+                "command_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_lane_files",
+        "evidence_exists",
+        "evidence_usable_for_goal",
+        "ready_validation_only",
+        "blocked",
+        "upstream_ready_validation_only",
+        "upstream_blocked",
+        "goal_complete",
+        "completion_state",
+        "goal_snapshot_anchor_check_passed",
+        "goal_usable_required_evidence",
+        "goal_required_evidence_total",
+        "next_unproven_requirement_id",
+        "next_unproven_execute_guard_env"
+      ],
+      "properties": {
+        "total_lane_files": {"type": "integer", "minimum": 7},
+        "evidence_exists": {"type": "integer", "minimum": 0},
+        "evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+        "ready_validation_only": {"type": "integer", "minimum": 0},
+        "blocked": {"type": "integer", "minimum": 0},
+        "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+        "upstream_blocked": {"type": "integer", "minimum": 0},
+        "goal_complete": {"type": "boolean"},
+        "completion_state": {"enum": ["partial_evidence", "complete"]},
+        "goal_snapshot_anchor_check_passed": {"const": true},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+        "next_unproven_execute_guard_env": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_benchmark_unblock_validation_status_v1.schema.json",
+  "title": "Tamandua ML Benchmark Unblock Validation Status v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "summary", "items", "next_pending_items"],
+  "$defs": {
+    "category_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dependency", "artifact", "env", "other"],
+      "properties": {
+        "dependency": {"type": "integer", "minimum": 0},
+        "artifact": {"type": "integer", "minimum": 0},
+        "env": {"type": "integer", "minimum": 0},
+        "other": {"type": "integer", "minimum": 0}
+      }
+    },
+    "goal_snapshot": {
+      "type": "object",
+      "required": [
+        "goal_complete",
+        "completion_state",
+        "goal_missing_requirements",
+        "goal_required_evidence_total",
+        "goal_present_required_evidence",
+        "goal_usable_required_evidence",
+        "goal_missing_required_evidence",
+        "goal_unusable_present_required_evidence",
+        "next_unproven_requirement_id",
+        "next_unproven_requirement_phase",
+        "next_unproven_execute_guard_env",
+        "missing_requirement_ids",
+        "evidence_status_summary",
+        "next_unproven_requirement"
+      ],
+      "properties": {
+        "goal_complete": {"const": false},
+        "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+        "goal_missing_requirements": {"const": 9},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+        "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"const": "wave1_governed_acquisition"},
+        "next_unproven_requirement_phase": {"const": "01-wave1-manifest-publication"},
+        "next_unproven_execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "evidence_status_summary": {"type": "object"},
+        "next_unproven_requirement": {"type": "object"}
+      }
+    },
+    "resolution_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "command_available", "validation_command", "execute_command", "execute_guard_env", "operator_note"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "wave1_governed_acquisition",
+            "wave2_ml1_candidate",
+            "wave2_ml2_ml3_parity",
+            "wave2_ml4_service",
+            "ml5_outcome_builder",
+            "ml6_outcome_builder",
+            "ml1_model_contract_builder",
+            "ml1_model_card_builder",
+            "wave3_ml5_pipeline",
+            "wave3_ml6_holdout",
+            "ml4_api_key_env_validation",
+            "ml6_training_cutoff_env_validation",
+            "ml_prelab_validation_refresh",
+            "ml_lab_standby_guard_validation",
+            "ml_master_handoff_refresh",
+            "dependency",
+            "artifact",
+            "env",
+            "other"
+          ]
+        },
+        "command_available": {"type": "boolean"},
+        "validation_command": {
+          "anyOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "null"}
+          ]
+        },
+        "execute_command": {
+          "anyOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "null"}
+          ]
+        },
+        "execute_guard_env": {
+          "anyOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "null"}
+          ]
+        },
+        "operator_note": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-benchmark-unblock-validation-status/v1"},
+    "kind": {"const": "MLBenchmarkUnblockValidationStatus"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["benchmark_unblock_queue", "benchmark_unblock_queue_validation", "benchmark_unblock_handoff_bundle", "benchmark_unblock_handoff_bundle_validation", "benchmark_unblock_handoff_consistency", "benchmark_unblock_handoff_consistency_validation", "source_status_summary"],
+      "properties": {
+        "benchmark_unblock_queue": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-queue\\.json$"},
+        "benchmark_unblock_queue_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "benchmark_unblock_handoff_bundle": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-handoff-bundle\\.json$"},
+        "benchmark_unblock_handoff_bundle_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "benchmark_unblock_handoff_consistency": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-handoff-consistency\\.json$"},
+        "benchmark_unblock_handoff_consistency_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "source_status_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "benchmark_unblock_queue_validation",
+            "benchmark_unblock_handoff_bundle_validation",
+            "benchmark_unblock_handoff_consistency_validation",
+            "queue_validated",
+            "handoff_bundle_validated",
+            "handoff_consistency_validated",
+            "handoff_consistency_passed",
+            "handoff_validation_commands_preserved",
+            "source_queue_items",
+            "status_items",
+            "resolved_items",
+            "pending_items",
+            "pending_by_category",
+            "resolved_by_category",
+            "dependency_pending",
+            "artifact_pending",
+            "env_pending",
+            "unknown_evidence_targets",
+            "upstream_ready_validation_only",
+            "upstream_blocked",
+            "evidence_mapped_items",
+            "evidence_path_count",
+            "items_with_resolution_command_exposure",
+            "items_without_resolution_command_exposure",
+            "pending_item_ids",
+            "resolved_item_ids",
+            "goal_complete",
+            "completion_state",
+            "goal_missing_requirements",
+            "goal_required_evidence_total",
+            "goal_present_required_evidence",
+            "goal_usable_required_evidence",
+            "goal_missing_required_evidence",
+            "goal_unusable_present_required_evidence",
+            "next_unproven_requirement_id",
+            "next_unproven_requirement_phase",
+            "next_unproven_execute_guard_env",
+            "missing_requirement_ids",
+            "evidence_status_summary",
+            "next_unproven_requirement"
+          ],
+          "properties": {
+            "benchmark_unblock_queue_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+            "benchmark_unblock_handoff_bundle_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+            "benchmark_unblock_handoff_consistency_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+            "queue_validated": {"type": "boolean"},
+            "handoff_bundle_validated": {"type": "boolean"},
+            "handoff_consistency_validated": {"type": "boolean"},
+            "handoff_consistency_passed": {"type": "boolean"},
+            "handoff_validation_commands_preserved": {"type": "boolean"},
+            "source_queue_items": {"type": "integer", "minimum": 0},
+            "status_items": {"type": "integer", "minimum": 0},
+            "resolved_items": {"type": "integer", "minimum": 0},
+            "pending_items": {"type": "integer", "minimum": 0},
+            "pending_by_category": {"$ref": "#/$defs/category_counts"},
+            "resolved_by_category": {"$ref": "#/$defs/category_counts"},
+            "dependency_pending": {"type": "integer", "minimum": 0},
+            "artifact_pending": {"type": "integer", "minimum": 0},
+            "env_pending": {"type": "integer", "minimum": 0},
+            "unknown_evidence_targets": {"type": "integer", "minimum": 0},
+            "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+            "upstream_blocked": {"type": "integer", "minimum": 0},
+            "evidence_mapped_items": {"type": "integer", "minimum": 0},
+            "evidence_path_count": {"type": "integer", "minimum": 0},
+            "items_with_resolution_command_exposure": {"type": "integer", "minimum": 0},
+            "items_without_resolution_command_exposure": {"type": "integer", "minimum": 0},
+            "pending_item_ids": {"type": "array", "items": {"type": "string", "pattern": "^ml-benchmark-unblock-[0-9]{3}$"}},
+            "resolved_item_ids": {"type": "array", "items": {"type": "string", "pattern": "^ml-benchmark-unblock-[0-9]{3}$"}},
+            "goal_complete": {"const": false},
+            "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+            "goal_missing_requirements": {"const": 9},
+            "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+            "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "next_unproven_requirement_id": {"const": "wave1_governed_acquisition"},
+            "next_unproven_requirement_phase": {"const": "01-wave1-manifest-publication"},
+            "next_unproven_execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+            "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_status_summary": {"type": "object"},
+            "next_unproven_requirement": {"type": "object"}
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_items", "resolved", "pending", "pending_by_category", "resolved_by_category", "dependency_pending", "artifact_pending", "env_pending", "unknown_evidence_targets", "items_with_resolution_command_exposure", "items_without_resolution_command_exposure", "upstream_ready_validation_only", "upstream_blocked", "goal_complete", "completion_state", "goal_usable_required_evidence", "goal_required_evidence_total", "next_unproven_requirement_id", "next_unproven_execute_guard_env"],
+      "properties": {
+        "total_items": {"type": "integer", "minimum": 0},
+        "resolved": {"type": "integer", "minimum": 0},
+        "pending": {"type": "integer", "minimum": 0},
+        "pending_by_category": {"$ref": "#/$defs/category_counts"},
+        "resolved_by_category": {"$ref": "#/$defs/category_counts"},
+        "dependency_pending": {"type": "integer", "minimum": 0},
+        "artifact_pending": {"type": "integer", "minimum": 0},
+        "env_pending": {"type": "integer", "minimum": 0},
+        "unknown_evidence_targets": {"type": "integer", "minimum": 0},
+        "items_with_resolution_command_exposure": {"type": "integer", "minimum": 0},
+        "items_without_resolution_command_exposure": {"type": "integer", "minimum": 0},
+        "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+        "upstream_blocked": {"type": "integer", "minimum": 0},
+        "goal_complete": {"const": false},
+        "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+        "next_unproven_requirement_id": {"const": "wave1_governed_acquisition"},
+        "next_unproven_execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"}
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["unblock_id", "lane_id", "scope", "parallel_group", "category", "target", "blocker", "priority", "primary_resolved", "evidence_paths", "resolved", "resolution_state", "resolution_plan", "detail"],
+        "properties": {
+          "unblock_id": {"type": "string", "pattern": "^ml-benchmark-unblock-[0-9]{3}$"},
+          "lane_id": {"enum": ["ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]},
+          "scope": {"enum": ["isolated_model", "onnx_parity", "agent_local", "service_api", "platform_replay", "cross_time_holdout"]},
+          "parallel_group": {"type": "string", "minLength": 1},
+          "category": {"enum": ["dependency", "artifact", "env", "other"]},
+          "target": {"type": "string", "minLength": 1},
+          "blocker": {"type": "string", "minLength": 1},
+          "priority": {"type": "integer", "minimum": 1},
+          "primary_resolved": {"type": "boolean"},
+          "evidence_paths": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "resolved": {"type": "boolean"},
+          "resolution_state": {"enum": ["resolved", "pending"]},
+          "resolution_plan": {"$ref": "#/$defs/resolution_plan"},
+          "detail": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "next_pending_items": {"type": "array", "items": {"type": "object"}}
+  }
+}

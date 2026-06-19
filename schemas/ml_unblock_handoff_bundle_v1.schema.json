@@ -1,0 +1,171 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_unblock_handoff_bundle_v1.schema.json",
+  "title": "Tamandua ML Unblock Handoff Bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "output_dir", "readme", "summary", "handoff_files"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-unblock-handoff-bundle/v1"},
+    "kind": {"const": "MLUnblockHandoffBundle"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unblock_queue", "unblock_queue_validation", "source_queue_summary"],
+      "properties": {
+        "unblock_queue": {"type": "string", "pattern": "20260604T-ml-unblock-queue\\.json$"},
+        "unblock_queue_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "source_queue_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "queue_items",
+            "queue_item_ids",
+            "unblock_queue_validated",
+            "source_queue_items",
+            "pending_items",
+            "resolved_items",
+            "upstream_ready_validation_only",
+            "upstream_blocked",
+            "dependency",
+            "artifact",
+            "env",
+            "other",
+            "readiness_blocker_links",
+            "items_from_blocked_claims",
+            "items_without_command_exposure",
+            "items_with_resolution_command_exposure",
+            "items_without_resolution_command_exposure",
+            "handoff_files",
+            "readme_written",
+            "priority_sequence_valid",
+            "goal_complete",
+            "completion_state",
+            "goal_snapshot_anchor_check_passed",
+            "goal_missing_requirements",
+            "goal_required_evidence_total",
+            "goal_present_required_evidence",
+            "goal_usable_required_evidence",
+            "goal_missing_required_evidence",
+            "goal_unusable_present_required_evidence",
+            "next_unproven_requirement_id",
+            "next_unproven_requirement_phase",
+            "next_unproven_execute_guard_env",
+            "missing_requirement_ids",
+            "evidence_status_summary",
+            "next_unproven_requirement"
+          ],
+          "properties": {
+            "queue_items": {"type": "integer", "minimum": 0},
+            "queue_item_ids": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^ml-unblock-[0-9]{3}$"}
+            },
+            "unblock_queue_validated": {"type": "boolean"},
+            "source_queue_items": {"type": "integer", "minimum": 0},
+            "pending_items": {"type": "integer", "minimum": 0},
+            "resolved_items": {"type": "integer", "minimum": 0},
+            "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+            "upstream_blocked": {"type": "integer", "minimum": 0},
+            "dependency": {"type": "integer", "minimum": 0},
+            "artifact": {"type": "integer", "minimum": 0},
+            "env": {"type": "integer", "minimum": 0},
+            "other": {"type": "integer", "minimum": 0},
+            "readiness_blocker_links": {"type": "integer", "minimum": 0},
+            "items_from_blocked_claims": {"type": "integer", "minimum": 0},
+            "items_without_command_exposure": {"type": "integer", "minimum": 0},
+            "items_with_resolution_command_exposure": {"type": "integer", "minimum": 0},
+            "items_without_resolution_command_exposure": {"type": "integer", "minimum": 0},
+            "handoff_files": {"type": "integer", "minimum": 0},
+            "readme_written": {"type": "boolean"},
+            "priority_sequence_valid": {"type": "boolean"},
+            "goal_complete": {"type": "boolean"},
+            "completion_state": {"enum": ["not_executed", "partial_evidence", "complete"]},
+            "goal_snapshot_anchor_check_passed": {"const": true},
+            "goal_missing_requirements": {"type": "integer", "minimum": 0},
+            "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+            "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+            "next_unproven_requirement_phase": {"type": "string", "minLength": 1},
+            "next_unproven_execute_guard_env": {"type": "string", "minLength": 1},
+            "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_status_summary": {"type": "object"},
+            "next_unproven_requirement": {"type": "object"}
+          }
+        }
+      }
+    },
+    "output_dir": {"type": "string", "pattern": "20260604T-ml-unblock-queue\\.handoff$"},
+    "readme": {"type": "string", "pattern": "20260604T-ml-unblock-queue\\.handoff/README\\.md$"},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_handoff_files", "upstream_ready_validation_only", "upstream_blocked", "dependency", "artifact", "env", "other", "items_from_blocked_claims", "items_without_command_exposure", "items_with_resolution_command_exposure", "items_without_resolution_command_exposure", "goal_complete", "completion_state", "goal_snapshot_anchor_check_passed", "goal_usable_required_evidence", "goal_required_evidence_total", "next_unproven_requirement_id", "next_unproven_execute_guard_env"],
+      "properties": {
+        "total_handoff_files": {"type": "integer", "minimum": 0},
+        "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+        "upstream_blocked": {"type": "integer", "minimum": 0},
+        "dependency": {"type": "integer", "minimum": 0},
+        "artifact": {"type": "integer", "minimum": 0},
+        "env": {"type": "integer", "minimum": 0},
+        "other": {"type": "integer", "minimum": 0},
+        "items_from_blocked_claims": {"type": "integer", "minimum": 0},
+        "items_without_command_exposure": {"type": "integer", "minimum": 0},
+        "items_with_resolution_command_exposure": {"type": "integer", "minimum": 0},
+        "items_without_resolution_command_exposure": {"type": "integer", "minimum": 0},
+        "goal_complete": {"type": "boolean"},
+        "completion_state": {"enum": ["not_executed", "partial_evidence", "complete", "unknown"]},
+        "goal_snapshot_anchor_check_passed": {"const": true},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+        "next_unproven_execute_guard_env": {"type": "string", "minLength": 1}
+      }
+    },
+    "handoff_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["unblock_id", "claim_id", "package_id", "wave", "owner_role", "parallel_group", "category", "target", "priority", "path", "expected_evidence", "validation_command", "validation_command_sha256", "readiness_evidence_paths"],
+        "properties": {
+          "unblock_id": {"type": "string", "pattern": "^ml-unblock-[0-9]{3}$"},
+          "claim_id": {"type": "string", "pattern": "^ml-ml[a-z0-9_]+$"},
+          "package_id": {"type": "string", "pattern": "^ml[a-z0-9_]+$"},
+          "wave": {"type": "integer", "minimum": 0},
+          "owner_role": {"type": "string", "minLength": 1},
+          "parallel_group": {"type": "string", "minLength": 1},
+          "category": {"enum": ["dependency", "artifact", "env", "other"]},
+          "target": {"type": "string", "minLength": 1},
+          "priority": {"type": "integer", "minimum": 1},
+          "path": {"type": "string", "pattern": "20260604T-ml-unblock-queue\\.handoff/.+\\.md$"},
+          "expected_evidence": {"type": "string", "minLength": 10},
+          "validation_command": {"type": "string", "minLength": 10},
+          "validation_command_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "readiness_blockers": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          },
+          "readiness_evidence_paths": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    }
+  }
+}

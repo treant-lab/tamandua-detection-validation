@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave1_execute_guard_probe_v1.schema.json",
+  "title": "Tamandua ML Wave 1 Execute Guard Probe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "source_status_summary",
+    "configuration",
+    "passed",
+    "returncode",
+    "stdout",
+    "stderr",
+    "direct_cli_returncode",
+    "direct_cli_stdout",
+    "direct_cli_stderr",
+    "checks"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave1-execute-guard-probe/v1"},
+    "kind": {"const": "MLWave1ExecuteGuardProbe"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goal_complete",
+        "completion_state",
+        "goal_missing_requirements",
+        "goal_required_evidence_total",
+        "goal_present_required_evidence",
+        "goal_usable_required_evidence",
+        "goal_missing_required_evidence",
+        "goal_unusable_present_required_evidence",
+        "next_unproven_requirement_id",
+        "next_unproven_requirement_phase",
+        "next_unproven_execute_guard_env",
+        "missing_requirement_ids",
+        "evidence_status_summary",
+        "next_unproven_requirement",
+        "launcher_exists",
+        "direct_cli_exists",
+        "execute_rejected_without_guard",
+        "direct_cli_rejected_without_guard",
+        "production_manifest_absent_after_rejection",
+        "canonical_dataset_manifest_absent_after_rejection",
+        "guard_env_removed",
+        "returncode",
+        "returncode_nonzero",
+        "guard_message_present",
+        "direct_cli_returncode",
+        "direct_cli_returncode_nonzero",
+        "direct_cli_guard_message_present",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "passed"
+      ],
+      "properties": {
+        "goal_complete": {"type": "boolean"},
+        "completion_state": {"enum": ["not_executed", "partial_evidence", "complete"]},
+        "goal_missing_requirements": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+        "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string"},
+        "next_unproven_requirement_phase": {"type": "string"},
+        "next_unproven_execute_guard_env": {"type": "string"},
+        "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "evidence_status_summary": {"type": "object"},
+        "next_unproven_requirement": {"type": "object"},
+        "launcher_exists": {"type": "boolean"},
+        "direct_cli_exists": {"type": "boolean"},
+        "execute_rejected_without_guard": {"type": "boolean"},
+        "direct_cli_rejected_without_guard": {"type": "boolean"},
+        "production_manifest_absent_after_rejection": {"type": "boolean"},
+        "canonical_dataset_manifest_absent_after_rejection": {"type": "boolean"},
+        "guard_env_removed": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "returncode": {"type": "integer"},
+        "returncode_nonzero": {"type": "boolean"},
+        "guard_message_present": {"type": "boolean"},
+        "direct_cli_returncode": {"type": "integer"},
+        "direct_cli_returncode_nonzero": {"type": "boolean"},
+        "direct_cli_guard_message_present": {"type": "boolean"},
+        "check_count": {"type": "integer", "minimum": 0},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "passed": {"type": "boolean"}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "launcher",
+        "direct_cli",
+        "data_root",
+        "production_manifest",
+        "canonical_dataset_manifest",
+        "guard_env_removed"
+      ],
+      "properties": {
+        "launcher": {"type": "string", "pattern": "wave_1_real_acquisition_launcher\\.ps1$"},
+        "direct_cli": {"type": "string", "pattern": "download_production_dataset\\.py$"},
+        "data_root": {"type": "string", "minLength": 1},
+        "production_manifest": {"type": "string", "pattern": "production[/\\\\]manifest\\.json$"},
+        "canonical_dataset_manifest": {
+          "type": "string",
+          "pattern": "ml-prod-candidate-v1-dataset-manifest\\.json$"
+        },
+        "guard_env_removed": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"}
+      }
+    },
+    "passed": {"type": "boolean"},
+    "returncode": {"type": "integer"},
+    "stdout": {"type": "string"},
+    "stderr": {"type": "string"},
+    "direct_cli_returncode": {"type": "integer"},
+    "direct_cli_stdout": {"type": "string"},
+    "direct_cli_stderr": {"type": "string"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

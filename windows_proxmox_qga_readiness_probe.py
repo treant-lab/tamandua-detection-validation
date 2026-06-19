@@ -36,6 +36,8 @@ PROFILE_NAME = "Windows Proxmox QGA Readiness Probe"
 
 
 def load_dotenv(path: Path = ROOT / ".env") -> None:
+    if os.getenv("TAMANDUA_SKIP_DOTENV"):
+        return
     if not path.exists():
         return
     for raw_line in path.read_text(encoding="utf-8").splitlines():
@@ -76,10 +78,11 @@ def git_snapshot() -> dict[str, Any]:
 def decode_qga(value: str | None) -> str:
     if not value:
         return ""
+    text = str(value)
     try:
-        return base64.b64decode(value).decode(errors="replace")
+        return base64.b64decode(text, validate=True).decode(errors="replace")
     except Exception:
-        return str(value)
+        return text
 
 
 def login(args: argparse.Namespace) -> tuple[requests.Session | None, dict[str, Any]]:
@@ -277,6 +280,60 @@ def qga_guest_exec(session: requests.Session, args: argparse.Namespace) -> dict[
     return result
 
 
+def qga_guest_exec_hostname(session: requests.Session, args: argparse.Namespace) -> dict[str, Any]:
+    raw_input = "hostname\r\nexit /b 0\r\n"
+    start = request_json_retry(
+        session,
+        args,
+        "POST",
+        f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/exec",
+        max_attempts_override=args.qga_exec_start_attempts,
+        data={"command": "cmd.exe", "input-data": raw_input},
+    )
+    pid = (((start.get("body") or {}).get("data") or {}) if isinstance(start.get("body"), dict) else {}).get("pid")
+    result: dict[str, Any] = {"start": start, "transport": "proxmox_api_qga_guest_exec"}
+    if not start.get("ok") or pid is None:
+        result.update({"ready": False, "error": "guest_exec_start_failed"})
+        return result
+
+    deadline = time.monotonic() + max(5, args.guest_exec_timeout_seconds)
+    last: dict[str, Any] = {}
+    while time.monotonic() < deadline:
+        time.sleep(1)
+        poll = request_json(
+            session,
+            args,
+            "GET",
+            f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/exec-status",
+            params={"pid": pid},
+        )
+        last = poll
+        data = ((poll.get("body") or {}).get("data") or {}) if isinstance(poll.get("body"), dict) else {}
+        if data.get("exited"):
+            stdout = decode_qga(data.get("out-data"))
+            stderr = decode_qga(data.get("err-data"))
+            hostname_lines = [
+                line.strip()
+                for line in stdout.splitlines()
+                if line.strip() and not line.startswith("Microsoft Windows") and not line.startswith("(c) ")
+            ]
+            hostname = hostname_lines[-1] if hostname_lines else ""
+            result.update(
+                {
+                    "ready": data.get("exitcode") == 0 and bool(hostname),
+                    "exitcode": data.get("exitcode"),
+                    "hostname": hostname,
+                    "stdout": stdout[-1000:],
+                    "stderr": stderr[-1000:],
+                    "poll": poll,
+                }
+            )
+            return result
+
+    result.update({"ready": False, "error": "guest_exec_status_timeout", "last_poll": last})
+    return result
+
+
 def has_permission(permissions: dict[str, Any], permission: str, paths: list[str]) -> bool:
     data = permissions.get("body", {}).get("data") if isinstance(permissions.get("body"), dict) else {}
     if not isinstance(data, dict):
@@ -400,6 +457,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     permissions: dict[str, Any] = {}
     qga_ping: dict[str, Any] = {}
     qga_hostname: dict[str, Any] = {}
+    qga_hostname_exec: dict[str, Any] = {}
     qga_info: dict[str, Any] = {}
     qga_exec: dict[str, Any] = {}
     if session is not None:
@@ -447,13 +505,21 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             result = data.get("result") if isinstance(data, dict) else {}
             if isinstance(result, dict):
                 hostname = str(result.get("host-name") or result.get("hostname") or "")
+        if not hostname:
+            qga_hostname_exec = qga_guest_exec_hostname(session, args)
+            hostname = str(qga_hostname_exec.get("hostname") or "")
         tests.append(
             make_result(
                 "proxmox-qga-readonly-hostname",
-                "QEMU Guest Agent can answer a read-only hostname query",
-                bool(qga_hostname.get("ok")) and bool(hostname),
+                "QEMU Guest Agent can identify the guest hostname",
+                (bool(qga_hostname.get("ok")) or bool(qga_hostname_exec.get("ready"))) and bool(hostname),
                 "runner",
-                {"hostname_response": qga_hostname, "hostname": hostname},
+                {
+                    "hostname_response": qga_hostname,
+                    "hostname_exec_fallback": qga_hostname_exec,
+                    "hostname": hostname,
+                    "hostname_source": "agent/get-host-name" if qga_hostname.get("ok") else "guest_exec_hostname",
+                },
             )
         )
         qga_info = request_json_retry(session, args, "GET", f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/info")
@@ -461,16 +527,23 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         if qga_info.get("ok") and isinstance(qga_info.get("body"), dict):
             result = (((qga_info.get("body") or {}).get("data") or {}).get("result") or {})
             commands = [item.get("name") for item in result.get("supported_commands") or [] if isinstance(item, dict)]
+        qga_exec = qga_guest_exec(session, args)
+        guest_exec_empirically_supported = bool(qga_exec.get("ready"))
         tests.append(
             make_result(
                 "proxmox-qga-guest-exec-supported",
-                "QEMU Guest Agent reports guest-exec support",
-                qga_info.get("ok") and "guest-exec" in commands,
+                "QEMU Guest Agent reports or proves guest-exec support",
+                (qga_info.get("ok") and "guest-exec" in commands) or guest_exec_empirically_supported,
                 "runner",
-                {"info_response": qga_info, "supported_command_count": len(commands), "guest_exec_supported": "guest-exec" in commands},
+                {
+                    "info_response": qga_info,
+                    "supported_command_count": len(commands),
+                    "guest_exec_supported": "guest-exec" in commands,
+                    "guest_exec_empirically_supported": guest_exec_empirically_supported,
+                    "empirical_source": "proxmox-qga-bounded-guest-exec" if guest_exec_empirically_supported else None,
+                },
             )
         )
-        qga_exec = qga_guest_exec(session, args)
         tests.append(
             make_result(
                 "proxmox-qga-bounded-guest-exec",
@@ -551,6 +624,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "vm_status": vm_status,
             "qga_ping": qga_ping,
             "qga_hostname": qga_hostname,
+            "qga_hostname_exec_fallback": qga_hostname_exec,
             "qga_info": qga_info,
             "qga_exec": qga_exec,
         },
@@ -614,7 +688,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--qga-exec-start-attempts",
         type=int,
-        default=int(os.getenv("TAMANDUA_QGA_EXEC_START_ATTEMPTS", "5")),
+        default=int(os.getenv("TAMANDUA_QGA_EXEC_START_ATTEMPTS", "6")),
     )
     parser.add_argument(
         "--qga-retry-sleep-seconds",

@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_local_training_readiness_v1.schema.json",
+  "title": "Tamandua ML Local Training Readiness v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "configuration",
+    "source_status_summary",
+    "passed",
+    "checks"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-local-training-readiness/v1"},
+    "kind": {"const": "MLLocalTrainingReadiness"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dockerfile",
+        "compose",
+        "gitattributes",
+        "gitignore",
+        "verifier",
+        "model_lifecycle",
+        "adr",
+        "ci_workflow",
+        "required_lfs_patterns",
+        "required_artifact_ignore_patterns"
+      ],
+      "properties": {
+        "dockerfile": {"const": "docker/training-lab/Dockerfile"},
+        "compose": {"const": "docker/training-lab/docker-compose.yml"},
+        "gitattributes": {"const": ".gitattributes"},
+        "gitignore": {"const": ".gitignore"},
+        "verifier": {"const": "scripts/local-training/verify_environment.py"},
+        "model_lifecycle": {"const": "docs/MODEL_LIFECYCLE.md"},
+        "adr": {"const": "docs/architecture/adr/ADR-0001-local-first-ml-development.md"},
+        "ci_workflow": {"const": ".github/workflows/ml-training-lab-smoke.yml"},
+        "required_lfs_patterns": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1},
+          "contains": {"const": "*.onnx"}
+        },
+        "required_artifact_ignore_patterns": {
+          "type": "array",
+          "minItems": 5,
+          "items": {"type": "string", "minLength": 1},
+          "allOf": [
+            {"contains": {"const": "docs/benchmarks/runs/*-artifacts/*.pt"}},
+            {"contains": {"const": "docs/benchmarks/runs/*-artifacts/*.pth"}},
+            {"contains": {"const": "docs/benchmarks/runs/*-artifacts/*.pkl"}},
+            {"contains": {"const": "docs/benchmarks/runs/*-artifacts/*.npz"}},
+            {"contains": {"const": "docs/benchmarks/runs/*-artifacts/*.onnx"}}
+          ]
+        }
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dockerfile_exists",
+        "compose_exists",
+        "gitattributes_exists",
+        "gitignore_exists",
+        "verifier_exists",
+        "model_lifecycle_exists",
+        "adr_local_first_accepted",
+        "ci_workflow_exists",
+        "dockerfile_cuda_pytorch_onnx_uv",
+        "dockerfile_non_root_trainer",
+        "compose_trainer_network_disabled",
+        "compose_gpu_passthrough_declared",
+        "compose_dataset_read_only",
+        "compose_source_read_only",
+        "gitattributes_lfs_patterns_present",
+        "gitignore_artifact_binaries_ignored",
+        "git_index_artifact_binaries_untracked",
+        "verifier_checks_gpu_docker_lfs",
+        "model_lifecycle_documents_training_and_lfs",
+        "model_lifecycle_references_wave1_dataset_manifest",
+        "ci_workflow_builds_training_dockerfile",
+        "ci_workflow_does_not_train",
+        "no_execution_claim_boundary_documented",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "passed"
+      ],
+      "properties": {
+        "dockerfile_exists": {"type": "boolean"},
+        "compose_exists": {"type": "boolean"},
+        "gitattributes_exists": {"type": "boolean"},
+        "gitignore_exists": {"type": "boolean"},
+        "verifier_exists": {"type": "boolean"},
+        "model_lifecycle_exists": {"type": "boolean"},
+        "adr_local_first_accepted": {"type": "boolean"},
+        "ci_workflow_exists": {"type": "boolean"},
+        "dockerfile_cuda_pytorch_onnx_uv": {"type": "boolean"},
+        "dockerfile_non_root_trainer": {"type": "boolean"},
+        "compose_trainer_network_disabled": {"type": "boolean"},
+        "compose_gpu_passthrough_declared": {"type": "boolean"},
+        "compose_dataset_read_only": {"type": "boolean"},
+        "compose_source_read_only": {"type": "boolean"},
+        "gitattributes_lfs_patterns_present": {"type": "boolean"},
+        "gitignore_artifact_binaries_ignored": {"type": "boolean"},
+        "git_index_artifact_binaries_untracked": {"type": "boolean"},
+        "verifier_checks_gpu_docker_lfs": {"type": "boolean"},
+        "model_lifecycle_documents_training_and_lfs": {"type": "boolean"},
+        "model_lifecycle_references_wave1_dataset_manifest": {"type": "boolean"},
+        "ci_workflow_builds_training_dockerfile": {"type": "boolean"},
+        "ci_workflow_does_not_train": {"type": "boolean"},
+        "no_execution_claim_boundary_documented": {"type": "boolean"},
+        "check_count": {"type": "integer", "minimum": 0},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "passed": {"type": "boolean"}
+      }
+    },
+    "passed": {"type": "boolean"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

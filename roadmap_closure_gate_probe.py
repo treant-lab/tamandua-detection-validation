@@ -266,8 +266,10 @@ def roadmap_action_text(key: str, blockers: list[dict[str, Any]], required_env: 
                 "running the server-backed macOS P0 sensor smoke."
             )
         return (
-            "Reconnect or re-enroll the macOS agent until backend readiness is green, then run the server-backed "
-            "macOS P0 sensor smoke."
+            "Deploy a Developer ID signed/notarized macOS agent that Gatekeeper accepts and that includes "
+            "com.apple.developer.endpoint-security.client and com.apple.developer.system-extension.install, "
+            "approve the Tamandua System Extension and Full Disk Access, rerun macOS backend readiness, then "
+            "run the server-backed macOS P0 sensor smoke."
         )
     if key == "M":
         return (

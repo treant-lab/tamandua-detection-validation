@@ -27,7 +27,7 @@
       "explicit separation from lab-only or unsigned builds"
     ]
   },
-  "claim_boundary": "Dry-run release/readiness contract only. Passing this profile does not prove notarization, installer success, update success, rollback success, clean uninstall, EndpointSecurity coverage, or server-backed parity.",
+  "claim_boundary": "Dry-run release/readiness contract only. Passing this profile does not prove notarization, installer success, update success, rollback success, clean uninstall, EndpointSecurity/System Extension coverage, or server-backed parity.",
   "tests": [
     {
       "id": "release-macos-launchdaemon-status-report-only",

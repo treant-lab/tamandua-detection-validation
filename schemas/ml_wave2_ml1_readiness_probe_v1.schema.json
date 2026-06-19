@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave2_ml1_readiness_probe_v1.schema.json",
+  "title": "Tamandua ML Wave 2 ML-1 Readiness Probe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "configuration",
+    "source",
+    "ready_for_ml1_candidate",
+    "blockers",
+    "checks",
+    "operator_sequence"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave2-ml1-readiness-probe/v1"},
+    "kind": {"const": "MLWave2ML1ReadinessProbe"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status_ref",
+        "ml_execution_master_handoff_ref",
+        "ml_local_training_readiness_ref",
+        "wave1_operator_launch_brief_ref",
+        "wave1_manifest_publish_receipt_ref",
+        "dataset_manifest",
+        "launcher",
+        "data_root"
+      ],
+      "properties": {
+        "status_ref": {"type": "string", "minLength": 1},
+        "ml_execution_master_handoff_ref": {
+          "type": "string",
+          "pattern": "20260604T-ml-execution-master-handoff\\.json$"
+        },
+        "ml_local_training_readiness_ref": {
+          "type": "string",
+          "pattern": "20260604T-ml-local-training-readiness\\.json$"
+        },
+        "wave1_operator_launch_brief_ref": {"type": "string", "minLength": 1},
+        "wave1_manifest_publish_receipt_ref": {
+          "type": "string",
+          "pattern": "20260604T-ml-wave1-manifest-publish-receipt\\.json$"
+        },
+        "dataset_manifest": {
+          "type": "string",
+          "pattern": "ml-prod-candidate-v1-dataset-manifest\\.json$"
+        },
+        "launcher": {"type": "string", "pattern": "wave_2_ml1_candidate_launcher\\.ps1$"},
+        "data_root": {"type": "string", "minLength": 1}
+      }
+    },
+    "ready_for_ml1_candidate": {"type": "boolean"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_status",
+        "execution_status_validation",
+        "ml_execution_master_handoff",
+        "ml_execution_master_handoff_validation",
+        "ml_local_training_readiness",
+        "ml_local_training_readiness_validation",
+        "wave1_operator_launch_brief",
+        "wave1_operator_launch_brief_validation",
+        "wave1_manifest_publish_receipt",
+        "wave1_manifest_publish_receipt_validation",
+        "dataset_manifest",
+        "dataset_manifest_validation",
+        "source_status_summary"
+      ],
+      "properties": {
+        "execution_status": {"type": "string", "pattern": "20260604T-ml-execution-status\\.json$"},
+        "execution_status_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
+        "ml_execution_master_handoff": {"type": "string", "pattern": "20260604T-ml-execution-master-handoff\\.json$"},
+        "ml_execution_master_handoff_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
+        "ml_local_training_readiness": {"type": "string", "pattern": "20260604T-ml-local-training-readiness\\.json$"},
+        "ml_local_training_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
+        "wave1_operator_launch_brief": {"type": "string", "pattern": "20260604T-ml-wave1-operator-launch-brief\\.json$"},
+        "wave1_operator_launch_brief_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
+        "wave1_manifest_publish_receipt": {"type": "string", "pattern": "20260604T-ml-wave1-manifest-publish-receipt\\.json$"},
+        "wave1_manifest_publish_receipt_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
+        "dataset_manifest": {"type": "string", "pattern": "ml-prod-candidate-v1-dataset-manifest\\.json$"},
+        "dataset_manifest_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed", "missing"]},
+        "source_status_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "goal_complete",
+            "completion_state",
+            "goal_missing_requirements",
+            "goal_required_evidence_total",
+            "goal_present_required_evidence",
+            "goal_usable_required_evidence",
+            "goal_missing_required_evidence",
+            "goal_unusable_present_required_evidence",
+            "next_unproven_requirement_id",
+            "next_unproven_requirement_phase",
+            "next_unproven_execute_guard_env",
+            "missing_requirement_ids",
+            "evidence_status_summary",
+            "next_unproven_requirement",
+            "manifest_publish_receipt_complete",
+            "manifest_publish_receipt_canonical_dataset_manifest_sha256",
+            "ml_execution_master_handoff_ready",
+            "ml_execution_master_handoff_lab_guard_proof_mismatch_count",
+            "ml_execution_master_handoff_ml_lab_standby_guards_unset",
+            "ml_local_training_readiness_ready",
+            "canonical_dataset_manifest_present",
+            "canonical_dataset_manifest_sha256",
+            "canonical_dataset_manifest_sha256_matches_publish_receipt",
+            "canonical_dataset_manifest_dataset_id",
+            "canonical_dataset_manifest_purpose",
+            "canonical_dataset_manifest_raw_sample_storage_external",
+            "canonical_dataset_manifest_unresolved_label_count",
+            "ml1_launcher_exists",
+            "data_root_outside_repo",
+            "required_input_count",
+            "required_inputs_present",
+            "blocker_count",
+            "blockers"
+          ],
+          "properties": {
+            "goal_complete": {"type": "boolean"},
+            "completion_state": {"enum": ["not_executed", "partial_evidence", "complete"]},
+            "goal_missing_requirements": {"type": "integer", "minimum": 0},
+            "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+            "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "next_unproven_requirement_id": {"type": "string"},
+            "next_unproven_requirement_phase": {"type": "string"},
+            "next_unproven_execute_guard_env": {"type": "string"},
+            "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_status_summary": {"type": "object"},
+            "next_unproven_requirement": {"type": "object"},
+            "manifest_publish_receipt_complete": {"type": "boolean"},
+            "manifest_publish_receipt_canonical_dataset_manifest_sha256": {"type": "string", "pattern": "^$|^[a-f0-9]{64}$"},
+            "ml_execution_master_handoff_ready": {"type": "boolean"},
+            "ml_execution_master_handoff_lab_guard_proof_mismatch_count": {"type": "integer", "minimum": 0},
+            "ml_execution_master_handoff_ml_lab_standby_guards_unset": {"type": "boolean"},
+            "ml_local_training_readiness_ready": {"type": "boolean"},
+            "canonical_dataset_manifest_present": {"type": "boolean"},
+            "canonical_dataset_manifest_sha256": {"type": "string", "pattern": "^$|^[a-f0-9]{64}$"},
+            "canonical_dataset_manifest_sha256_matches_publish_receipt": {"type": "boolean"},
+            "canonical_dataset_manifest_dataset_id": {"type": "string"},
+            "canonical_dataset_manifest_purpose": {"type": "string"},
+            "canonical_dataset_manifest_raw_sample_storage_external": {"type": "boolean"},
+            "canonical_dataset_manifest_unresolved_label_count": {"type": "integer", "minimum": 0},
+            "ml1_launcher_exists": {"type": "boolean"},
+            "data_root_outside_repo": {"type": "boolean"},
+            "required_input_count": {"type": "integer", "minimum": 0},
+            "required_inputs_present": {"type": "integer", "minimum": 0},
+            "blocker_count": {"type": "integer", "minimum": 0},
+            "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}}
+          }
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1}
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    },
+    "operator_sequence": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "mode", "command", "claim_boundary"],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1},
+          "mode": {"type": "string", "enum": ["validation_only", "execute"]},
+          "required_env": {
+            "type": "object",
+            "additionalProperties": {"type": "string"}
+          },
+          "guard_set_command": {"type": "string", "minLength": 1},
+          "command": {"type": "string", "minLength": 1},
+          "guard_cleanup_command": {"type": "string", "minLength": 1},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    }
+  }
+}

@@ -20,11 +20,11 @@ from validate_ml_contracts import ContractError, validate_ml_goal_snapshot  # no
 def valid_goal_snapshot() -> dict:
     evidence_summary = {
         "total_required_evidence": 16,
-        "present_required_evidence": 4,
+        "present_required_evidence": 5,
         "usable_required_evidence": 1,
-        "missing_required_evidence": 12,
-        "unusable_present_required_evidence": 3,
-        "by_status": {"blocked_artifact": 3, "missing": 12, "usable": 1},
+        "missing_required_evidence": 11,
+        "unusable_present_required_evidence": 4,
+        "by_status": {"blocked_artifact": 3, "invalid_content": 1, "missing": 11, "usable": 1},
     }
     missing_ids = [
         "wave1_governed_acquisition",
@@ -43,8 +43,14 @@ def valid_goal_snapshot() -> dict:
         "phase_state": "ready_validation_only",
         "execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
         "pending_targets": ["manifest_publish_receipt_incomplete", "missing_canonical_dataset_manifest"],
-        "required_evidence": ["docs/benchmarks/runs/20260604T-ml-wave1-real-acquisition-transcript.json"],
-        "missing_or_unusable_evidence": ["docs/benchmarks/runs/20260604T-ml-wave1-real-acquisition-transcript.json"],
+        "required_evidence": [
+            "docs/benchmarks/runs/20260604T-ml-wave1-real-acquisition-transcript.json",
+            "docs/benchmarks/runs/20260604T-ml-wave1-acquisition-receipt.json",
+        ],
+        "missing_or_unusable_evidence": [
+            "docs/benchmarks/runs/20260604T-ml-wave1-real-acquisition-transcript.json",
+            "docs/benchmarks/runs/20260604T-ml-wave1-acquisition-receipt.json",
+        ],
     }
     matrix = [
         {
@@ -57,10 +63,16 @@ def valid_goal_snapshot() -> dict:
             "required_evidence": ["w1_transcript.json", "w1_receipt.json"],
             "missing_or_unusable_evidence": ["w1_transcript.json", "w1_receipt.json"],
             "platform_status": "missing",
-            "platform_blockers": ["missing_evidence:w1_transcript.json", "unusable_evidence:w1_receipt.json"],
+            "platform_blockers": ["unusable_evidence:w1_transcript.json", "unusable_evidence:w1_receipt.json"],
             "evidence_state": "not_proven",
             "evidence": [
-                {"ref": "w1_transcript.json", "type": "file", "present": False, "usable": False, "status": "missing"},
+                {
+                    "ref": "w1_transcript.json",
+                    "type": "file",
+                    "present": True,
+                    "usable": False,
+                    "status": "invalid_content",
+                },
                 {"ref": "w1_receipt.json", "type": "file", "present": True, "usable": False, "status": "blocked_artifact"},
             ],
         },

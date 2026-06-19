@@ -9,6 +9,7 @@ PAW exists before upstream CALDERA benchmarks are allowed to run.
 from __future__ import annotations
 
 import argparse
+import email.utils
 import json
 import os
 import subprocess
@@ -40,6 +41,18 @@ def utc_now() -> datetime:
 
 def iso(dt: datetime) -> str:
     return dt.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def parse_http_date(value: Any) -> datetime | None:
+    if value is None:
+        return None
+    try:
+        parsed = email.utils.parsedate_to_datetime(str(value))
+    except (TypeError, ValueError):
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
 
 
 def git_snapshot() -> dict[str, Any]:
@@ -98,10 +111,13 @@ def caldera_request(url: str, api_key: str | None, path: str, timeout: int) -> d
         with opener.open(request, timeout=timeout) as response:
             raw = response.read().decode(errors="replace")
             body: Any = json.loads(raw) if raw.strip() else {}
+            response_date = response.headers.get("Date")
             return {
                 "url": full_url,
                 "status": response.status,
                 "duration_ms": int((time.monotonic() - started) * 1000),
+                "response_date": response_date,
+                "server_time": iso(parse_http_date(response_date)) if parse_http_date(response_date) else None,
                 "body": body,
             }
     except urllib.error.HTTPError as exc:
@@ -160,7 +176,7 @@ def agents_from_body(body: Any) -> list[dict[str, Any]]:
     return found
 
 
-def agent_snapshot(agent: dict[str, Any]) -> dict[str, Any]:
+def agent_snapshot(agent: dict[str, Any], reference_now: datetime | None = None) -> dict[str, Any]:
     keys = (
         "paw",
         "group",
@@ -177,7 +193,8 @@ def agent_snapshot(agent: dict[str, Any]) -> dict[str, Any]:
     snapshot = {key: agent.get(key) for key in keys if key in agent}
     parsed = parse_timestamp(agent.get("last_seen"))
     if parsed is not None:
-        snapshot["last_seen_age_seconds"] = max(0, int((utc_now() - parsed).total_seconds()))
+        now = reference_now or utc_now()
+        snapshot["last_seen_age_seconds"] = max(0, int((now - parsed).total_seconds()))
     return snapshot
 
 
@@ -302,6 +319,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "required_env": "CALDERA_API_KEY",
             "api_key_supplied": False,
         }
+    freshness_now = parse_http_date(request.get("response_date")) or utc_now()
     tests: list[dict[str, Any]] = []
 
     reachable = request.get("status") == 200
@@ -318,13 +336,14 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "error": request.get("error"),
                 "required_env": request.get("required_env"),
                 "api_key_supplied": bool(api_key),
+                "server_time": request.get("server_time"),
             },
             [] if reachable else (["caldera_api_key_present", "caldera_api_agents_http_200"] if not api_key else ["caldera_api_agents_http_200"]),
         )
     )
 
     agents = agents_from_body(request.get("body")) if reachable else []
-    known = [agent_snapshot(agent) for agent in agents[:25]]
+    known = [agent_snapshot(agent, freshness_now) for agent in agents[:25]]
     tests.append(
         make_result(
             "caldera-paw-inventory-nonempty",
@@ -337,7 +356,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     )
 
     target = next((agent for agent in agents if str(agent.get("paw") or "") == str(args.caldera_agent_paw)), None)
-    target_snapshot = agent_snapshot(target) if target else None
+    target_snapshot = agent_snapshot(target, freshness_now) if target else None
     target_exists = bool(target)
     tests.append(
         make_result(
@@ -377,7 +396,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     if target:
         parsed = parse_timestamp(target.get("last_seen"))
         if parsed is not None:
-            age_seconds = max(0, int((utc_now() - parsed).total_seconds()))
+            age_seconds = max(0, int((freshness_now - parsed).total_seconds()))
             fresh = args.freshness_seconds < 0 or age_seconds <= args.freshness_seconds
     tests.append(
         make_result(
@@ -389,6 +408,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "requested_paw": args.caldera_agent_paw,
                 "last_seen": target.get("last_seen") if target else None,
                 "last_seen_age_seconds": age_seconds,
+                "freshness_reference_time": iso(freshness_now),
                 "freshness_seconds": args.freshness_seconds,
             },
             [] if target_exists and fresh else ["caldera_agent_fresh"],

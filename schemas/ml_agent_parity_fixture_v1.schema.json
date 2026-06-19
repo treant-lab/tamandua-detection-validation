@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_agent_parity_fixture_v1.schema.json",
+  "title": "Tamandua ML Agent Parity Fixture v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "model_contract_ref",
+    "onnx_model",
+    "environment",
+    "input",
+    "output",
+    "agent_tolerance",
+    "samples"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-agent-parity-fixture/v1"},
+    "kind": {"const": "MLAgentParityFixture"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fixture_id", "created_at", "created_by", "git_commit", "claim_boundary"],
+      "properties": {
+        "fixture_id": {"type": "string", "minLength": 1},
+        "created_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "git_commit": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "model_contract_ref": {"type": "string", "minLength": 1},
+    "onnx_model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "metadata_path", "metadata_sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+        "metadata_path": {"type": "string", "minLength": 1},
+        "metadata_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"}
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["os", "python_version", "onnxruntime_version"],
+      "properties": {
+        "os": {"type": "string"},
+        "python_version": {"type": "string"},
+        "onnxruntime_version": {"type": "string"}
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "shape", "dtype", "image_size", "preprocessing"],
+      "properties": {
+        "name": {"const": "input"},
+        "shape": {"type": "array", "minItems": 4, "maxItems": 4},
+        "dtype": {"const": "tensor(float)"},
+        "image_size": {"const": 64},
+        "preprocessing": {"const": "binary_to_image_64_rgb_v1"}
+      }
+    },
+    "output": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "shape", "dtype", "labels"],
+      "properties": {
+        "name": {"const": "output"},
+        "shape": {"type": "array", "minItems": 2},
+        "dtype": {"const": "tensor(float)"},
+        "labels": {"type": "array", "minItems": 8, "maxItems": 8, "items": {"type": "string"}}
+      }
+    },
+    "agent_tolerance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_abs_probability_delta", "verdict_agreement_required"],
+      "properties": {
+        "max_abs_probability_delta": {"type": "number", "minimum": 0},
+        "verdict_agreement_required": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sample_id", "description", "raw_sha256", "raw_size_bytes", "raw_base64", "expected"],
+        "properties": {
+          "sample_id": {"type": "string", "minLength": 1},
+          "description": {"type": "string"},
+          "raw_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+          "raw_size_bytes": {"type": "integer", "minimum": 0},
+          "raw_base64": {"type": "string"},
+          "expected": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["predicted_index", "predicted_class", "confidence", "is_malicious", "probabilities"],
+            "properties": {
+              "predicted_index": {"type": "integer", "minimum": 0},
+              "predicted_class": {"type": "string"},
+              "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+              "is_malicious": {"type": "boolean"},
+              "probabilities": {"type": "array", "minItems": 8, "maxItems": 8, "items": {"type": "number"}}
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave1_operator_launch_brief_v1.schema.json",
+  "title": "Tamandua ML Wave 1 Operator Launch Brief v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "source_status_summary",
+    "vx_policy",
+    "configuration",
+    "ready_for_operator",
+    "checks",
+    "operator_sequence"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave1-operator-launch-brief/v1"},
+    "kind": {"const": "MLWave1OperatorLaunchBrief"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goal_complete",
+        "completion_state",
+        "goal_missing_requirements",
+        "goal_required_evidence_total",
+        "goal_present_required_evidence",
+        "goal_usable_required_evidence",
+        "goal_missing_required_evidence",
+        "goal_unusable_present_required_evidence",
+        "next_unproven_requirement_id",
+        "next_unproven_requirement_phase",
+        "next_unproven_execute_guard_env",
+        "missing_requirement_ids",
+        "evidence_status_summary",
+        "next_unproven_requirement",
+        "execution_status_validated",
+        "acquisition_readiness_validated",
+        "acquisition_dry_run_validated",
+        "wave1_go_no_go_validated",
+        "wave1_execute_guard_validated",
+        "next_action_run_validated",
+        "ml_lab_standby_readiness_validated",
+        "ml_lab_standby_guards_unset",
+        "ml_lab_standby_required_unset_guard_env",
+        "ml_lab_standby_enabled_guards",
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_present",
+        "vx_download_authorized_by_operator_brief",
+        "vx_inventory_metadata_only",
+        "vx_samples_allowed_in_training_splits",
+        "vx_guard_must_remain_unset_for_wave1_acquisition",
+        "ml_local_training_readiness_validated",
+        "next_action_run_mode",
+        "next_action_run_returncode",
+        "next_action_run_package_id",
+        "next_action_run_wave",
+        "next_action_validation_scope_selected",
+        "next_action_safety_assertions",
+        "next_action_safety_assertions_passed",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "operator_steps",
+        "operator_sequence_modes",
+        "operator_sequence_modes_sha256",
+        "operator_command_modes",
+        "operator_commands_by_mode",
+        "operator_commands_by_mode_sha256",
+        "configuration_paths",
+        "operator_sequence_valid",
+        "prelab_has_data_root",
+        "validation_command_no_execute",
+        "execute_requires_real_acquisition_guard",
+        "execute_command_has_execute",
+        "refresh_command_no_execute",
+        "publish_requires_manifest_guard",
+        "publish_validation_no_execute",
+        "publish_command_has_execute",
+        "validation_only_command_count",
+        "guarded_execute_command_count",
+        "guarded_required_env_count",
+        "command_guard_boundary_preserved",
+        "data_root_outside_repo",
+        "production_manifest_absent",
+        "canonical_dataset_manifest_absent",
+        "ready_for_operator"
+      ],
+      "properties": {
+        "goal_complete": {"type": "boolean"},
+        "completion_state": {"enum": ["not_executed", "partial_evidence", "complete"]},
+        "goal_missing_requirements": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+        "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string"},
+        "next_unproven_requirement_phase": {"type": "string"},
+        "next_unproven_execute_guard_env": {"type": "string"},
+        "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "evidence_status_summary": {"type": "object"},
+        "next_unproven_requirement": {"type": "object"},
+        "execution_status_validated": {"type": "boolean"},
+        "acquisition_readiness_validated": {"type": "boolean"},
+        "acquisition_dry_run_validated": {"type": "boolean"},
+        "wave1_go_no_go_validated": {"type": "boolean"},
+        "wave1_execute_guard_validated": {"type": "boolean"},
+        "next_action_run_validated": {"type": "boolean"},
+        "ml_lab_standby_readiness_validated": {"type": "boolean"},
+        "ml_lab_standby_guards_unset": {"type": "boolean"},
+        "ml_lab_standby_required_unset_guard_env": {
+          "type": "array",
+          "minItems": 8,
+          "items": {"type": "string", "minLength": 1},
+          "contains": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"}
+        },
+        "ml_lab_standby_enabled_guards": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_present": {"const": false},
+        "vx_download_authorized_by_operator_brief": {"const": false},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_samples_allowed_in_training_splits": {"const": false},
+        "vx_guard_must_remain_unset_for_wave1_acquisition": {"const": true},
+        "ml_local_training_readiness_validated": {"type": "boolean"},
+        "next_action_run_mode": {"const": "validation_only"},
+        "next_action_run_returncode": {"type": "integer", "enum": [0, 1]},
+        "next_action_run_package_id": {"const": "ml_data_governed_acquisition"},
+        "next_action_run_wave": {"const": 1},
+        "next_action_validation_scope_selected": {"type": "boolean"},
+        "next_action_safety_assertions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "command_validation_only",
+            "execute_guard_absent",
+            "selected_action_only",
+            "no_success_stderr",
+            "no_real_operation_evidence",
+            "guarded_command_printed",
+            "no_real_acquisition_evidence",
+            "guarded_would_run_command_printed",
+            "data_root_outside_repo"
+          ],
+          "properties": {
+            "command_validation_only": {"type": "boolean"},
+            "execute_guard_absent": {"type": "boolean"},
+            "selected_action_only": {"type": "boolean"},
+            "no_success_stderr": {"type": "boolean"},
+            "no_real_operation_evidence": {"type": "boolean"},
+            "guarded_command_printed": {"type": "boolean"},
+            "no_real_acquisition_evidence": {"type": "boolean"},
+            "guarded_would_run_command_printed": {"type": "boolean"},
+            "data_root_outside_repo": {"type": "boolean"}
+          }
+        },
+        "next_action_safety_assertions_passed": {"type": "boolean"},
+        "check_count": {"type": "integer", "minimum": 0},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "operator_steps": {"type": "integer", "minimum": 0},
+        "operator_sequence_modes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["prelab_validation", "validation_only", "execute", "post_acquisition_refresh", "post_acquisition_publish"]
+          }
+        },
+        "operator_sequence_modes_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "operator_command_modes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["prelab_validation", "validation_only", "execute", "post_acquisition_refresh", "post_acquisition_publish"]
+          },
+          "uniqueItems": true
+        },
+        "operator_commands_by_mode": {
+          "type": "object",
+          "additionalProperties": {"type": "string", "minLength": 1},
+          "required": ["prelab_validation", "validation_only", "execute", "post_acquisition_refresh", "post_acquisition_publish"]
+        },
+        "operator_commands_by_mode_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "configuration_paths": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "data_root",
+            "production_manifest",
+            "canonical_dataset_manifest",
+            "lab_transcript_template",
+            "prelab_validation_launcher",
+            "launcher",
+            "post_acquisition_refresh_launcher",
+            "publish_launcher"
+          ],
+          "properties": {
+            "data_root": {"type": "string", "minLength": 1},
+            "production_manifest": {"type": "string", "pattern": "production[/\\\\]manifest\\.json$"},
+            "canonical_dataset_manifest": {"type": "string", "pattern": "ml-prod-candidate-v1-dataset-manifest\\.json$"},
+            "lab_transcript_template": {"type": "string", "pattern": "ml-wave1-real-acquisition-transcript\\.template\\.json$"},
+            "prelab_validation_launcher": {"type": "string", "pattern": "ml_prelab_validation_launcher\\.ps1$"},
+            "launcher": {"type": "string", "pattern": "wave_1_real_acquisition_launcher\\.ps1$"},
+            "post_acquisition_refresh_launcher": {"type": "string", "pattern": "wave_1_post_acquisition_refresh_launcher\\.ps1$"},
+            "publish_launcher": {"type": "string", "pattern": "wave_1_manifest_publish_launcher\\.ps1$"}
+          }
+        },
+        "operator_sequence_valid": {"type": "boolean"},
+        "prelab_has_data_root": {"type": "boolean"},
+        "validation_command_no_execute": {"type": "boolean"},
+        "execute_requires_real_acquisition_guard": {"type": "boolean"},
+        "execute_command_has_execute": {"type": "boolean"},
+        "refresh_command_no_execute": {"type": "boolean"},
+        "publish_requires_manifest_guard": {"type": "boolean"},
+        "publish_validation_no_execute": {"type": "boolean"},
+        "publish_command_has_execute": {"type": "boolean"},
+        "validation_only_command_count": {"const": 3},
+        "guarded_execute_command_count": {"const": 2},
+        "guarded_required_env_count": {"const": 2},
+        "command_guard_boundary_preserved": {"const": true},
+        "data_root_outside_repo": {"type": "boolean"},
+        "production_manifest_absent": {"type": "boolean"},
+        "canonical_dataset_manifest_absent": {"type": "boolean"},
+        "ready_for_operator": {"type": "boolean"}
+      }
+    },
+    "vx_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_present",
+        "vx_download_authorized_by_this_brief",
+        "vx_inventory_metadata_only",
+        "vx_samples_allowed_in_training_splits",
+        "vx_guard_must_remain_unset_for_wave1_acquisition"
+      ],
+      "properties": {
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_present": {"const": false},
+        "vx_download_authorized_by_this_brief": {"const": false},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_samples_allowed_in_training_splits": {"const": false},
+        "vx_guard_must_remain_unset_for_wave1_acquisition": {"const": true}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status_ref",
+        "readiness_ref",
+        "dry_run_ref",
+        "go_no_go_ref",
+        "execute_guard_ref",
+        "next_action_run_ref",
+        "ml_lab_standby_readiness_ref",
+        "ml_local_training_readiness_ref",
+        "prelab_validation_launcher",
+        "launcher",
+        "post_acquisition_refresh_launcher",
+        "publish_launcher",
+        "lab_transcript_template",
+        "data_root",
+        "production_manifest",
+        "canonical_dataset_manifest"
+      ],
+      "properties": {
+        "status_ref": {"type": "string", "minLength": 1},
+        "readiness_ref": {"type": "string", "minLength": 1},
+        "dry_run_ref": {"type": "string", "minLength": 1},
+        "go_no_go_ref": {"type": "string", "minLength": 1},
+        "execute_guard_ref": {"type": "string", "minLength": 1},
+        "next_action_run_ref": {"type": "string", "pattern": "20260604T-ml-prelab-next-action-validation\\.run\\.json$"},
+        "ml_lab_standby_readiness_ref": {
+          "type": "string",
+          "pattern": "20260604T-ml-lab-standby-readiness\\.json$"
+        },
+        "ml_local_training_readiness_ref": {
+          "type": "string",
+          "pattern": "20260604T-ml-local-training-readiness\\.json$"
+        },
+        "prelab_validation_launcher": {"type": "string", "pattern": "ml_prelab_validation_launcher\\.ps1$"},
+        "launcher": {"type": "string", "pattern": "wave_1_real_acquisition_launcher\\.ps1$"},
+        "post_acquisition_refresh_launcher": {"type": "string", "pattern": "wave_1_post_acquisition_refresh_launcher\\.ps1$"},
+        "publish_launcher": {"type": "string", "pattern": "wave_1_manifest_publish_launcher\\.ps1$"},
+        "lab_transcript_template": {"type": "string", "pattern": "ml-wave1-real-acquisition-transcript\\.template\\.json$"},
+        "data_root": {"type": "string", "minLength": 1},
+        "production_manifest": {"type": "string", "pattern": "production[/\\\\]manifest\\.json$"},
+        "canonical_dataset_manifest": {
+          "type": "string",
+          "pattern": "ml-prod-candidate-v1-dataset-manifest\\.json$"
+        }
+      }
+    },
+    "ready_for_operator": {"type": "boolean"},
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    },
+    "operator_sequence": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "mode", "command", "claim_boundary"],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1},
+          "mode": {
+            "type": "string",
+            "enum": ["prelab_validation", "validation_only", "execute", "post_acquisition_refresh", "post_acquisition_publish"]
+          },
+          "required_env": {
+            "type": "object",
+            "additionalProperties": {"type": "string"}
+          },
+          "guard_set_command": {"type": "string", "minLength": 1},
+          "validation_command": {"type": "string", "minLength": 1},
+          "command": {"type": "string", "minLength": 1},
+          "guard_cleanup_command": {"type": "string", "minLength": 1},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    }
+  }
+}

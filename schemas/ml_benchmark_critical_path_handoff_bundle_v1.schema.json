@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_benchmark_critical_path_handoff_bundle_v1.schema.json",
+  "title": "Tamandua ML Benchmark Critical Path Handoff Bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "output_dir", "readme", "summary", "handoff_files"],
+  "$defs": {
+    "category_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dependency", "artifact", "env", "other"],
+      "properties": {
+        "dependency": {"type": "integer", "minimum": 0},
+        "artifact": {"type": "integer", "minimum": 0},
+        "env": {"type": "integer", "minimum": 0},
+        "other": {"type": "integer", "minimum": 0}
+      }
+    },
+    "evidence_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "present", "evidence_status", "evidence_usable_for_goal", "claim_boundary"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "present": {"type": "boolean"},
+        "evidence_status": {
+          "enum": ["missing", "template_only", "blocked_artifact", "coordination_only", "candidate_required_artifact", "production_evidence"]
+        },
+        "evidence_usable_for_goal": {"type": "boolean"},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "resolution_plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "command_available", "validation_command", "execute_command", "execute_guard_env", "operator_note", "source_pending_item_ids"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "wave1_governed_acquisition",
+            "wave2_ml1_candidate",
+            "wave2_ml2_ml3_parity",
+            "wave2_ml4_service",
+            "ml5_outcome_builder",
+            "ml6_outcome_builder",
+            "ml1_model_contract_builder",
+            "ml1_model_card_builder",
+            "wave3_ml5_pipeline",
+            "wave3_ml6_holdout",
+            "ml4_api_key_env_validation",
+            "ml6_training_cutoff_env_validation",
+            "ml_prelab_validation_refresh",
+            "ml_lab_standby_guard_validation",
+            "ml_master_handoff_refresh",
+            "dependency",
+            "artifact",
+            "env",
+            "other"
+          ]
+        },
+        "command_available": {"type": "boolean"},
+        "validation_command": {
+          "anyOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "null"}
+          ]
+        },
+        "execute_command": {
+          "anyOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "null"}
+          ]
+        },
+        "execute_guard_env": {
+          "anyOf": [
+            {"type": "string", "minLength": 1},
+            {"type": "null"}
+          ]
+        },
+        "operator_note": {"type": "string", "minLength": 1},
+        "source_pending_item_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "pattern": "^ml-benchmark-unblock-[0-9]{3}$"}
+        }
+      }
+    }
+  },
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-benchmark-critical-path-handoff-bundle/v1"},
+    "kind": {"const": "MLBenchmarkCriticalPathHandoffBundle"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["benchmark_critical_path", "benchmark_critical_path_validation", "source_critical_path_summary"],
+      "properties": {
+        "benchmark_critical_path": {"type": "string", "pattern": "20260604T-ml-benchmark-critical-path\\.json$"},
+        "benchmark_critical_path_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "source_critical_path_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "benchmark_critical_path_validated",
+            "steps",
+            "step_ids",
+            "handoff_files",
+            "readme_written",
+            "pending_items_covered",
+            "pending_by_category",
+            "resolved_by_category",
+            "upstream_ready_validation_only",
+            "upstream_blocked",
+            "pending_item_ids",
+            "handoff_pending_item_ids",
+            "lanes_impacted",
+            "impacted_lane_ids",
+            "phase_count",
+            "validation_command_count",
+            "validation_commands_are_validation_only",
+            "resolution_plan_count",
+            "resolution_command_available_count",
+            "handoff_files_with_resolution_command",
+            "evidence_item_count",
+            "evidence_usable_for_goal",
+            "goal_complete",
+            "completion_state",
+            "goal_missing_requirements",
+            "goal_required_evidence_total",
+            "goal_present_required_evidence",
+            "goal_usable_required_evidence",
+            "goal_missing_required_evidence",
+            "goal_unusable_present_required_evidence",
+            "next_unproven_requirement_id",
+            "next_unproven_requirement_phase",
+            "next_unproven_execute_guard_env",
+            "missing_requirement_ids",
+            "evidence_status_summary",
+            "next_unproven_requirement"
+          ],
+          "properties": {
+            "benchmark_critical_path_validated": {"type": "boolean"},
+            "steps": {"type": "integer", "minimum": 1},
+            "step_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "integer", "minimum": 1}
+            },
+            "handoff_files": {"type": "integer", "minimum": 1},
+            "readme_written": {"type": "boolean"},
+            "pending_items_covered": {"type": "integer", "minimum": 1},
+            "pending_by_category": {"$ref": "#/$defs/category_counts"},
+            "resolved_by_category": {"$ref": "#/$defs/category_counts"},
+            "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+            "upstream_blocked": {"type": "integer", "minimum": 0},
+            "pending_item_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "string", "pattern": "^ml-benchmark-unblock-[0-9]{3}$"}
+            },
+            "handoff_pending_item_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"type": "string", "pattern": "^ml-benchmark-unblock-[0-9]{3}$"}
+            },
+            "lanes_impacted": {"type": "integer", "minimum": 1},
+            "impacted_lane_ids": {
+              "type": "array",
+              "minItems": 1,
+              "items": {"enum": ["ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]}
+            },
+            "phase_count": {"type": "integer", "minimum": 1},
+            "validation_command_count": {"type": "integer", "minimum": 1},
+            "validation_commands_are_validation_only": {"type": "boolean"},
+            "resolution_plan_count": {"type": "integer", "minimum": 0},
+            "resolution_command_available_count": {"type": "integer", "minimum": 0},
+            "handoff_files_with_resolution_command": {"type": "integer", "minimum": 0},
+            "evidence_item_count": {"type": "integer", "minimum": 0},
+            "evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+            "goal_complete": {"const": false},
+            "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+            "goal_missing_requirements": {"const": 9},
+            "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+            "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "next_unproven_requirement_id": {"const": "wave1_governed_acquisition"},
+            "next_unproven_requirement_phase": {"const": "01-wave1-manifest-publication"},
+            "next_unproven_execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+            "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_status_summary": {"type": "object"},
+            "next_unproven_requirement": {"type": "object"}
+          }
+        }
+      }
+    },
+    "output_dir": {"type": "string", "pattern": "20260604T-ml-benchmark-critical-path\\.handoff$"},
+    "readme": {"type": "string", "pattern": "20260604T-ml-benchmark-critical-path\\.handoff/README\\.md$"},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_handoff_files", "pending_items_covered", "pending_by_category", "resolved_by_category", "upstream_ready_validation_only", "upstream_blocked", "lanes_impacted", "resolution_plan_count", "resolution_command_available_count", "handoff_files_with_resolution_command", "evidence_item_count", "evidence_usable_for_goal", "goal_complete", "completion_state", "goal_usable_required_evidence", "goal_required_evidence_total", "next_unproven_requirement_id", "next_unproven_execute_guard_env"],
+      "properties": {
+        "total_handoff_files": {"type": "integer", "minimum": 1},
+        "pending_items_covered": {"type": "integer", "minimum": 1},
+        "pending_by_category": {"$ref": "#/$defs/category_counts"},
+        "resolved_by_category": {"$ref": "#/$defs/category_counts"},
+        "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+        "upstream_blocked": {"type": "integer", "minimum": 0},
+        "lanes_impacted": {"type": "integer", "minimum": 1},
+        "resolution_plan_count": {"type": "integer", "minimum": 0},
+        "resolution_command_available_count": {"type": "integer", "minimum": 0},
+        "handoff_files_with_resolution_command": {"type": "integer", "minimum": 0},
+        "evidence_item_count": {"type": "integer", "minimum": 0},
+        "evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+        "goal_complete": {"const": false},
+        "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+        "next_unproven_requirement_id": {"const": "wave1_governed_acquisition"},
+        "next_unproven_execute_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"}
+      }
+    },
+    "handoff_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "phase", "category", "pending_by_category", "target", "pending_item_ids", "impacted_lanes", "path", "expected_evidence", "evidence_items", "evidence_item_count", "evidence_usable_for_goal", "resolution_plans", "resolution_plan_count", "resolution_command_available_count", "validation_command", "validation_command_sha256"],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1},
+          "phase": {"type": "string", "minLength": 1},
+          "category": {"enum": ["dependency", "artifact", "env", "other"]},
+          "pending_by_category": {"$ref": "#/$defs/category_counts"},
+          "target": {"type": "string", "minLength": 1},
+          "pending_item_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^ml-benchmark-unblock-[0-9]{3}$"}},
+          "impacted_lanes": {"type": "array", "minItems": 1, "items": {"enum": ["ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]}},
+          "path": {"type": "string", "pattern": "20260604T-ml-benchmark-critical-path\\.handoff/.+\\.md$"},
+          "expected_evidence": {"type": "string", "minLength": 10},
+          "evidence_items": {"type": "array", "items": {"$ref": "#/$defs/evidence_item"}},
+          "evidence_item_count": {"type": "integer", "minimum": 0},
+          "evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+          "resolution_plans": {"type": "array", "items": {"$ref": "#/$defs/resolution_plan"}},
+          "resolution_plan_count": {"type": "integer", "minimum": 0},
+          "resolution_command_available_count": {"type": "integer", "minimum": 0},
+          "validation_command": {"type": "string", "minLength": 10},
+          "validation_command_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+        }
+      }
+    }
+  }
+}

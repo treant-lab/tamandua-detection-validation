@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_wave1_pre_execution_checklist_v1.schema.json",
+  "title": "Tamandua ML Wave 1 Pre-Execution Checklist v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "source",
+    "source_artifact_hashes",
+    "ready_to_set_real_acquisition_guard",
+    "authorization",
+    "vx_policy",
+    "transcript_capture_contract",
+    "operator_sequence",
+    "guard_preconditions",
+    "source_status_summary",
+    "checks"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-wave1-pre-execution-checklist/v1"},
+    "kind": {"const": "MLWave1PreExecutionChecklist"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorization_packet", "authorization_packet_validation", "lab_run_intake", "lab_run_intake_validation"],
+      "properties": {
+        "authorization_packet": {"type": "string", "pattern": "20260604T-ml-next-gate-authorization-packet\\.json$"},
+        "authorization_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "lab_run_intake": {"type": "string", "pattern": "20260604T-ml-wave1-lab-run-intake\\.json$"},
+        "lab_run_intake_validation": {"enum": ["jsonschema+built-in", "built-in"]}
+      }
+    },
+    "source_artifact_hashes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authorization_packet", "lab_run_intake"],
+      "properties": {
+        "authorization_packet": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-next-gate-authorization-packet\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "lab_run_intake": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260604T-ml-wave1-lab-run-intake\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        }
+      }
+    },
+    "ready_to_set_real_acquisition_guard": {"type": "boolean"},
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["validation_command", "execute_command", "execute_guard_env", "authorization_inputs_sha256"],
+      "properties": {
+        "validation_command": {"type": ["string", "null"]},
+        "execute_command": {"type": ["string", "null"]},
+        "execute_guard_env": {"type": ["string", "null"]},
+        "authorization_inputs_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "vx_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "vx_archive_download_guard_env",
+        "vx_archive_download_guard_present",
+        "vx_download_authorized_by_this_packet",
+        "vx_inventory_metadata_only",
+        "vx_samples_allowed_in_training_splits",
+        "vx_guard_must_remain_unset_for_wave1_acquisition"
+      ],
+      "properties": {
+        "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "vx_archive_download_guard_present": {"const": false},
+        "vx_download_authorized_by_this_packet": {"const": false},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_samples_allowed_in_training_splits": {"const": false},
+        "vx_guard_must_remain_unset_for_wave1_acquisition": {"const": true}
+      }
+    },
+    "transcript_capture_contract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "template_ref",
+        "template_validation",
+        "transcript_output",
+        "required_fields_sha256",
+        "capture_helper_shell",
+        "capture_helper_mode",
+        "capture_helper_command_count",
+        "capture_helper_requires_guard_env",
+        "capture_helper_requires_vx_download_guard_unset",
+        "published_stdout_ref",
+        "published_stderr_ref",
+        "guarded_run_command_packet_ref"
+      ],
+      "properties": {
+        "template_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.template\\.json$"},
+        "template_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "transcript_output": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.json$"},
+        "required_fields_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "capture_helper_shell": {"const": "powershell"},
+        "capture_helper_mode": {"const": "operator_copy_paste"},
+        "capture_helper_command_count": {"type": "integer", "minimum": 16},
+        "capture_helper_requires_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "capture_helper_requires_vx_download_guard_unset": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "published_stdout_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stdout\\.txt$"},
+        "published_stderr_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stderr\\.txt$"},
+        "guarded_run_command_packet_ref": {"type": "string", "pattern": "20260604T-ml-wave1-guarded-run-command-packet\\.json$"}
+      }
+    },
+    "operator_sequence": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "mode", "command", "required_env", "claim_boundary"],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1, "maximum": 2},
+          "mode": {"enum": ["validation_only", "guarded_execute"]},
+          "guard_set_command": {"type": "string", "minLength": 1},
+          "command": {"type": "string", "minLength": 1},
+          "required_env": {
+            "type": "object",
+            "additionalProperties": {"type": "string"}
+          },
+          "guard_cleanup_command": {"type": "string", "minLength": 1},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "guard_preconditions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["guard_to_set", "required_unset_guard_env", "enabled_guard_env", "all_required_guards_unset_before_run"],
+      "properties": {
+        "guard_to_set": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "required_unset_guard_env": {
+          "type": "array",
+          "minItems": 8,
+          "items": {"type": "string", "minLength": 1},
+          "contains": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"}
+        },
+        "enabled_guard_env": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "all_required_guards_unset_before_run": {"type": "boolean"}
+      }
+    },
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ready_to_set_real_acquisition_guard",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "authorization_ready",
+        "benchmark_standalone_detection_surface_covered",
+        "benchmark_agent_onnx_detection_surface_covered",
+        "benchmark_tamandua_detection_surface_covered",
+        "benchmark_detection_surface_contract_ready",
+        "operator_sequence_steps",
+        "operator_sequence_ready",
+        "goal_snapshot_anchor_check_passed",
+        "transcript_absent_before_run",
+        "transcript_contract_validation_before_run",
+        "transcript_contract_valid_before_run",
+        "transcript_contract_missing_before_run",
+        "wave1_pre_execution_transcript_contract_validation_before_run",
+        "wave1_pre_execution_transcript_contract_valid_before_run",
+        "wave1_pre_execution_transcript_contract_missing_before_run",
+        "wave1_acceptance_intake_transcript_contract_validation",
+        "wave1_acceptance_intake_transcript_contract_valid",
+        "wave1_transcript_contract_valid_for_manifest_publish",
+        "production_manifest_absent_before_run",
+        "post_acquisition_not_started",
+        "lab_guards_unset_before_run",
+        "guard_preconditions_ready",
+        "vx_guard_unset_before_real_acquisition",
+        "vx_download_authorized_by_this_checklist",
+        "vx_inventory_metadata_only",
+        "vx_samples_allowed_in_training_splits",
+        "transcript_capture_contract_ready_before_run",
+        "transcript_capture_helper_command_count",
+        "transcript_capture_requires_guard_env",
+        "transcript_capture_requires_vx_download_guard_unset",
+        "completion_state",
+        "goal_missing_requirements",
+        "goal_required_evidence_total",
+        "goal_present_required_evidence",
+        "goal_usable_required_evidence",
+        "goal_missing_required_evidence",
+        "goal_unusable_present_required_evidence",
+        "next_unproven_requirement_id",
+        "next_unproven_requirement_phase",
+        "next_unproven_execute_guard_env",
+        "missing_requirement_ids",
+        "evidence_status_summary",
+        "next_unproven_requirement",
+        "next_required_action"
+      ],
+      "properties": {
+        "ready_to_set_real_acquisition_guard": {"type": "boolean"},
+        "check_count": {"type": "integer", "minimum": 1},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "authorization_ready": {"type": "boolean"},
+        "benchmark_standalone_detection_surface_covered": {"const": true},
+        "benchmark_agent_onnx_detection_surface_covered": {"const": true},
+        "benchmark_tamandua_detection_surface_covered": {"const": true},
+        "benchmark_detection_surface_contract_ready": {"const": true},
+        "operator_sequence_steps": {"const": 2},
+        "operator_sequence_ready": {"type": "boolean"},
+        "goal_snapshot_anchor_check_passed": {"const": true},
+        "transcript_absent_before_run": {"type": "boolean"},
+        "transcript_contract_validation_before_run": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "transcript_contract_valid_before_run": {"type": "boolean"},
+        "transcript_contract_missing_before_run": {"type": "boolean"},
+        "wave1_pre_execution_transcript_contract_validation_before_run": {"const": "missing"},
+        "wave1_pre_execution_transcript_contract_valid_before_run": {"const": false},
+        "wave1_pre_execution_transcript_contract_missing_before_run": {"const": true},
+        "wave1_acceptance_intake_transcript_contract_validation": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "wave1_acceptance_intake_transcript_contract_valid": {"type": "boolean"},
+        "wave1_transcript_contract_valid_for_manifest_publish": {"type": "boolean"},
+        "production_manifest_absent_before_run": {"type": "boolean"},
+        "post_acquisition_not_started": {"type": "boolean"},
+        "lab_guards_unset_before_run": {"type": "boolean"},
+        "guard_preconditions_ready": {"type": "boolean"},
+        "vx_guard_unset_before_real_acquisition": {"const": true},
+        "vx_download_authorized_by_this_checklist": {"const": false},
+        "vx_inventory_metadata_only": {"const": true},
+        "vx_samples_allowed_in_training_splits": {"const": false},
+        "transcript_capture_contract_ready_before_run": {"const": true},
+        "transcript_capture_helper_command_count": {"type": "integer", "minimum": 16},
+        "transcript_capture_requires_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
+        "transcript_capture_requires_vx_download_guard_unset": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "goal_complete": {"const": false},
+        "completion_state": {"enum": ["not_executed", "partial_evidence"]},
+        "goal_missing_requirements": {"type": "integer", "minimum": 0, "maximum": 10},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 1},
+        "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string"},
+        "next_unproven_requirement_phase": {"type": "string"},
+        "next_unproven_execute_guard_env": {"type": "string"},
+        "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "evidence_status_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["total_required_evidence", "present_required_evidence", "usable_required_evidence", "missing_required_evidence", "unusable_present_required_evidence", "by_status"],
+          "properties": {
+            "total_required_evidence": {"type": "integer", "minimum": 1},
+            "present_required_evidence": {"type": "integer", "minimum": 0},
+            "usable_required_evidence": {"type": "integer", "minimum": 0},
+            "missing_required_evidence": {"type": "integer", "minimum": 0},
+            "unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "by_status": {
+              "type": "object",
+              "additionalProperties": {"type": "integer", "minimum": 0}
+            }
+          }
+        },
+        "next_unproven_requirement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "phase", "phase_state", "execute_guard_env", "pending_targets", "required_evidence", "missing_or_unusable_evidence"],
+          "properties": {
+            "id": {"type": "string"},
+            "phase": {"type": "string"},
+            "phase_state": {"type": "string"},
+            "execute_guard_env": {"type": "string"},
+            "pending_targets": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "required_evidence": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "missing_or_unusable_evidence": {"type": "array", "items": {"type": "string", "minLength": 1}}
+          }
+        },
+        "next_required_action": {"type": "string", "minLength": 10}
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

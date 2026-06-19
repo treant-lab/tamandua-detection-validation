@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_parallel_handoff_bundle_v1.schema.json",
+  "title": "Tamandua ML Parallel Handoff Bundle v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "output_dir", "readme", "claim_files", "summary"],
+  "$defs": {
+    "category_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dependency", "artifact", "env", "other"],
+      "properties": {
+        "dependency": {"type": "integer", "minimum": 0},
+        "artifact": {"type": "integer", "minimum": 0},
+        "env": {"type": "integer", "minimum": 0},
+        "other": {"type": "integer", "minimum": 0}
+      }
+    }
+  },
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-parallel-handoff-bundle/v1"},
+    "kind": {"const": "MLParallelHandoffBundle"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["parallel_work_packages", "parallel_work_packages_validation", "source_work_packages_summary"],
+      "properties": {
+        "parallel_work_packages": {"type": "string", "minLength": 1},
+        "parallel_work_packages_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "source_work_packages_summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "claims",
+            "claim_ids",
+            "parallel_work_packages_validated",
+            "source_claim_count",
+            "ready_validation_only",
+            "blocked",
+            "blocked_by_category",
+            "evidence_exists",
+            "evidence_usable_for_goal",
+            "validation_only_batch_claims",
+            "blocked_followup_batch_claims",
+            "claims_with_validation_command",
+            "claims_with_execute_guard",
+            "by_status",
+            "goal_complete",
+            "completion_state",
+            "goal_snapshot_anchor_check_passed",
+            "goal_missing_requirements",
+            "goal_required_evidence_total",
+            "goal_present_required_evidence",
+            "goal_usable_required_evidence",
+            "goal_missing_required_evidence",
+            "goal_unusable_present_required_evidence",
+            "next_unproven_requirement_id",
+            "next_unproven_requirement_phase",
+            "next_unproven_execute_guard_env",
+            "missing_requirement_ids",
+            "evidence_status_summary",
+            "next_unproven_requirement"
+          ],
+          "properties": {
+            "claims": {"type": "integer", "minimum": 0},
+            "claim_ids": {
+              "type": "array",
+              "items": {"type": "string", "pattern": "^ml-ml[a-z0-9_]+$"}
+            },
+            "parallel_work_packages_validated": {"type": "boolean"},
+            "source_claim_count": {"type": "integer", "minimum": 0},
+            "ready_validation_only": {"type": "integer", "minimum": 0},
+            "blocked": {"type": "integer", "minimum": 0},
+            "blocked_by_category": {"$ref": "#/$defs/category_counts"},
+            "evidence_exists": {"type": "integer", "minimum": 0},
+            "evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+            "validation_only_batch_claims": {"type": "integer", "minimum": 0},
+            "blocked_followup_batch_claims": {"type": "integer", "minimum": 0},
+            "claims_with_validation_command": {"type": "integer", "minimum": 0},
+            "claims_with_execute_guard": {"type": "integer", "minimum": 0},
+            "by_status": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+            "goal_complete": {"type": "boolean"},
+            "completion_state": {"enum": ["partial_evidence", "complete"]},
+            "goal_snapshot_anchor_check_passed": {"const": true},
+            "goal_missing_requirements": {"type": "integer", "minimum": 0},
+            "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+            "goal_present_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_missing_required_evidence": {"type": "integer", "minimum": 0},
+            "goal_unusable_present_required_evidence": {"type": "integer", "minimum": 0},
+            "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+            "next_unproven_requirement_phase": {"type": "string", "minLength": 1},
+            "next_unproven_execute_guard_env": {"type": "string", "minLength": 1},
+            "missing_requirement_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+            "evidence_status_summary": {"type": "object"},
+            "next_unproven_requirement": {"type": "object"}
+          }
+        }
+      }
+    },
+    "output_dir": {"type": "string", "minLength": 1},
+    "readme": {"type": "string", "minLength": 1},
+    "claim_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["claim_id", "package_id", "claim_status", "evidence_status", "evidence_usable_for_goal", "block_category", "path", "validation_command_present", "execute_guard_env", "safe_command_fingerprints"],
+        "properties": {
+          "claim_id": {"type": "string", "pattern": "^ml-ml[a-z0-9_]+$"},
+          "package_id": {"type": "string", "pattern": "^ml[a-z0-9_]+$"},
+          "claim_status": {"enum": ["ready_validation_only", "blocked_env", "blocked_artifact", "blocked_dependency", "evidence_exists"]},
+          "evidence_status": {"enum": ["validation_only_not_evidence", "blocked_env", "blocked_artifact", "blocked_dependency", "smoke_artifact", "metadata_only", "coordination_only"]},
+          "evidence_usable_for_goal": {"type": "boolean"},
+          "block_category": {"type": ["string", "null"], "enum": ["dependency", "artifact", "env", "other", null]},
+          "path": {"type": "string", "minLength": 1},
+          "validation_command_present": {"type": "boolean"},
+          "execute_guard_env": {"type": ["string", "null"]},
+          "safe_command_fingerprints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["index", "command_sha256"],
+              "properties": {
+                "index": {"type": "integer", "minimum": 0},
+                "command_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+              }
+            }
+          }
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"claim_status": {"const": "ready_validation_only"}}, "required": ["claim_status"]},
+            "then": {
+              "properties": {
+                "block_category": {"type": "null"},
+                "validation_command_present": {"const": true},
+                "execute_guard_env": {
+                  "type": "string",
+                  "pattern": "^TAMANDUA_ALLOW_ML_[A-Z0-9_]+$"
+                }
+              }
+            }
+          },
+          {
+            "if": {"properties": {"claim_status": {"const": "blocked_env"}}, "required": ["claim_status"]},
+            "then": {
+              "properties": {
+                "block_category": {"const": "env"},
+                "validation_command_present": {"const": false},
+                "execute_guard_env": {"type": "null"}
+              }
+            }
+          },
+          {
+            "if": {"properties": {"claim_status": {"const": "blocked_artifact"}}, "required": ["claim_status"]},
+            "then": {
+              "properties": {
+                "block_category": {"const": "artifact"},
+                "validation_command_present": {"const": false},
+                "execute_guard_env": {"type": "null"}
+              }
+            }
+          },
+          {
+            "if": {"properties": {"claim_status": {"const": "blocked_dependency"}}, "required": ["claim_status"]},
+            "then": {
+              "properties": {
+                "block_category": {"const": "dependency"},
+                "validation_command_present": {"const": false},
+                "execute_guard_env": {"type": "null"}
+              }
+            }
+          },
+          {
+            "if": {"properties": {"claim_status": {"const": "evidence_exists"}}, "required": ["claim_status"]},
+            "then": {
+              "properties": {
+                "block_category": {"type": "null"},
+                "validation_command_present": {"const": false},
+                "execute_guard_env": {"type": "null"}
+              }
+            }
+          }
+        ]
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["total_claim_files", "ready_validation_only", "blocked", "blocked_by_category", "evidence_exists", "evidence_usable_for_goal", "goal_complete", "completion_state", "goal_snapshot_anchor_check_passed", "goal_usable_required_evidence", "goal_required_evidence_total", "next_unproven_requirement_id", "next_unproven_execute_guard_env"],
+      "properties": {
+        "total_claim_files": {"type": "integer", "minimum": 1},
+        "ready_validation_only": {"type": "integer", "minimum": 0},
+        "blocked": {"type": "integer", "minimum": 0},
+        "blocked_by_category": {"$ref": "#/$defs/category_counts"},
+        "evidence_exists": {"type": "integer", "minimum": 0},
+        "evidence_usable_for_goal": {"type": "integer", "minimum": 0},
+        "goal_complete": {"type": "boolean"},
+        "completion_state": {"enum": ["partial_evidence", "complete"]},
+        "goal_snapshot_anchor_check_passed": {"const": true},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+        "next_unproven_execute_guard_env": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml6_holdout_prediction_outcomes_v1.schema.json",
+  "title": "Tamandua ML-6 Holdout Prediction Outcomes v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "dataset_id",
+    "produced_at",
+    "created_by",
+    "training_cutoff",
+    "raw_samples_in_artifact",
+    "model_report_ref",
+    "holdout_sources",
+    "samples",
+    "claim_boundary"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml6-holdout-prediction-outcomes/v1"},
+    "kind": {"const": "ML6HoldoutPredictionOutcomes"},
+    "dataset_id": {"type": "string", "minLength": 1},
+    "produced_at": {"type": "string", "format": "date-time"},
+    "created_by": {"type": "string", "minLength": 2},
+    "training_cutoff": {"type": "string", "format": "date-time"},
+    "raw_samples_in_artifact": {"const": false},
+    "model_report_ref": {"type": "string", "minLength": 1},
+    "holdout_sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source_id", "source_type", "role", "used_in_training", "claim_boundary"],
+        "properties": {
+          "source_id": {"type": "string", "minLength": 1},
+          "source_type": {
+            "enum": ["malwarebazaar", "vx_underground", "virusshare", "goodware_system", "virustotal", "hybrid_analysis", "other"]
+          },
+          "role": {"enum": ["holdout", "holdout_candidate"]},
+          "used_in_training": {"const": false},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["sample_id", "label", "expected_malicious", "source", "collection_month", "predicted_malicious"],
+        "properties": {
+          "sample_id": {"type": "string", "minLength": 1},
+          "label": {
+            "enum": [
+              "malware",
+              "suspicious",
+              "trojan",
+              "ransomware",
+              "spyware",
+              "adware",
+              "worm",
+              "backdoor",
+              "unknown_malware",
+              "goodware",
+              "benign"
+            ]
+          },
+          "expected_malicious": {"type": "boolean"},
+          "source": {"type": "string", "minLength": 1},
+          "collection_month": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}$"},
+          "predicted_malicious": {"type": "boolean"},
+          "latency_ms": {"type": ["number", "null"], "minimum": 0}
+        }
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 10}
+  }
+}

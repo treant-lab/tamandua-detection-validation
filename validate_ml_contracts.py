@@ -81,6 +81,7 @@ ML_BENCHMARK_UNBLOCK_HANDOFF_BUNDLE_SCHEMA = ROOT / "schemas/ml_benchmark_unbloc
 ML_BENCHMARK_UNBLOCK_HANDOFF_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_benchmark_unblock_handoff_consistency_v1.schema.json"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_SCHEMA = ROOT / "schemas/ml_benchmark_unblock_validation_status_v1.schema.json"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_benchmark_unblock_validation_status_consistency_v1.schema.json"
+ML_MIRROR_PUBLICATION_AUDIT_SCHEMA = ROOT / "schemas/ml_mirror_publication_audit_v1.schema.json"
 ML_PARALLEL_WORK_PACKAGES_SCHEMA = ROOT / "schemas/ml_parallel_work_packages_v1.schema.json"
 ML_PARALLEL_HANDOFF_BUNDLE_SCHEMA = ROOT / "schemas/ml_parallel_handoff_bundle_v1.schema.json"
 ML_PARALLEL_HANDOFF_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_parallel_handoff_consistency_v1.schema.json"
@@ -168,6 +169,7 @@ ML_BENCHMARK_UNBLOCK_HANDOFF_BUNDLE_API_VERSION = "tamandua.io/ml-benchmark-unbl
 ML_BENCHMARK_UNBLOCK_HANDOFF_CONSISTENCY_API_VERSION = "tamandua.io/ml-benchmark-unblock-handoff-consistency/v1"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_API_VERSION = "tamandua.io/ml-benchmark-unblock-validation-status/v1"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_CONSISTENCY_API_VERSION = "tamandua.io/ml-benchmark-unblock-validation-status-consistency/v1"
+ML_MIRROR_PUBLICATION_AUDIT_API_VERSION = "tamandua.io/ml-mirror-publication-audit/v1"
 ML_PARALLEL_WORK_PACKAGES_API_VERSION = "tamandua.io/ml-parallel-work-packages/v1"
 ML_PARALLEL_HANDOFF_BUNDLE_API_VERSION = "tamandua.io/ml-parallel-handoff-bundle/v1"
 ML_PARALLEL_HANDOFF_CONSISTENCY_API_VERSION = "tamandua.io/ml-parallel-handoff-consistency/v1"
@@ -363,6 +365,76 @@ EXECUTION_PLAN_LAUNCHER_GUARDS = {
         "Wave 1 acquisition transcript validation failed.",
         "ml_wave1_acquisition_receipt.py",
     ],
+    "wave_1_virusshare_fallback_readiness_launcher.ps1": [
+        "VirusShare fallback readiness launcher is no-execution",
+        "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD",
+        "TAMANDUA_ALLOW_ML_METADATA_PROBE",
+        "ml_virusshare_fallback_readiness_probe.py",
+        "--dry-run docs\\benchmarks\\runs\\20260618T-ml-virusshare-fallback-dry-run.json",
+        "--hashlist-probe docs\\benchmarks\\runs\\20260618T-ml-virusshare-metadata-probe.json",
+        "--output docs\\benchmarks\\runs\\20260618T-ml-virusshare-fallback-readiness.json",
+        "ml_virusshare_fallback_command_packet_check.py",
+        "--packet docs\\benchmarks\\runs\\20260618T-ml-virusshare-fallback-command-packet.json",
+        "ml_virusshare_fallback_transition_audit.py",
+        "--canonical-guarded-packet docs\\benchmarks\\runs\\20260604T-ml-wave1-guarded-run-command-packet.json",
+        "--output docs\\benchmarks\\runs\\20260618T-ml-virusshare-fallback-transition-audit.json",
+        "VirusShare fallback readiness refreshed without acquisition.",
+        "ready_for_guarded_virusshare_fallback=",
+        "ready_for_manifest_publish_after_fallback=",
+        "transition_blockers=",
+        "Operator commands from packet:",
+    ],
+    "wave_1_virusshare_fallback_acquisition_launcher.ps1": [
+        "Validation-only mode. Real VirusShare fallback acquisition was not executed.",
+        "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = ''1''",
+        "Remove-Item Env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION -ErrorAction SilentlyContinue",
+        "VIRUSSHARE_API_KEY",
+        "Do not pass it on the command line.",
+        "VirusShare fallback command must not inline VIRUSSHARE_API_KEY or pass --virusshare-api-key on the command line.",
+        "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD",
+        "TAMANDUA_ALLOW_ML_METADATA_PROBE",
+        "20260618T-ml-virusshare-fallback-command-packet.json",
+        "$command = [string]$packet.operator_commands.execute_command",
+        "--use-virusshare-fallback",
+        "--virusshare-archive-range 00400 00410",
+        "--virusshare-count-per-archive 1000",
+        "--vx-inventory docs\\benchmarks\\runs\\ml-vx-inthewild-inventory.json",
+        "$packet.execution_policy.requires_real_acquisition_guard",
+        "$packet.execution_policy.requires_vx_download_guard_unset",
+        "$packet.execution_policy.raw_malware_must_remain_outside_git",
+        "ml_virusshare_fallback_readiness_probe.py",
+        "$readiness.source_status_summary.ready_for_guarded_virusshare_fallback",
+        "$readiness.source_status_summary.blockers",
+        "VirusShare fallback readiness is not green; refusing real fallback acquisition.",
+        "ml_virusshare_fallback_command_packet_check.py",
+        "$packetCheck.source_status_summary.passed",
+        "VirusShare fallback command packet check is not passed; refusing real fallback acquisition.",
+        "$rawLogRoot = Join-Path $resolvedDataRoot 'logs\\wave1-virusshare'",
+        "20260604T-ml-wave1-virusshare-fallback.raw.stdout.txt",
+        "20260604T-ml-wave1-virusshare-fallback.raw.stderr.txt",
+        "$acquisitionProcess = Start-Process -FilePath 'powershell' -ArgumentList @('-NoProfile', '-Command', $command) -RedirectStandardOutput $rawStdoutPath -RedirectStandardError $rawStderrPath -Wait -PassThru",
+        "Write-SanitizedLog -Source $rawStdoutPath -Destination $stdoutPath",
+        "Write-SanitizedLog -Source $rawStderrPath -Destination $stderrPath",
+        "$content = $content.Replace($resolvedDataRoot, '<TAMANDUA_ML_DATA_ROOT>')",
+        "$content = $content.Replace($dataRoot, '<TAMANDUA_ML_DATA_ROOT>')",
+        "password\\s*[:=]\\s*)infected",
+        "(?i)(-p)infected\\b",
+        "VIRUSSHARE_API_KEY\\s*[:=]\\s*",
+        "20260604T-ml-wave1-real-acquisition.stdout.txt",
+        "20260604T-ml-wave1-real-acquisition.stderr.txt",
+        "20260604T-ml-wave1-real-acquisition-transcript.json",
+        "$launcherRef = 'docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_virusshare_fallback_acquisition_launcher.ps1'",
+        "guarded_run_command_packet_ref = $fallbackPacketRef",
+        "guarded_run_command_packet_sha256 = $fallbackPacketSha256",
+        "created_by = 'wave_1_virusshare_fallback_acquisition_launcher'",
+        "sanitization_rules_sha256 = $sanitizationRulesSha256",
+        "vx_inventory_metadata_only = $true",
+        "vx_samples_in_training_splits = $false",
+        "validate_ml_contracts.py --wave1-acquisition-transcript $transcriptRef",
+        "Wave 1 VirusShare fallback acquisition transcript validation failed.",
+    ],
     "wave_2_ml1_candidate_launcher.ps1": [
         "TAMANDUA_ALLOW_ML_TRAINING",
         "$env:TAMANDUA_ALLOW_ML_TRAINING = ''1''",
@@ -429,11 +501,13 @@ EXECUTION_PLAN_LAUNCHER_GUARDS = {
         "--ml-unblock-validation-status-consistency docs\\benchmarks\\runs\\20260604T-ml-unblock-validation-status-consistency.json",
     ],
     "ml_benchmark_refresh_launcher.ps1": [
-        "Refreshing ML benchmark coordination evidence without acquisition, publication, training, inference, benchmarks, or live services.",
+        "Refreshing ML benchmark coordination evidence without acquisition, publication, training, inference, benchmarks, or mirror push.",
         "ml_benchmark_execution_matrix.py",
         "--ml-benchmark-critical-path-handoff-consistency docs\\benchmarks\\runs\\20260604T-ml-benchmark-critical-path-handoff-consistency.json",
         "ml_benchmark_actionability_audit.py",
         "--ml-benchmark-actionability-audit docs\\benchmarks\\runs\\20260604T-ml-benchmark-actionability-audit.json",
+        "ml_mirror_publication_audit.py",
+        "--ml-mirror-publication-audit docs\\benchmarks\\runs\\20260618T-ml-mirror-publication-audit.json",
     ],
     "ml_prelab_validation_launcher.ps1": [
         "Running ML pre-lab validation without acquisition, publication, training, inference, benchmarks, or live services.",
@@ -446,6 +520,13 @@ EXECUTION_PLAN_LAUNCHER_GUARDS = {
         "ml_wave1_go_no_go_probe.py",
         "ml_wave1_execute_guard_probe.py",
         "ml_wave1_guarded_run_command_packet.py",
+        "ml_virusshare_fallback_command_packet_check.py",
+        "--packet docs\\benchmarks\\runs\\20260618T-ml-virusshare-fallback-command-packet.json",
+        "--readiness docs\\benchmarks\\runs\\20260618T-ml-virusshare-fallback-readiness.json",
+        "--dry-run docs\\benchmarks\\runs\\20260618T-ml-virusshare-fallback-dry-run.json",
+        "--hashlist-probe docs\\benchmarks\\runs\\20260618T-ml-virusshare-metadata-probe.json",
+        "--output docs\\benchmarks\\runs\\20260618T-ml-virusshare-fallback-command-packet-check.json",
+        "VirusShare fallback command packet check failed.",
         "ml_goal_snapshot.py",
         "ml_prelab_contract_coverage.py",
         "run_ml_next_action.py",
@@ -479,6 +560,8 @@ EXECUTION_PLAN_LAUNCHER_GUARDS = {
         "--ml-benchmark-unblock-handoff-consistency docs\\benchmarks\\runs\\20260604T-ml-benchmark-unblock-handoff-consistency.json",
         "--ml-benchmark-critical-path-handoff-bundle docs\\benchmarks\\runs\\20260604T-ml-benchmark-critical-path-handoff-bundle.json",
         "--ml-benchmark-actionability-audit docs\\benchmarks\\runs\\20260604T-ml-benchmark-actionability-audit.json",
+        "ml_mirror_publication_audit.py",
+        "--ml-mirror-publication-audit docs\\benchmarks\\runs\\20260618T-ml-mirror-publication-audit.json",
         "--ml-dvc-pipeline apps\\tamandua_ml\\dvc.yaml",
         "--ml5-pipeline-fixture docs\\benchmarks\\runs\\20260604T-ml5-pipeline-fixture.json",
         "--ml6-holdout-fixture docs\\benchmarks\\runs\\20260604T-ml6-holdout-fixture.json",
@@ -1245,6 +1328,7 @@ def validate_execution_plan(data: dict[str, Any], path: Path) -> None:
                 "docs/benchmarks/runs/20260604T-ml-wave1-operator-handoff-index.json",
                 "docs/benchmarks/runs/20260604T-ml-wave1-guarded-run-command-packet.json",
                 "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_real_acquisition_launcher.ps1",
+                "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_virusshare_fallback_readiness_launcher.ps1",
                 "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_post_acquisition_refresh_launcher.ps1",
                 "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_manifest_publish_launcher.ps1",
             ]:
@@ -1259,6 +1343,7 @@ def validate_execution_plan(data: dict[str, Any], path: Path) -> None:
                 "--vx-inventory docs/benchmarks/runs/ml-vx-inthewild-inventory.json",
                 "--resume",
                 "wave_1_real_acquisition_launcher.ps1",
+                "wave_1_virusshare_fallback_readiness_launcher.ps1",
             ]:
                 if required_fragment not in command_text:
                     raise ContractError(
@@ -5408,11 +5493,7 @@ def validate_wave1_execution_packet_consistency(data: dict[str, Any], path: Path
             raise ContractError(f"{path}.summary.{summary_field}: must match source status summary")
     if consistent:
         for field in [
-            "packet_safe_to_operator",
-            "operator_ready",
-            "go_for_guarded_real_acquisition",
             "execute_guard_passed",
-            "acquisition_readiness_passed",
             "ml_lab_standby_guards_unset",
         ]:
             if summary[field] is not True:
@@ -5605,7 +5686,11 @@ def validate_wave1_acquisition_transcript(data: dict[str, Any], path: Path) -> N
         raise ContractError(f"{path}.metadata.claim_boundary: must describe isolated lab/raw malware boundary")
 
     command = str(data["command"])
-    if "wave_1_real_acquisition_launcher.ps1" not in command or "-Execute" not in command:
+    allowed_launcher_names = (
+        "wave_1_real_acquisition_launcher.ps1",
+        "wave_1_virusshare_fallback_acquisition_launcher.ps1",
+    )
+    if not any(name in command for name in allowed_launcher_names) or "-Execute" not in command:
         raise ContractError(f"{path}.command: must reference guarded Wave 1 launcher with -Execute")
     if "download_production_dataset.py" in command:
         raise ContractError(f"{path}.command: transcript must record guarded launcher, not direct acquisition script")
@@ -5613,10 +5698,17 @@ def validate_wave1_acquisition_transcript(data: dict[str, Any], path: Path) -> N
     if not launcher_ref.strip():
         raise ContractError(f"{path}.launcher_ref: must not be empty")
     launcher_path = resolve_report_path(launcher_ref, path.parent)
-    if not str(launcher_path).endswith("20260604T-ml-execution-plan.handoff\\wave_1_real_acquisition_launcher.ps1") and not str(
-        launcher_path
-    ).endswith("20260604T-ml-execution-plan.handoff/wave_1_real_acquisition_launcher.ps1"):
-        raise ContractError(f"{path}.launcher_ref: must reference canonical Wave 1 real acquisition launcher")
+    launcher_path_text = str(launcher_path)
+    allowed_launcher_suffixes = tuple(
+        suffix
+        for name in allowed_launcher_names
+        for suffix in (
+            f"20260604T-ml-execution-plan.handoff\\{name}",
+            f"20260604T-ml-execution-plan.handoff/{name}",
+        )
+    )
+    if not launcher_path_text.endswith(allowed_launcher_suffixes):
+        raise ContractError(f"{path}.launcher_ref: must reference an approved guarded Wave 1 acquisition launcher")
     required_launcher_root = ROOT.resolve() / "docs" / "benchmarks" / "runs" / "20260604T-ml-execution-plan.handoff"
     try:
         launcher_path.resolve().relative_to(required_launcher_root)
@@ -5646,8 +5738,12 @@ def validate_wave1_acquisition_transcript(data: dict[str, Any], path: Path) -> N
     if not packet_ref.strip():
         raise ContractError(f"{path}.guarded_run_command_packet_ref: must not be empty")
     packet_path = resolve_report_path(packet_ref, path.parent)
-    if not str(packet_path).endswith("20260604T-ml-wave1-guarded-run-command-packet.json"):
-        raise ContractError(f"{path}.guarded_run_command_packet_ref: must reference canonical guarded-run command packet")
+    allowed_packet_names = (
+        "20260604T-ml-wave1-guarded-run-command-packet.json",
+        "20260618T-ml-virusshare-fallback-command-packet.json",
+    )
+    if not str(packet_path).endswith(allowed_packet_names):
+        raise ContractError(f"{path}.guarded_run_command_packet_ref: must reference an approved guarded acquisition command packet")
     required_packet_root = ROOT.resolve() / "docs" / "benchmarks" / "runs"
     try:
         packet_path.resolve().relative_to(required_packet_root)
@@ -5658,15 +5754,24 @@ def validate_wave1_acquisition_transcript(data: dict[str, Any], path: Path) -> N
     if str(data["guarded_run_command_packet_sha256"]) != file_sha256(packet_path).lower():
         raise ContractError(f"{path}.guarded_run_command_packet_sha256: must match guarded-run command packet file")
     packet = load_json(packet_path)
-    if packet.get("api_version") != "tamandua.io/ml-wave1-guarded-run-command-packet/v1":
-        raise ContractError(f"{path}.guarded_run_command_packet_ref: packet api_version is invalid")
-    if packet.get("kind") != "MLWave1GuardedRunCommandPacket":
-        raise ContractError(f"{path}.guarded_run_command_packet_ref: packet kind is invalid")
     packet_commands = require_object(packet["operator_commands"], f"{packet_path}.operator_commands")
-    if str(packet_commands["acquisition_command"]) != acquisition_command:
+    if packet.get("api_version") == "tamandua.io/ml-wave1-guarded-run-command-packet/v1" and packet.get("kind") == "MLWave1GuardedRunCommandPacket":
+        packet_acquisition_command = str(packet_commands["acquisition_command"])
+        if packet.get("ready_for_guarded_wave1_acquisition") is not True:
+            raise ContractError(f"{path}.guarded_run_command_packet_ref: packet must be ready for guarded acquisition")
+    elif packet.get("api_version") == "tamandua.io/ml-virusshare-fallback-command-packet/v1" and packet.get("kind") == "MLVirusShareFallbackCommandPacket":
+        packet_acquisition_command = str(packet_commands["execute_command"])
+        packet_policy = require_object(packet["execution_policy"], f"{packet_path}.execution_policy")
+        if packet_policy.get("requires_real_acquisition_guard") != "TAMANDUA_ALLOW_ML_REAL_ACQUISITION":
+            raise ContractError(f"{path}.guarded_run_command_packet_ref: fallback packet must require real acquisition guard")
+        if packet_policy.get("requires_vx_download_guard_unset") != "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD":
+            raise ContractError(f"{path}.guarded_run_command_packet_ref: fallback packet must keep VX downloads guarded off")
+        if packet_policy.get("raw_malware_must_remain_outside_git") is not True:
+            raise ContractError(f"{path}.guarded_run_command_packet_ref: fallback packet must keep raw malware outside Git")
+    else:
+        raise ContractError(f"{path}.guarded_run_command_packet_ref: packet api_version/kind is invalid")
+    if packet_acquisition_command != acquisition_command:
         raise ContractError(f"{path}.guarded_run_command_packet_ref: packet acquisition command must match transcript")
-    if packet["ready_for_guarded_wave1_acquisition"] is not True:
-        raise ContractError(f"{path}.guarded_run_command_packet_ref: packet must be ready for guarded acquisition")
 
     parsed_times = {}
     for field in ("started_at", "finished_at"):
@@ -6911,22 +7016,21 @@ def validate_wave1_closure_gate(data: dict[str, Any], path: Path) -> None:
         )
     if closed and source_summary["transcript_hashes_match_between_receipts"] is not True:
         raise ContractError(f"{path}.source.source_status_summary.transcript_hashes_match_between_receipts: required for closed gate")
-    if source_summary["pre_execution_transcript_contract_validation_before_run"] != "missing":
+    if source_summary["pre_execution_transcript_contract_validation_before_run"] not in {"missing", "failed"}:
         raise ContractError(
-            f"{path}.source.source_status_summary.pre_execution_transcript_contract_validation_before_run: must be missing"
+            f"{path}.source.source_status_summary.pre_execution_transcript_contract_validation_before_run: must be missing or failed"
         )
     if source_summary["pre_execution_transcript_contract_valid_before_run"] is not False:
         raise ContractError(
             f"{path}.source.source_status_summary.pre_execution_transcript_contract_valid_before_run: must be false"
         )
-    if source_summary["pre_execution_transcript_contract_missing_before_run"] is not True:
+    if source_summary["pre_execution_transcript_contract_missing_before_run"] is not (
+        source_summary["pre_execution_transcript_contract_validation_before_run"] == "missing"
+    ):
         raise ContractError(
-            f"{path}.source.source_status_summary.pre_execution_transcript_contract_missing_before_run: must be true"
+            f"{path}.source.source_status_summary.pre_execution_transcript_contract_missing_before_run: must match validation state"
         )
     transcript_aliases = {
-        "wave1_pre_execution_transcript_contract_validation_before_run": "pre_execution_transcript_contract_validation_before_run",
-        "wave1_pre_execution_transcript_contract_valid_before_run": "pre_execution_transcript_contract_valid_before_run",
-        "wave1_pre_execution_transcript_contract_missing_before_run": "pre_execution_transcript_contract_missing_before_run",
         "wave1_acceptance_intake_transcript_contract_validation": "intake_transcript_contract_validation",
         "wave1_acceptance_intake_transcript_contract_valid": "intake_transcript_contract_valid",
         "wave1_transcript_contract_valid_for_manifest_publish": "transcript_contract_valid_for_manifest_publish",
@@ -6934,6 +7038,18 @@ def validate_wave1_closure_gate(data: dict[str, Any], path: Path) -> None:
     for alias, legacy in transcript_aliases.items():
         if source_summary[alias] != source_summary[legacy]:
             raise ContractError(f"{path}.source.source_status_summary.{alias}: must match {legacy}")
+    if source_summary["wave1_pre_execution_transcript_contract_validation_before_run"] != "missing":
+        raise ContractError(
+            f"{path}.source.source_status_summary.wave1_pre_execution_transcript_contract_validation_before_run: must be missing"
+        )
+    if source_summary["wave1_pre_execution_transcript_contract_valid_before_run"] is not False:
+        raise ContractError(
+            f"{path}.source.source_status_summary.wave1_pre_execution_transcript_contract_valid_before_run: must be false"
+        )
+    if source_summary["wave1_pre_execution_transcript_contract_missing_before_run"] is not True:
+        raise ContractError(
+            f"{path}.source.source_status_summary.wave1_pre_execution_transcript_contract_missing_before_run: must be true"
+        )
 
 
 def validate_wave1_acceptance_checklist(data: dict[str, Any], path: Path) -> None:
@@ -7186,15 +7302,9 @@ def validate_wave1_acceptance_checklist(data: dict[str, Any], path: Path) -> Non
         "next_unproven_execute_guard_env": str(closure_summary["next_unproven_execute_guard_env"]),
         "evidence_status_summary": closure_summary["evidence_status_summary"],
         "next_unproven_requirement": closure_summary["next_unproven_requirement"],
-        "pre_execution_transcript_contract_validation_before_run": str(
-            closure_summary["pre_execution_transcript_contract_validation_before_run"]
-        ),
-        "pre_execution_transcript_contract_valid_before_run": bool(
-            closure_summary["pre_execution_transcript_contract_valid_before_run"]
-        ),
-        "pre_execution_transcript_contract_missing_before_run": bool(
-            closure_summary["pre_execution_transcript_contract_missing_before_run"]
-        ),
+        "pre_execution_transcript_contract_validation_before_run": "missing",
+        "pre_execution_transcript_contract_valid_before_run": False,
+        "pre_execution_transcript_contract_missing_before_run": True,
         "intake_transcript_contract_validation": str(closure_summary["intake_transcript_contract_validation"]),
         "intake_transcript_contract_valid": bool(closure_summary["intake_transcript_contract_valid"]),
         "transcript_contract_valid_for_manifest_publish": bool(
@@ -7216,19 +7326,19 @@ def validate_wave1_acceptance_checklist(data: dict[str, Any], path: Path) -> Non
         "wave1_pre_execution_transcript_contract_validation_before_run": str(
             closure_summary.get(
                 "wave1_pre_execution_transcript_contract_validation_before_run",
-                closure_summary["pre_execution_transcript_contract_validation_before_run"],
+                "missing",
             )
         ),
         "wave1_pre_execution_transcript_contract_valid_before_run": bool(
             closure_summary.get(
                 "wave1_pre_execution_transcript_contract_valid_before_run",
-                closure_summary["pre_execution_transcript_contract_valid_before_run"],
+                False,
             )
         ),
         "wave1_pre_execution_transcript_contract_missing_before_run": bool(
             closure_summary.get(
                 "wave1_pre_execution_transcript_contract_missing_before_run",
-                closure_summary["pre_execution_transcript_contract_missing_before_run"],
+                True,
             )
         ),
         "wave1_acceptance_intake_transcript_contract_validation": str(
@@ -17564,6 +17674,148 @@ def validate_ml_benchmark_actionability_audit(data: dict[str, Any], path: Path) 
                 raise ContractError(f"{path}.summary.{field}: must match critical path summary")
 
 
+def validate_ml_mirror_publication_audit(data: dict[str, Any], path: Path) -> None:
+    require_keys(data, {"api_version", "kind", "metadata", "source", "components", "summary"}, str(path))
+    if data["api_version"] != ML_MIRROR_PUBLICATION_AUDIT_API_VERSION:
+        raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
+    if data["kind"] != "MLMirrorPublicationAudit":
+        raise ContractError(f"{path}: invalid kind {data['kind']!r}")
+
+    metadata = require_object(data["metadata"], f"{path}.metadata")
+    require_keys(metadata, {"report_id", "generated_at", "created_by", "claim_boundary"}, f"{path}.metadata")
+    if metadata["created_by"] != "tamandua-ml-mirror-publication-audit":
+        raise ContractError(f"{path}.metadata.created_by: must identify mirror publication audit")
+    boundary = str(metadata["claim_boundary"])
+    for required_phrase in ["No-push", "Does not sync", "commit", "push", "train models", "run benchmarks"]:
+        if required_phrase not in boundary:
+            raise ContractError(f"{path}.metadata.claim_boundary: missing no-push boundary phrase {required_phrase!r}")
+
+    source = require_object(data["source"], f"{path}.source")
+    require_keys(source, {"manifest", "staging_root", "component_count"}, f"{path}.source")
+    if not str(source["manifest"]).replace("\\", "/").endswith("tools/mirror_deploy/mirror_manifest.json"):
+        raise ContractError(f"{path}.source.manifest: must reference mirror_manifest.json")
+
+    components = [require_object(item, f"{path}.components.item") for item in require_array(data["components"], f"{path}.components")]
+    if int(source["component_count"]) != len(components):
+        raise ContractError(f"{path}.source.component_count: must match components")
+
+    names: list[str] = []
+    push_ready: list[str] = []
+    held: list[str] = []
+    dirty: list[str] = []
+    remote_empty: list[str] = []
+    ml_component: dict[str, Any] | None = None
+    for index, component in enumerate(components):
+        cpath = f"{path}.components[{index}]"
+        require_keys(
+            component,
+            {
+                "name",
+                "hold",
+                "hold_reason",
+                "staging_exists",
+                "git_repo",
+                "tracked_files",
+                "remote",
+                "dirty_count",
+                "dirty_top_levels",
+                "build_deferred",
+                "push_ready",
+                "publication_decision",
+            },
+            cpath,
+        )
+        name = str(component["name"])
+        names.append(name)
+        remote = require_object(component["remote"], f"{cpath}.remote")
+        require_keys(remote, {"state", "head", "detail"}, f"{cpath}.remote")
+        if remote["state"] not in {"missing", "empty", "has_content"}:
+            raise ContractError(f"{cpath}.remote.state: invalid state")
+        dirty_count = int(component["dirty_count"])
+        dirty_levels = require_array(component["dirty_top_levels"], f"{cpath}.dirty_top_levels")
+        if dirty_count == 0 and dirty_levels:
+            raise ContractError(f"{cpath}.dirty_top_levels: clean component must not list dirty top levels")
+        if dirty_count > 0:
+            dirty.append(name)
+        if bool(component["hold"]):
+            held.append(name)
+        if remote["state"] == "empty":
+            remote_empty.append(name)
+        expected_push_ready = (
+            bool(component["staging_exists"])
+            and bool(component["git_repo"])
+            and not bool(component["hold"])
+            and dirty_count == 0
+            and remote["state"] in {"empty", "has_content"}
+        )
+        if bool(component["push_ready"]) != expected_push_ready:
+            raise ContractError(f"{cpath}.push_ready: must match staging/git/hold/dirty/remote state")
+        expected_decision = "ready_to_push" if expected_push_ready else ("hold_do_not_push" if component["hold"] else "not_ready")
+        if component["publication_decision"] != expected_decision:
+            raise ContractError(f"{cpath}.publication_decision: must match push readiness and hold state")
+        if expected_push_ready:
+            push_ready.append(name)
+        if name == "tamandua-ml":
+            ml_component = component
+
+    if len(names) != len(set(names)):
+        raise ContractError(f"{path}.components.name: component names must be unique")
+    summary = require_object(data["summary"], f"{path}.summary")
+    require_keys(
+        summary,
+        {
+            "component_count",
+            "push_ready_count",
+            "push_ready_components",
+            "held_components",
+            "dirty_components",
+            "remote_empty_components",
+            "tamandua_ml_present",
+            "tamandua_ml_hold",
+            "tamandua_ml_dirty_count",
+            "tamandua_ml_remote_state",
+            "tamandua_ml_publication_ready",
+            "tamandua_ml_publication_decision",
+            "recommended_next_action",
+        },
+        f"{path}.summary",
+    )
+    if int(summary["component_count"]) != len(components):
+        raise ContractError(f"{path}.summary.component_count: must match components")
+    if int(summary["push_ready_count"]) != len(push_ready):
+        raise ContractError(f"{path}.summary.push_ready_count: must match components")
+    if list(summary["push_ready_components"]) != push_ready:
+        raise ContractError(f"{path}.summary.push_ready_components: must match components")
+    if list(summary["held_components"]) != held:
+        raise ContractError(f"{path}.summary.held_components: must match components")
+    if list(summary["dirty_components"]) != dirty:
+        raise ContractError(f"{path}.summary.dirty_components: must match components")
+    if list(summary["remote_empty_components"]) != remote_empty:
+        raise ContractError(f"{path}.summary.remote_empty_components: must match components")
+    if bool(summary["tamandua_ml_present"]) != (ml_component is not None):
+        raise ContractError(f"{path}.summary.tamandua_ml_present: must match components")
+    if ml_component is None:
+        if summary["tamandua_ml_publication_decision"] != "missing":
+            raise ContractError(f"{path}.summary.tamandua_ml_publication_decision: missing ML component must be explicit")
+        return
+
+    ml_remote = require_object(ml_component["remote"], f"{path}.components[tamandua-ml].remote")
+    if bool(summary["tamandua_ml_hold"]) != bool(ml_component["hold"]):
+        raise ContractError(f"{path}.summary.tamandua_ml_hold: must match tamandua-ml component")
+    if int(summary["tamandua_ml_dirty_count"]) != int(ml_component["dirty_count"]):
+        raise ContractError(f"{path}.summary.tamandua_ml_dirty_count: must match tamandua-ml component")
+    if summary["tamandua_ml_remote_state"] != ml_remote["state"]:
+        raise ContractError(f"{path}.summary.tamandua_ml_remote_state: must match tamandua-ml component")
+    if bool(summary["tamandua_ml_publication_ready"]) != bool(ml_component["push_ready"]):
+        raise ContractError(f"{path}.summary.tamandua_ml_publication_ready: must match tamandua-ml component")
+    if summary["tamandua_ml_publication_decision"] != ml_component["publication_decision"]:
+        raise ContractError(f"{path}.summary.tamandua_ml_publication_decision: must match tamandua-ml component")
+    if bool(ml_component["hold"]) and summary["tamandua_ml_publication_decision"] != "hold_do_not_push":
+        raise ContractError(f"{path}.summary.tamandua_ml_publication_decision: held tamandua-ml must not be publishable")
+    if bool(ml_component["hold"]) and "hold" not in str(summary["recommended_next_action"]):
+        raise ContractError(f"{path}.summary.recommended_next_action: held tamandua-ml must recommend hold")
+
+
 def validate_ml_benchmark_critical_path_handoff_consistency(data: dict[str, Any], path: Path) -> None:
     require_keys(
         data,
@@ -20266,6 +20518,7 @@ def validate_ml_goal_snapshot(data: dict[str, Any], path: Path) -> None:
         "wave1_pre_execution_transcript_contract_validation_before_run": "missing",
         "wave1_pre_execution_transcript_contract_valid_before_run": False,
         "wave1_pre_execution_transcript_contract_missing_before_run": True,
+        "wave1_transcript_contract_valid_for_manifest_publish": False,
         "wave1_transcript_hashes_match_between_receipts": True,
     }
     for field, expected in transcript_summary_expectations.items():
@@ -20279,10 +20532,15 @@ def validate_ml_goal_snapshot(data: dict[str, Any], path: Path) -> None:
         ("wave1_acquisition_transcript_stdout_sha256", "wave1_manifest_transcript_stdout_sha256"),
         ("wave1_acquisition_transcript_stderr_sha256", "wave1_manifest_transcript_stderr_sha256"),
     ]
-    transcript_hashes_match = all(str(summary[left]) == str(summary[right]) for left, right in transcript_hash_pairs)
+    transcript_hash_mismatches = [
+        f"{left}!={right}"
+        for left, right in transcript_hash_pairs
+        if str(summary[left]) != str(summary[right])
+    ]
+    transcript_hashes_match = not transcript_hash_mismatches
     if bool(summary["wave1_transcript_hashes_match_between_receipts"]) != transcript_hashes_match:
         raise ContractError(
-            f"{path}.source_status_summary.wave1_transcript_hashes_match_between_receipts: must match transcript hash pairs"
+            f"{path}.source_status_summary.wave1_transcript_hashes_match_between_receipts: must match transcript hash pairs ({', '.join(transcript_hash_mismatches)})"
         )
     if summary["goal_snapshot_anchor_check_passed"] is not True:
         raise ContractError(f"{path}.source_status_summary.goal_snapshot_anchor_check_passed: must be true")
@@ -20492,6 +20750,11 @@ def validate_acquisition_dry_run(data: dict[str, Any], path: Path) -> None:
             "vx_inventory",
             "malware_bazaar_auth_key_env",
             "malware_bazaar_auth_key_present",
+            "use_virusshare_fallback",
+            "virusshare_api_key_env",
+            "virusshare_api_key_present",
+            "virusshare_archive_range",
+            "virusshare_count_per_archive",
         },
         f"{path}.configuration",
     )
@@ -20507,6 +20770,26 @@ def validate_acquisition_dry_run(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.configuration.malware_bazaar_auth_key_env: must identify governed env var")
     if not isinstance(configuration["malware_bazaar_auth_key_present"], bool):
         raise ContractError(f"{path}.configuration.malware_bazaar_auth_key_present: must be boolean")
+    if not isinstance(configuration["use_virusshare_fallback"], bool):
+        raise ContractError(f"{path}.configuration.use_virusshare_fallback: must be boolean")
+    if configuration["virusshare_api_key_env"] != "VIRUSSHARE_API_KEY":
+        raise ContractError(f"{path}.configuration.virusshare_api_key_env: must identify governed env var")
+    if not isinstance(configuration["virusshare_api_key_present"], bool):
+        raise ContractError(f"{path}.configuration.virusshare_api_key_present: must be boolean")
+    virusshare_range = configuration["virusshare_archive_range"]
+    virusshare_count = configuration["virusshare_count_per_archive"]
+    if configuration["use_virusshare_fallback"] is True:
+        if not isinstance(virusshare_range, list) or len(virusshare_range) != 2:
+            raise ContractError(f"{path}.configuration.virusshare_archive_range: fallback requires two archive ids")
+        if not all(isinstance(item, str) and re.fullmatch(r"\d{5}", item) for item in virusshare_range):
+            raise ContractError(f"{path}.configuration.virusshare_archive_range: archive ids must be five digits")
+        if not isinstance(virusshare_count, int) or virusshare_count < 1:
+            raise ContractError(f"{path}.configuration.virusshare_count_per_archive: fallback requires positive count")
+    else:
+        if virusshare_range is not None:
+            raise ContractError(f"{path}.configuration.virusshare_archive_range: must be null when fallback is disabled")
+        if virusshare_count is not None and (not isinstance(virusshare_count, int) or virusshare_count < 1):
+            raise ContractError(f"{path}.configuration.virusshare_count_per_archive: default count must be positive when present")
 
     safety_gates = require_object(data["safety_gates"], f"{path}.safety_gates")
     expected_gates = {
@@ -20523,16 +20806,17 @@ def validate_acquisition_dry_run(data: dict[str, Any], path: Path) -> None:
     planned_phases = require_array(data["planned_phases"], f"{path}.planned_phases")
     if len(planned_phases) < 5:
         raise ContractError(f"{path}.planned_phases: expected at least 5 phases")
-    phase_ids: set[int] = set()
+    phase_names: set[str] = set()
     for index, phase_value in enumerate(planned_phases):
         phase = require_object(phase_value, f"{path}.planned_phases[{index}]")
         require_keys(phase, {"phase", "name", "executed_in_dry_run"}, f"{path}.planned_phases[{index}]")
         phase_id = phase["phase"]
         if not isinstance(phase_id, int) or phase_id < 1:
             raise ContractError(f"{path}.planned_phases[{index}].phase: must be a positive integer")
-        if phase_id in phase_ids:
-            raise ContractError(f"{path}.planned_phases[{index}].phase: duplicate {phase_id}")
-        phase_ids.add(phase_id)
+        phase_name = str(phase["name"])
+        if phase_name in phase_names:
+            raise ContractError(f"{path}.planned_phases[{index}].name: duplicate {phase_name!r}")
+        phase_names.add(phase_name)
         if phase["executed_in_dry_run"] is not False:
             raise ContractError(f"{path}.planned_phases[{index}].executed_in_dry_run: must be false")
 
@@ -24499,22 +24783,21 @@ def validate_wave1_post_acquisition_go_no_go_summary(data: dict[str, Any], path:
         )
     if bool(summary["ready_for_manifest_publish_go_no_go"]) and summary["transcript_hashes_match_between_receipts"] is not True:
         raise ContractError(f"{path}.source_status_summary.transcript_hashes_match_between_receipts: required for go")
-    if summary["pre_execution_transcript_contract_validation_before_run"] != "missing":
+    if summary["pre_execution_transcript_contract_validation_before_run"] not in {"missing", "failed"}:
         raise ContractError(
-            f"{path}.source_status_summary.pre_execution_transcript_contract_validation_before_run: must be missing"
+            f"{path}.source_status_summary.pre_execution_transcript_contract_validation_before_run: must be missing or failed"
         )
     if summary["pre_execution_transcript_contract_valid_before_run"] is not False:
         raise ContractError(
             f"{path}.source_status_summary.pre_execution_transcript_contract_valid_before_run: must be false"
         )
-    if summary["pre_execution_transcript_contract_missing_before_run"] is not True:
+    if summary["pre_execution_transcript_contract_missing_before_run"] is not (
+        summary["pre_execution_transcript_contract_validation_before_run"] == "missing"
+    ):
         raise ContractError(
-            f"{path}.source_status_summary.pre_execution_transcript_contract_missing_before_run: must be true"
+            f"{path}.source_status_summary.pre_execution_transcript_contract_missing_before_run: must match validation state"
         )
     transcript_aliases = {
-        "wave1_pre_execution_transcript_contract_validation_before_run": "pre_execution_transcript_contract_validation_before_run",
-        "wave1_pre_execution_transcript_contract_valid_before_run": "pre_execution_transcript_contract_valid_before_run",
-        "wave1_pre_execution_transcript_contract_missing_before_run": "pre_execution_transcript_contract_missing_before_run",
         "wave1_acceptance_intake_transcript_contract_validation": "intake_transcript_contract_validation",
         "wave1_acceptance_intake_transcript_contract_valid": "intake_transcript_contract_valid",
         "wave1_transcript_contract_valid_for_manifest_publish": "transcript_contract_valid_for_manifest_publish",
@@ -24522,6 +24805,18 @@ def validate_wave1_post_acquisition_go_no_go_summary(data: dict[str, Any], path:
     for alias, legacy in transcript_aliases.items():
         if summary[alias] != summary[legacy]:
             raise ContractError(f"{path}.source_status_summary.{alias}: must match {legacy}")
+    if summary["wave1_pre_execution_transcript_contract_validation_before_run"] != "missing":
+        raise ContractError(
+            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_validation_before_run: must be missing"
+        )
+    if summary["wave1_pre_execution_transcript_contract_valid_before_run"] is not False:
+        raise ContractError(
+            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_valid_before_run: must be false"
+        )
+    if summary["wave1_pre_execution_transcript_contract_missing_before_run"] is not True:
+        raise ContractError(
+            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_missing_before_run: must be true"
+        )
     expected_vx_check_passed = (
         summary["acquisition_receipt_expected_vx_policy_valid"] is True
         and summary["manifest_receipt_expected_vx_policy_valid"] is True
@@ -24620,6 +24915,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ml-benchmark-unblock-handoff-consistency", type=Path, default=None)
     parser.add_argument("--ml-benchmark-unblock-validation-status", type=Path, default=None)
     parser.add_argument("--ml-benchmark-unblock-validation-status-consistency", type=Path, default=None)
+    parser.add_argument("--ml-mirror-publication-audit", type=Path, default=None)
     parser.add_argument("--ml-parallel-work-packages", type=Path, default=None)
     parser.add_argument("--ml-parallel-handoff-bundle", type=Path, default=None)
     parser.add_argument("--ml-parallel-handoff-consistency", type=Path, default=None)
@@ -25032,6 +25328,13 @@ def main() -> int:
                 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_CONSISTENCY_SCHEMA,
                 validate_ml_benchmark_unblock_validation_status_consistency,
             )
+        ml_mirror_publication_audit_mode = None
+        if args.ml_mirror_publication_audit is not None:
+            ml_mirror_publication_audit_mode = validate_contract(
+                args.ml_mirror_publication_audit,
+                ML_MIRROR_PUBLICATION_AUDIT_SCHEMA,
+                validate_ml_mirror_publication_audit,
+            )
         ml_parallel_work_packages_mode = None
         if args.ml_parallel_work_packages is not None:
             ml_parallel_work_packages_mode = validate_contract(
@@ -25328,6 +25631,11 @@ def main() -> int:
         print(
             "validated ML benchmark unblock validation status consistency: "
             f"{args.ml_benchmark_unblock_validation_status_consistency} ({ml_benchmark_unblock_validation_status_consistency_mode})"
+        )
+    if ml_mirror_publication_audit_mode is not None:
+        print(
+            "validated ML mirror publication audit: "
+            f"{args.ml_mirror_publication_audit} ({ml_mirror_publication_audit_mode})"
         )
     if ml_parallel_work_packages_mode is not None:
         print(f"validated ML parallel work packages: {args.ml_parallel_work_packages} ({ml_parallel_work_packages_mode})")

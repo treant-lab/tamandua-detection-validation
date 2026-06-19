@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_benchmark_unblock_handoff_consistency_v1.schema.json",
+  "title": "Tamandua ML Benchmark Unblock Handoff Consistency v1",
+  "type": "object",
+  "additionalProperties": false,
+  "$defs": {
+    "category_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["dependency", "artifact", "env", "other"],
+      "properties": {
+        "dependency": {"type": "integer", "minimum": 0},
+        "artifact": {"type": "integer", "minimum": 0},
+        "env": {"type": "integer", "minimum": 0},
+        "other": {"type": "integer", "minimum": 0}
+      }
+    }
+  },
+  "required": ["api_version", "kind", "metadata", "consistent", "blockers", "source_status_summary", "configuration", "summary", "checks"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-benchmark-unblock-handoff-consistency/v1"},
+    "kind": {"const": "MLBenchmarkUnblockHandoffConsistency"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 10}
+      }
+    },
+    "consistent": {"type": "boolean"},
+    "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "source_status_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "benchmark_unblock_queue_validation",
+        "benchmark_unblock_handoff_bundle_validation",
+        "queue_validated",
+        "bundle_validated",
+        "bundle_source_matches_queue",
+        "all_queue_items_have_handoffs",
+        "no_stale_handoffs",
+        "handoff_fields_match_queue",
+        "validation_command_hashes_match",
+        "handoff_markdown_matches_manifest",
+        "category_rollups_match",
+        "upstream_summary_matches",
+        "goal_snapshot_matches_queue",
+        "validation_commands_preserved",
+        "passed_checks",
+        "failed_checks",
+        "check_count",
+        "blocker_count",
+        "queue_items",
+        "handoff_files",
+        "source_mismatches",
+        "missing_handoffs",
+        "stale_handoffs",
+        "command_hash_mismatches",
+        "pending_by_category",
+        "resolved_by_category",
+        "upstream_ready_validation_only",
+        "upstream_blocked",
+        "validation_command_count",
+        "validation_only_commands",
+        "goal_complete",
+        "completion_state",
+        "goal_usable_required_evidence",
+        "goal_required_evidence_total",
+        "next_unproven_requirement_id",
+        "next_unproven_execute_guard_env",
+        "consistent"
+      ],
+      "properties": {
+        "benchmark_unblock_queue_validation": {"type": "string", "pattern": "^(jsonschema\\+built-in|built-in|failed)$"},
+        "benchmark_unblock_handoff_bundle_validation": {"type": "string", "pattern": "^(jsonschema\\+built-in|built-in|failed)$"},
+        "queue_validated": {"type": "boolean"},
+        "bundle_validated": {"type": "boolean"},
+        "bundle_source_matches_queue": {"type": "boolean"},
+        "all_queue_items_have_handoffs": {"type": "boolean"},
+        "no_stale_handoffs": {"type": "boolean"},
+        "handoff_fields_match_queue": {"type": "boolean"},
+        "validation_command_hashes_match": {"type": "boolean"},
+        "handoff_markdown_matches_manifest": {"type": "boolean"},
+        "category_rollups_match": {"type": "boolean"},
+        "upstream_summary_matches": {"type": "boolean"},
+        "goal_snapshot_matches_queue": {"type": "boolean"},
+        "validation_commands_preserved": {"type": "boolean"},
+        "passed_checks": {"type": "integer", "minimum": 0},
+        "failed_checks": {"type": "integer", "minimum": 0},
+        "check_count": {"type": "integer", "minimum": 0},
+        "blocker_count": {"type": "integer", "minimum": 0},
+        "queue_items": {"type": "integer", "minimum": 0},
+        "handoff_files": {"type": "integer", "minimum": 0},
+        "source_mismatches": {"type": "integer", "minimum": 0},
+        "missing_handoffs": {"type": "integer", "minimum": 0},
+        "stale_handoffs": {"type": "integer", "minimum": 0},
+        "command_hash_mismatches": {"type": "integer", "minimum": 0},
+        "pending_by_category": {"$ref": "#/$defs/category_counts"},
+        "resolved_by_category": {"$ref": "#/$defs/category_counts"},
+        "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+        "upstream_blocked": {"type": "integer", "minimum": 0},
+        "validation_command_count": {"type": "integer", "minimum": 0},
+        "validation_only_commands": {"type": "integer", "minimum": 0},
+        "goal_complete": {"type": "boolean"},
+        "completion_state": {"enum": ["partial_evidence", "complete"]},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+        "next_unproven_execute_guard_env": {"type": "string", "minLength": 1},
+        "consistent": {"type": "boolean"}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["benchmark_unblock_queue", "benchmark_unblock_handoff_bundle"],
+      "properties": {
+        "benchmark_unblock_queue": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-queue\\.json$"},
+        "benchmark_unblock_handoff_bundle": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-handoff-bundle\\.json$"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "queue_items",
+        "handoff_files",
+        "source_mismatches",
+        "missing_handoffs",
+        "stale_handoffs",
+        "command_hash_mismatches",
+        "pending_by_category",
+        "resolved_by_category",
+        "upstream_ready_validation_only",
+        "upstream_blocked",
+        "validation_command_count",
+        "validation_only_commands",
+        "goal_complete",
+        "completion_state",
+        "goal_usable_required_evidence",
+        "goal_required_evidence_total",
+        "next_unproven_requirement_id",
+        "next_unproven_execute_guard_env"
+      ],
+      "properties": {
+        "queue_items": {"type": "integer", "minimum": 0},
+        "handoff_files": {"type": "integer", "minimum": 0},
+        "source_mismatches": {"type": "integer", "minimum": 0},
+        "missing_handoffs": {"type": "integer", "minimum": 0},
+        "stale_handoffs": {"type": "integer", "minimum": 0},
+        "command_hash_mismatches": {"type": "integer", "minimum": 0},
+        "pending_by_category": {"$ref": "#/$defs/category_counts"},
+        "resolved_by_category": {"$ref": "#/$defs/category_counts"},
+        "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
+        "upstream_blocked": {"type": "integer", "minimum": 0},
+        "validation_command_count": {"type": "integer", "minimum": 0},
+        "validation_only_commands": {"type": "integer", "minimum": 0},
+        "goal_complete": {"type": "boolean"},
+        "completion_state": {"enum": ["partial_evidence", "complete"]},
+        "goal_usable_required_evidence": {"type": "integer", "minimum": 0},
+        "goal_required_evidence_total": {"type": "integer", "minimum": 0},
+        "next_unproven_requirement_id": {"type": "string", "minLength": 1},
+        "next_unproven_execute_guard_env": {"type": "string", "minLength": 1}
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}

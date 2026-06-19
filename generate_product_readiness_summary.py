@@ -26,6 +26,21 @@ SCORECARD_JSON = GENERATED_DIR / "validation_roadmap_scorecard.json"
 PROFILE_CLOSURE = "roadmap-closure-gate-probe"
 PROFILE_PREFLIGHT = "validation-execution-preflight-probe"
 PROFILE_DISPATCH = "validation-dispatch-results-probe"
+PROFILE_MACOS_BACKEND = "macos-backend-readiness-probe"
+PROFILE_MACOS_RELEASE_ARTIFACT_PREFLIGHT = "macos-release-artifact-preflight"
+MACOS_LAB_ACCESS_BOUNDARY = (
+    "macOS lane is not a Proxmox VMID/QGA flow; use the approved Mac SSH/local access path "
+    "and do not attempt qm/VMID remediation for this blocker."
+)
+MACOS_SIGNED_RELEASE_PREREQUISITE = (
+    "Produce and deploy a macOS release app/DMG from the signed/notarized release workflow; "
+    "the artifact preflight must pass with a bundled Contents/Library/SystemExtensions/*.systemextension "
+    "and the workflow must have Apple signing/notarization secrets configured."
+)
+MACOS_ENDPOINT_APPROVAL_PREREQUISITE = (
+    "On the approved Mac access path, install the signed/notarized app and confirm the Tamandua "
+    "System Extension plus Full Disk Access approvals before rerunning backend readiness or P0 smoke."
+)
 
 
 def utc_now() -> str:
@@ -47,18 +62,14 @@ def load_json(path: Path) -> dict[str, Any]:
 
 
 def latest_profile_path(scorecard: dict[str, Any], profile_id: str) -> Path | None:
-    candidates: list[dict[str, Any]] = []
     for profile in scorecard.get("profiles") or []:
         if not isinstance(profile, dict) or profile.get("profile_id") != profile_id:
             continue
         latest = profile.get("latest") if isinstance(profile.get("latest"), dict) else {}
         if latest.get("path"):
-            candidates.append(latest)
-    if not candidates:
-        return None
-    latest = max(candidates, key=lambda item: (str(item.get("timestamp") or ""), str(item.get("run_id") or "")))
-    path = Path(str(latest.get("path") or ""))
-    return path if path.is_absolute() else ROOT / path
+            path = Path(str(latest.get("path") or ""))
+            return path if path.is_absolute() else ROOT / path
+    return None
 
 
 def compact_quality_gate(artifact: dict[str, Any] | None) -> dict[str, Any]:
@@ -124,6 +135,22 @@ def preflight_package_dir(preflight_path: Path | None) -> Path | None:
     return None
 
 
+def dispatch_package_dir(dispatch_path: Path | None) -> Path | None:
+    if not dispatch_path:
+        return None
+    for ancestor in [dispatch_path, *dispatch_path.parents]:
+        if ancestor.name.endswith(".package-artifacts") and ancestor.exists():
+            return ancestor
+    candidates = [
+        dispatch_path.with_suffix(".package-artifacts"),
+        Path(f"{dispatch_path}.package-artifacts"),
+    ]
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+    return None
+
+
 def claim_counts(agent_claims: dict[str, Any] | None) -> dict[str, int]:
     if not agent_claims:
         return {
@@ -162,9 +189,23 @@ def merged_claims_payload(
     claim_status_report: dict[str, Any] | None,
 ) -> dict[str, Any] | None:
     if not agent_claims_snapshot:
-        return claim_status_report
+        if not claim_status_report:
+            return None
+        payload = dict(claim_status_report)
+        payload["claims"] = [
+            normalized_claim_runtime_state(claim)
+            for claim in payload.get("claims") or []
+            if isinstance(claim, dict)
+        ]
+        return payload
     if not claim_status_report:
-        return agent_claims_snapshot
+        payload = dict(agent_claims_snapshot)
+        payload["claims"] = [
+            normalized_claim_runtime_state(claim)
+            for claim in payload.get("claims") or []
+            if isinstance(claim, dict)
+        ]
+        return payload
 
     snapshot_claims = [
         claim for claim in agent_claims_snapshot.get("claims") or [] if isinstance(claim, dict)
@@ -188,8 +229,54 @@ def merged_claims_payload(
             merged_claims.append(dict(claim))
 
     payload = dict(agent_claims_snapshot)
-    payload["claims"] = merged_claims
+    payload["claims"] = [normalized_claim_runtime_state(claim) for claim in merged_claims]
     return payload
+
+
+def normalized_claim_runtime_state(claim: dict[str, Any]) -> dict[str, Any]:
+    """Prefer current agent_status evidence over the original launch queue state."""
+    normalized = dict(claim)
+    current_next_action = (
+        normalized.get("current_next_action")
+        if isinstance(normalized.get("current_next_action"), dict)
+        else {}
+    )
+    missing_readiness = [
+        str(value)
+        for value in current_next_action.get("missing_readiness") or []
+        if str(value)
+    ]
+    if missing_readiness and normalized.get("ready_to_launch") is True:
+        blocked_reasons = [str(value) for value in normalized.get("blocked_reasons") or []]
+        if "current_next_action_unresolved" not in blocked_reasons:
+            blocked_reasons.append("current_next_action_unresolved")
+        normalized["ready_to_launch"] = False
+        normalized["claim_state"] = "manual_claim_required"
+        normalized["blocked_reasons"] = blocked_reasons
+        normalized["missing_readiness"] = missing_readiness
+
+    agent_status = str(
+        normalized.get("agent_status") or normalized.get("current_status") or ""
+    ).strip()
+    if agent_status not in {"pass", "fail", "blocked"}:
+        return normalized
+
+    normalized["ready_to_launch"] = False
+    blocked_reasons = [str(value) for value in normalized.get("blocked_reasons") or []]
+    if agent_status == "pass":
+        if normalized.get("agent_blocker_cleared") is True and not normalized.get("missing_profiles"):
+            normalized["claim_state"] = "has_current_pass_evidence"
+        else:
+            normalized["claim_state"] = "has_current_incomplete_pass_evidence"
+            if "agent_status_incomplete" not in blocked_reasons:
+                blocked_reasons.append("agent_status_incomplete")
+    else:
+        normalized["claim_state"] = f"has_current_{agent_status}_evidence"
+        reason = f"agent_status_{agent_status}"
+        if reason not in blocked_reasons:
+            blocked_reasons.append(reason)
+    normalized["blocked_reasons"] = blocked_reasons
+    return normalized
 
 
 def claim_digest(agent_claims: dict[str, Any] | None) -> list[dict[str, Any]]:
@@ -213,7 +300,7 @@ def claim_digest(agent_claims: dict[str, Any] | None) -> list[dict[str, Any]]:
                 "missing_effective_env": claim.get("missing_effective_env") or [],
                 "missing_profiles": claim.get("missing_profiles") or [],
                 "blocked_reasons": claim.get("blocked_reasons") or [],
-                "next_action": action.get("action") or "",
+                "next_action": normalize_macos_smoke_next_action(str(action.get("action") or "")),
                 "token_login_command": action.get("token_login_command") or "",
                 "command": claim.get("command") or "",
                 "script_path": claim.get("script_path") or "",
@@ -338,15 +425,158 @@ def env_queue_summary(env_queue: dict[str, Any] | None) -> dict[str, Any]:
     }
 
 
-def run_class_digest(preflight: dict[str, Any] | None) -> list[dict[str, Any]]:
+def run_class_action_fallbacks(claims: list[dict[str, Any]]) -> dict[str, str]:
+    actions: dict[str, str] = {}
+    for claim in claims:
+        if not isinstance(claim, dict):
+            continue
+        next_action = normalize_macos_smoke_next_action(str(claim.get("next_action") or "").strip())
+        if not next_action:
+            continue
+        for run_class in claim.get("blocked_run_classes") or []:
+            run_class_name = str(run_class or "").strip()
+            if run_class_name and run_class_name not in actions:
+                actions[run_class_name] = next_action
+    return actions
+
+
+def normalize_macos_smoke_next_action(action: str) -> str:
+    text = action.strip()
+    if (
+        "com.apple.developer.endpoint-security.client" in text
+        and "com.apple.developer.system-extension.install" not in text
+    ):
+        text = text.replace(
+            "com.apple.developer.endpoint-security.client",
+            (
+                "com.apple.developer.endpoint-security.client and "
+                "com.apple.developer.system-extension.install"
+            ),
+        )
+    if (
+        "macos_backend_readiness_probe.py" in text
+        and "rerun macos_backend_readiness_probe.py before smoke execution" not in text
+    ):
+        if "then rerun macos_backend_readiness_probe.py." in text:
+            text = text.replace(
+                "then rerun macos_backend_readiness_probe.py.",
+                "then rerun macos_backend_readiness_probe.py before smoke execution.",
+            )
+        else:
+            text = text.replace(
+                "then rerun macos_backend_readiness_probe.py",
+                "then rerun macos_backend_readiness_probe.py before smoke execution",
+            )
+    return text
+
+
+def latest_macos_backend_runtime_action(macos_backend: dict[str, Any] | None) -> str:
+    if not macos_backend:
+        return ""
+    gate = macos_backend.get("quality_gate") if isinstance(macos_backend.get("quality_gate"), dict) else {}
+    for gap in gate.get("actionable_gaps") or []:
+        if not isinstance(gap, dict):
+            continue
+        evidence = gap.get("evidence") if isinstance(gap.get("evidence"), dict) else {}
+        next_action = evidence.get("next_action") if isinstance(evidence.get("next_action"), dict) else {}
+        action = str(next_action.get("action") or "").strip()
+        diagnostics = (
+            evidence.get("live_response_diagnostics")
+            if isinstance(evidence.get("live_response_diagnostics"), dict)
+            else {}
+        )
+        diagnostic_findings = (
+            diagnostics.get("diagnostic_findings")
+            if isinstance(diagnostics.get("diagnostic_findings"), dict)
+            else {}
+        )
+        findings = [
+            str(value)
+            for value in (
+                next_action.get("diagnostic_findings")
+                if isinstance(next_action.get("diagnostic_findings"), list)
+                else diagnostic_findings.get("findings")
+                if isinstance(diagnostic_findings.get("findings"), list)
+                else []
+            )
+            if value
+        ]
+        if not findings:
+            continue
+        finding_labels = {
+            "tamandua_system_extension_missing": "Tamandua system extension is not listed/active",
+            "endpoint_security_entitlement_missing": (
+                "agent entitlements omit com.apple.developer.endpoint-security.client "
+                "and com.apple.developer.system-extension.install"
+            ),
+            "gatekeeper_rejected_agent_binary": "Gatekeeper rejects /opt/tamandua/tamandua-agent",
+        }
+        details = [finding_labels.get(finding, finding) for finding in findings]
+        if not action:
+            action = (
+                "Deploy a Developer ID signed/notarized agent binary for macOS that Gatekeeper accepts "
+                "and that includes com.apple.developer.endpoint-security.client and "
+                "com.apple.developer.system-extension.install, approve the Tamandua system extension "
+                "and Full Disk Access, then rerun macos_backend_readiness_probe.py before smoke execution."
+            )
+        action = normalize_macos_smoke_next_action(action)
+        return f"{action} {MACOS_LAB_ACCESS_BOUNDARY} Current read-only diagnostics confirm: {'; '.join(details)}."
+    return ""
+
+
+def apply_macos_runtime_action(claims: list[dict[str, Any]], action: str) -> list[dict[str, Any]]:
+    if not action:
+        return claims
+    enriched = []
+    for claim in claims:
+        if not isinstance(claim, dict):
+            continue
+        next_claim = dict(claim)
+        blocked_run_classes = [str(value) for value in next_claim.get("blocked_run_classes") or []]
+        claim_id = str(next_claim.get("claim_id") or "")
+        if "macos-server-backed-smoke" in blocked_run_classes or claim_id == "claim-wave-1-restore-macos-backend-readiness":
+            next_claim["next_action"] = action
+        enriched.append(next_claim)
+    return enriched
+
+
+def run_class_digest(
+    preflight: dict[str, Any] | None,
+    claims: list[dict[str, Any]] | None = None,
+    macos_runtime_action: str = "",
+) -> list[dict[str, Any]]:
     if not preflight:
         return []
+    claims = claims or []
+    action_fallbacks = run_class_action_fallbacks(claims)
+    unique_no_env_claim_actions = sorted(
+        {
+            normalize_macos_smoke_next_action(str(claim.get("next_action") or "").strip())
+            for claim in claims
+            if isinstance(claim, dict)
+            and str(claim.get("next_action") or "").strip()
+            and not claim.get("missing_effective_env")
+        }
+    )
+    blocked_items = [
+        item
+        for item in preflight.get("run_class_readiness") or []
+        if isinstance(item, dict) and not bool(item.get("allowed"))
+    ]
+    single_class_single_action = (
+        len(blocked_items) == 1 and len(unique_no_env_claim_actions) == 1
+    )
     result = []
-    for item in preflight.get("run_class_readiness") or []:
-        if not isinstance(item, dict):
-            continue
-        if bool(item.get("allowed")):
-            continue
+    for item in blocked_items:
+        run_class = str(item.get("run_class") or "")
+        action = (
+            item.get("action")
+            or action_fallbacks.get(run_class)
+            or (unique_no_env_claim_actions[0] if single_class_single_action else "")
+        )
+        if run_class == "macos-server-backed-smoke" and macos_runtime_action:
+            action = macos_runtime_action
+        action = normalize_macos_smoke_next_action(str(action or ""))
         result.append(
             {
                 "run_class": item.get("run_class"),
@@ -354,7 +584,7 @@ def run_class_digest(preflight: dict[str, Any] | None) -> list[dict[str, Any]]:
                 "roadmaps": item.get("roadmaps") or [],
                 "missing_env": item.get("missing_env") or [],
                 "blocking_profiles": item.get("blocking_profiles") or [],
-                "action": item.get("action") or "",
+                "action": action,
             }
         )
     return sorted(result, key=lambda item: str(item.get("run_class") or ""))
@@ -441,7 +671,11 @@ def next_action_order(env_queue: dict[str, Any], claims: list[dict[str, Any]]) -
                 "title": "Resolve manual claims that launchers intentionally skip",
                 "claim_boundary": "manual lab/operator decision required before automation can claim progress",
                 "claim_ids": [str(claim.get("claim_id") or "") for claim in manual_claims if claim.get("claim_id")],
-                "actions": [str(claim.get("next_action") or "") for claim in manual_claims if claim.get("next_action")],
+                "actions": [
+                    normalize_macos_smoke_next_action(str(claim.get("next_action") or ""))
+                    for claim in manual_claims
+                    if claim.get("next_action")
+                ],
             }
         )
     still_blocked = list(env_queue.get("still_blocked_after_all_env_claim_ids") or [])
@@ -453,6 +687,53 @@ def next_action_order(env_queue: dict[str, Any], claims: list[dict[str, Any]]) -
                 "title": "Resolve dependency-gated claims still blocked after env bundle",
                 "claim_boundary": "requires new runtime evidence from prior waves",
                 "claim_ids": still_blocked,
+            }
+        )
+    ready_claims = [
+        claim
+        for claim in claims
+        if claim.get("ready_to_launch") is True
+        and str(claim.get("state") or "") == "ready_to_claim"
+    ]
+    if ready_claims:
+        actions.append(
+            {
+                "step": len(actions) + 1,
+                "id": "launch-ready-claims",
+                "title": "Launch currently ready claims with generated claim guards",
+                "claim_boundary": (
+                    "executes generated ready-claim wrappers only; product readiness still requires the "
+                    "claim status to pass with blocker_cleared=true and no missing profiles"
+                ),
+                "claim_ids": [str(claim.get("claim_id") or "") for claim in ready_claims if claim.get("claim_id")],
+                "actions": [
+                    normalize_macos_smoke_next_action(str(claim.get("next_action") or ""))
+                    for claim in ready_claims
+                    if claim.get("next_action")
+                ],
+                "commands": [str(claim.get("command") or "") for claim in ready_claims if claim.get("command")],
+            }
+        )
+    failed_claims = [
+        claim
+        for claim in claims
+        if str(claim.get("state") or "").startswith("has_current_")
+        and str(claim.get("state") or "") != "has_current_pass_evidence"
+    ]
+    if failed_claims:
+        actions.append(
+            {
+                "step": len(actions) + 1,
+                "id": "resolve-current-failed-claims",
+                "title": "Resolve claims with current failed or incomplete agent evidence",
+                "claim_boundary": "requires external runtime state to change before rerunning the failed claim",
+                "claim_ids": [str(claim.get("claim_id") or "") for claim in failed_claims if claim.get("claim_id")],
+                "actions": [
+                    normalize_macos_smoke_next_action(str(claim.get("next_action") or ""))
+                    for claim in failed_claims
+                    if claim.get("next_action")
+                ],
+                "commands": [str(claim.get("command") or "") for claim in failed_claims if claim.get("command")],
             }
         )
     actions.append(
@@ -484,6 +765,7 @@ def recommended_next_action(actions: list[dict[str, Any]]) -> dict[str, Any]:
                 "commands": list(action.get("commands") or []),
                 "claim_ids": list(action.get("claim_ids") or []),
                 "env": list(action.get("env") or []),
+                "actions": list(action.get("actions") or []),
             }
     return {}
 
@@ -565,7 +847,7 @@ def post_agent_status_gate(
         "ready_after_env_passed_claim_ids": passed_claim_ids,
         "ready_after_env_passed_count": len(passed_claim_ids),
         "ready_after_env_required_count": len(ready_claim_ids),
-        "ready_after_env_all_passed": bool(ready_claim_ids) and len(passed_claim_ids) == len(ready_claim_ids),
+        "ready_after_env_all_passed": len(passed_claim_ids) == len(ready_claim_ids),
         "incomplete_ready_after_env_claims": incomplete_claims,
         "required_agent_status_contract": {
             "status": "pass",
@@ -729,8 +1011,60 @@ def env_template_details(package_dir: Path | None, env_summary: dict[str, Any]) 
     return dict(sorted(details.items()))
 
 
-def manual_claims(claims: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def dispatch_package_metadata(package_dir: Path | None) -> dict[str, dict[str, Any]]:
+    try:
+        manifest = load_optional_json(package_dir / "dispatch_manifest.json" if package_dir else None)
+    except json.JSONDecodeError:
+        manifest = {}
+    packages = manifest.get("packages") if isinstance(manifest, dict) else []
+    if not isinstance(packages, list):
+        return {}
+    return {
+        str(package.get("package_id") or ""): package
+        for package in packages
+        if isinstance(package, dict) and package.get("package_id")
+    }
+
+
+def manual_claim_prerequisites(summary: dict[str, Any]) -> list[str]:
+    prerequisites: list[str] = []
+    seen = set()
+    for claim in summary.get("manual_claims") or []:
+        if not isinstance(claim, dict):
+            continue
+        for value in claim.get("manual_prerequisites") or []:
+            text = str(value).strip()
+            if text and text not in seen:
+                prerequisites.append(text)
+                seen.add(text)
+    return prerequisites
+
+
+def product_readiness_automation_state(
+    summary: dict[str, Any],
+    env_request: dict[str, Any],
+    release_gate_contract: dict[str, Any] | None = None,
+    blocked_run_classes_contract: dict[str, Any] | None = None,
+) -> str:
+    if int(env_request.get("required_env_count") or 0) > 0:
+        return "blocked_missing_env"
+    manual_claim_count = len(summary.get("manual_claims") or [])
+    blocked_run_class_count = int(
+        (blocked_run_classes_contract or {}).get("blocked_run_class_count")
+        or (release_gate_contract or {}).get("blocked_run_class_count")
+        or 0
+    )
+    if manual_claim_count or blocked_run_class_count:
+        return "runtime_evidence_blocked"
+    return "ready_for_post_env_runner"
+
+
+def manual_claims(
+    claims: list[dict[str, Any]],
+    package_metadata: dict[str, dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
     result = []
+    package_metadata = package_metadata or {}
     for claim in claims:
         if claim.get("state") != "manual_claim_required":
             continue
@@ -740,16 +1074,33 @@ def manual_claims(claims: list[dict[str, Any]]) -> list[dict[str, Any]]:
             and not claim.get("missing_profiles")
         ):
             continue
+        package_id = str(claim.get("package_id") or "")
+        package = package_metadata.get(package_id) or {}
+        manual_prerequisites = [
+            str(value)
+            for value in package.get("manual_prerequisites") or claim.get("manual_prerequisites") or []
+            if str(value).strip()
+        ]
+        claim_id = str(claim.get("claim_id") or "")
+        if claim_id == "claim-wave-1-restore-macos-backend-readiness":
+            for prerequisite in [
+                MACOS_SIGNED_RELEASE_PREREQUISITE,
+                MACOS_ENDPOINT_APPROVAL_PREREQUISITE,
+                MACOS_LAB_ACCESS_BOUNDARY,
+            ]:
+                if prerequisite not in manual_prerequisites:
+                    manual_prerequisites.append(prerequisite)
         result.append(
             {
-                "claim_id": claim.get("claim_id"),
-                "package_id": claim.get("package_id"),
+                "claim_id": claim_id,
+                "package_id": package_id,
                 "wave": claim.get("wave"),
                 "owner": claim.get("owner"),
                 "next_action": claim.get("next_action") or "",
                 "command": claim.get("command") or "",
                 "script_path": claim.get("script_path") or "",
                 "prompt_path": claim.get("prompt_path") or "",
+                "manual_prerequisites": manual_prerequisites,
                 "claim_boundary": "manual operator decision required before automation can claim this blocker",
             }
         )
@@ -806,17 +1157,24 @@ def build_summary(scorecard_path: Path = SCORECARD_JSON) -> dict[str, Any]:
     closure_path = latest_profile_path(scorecard, PROFILE_CLOSURE)
     preflight_path = latest_profile_path(scorecard, PROFILE_PREFLIGHT)
     dispatch_path = latest_profile_path(scorecard, PROFILE_DISPATCH)
+    macos_backend_path = latest_profile_path(scorecard, PROFILE_MACOS_BACKEND)
+    macos_release_artifact_path = latest_profile_path(scorecard, PROFILE_MACOS_RELEASE_ARTIFACT_PREFLIGHT)
     closure = load_optional_json(closure_path)
     preflight = load_optional_json(preflight_path)
     dispatch = load_optional_json(dispatch_path)
-    package_dir = preflight_package_dir(preflight_path)
+    macos_backend = load_optional_json(macos_backend_path)
+    preflight_dir = preflight_package_dir(preflight_path)
+    dispatch_dir = dispatch_package_dir(dispatch_path)
+    package_dir = dispatch_dir or preflight_dir
     env_queue = load_optional_json(package_dir / "env_unblock_queue.json" if package_dir else None)
     agent_claims_snapshot = load_optional_json(package_dir / "agent_claims.json" if package_dir else None)
     claim_status_report = load_optional_json(package_dir / "claim_status_report.json" if package_dir else None)
+    package_metadata = dispatch_package_metadata(package_dir)
     agent_claims = merged_claims_payload(agent_claims_snapshot, claim_status_report)
     env_summary = env_queue_summary(env_queue)
     local_bundle_gate = local_env_bundle_gate(env_summary)
-    claim_queue = claim_digest(agent_claims)
+    macos_runtime_action = latest_macos_backend_runtime_action(macos_backend)
+    claim_queue = apply_macos_runtime_action(claim_digest(agent_claims), macos_runtime_action)
     gates = {
         "closure": compact_quality_gate(closure),
         "preflight": compact_quality_gate(preflight),
@@ -825,8 +1183,8 @@ def build_summary(scorecard_path: Path = SCORECARD_JSON) -> dict[str, Any]:
     post_env_plan = post_env_bundle_plan(package_dir, env_summary)
     post_agent_gate = post_agent_status_gate(package_dir, post_env_plan)
     claims = claim_counts(agent_claims)
-    manual = manual_claims(claim_queue)
-    blocked_classes = run_class_digest(preflight)
+    manual = manual_claims(claim_queue, package_metadata)
+    blocked_classes = run_class_digest(preflight, claim_queue, macos_runtime_action)
     release_gate = product_release_gate(gates, env_summary, claims, manual, post_agent_gate, blocked_classes)
     external_claim_allowed = bool(release_gate.get("passed"))
     actions = next_action_order(env_summary, claim_queue)
@@ -839,6 +1197,12 @@ def build_summary(scorecard_path: Path = SCORECARD_JSON) -> dict[str, Any]:
             "closure": rel(closure_path) if closure_path else None,
             "preflight": rel(preflight_path) if preflight_path else None,
             "dispatch": rel(dispatch_path) if dispatch_path else None,
+            "macos_backend": rel(macos_backend_path) if macos_backend_path else None,
+            "macos_release_artifact_preflight": (
+                rel(macos_release_artifact_path) if macos_release_artifact_path else None
+            ),
+            "preflight_package_dir": rel(preflight_dir) if preflight_dir else None,
+            "dispatch_package_dir": rel(dispatch_dir) if dispatch_dir else None,
             "package_dir": rel(package_dir) if package_dir else None,
         },
         "gates": gates,
@@ -867,6 +1231,11 @@ def build_summary(scorecard_path: Path = SCORECARD_JSON) -> dict[str, Any]:
 
 
 def render_markdown(summary: dict[str, Any]) -> str:
+    source_artifacts = (
+        summary.get("source_artifacts")
+        if isinstance(summary.get("source_artifacts"), dict)
+        else {}
+    )
     lines = [
         "# Product Readiness Summary",
         "",
@@ -878,11 +1247,22 @@ def render_markdown(summary: dict[str, Any]) -> str:
         f"- Recommended next action: `{summary.get('recommended_next_action_id') or '-'}`",
         f"- Scorecard: `{summary['scorecard_path']}`",
         "",
+        "## Source Artifacts",
+        "",
+        "| Source | Artifact |",
+        "|--------|----------|",
+    ]
+    for key in sorted(source_artifacts):
+        lines.append(f"| `{key}` | `{source_artifacts.get(key) or '-'}` |")
+    lines.extend(
+        [
+        "",
         "## Gates",
         "",
         "| Gate | Run | Status | Coverage |",
         "|------|-----|--------|----------|",
-    ]
+        ]
+    )
     for key, gate in summary["gates"].items():
         lines.append(
             f"| `{key}` | `{gate.get('run_id') or '-'}` | `{gate.get('status') or '-'}` | `{gate.get('coverage') or '-'}` |"
@@ -1193,8 +1573,8 @@ def render_markdown(summary: dict[str, Any]) -> str:
             "",
             "## Blocked Run Classes",
             "",
-            "| Run class | Allowed | Roadmaps | Missing env | Blocking profiles |",
-            "|-----------|---------|----------|-------------|-------------------|",
+            "| Run class | Allowed | Roadmaps | Missing env | Blocking profiles | Action |",
+            "|-----------|---------|----------|-------------|-------------------|--------|",
         ]
     )
     for item in summary["blocked_run_classes"]:
@@ -1202,7 +1582,8 @@ def render_markdown(summary: dict[str, Any]) -> str:
             f"| `{item['run_class']}` | `{str(item['allowed']).lower()}` | "
             f"{', '.join(f'`{value}`' for value in item['roadmaps']) or '-'} | "
             f"{', '.join(f'`{value}`' for value in item['missing_env']) or '-'} | "
-            f"{', '.join(f'`{value}`' for value in item['blocking_profiles']) or '-'} |"
+            f"{', '.join(f'`{value}`' for value in item['blocking_profiles']) or '-'} | "
+            f"{str(item.get('action') or '-').replace('|', '/')} |"
         )
     lines.extend(["", "## Claim Boundary", "", summary["claim_boundary"]])
     return "\n".join(lines) + "\n"
@@ -1255,6 +1636,7 @@ def env_request_payload(summary: dict[str, Any]) -> dict[str, Any]:
             "step": int(recommended_action.get("step") or 0),
             "title": str(recommended_action.get("title") or ""),
             "claim_boundary": str(recommended_action.get("claim_boundary") or ""),
+            "actions": list(recommended_action.get("actions") or []),
             "commands": list(recommended_action.get("commands") or []),
             "claim_ids": list(recommended_action.get("claim_ids") or []),
             "env": list(recommended_action.get("env") or []),
@@ -1376,12 +1758,13 @@ def env_request_schema() -> dict[str, Any]:
             "recommended_next_action": {
                 "type": "object",
                 "additionalProperties": False,
-                "required": ["id", "step", "title", "claim_boundary", "commands", "claim_ids", "env"],
+                "required": ["id", "step", "title", "claim_boundary", "actions", "commands", "claim_ids", "env"],
                 "properties": {
                     "id": {"type": "string"},
                     "step": {"type": "integer"},
                     "title": {"type": "string"},
                     "claim_boundary": {"type": "string"},
+                    "actions": {"type": "array", "items": {"type": "string"}},
                     "commands": {"type": "array", "items": {"type": "string"}},
                     "claim_ids": {"type": "array", "items": {"type": "string"}},
                     "env": {"type": "array", "items": {"type": "string"}},
@@ -1446,6 +1829,7 @@ def render_env_bundle_check(
             "$Unexpected = @($BundleNames | Where-Object { -not $RequiredSet.ContainsKey($_) } | Sort-Object)",
             "$UnexpectedBlocks = ($RequiredNames.Count -gt 0 -and $Unexpected.Count -gt 0)",
             "$Complete = ($BundleExists -and $Missing.Count -eq 0 -and $Empty.Count -eq 0 -and $Placeholder.Count -eq 0 -and -not $UnexpectedBlocks)",
+            "$CanLaunchAfterImport = [bool]($Complete -and $RequiredNames.Count -gt 0)",
             "$Payload = [ordered]@{",
             "  schema_version = 1",
             "  artifact = 'validation-product-readiness-env-bundle-check'",
@@ -1459,7 +1843,7 @@ def render_env_bundle_check(
             "  empty_env_names = @($Empty)",
             "  placeholder_env_names = @($Placeholder)",
             "  unexpected_env_names = @($Unexpected)",
-            "  can_launch_after_import = [bool]$Complete",
+            "  can_launch_after_import = [bool]$CanLaunchAfterImport",
             "  claim_boundary = 'local env bundle validation only; output intentionally omits secret values and does not import env or launch claims'",
             "}",
             "if ($Json) {",
@@ -2169,7 +2553,9 @@ def render_env_bundle_runner(
             "function Write-RunnerJson {",
             "  param($InitPayload, $CheckPayload, [int]$ExitCode, [string]$StatusReason)",
             "  $Complete = $false",
+            "  $CanLaunch = $false",
             "  if ($CheckPayload -ne $null) { $Complete = [bool]$CheckPayload.complete }",
+            "  if ($CheckPayload -ne $null) { $CanLaunch = [bool]$CheckPayload.can_launch_after_import }",
             "  $Payload = [ordered]@{",
             "    schema_version = 1",
             "    artifact = 'validation-product-readiness-env-bundle-runner'",
@@ -2184,7 +2570,7 @@ def render_env_bundle_runner(
             "    refresh_authority = [bool]$RefreshAuthority",
             "    refresh_authority_exit_code = $null",
             "    complete = $Complete",
-            "    can_launch = $Complete",
+            "    can_launch = $CanLaunch",
             "    status_reason = $StatusReason",
             "    exit_code = $ExitCode",
             "    claim_boundary = 'JSON status mode does not import secret values or delegate to the post-env runner.'",
@@ -2223,7 +2609,7 @@ def render_env_bundle_runner(
             "try { $CheckPayload = $CheckJsonText | ConvertFrom-Json } catch { Write-Error 'Env bundle check did not return valid JSON.'; exit 2 }",
             "if ($Json) {",
             "  $JsonExit = if ($CheckExit -ne 0) { $CheckExit } elseif (-not [bool]$CheckPayload.complete) { 2 } else { 0 }",
-            "  $JsonReason = if ([bool]$CheckPayload.complete) { 'ready_to_launch' } else { 'env_bundle_incomplete' }",
+            "  $JsonReason = if (-not [bool]$CheckPayload.complete) { 'env_bundle_incomplete' } elseif ([bool]$CheckPayload.can_launch_after_import) { 'ready_to_launch' } else { 'env_bundle_complete_no_launch' }",
             "  Write-RunnerJson $InitPayload $CheckPayload $JsonExit $JsonReason",
             "  exit $JsonExit",
             "}",
@@ -2311,6 +2697,7 @@ def env_bundle_runner_schema() -> dict[str, Any]:
             "status_reason": {
                 "enum": [
                     "ready_to_launch",
+                    "env_bundle_complete_no_launch",
                     "env_bundle_incomplete",
                     "init_failed",
                     "json_status_mode_refuses_launch_flags",
@@ -2710,6 +3097,7 @@ def post_env_runner_contract_payload(summary: dict[str, Any]) -> dict[str, Any]:
             "step": int(recommended_action.get("step") or 0),
             "title": str(recommended_action.get("title") or ""),
             "claim_boundary": str(recommended_action.get("claim_boundary") or ""),
+            "actions": list(recommended_action.get("actions") or []),
             "commands": list(recommended_action.get("commands") or []),
             "claim_ids": list(recommended_action.get("claim_ids") or []),
             "env": list(recommended_action.get("env") or []),
@@ -2980,12 +3368,13 @@ def post_env_runner_contract_schema() -> dict[str, Any]:
             "recommended_next_action": {
                 "type": "object",
                 "additionalProperties": False,
-                "required": ["id", "step", "title", "claim_boundary", "commands", "claim_ids", "env"],
+                "required": ["id", "step", "title", "claim_boundary", "actions", "commands", "claim_ids", "env"],
                 "properties": {
                     "id": {"type": "string"},
                     "step": {"type": "integer"},
                     "title": {"type": "string"},
                     "claim_boundary": {"type": "string"},
+                    "actions": {"type": "array", "items": {"type": "string"}},
                     "commands": {"type": "array", "items": {"type": "string"}},
                     "claim_ids": {"type": "array", "items": {"type": "string"}},
                     "env": {"type": "array", "items": {"type": "string"}},
@@ -3213,6 +3602,32 @@ def claim_status_contract_schema() -> dict[str, Any]:
     }
 
 
+def blocked_run_class_action_fields(
+    item: dict[str, Any],
+    recommended_action: dict[str, Any],
+) -> dict[str, Any]:
+    missing_env = [str(value) for value in item.get("missing_env") or []]
+    recommended_commands = [str(value) for value in recommended_action.get("commands") or [] if value]
+    recommended_claim_ids = [str(value) for value in recommended_action.get("claim_ids") or [] if value]
+    recommended_actions = [str(value) for value in recommended_action.get("actions") or [] if value]
+    item_action = str(item.get("action") or "").strip()
+    action = item_action
+    if not action and not missing_env and recommended_actions:
+        action = " ".join(recommended_actions)
+    if not action:
+        action = (
+            "provide required env bundle, run post-env claims, then rerun preflight"
+            if missing_env
+            else "rerun or repair listed blocking profiles with fresh evidence"
+        )
+    return {
+        "action": action,
+        "next_action": action,
+        "claim_ids": recommended_claim_ids if not missing_env else [],
+        "commands": recommended_commands if not missing_env else [],
+    }
+
+
 def release_gate_contract_payload(summary: dict[str, Any]) -> dict[str, Any]:
     release_gate = (
         summary.get("product_release_gate")
@@ -3258,7 +3673,7 @@ def release_gate_contract_payload(summary: dict[str, Any]) -> dict[str, Any]:
         ],
         "manual-claims": [
             "claim_status_report has zero manual_claim_required claims",
-            "Atomic T1047 manual boundary resolved by disposable WMI target or narrowed claim",
+            "external/runtime preconditions from current_next_action are resolved",
         ],
         "post-agent-status": [
             "ready-after-env claims have status=pass",
@@ -3294,6 +3709,13 @@ def release_gate_contract_payload(summary: dict[str, Any]) -> dict[str, Any]:
                 "evidence_required": evidence_by_requirement.get(requirement_id, []),
             }
         )
+    blocked_run_classes = []
+    for item in summary.get("blocked_run_classes") or []:
+        if not isinstance(item, dict):
+            continue
+        blocked_item = dict(item)
+        blocked_item.update(blocked_run_class_action_fields(blocked_item, recommended_action))
+        blocked_run_classes.append(blocked_item)
     return {
         "schema_version": 1,
         "artifact": "validation-product-readiness-release-gate-contract",
@@ -3314,8 +3736,8 @@ def release_gate_contract_payload(summary: dict[str, Any]) -> dict[str, Any]:
         ],
         "ready_after_env_required_count": int(post_agent_gate.get("ready_after_env_required_count") or 0),
         "ready_after_env_passed_count": int(post_agent_gate.get("ready_after_env_passed_count") or 0),
-        "blocked_run_class_count": len(summary.get("blocked_run_classes") or []),
-        "blocked_run_classes": list(summary.get("blocked_run_classes") or []),
+        "blocked_run_class_count": len(blocked_run_classes),
+        "blocked_run_classes": blocked_run_classes,
         "next_artifacts": next_artifacts,
         "recommended_next_action_id": str(summary.get("recommended_next_action_id") or ""),
         "recommended_next_action": {
@@ -3511,6 +3933,7 @@ def blocked_run_classes_contract_payload(summary: dict[str, Any]) -> dict[str, A
     for item in blocked_run_classes:
         missing_env = [str(value) for value in item.get("missing_env") or []]
         blocking_profiles = [str(value) for value in item.get("blocking_profiles") or []]
+        action_fields = blocked_run_class_action_fields(item, recommended_action)
         classes.append(
             {
                 "run_class": str(item.get("run_class") or ""),
@@ -3524,11 +3947,10 @@ def blocked_run_classes_contract_payload(summary: dict[str, Any]) -> dict[str, A
                     "blocking_profiles=[]",
                     "missing_env=[]",
                 ],
-                "next_action": (
-                    "provide required env bundle, run post-env claims, then rerun preflight"
-                    if missing_env
-                    else "rerun or repair listed blocking profiles with fresh evidence"
-                ),
+                "next_action": str(action_fields.get("next_action") or ""),
+                "action": str(action_fields.get("action") or ""),
+                "claim_ids": list(action_fields.get("claim_ids") or []),
+                "commands": list(action_fields.get("commands") or []),
             }
         )
     classes.sort(key=lambda item: str(item.get("run_class") or ""))
@@ -3589,6 +4011,24 @@ def render_blocked_run_classes_contract_markdown(payload: dict[str, Any]) -> str
     lines.extend(["", "## Evidence Required", ""])
     lines.append(f"- `{payload.get('preflight_gate_required')}`")
     lines.append("- `blocked_run_classes=[]`")
+    lines.extend(["", "## Action Plan", ""])
+    if classes:
+        for item in classes:
+            lines.append(f"### `{item.get('run_class')}`")
+            lines.append("")
+            lines.append(f"- Action: {str(item.get('action') or item.get('next_action') or '-').replace('|', '/')}")
+            claim_ids = ", ".join(item.get("claim_ids") or []) or "-"
+            lines.append(f"- Claim ids: `{claim_ids}`")
+            commands = [str(value) for value in item.get("commands") or [] if value]
+            if commands:
+                lines.append("- Commands:")
+                for command in commands:
+                    lines.append(f"  - `{command}`")
+            else:
+                lines.append("- Commands: -")
+            lines.append("")
+    else:
+        lines.append("- none")
     lines.extend(["", "## Claim Boundary", "", str(payload.get("claim_boundary") or "")])
     return "\n".join(lines) + "\n"
 
@@ -3620,6 +4060,9 @@ def blocked_run_classes_contract_schema() -> dict[str, Any]:
             "resolution_class",
             "evidence_required",
             "next_action",
+            "action",
+            "claim_ids",
+            "commands",
         ],
         "properties": {
             "run_class": {"type": "string"},
@@ -3630,6 +4073,9 @@ def blocked_run_classes_contract_schema() -> dict[str, Any]:
             "resolution_class": {"enum": ["env_required", "profile_or_lab_required"]},
             "evidence_required": {"type": "array", "items": {"type": "string"}},
             "next_action": {"type": "string"},
+            "action": {"type": "string"},
+            "claim_ids": {"type": "array", "items": {"type": "string"}},
+            "commands": {"type": "array", "items": {"type": "string"}},
         },
     }
     return {
@@ -3681,14 +4127,24 @@ def product_readiness_runbook_payload(
         if isinstance(summary.get("recommended_next_action"), dict)
         else {}
     )
+    action_manual_prerequisites = manual_claim_prerequisites(summary)
     modes_by_id = {
         str(mode.get("id") or ""): mode
         for mode in post_env_runner_contract.get("modes") or []
         if isinstance(mode, dict)
     }
-    steps = [
+    required_env_count = int(env_request.get("required_env_count") or 0)
+    ready_after_env_required_count = int(claim_status_contract.get("ready_after_env_required_count") or 0)
+    recommended_action_id = str(summary.get("recommended_next_action_id") or "")
+    steps = []
+
+    def add_step(step: dict[str, Any]) -> None:
+        step = dict(step)
+        step["step"] = len(steps) + 1
+        steps.append(step)
+
+    add_step(
         {
-            "step": 1,
             "id": "inspect-current-state",
             "actor": "operator-or-agent",
             "execution_class": "no-exec",
@@ -3698,46 +4154,80 @@ def product_readiness_runbook_payload(
             ),
             "requires_real_env": False,
             "executes_claims": False,
-            "success_evidence": "operator check returns full_env_bundle_ready=true before launch",
-        },
-        {
-            "step": 2,
-            "id": "fill-env-bundle",
-            "actor": "operator",
-            "execution_class": "secret-input",
-            "command": (
-                "powershell -NoProfile -ExecutionPolicy Bypass -File "
-                "docs/benchmarks/generated/validation_product_readiness_env_bundle_local_env_init.ps1"
-            ),
-            "requires_real_env": True,
-            "executes_claims": False,
             "success_evidence": (
-                "ignored local .env is edited with real values, then env_bundle_init -EnvFile creates "
-                "a local JSON bundle with all required env names present and non-placeholder"
+                "operator check reports no missing env and identifies the currently launchable claim path"
+                if required_env_count == 0
+                else "operator check returns full_env_bundle_ready=true before launch"
             ),
-        },
+        }
+    )
+    if required_env_count > 0:
+        add_step(
+            {
+                "id": "fill-env-bundle",
+                "actor": "operator",
+                "execution_class": "secret-input",
+                "command": (
+                    "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                    "docs/benchmarks/generated/validation_product_readiness_env_bundle_local_env_init.ps1"
+                ),
+                "requires_real_env": True,
+                "executes_claims": False,
+                "success_evidence": (
+                    "ignored local .env is edited with real values, then env_bundle_init -EnvFile creates "
+                    "a local JSON bundle with all required env names present and non-placeholder"
+                ),
+            }
+        )
+        add_step(
+            {
+                "id": "validate-env-bundle",
+                "actor": "operator-or-agent",
+                "execution_class": "validate-only",
+                "command": str(post_env_runner_contract.get("validation_command") or ""),
+                "requires_real_env": True,
+                "executes_claims": False,
+                "success_evidence": "env bundle runner JSON returns complete=true and can_launch=true without launching claims",
+            }
+        )
+    if ready_after_env_required_count > 0:
+        add_step(
+            {
+                "id": "launch-ready-after-env-claims",
+                "actor": "operator-or-agent",
+                "execution_class": "claim-execution",
+                "command": str(modes_by_id.get("balanced-agent-fanout", {}).get("command") or ""),
+                "requires_real_env": required_env_count > 0,
+                "executes_claims": True,
+                "success_evidence": "ready-after-env claim agents write agent_status.json files",
+            }
+        )
+    if recommended_action_id == "launch-ready-claims":
+        add_step(
+            {
+                "id": "launch-ready-claims",
+                "actor": "operator-or-agent",
+                "execution_class": "claim-execution",
+                "command": "<br>".join(str(command) for command in recommended_action.get("commands") or []),
+                "requires_real_env": False,
+                "executes_claims": True,
+                "success_evidence": "ready claim writes agent_status.json with status=pass, blocker_cleared=true, and missing_profiles=[]",
+            }
+        )
+    if recommended_action_id == "resolve-manual-claims":
+        add_step(
+            {
+                "id": "resolve-manual-claims",
+                "actor": "operator-or-agent",
+                "execution_class": "manual-boundary-resolution",
+                "command": "docs/benchmarks/generated/validation_product_readiness_manual_claim_resolution.md",
+                "requires_real_env": False,
+                "executes_claims": False,
+                "success_evidence": "manual claims are resolved by satisfying current_next_action preconditions and refreshing claim status",
+            }
+        )
+    for step in [
         {
-            "step": 3,
-            "id": "validate-env-bundle",
-            "actor": "operator-or-agent",
-            "execution_class": "validate-only",
-            "command": str(post_env_runner_contract.get("validation_command") or ""),
-            "requires_real_env": True,
-            "executes_claims": False,
-            "success_evidence": "env bundle runner JSON returns complete=true and can_launch=true without launching claims",
-        },
-        {
-            "step": 4,
-            "id": "launch-ready-after-env-claims",
-            "actor": "operator-or-agent",
-            "execution_class": "claim-execution",
-            "command": str(modes_by_id.get("balanced-agent-fanout", {}).get("command") or ""),
-            "requires_real_env": True,
-            "executes_claims": True,
-            "success_evidence": "ready-after-env claim agents write agent_status.json files",
-        },
-        {
-            "step": 5,
             "id": "refresh-claim-status",
             "actor": "operator-or-agent",
             "execution_class": "local-refresh",
@@ -3747,7 +4237,6 @@ def product_readiness_runbook_payload(
             "success_evidence": "claim_status_report.json reflects current agent_status.json files",
         },
         {
-            "step": 6,
             "id": "verify-agent-status-contract",
             "actor": "operator-or-agent",
             "execution_class": "contract-check",
@@ -3757,7 +4246,6 @@ def product_readiness_runbook_payload(
             "success_evidence": "ready-after-env passed count equals required count",
         },
         {
-            "step": 7,
             "id": "resolve-profile-or-lab-blockers",
             "actor": "operator-or-agent",
             "execution_class": "profile-or-lab-evidence",
@@ -3767,7 +4255,6 @@ def product_readiness_runbook_payload(
             "success_evidence": "blocked run classes contract reports profile_or_lab_blocked_count=0",
         },
         {
-            "step": 8,
             "id": "refresh-validation-authority",
             "actor": "operator-or-agent",
             "execution_class": "local-refresh",
@@ -3776,15 +4263,20 @@ def product_readiness_runbook_payload(
             "executes_claims": False,
             "success_evidence": "release gate contract failed_count=0",
         },
-    ]
+    ]:
+        add_step(step)
     return {
         "schema_version": 1,
         "artifact": "validation-product-readiness-runbook",
         "generated_at": summary.get("generated_at"),
         "product_ready": bool(summary.get("product_ready")),
-        "automation_state": "blocked_missing_env" if env_request.get("required_env_count") else "ready_for_post_env_runner",
-        "required_env_count": int(env_request.get("required_env_count") or 0),
-        "ready_after_env_required_count": int(claim_status_contract.get("ready_after_env_required_count") or 0),
+        "automation_state": product_readiness_automation_state(
+            summary,
+            env_request,
+            blocked_run_classes_contract=blocked_run_classes_contract,
+        ),
+        "required_env_count": required_env_count,
+        "ready_after_env_required_count": ready_after_env_required_count,
         "blocked_run_class_count": int(blocked_run_classes_contract.get("blocked_run_class_count") or 0),
         "recommended_next_action_id": str(summary.get("recommended_next_action_id") or ""),
         "recommended_next_action": {
@@ -3794,6 +4286,7 @@ def product_readiness_runbook_payload(
             "claim_boundary": str(recommended_action.get("claim_boundary") or ""),
             "commands": list(recommended_action.get("commands") or []),
             "claim_ids": list(recommended_action.get("claim_ids") or []),
+            "manual_prerequisites": action_manual_prerequisites,
             "env": list(recommended_action.get("env") or []),
         },
         "steps": steps,
@@ -3816,6 +4309,11 @@ def product_readiness_runbook_payload(
 
 def render_product_readiness_runbook_markdown(payload: dict[str, Any]) -> str:
     steps = payload.get("steps") if isinstance(payload.get("steps"), list) else []
+    recommended_action = (
+        payload.get("recommended_next_action")
+        if isinstance(payload.get("recommended_next_action"), dict)
+        else {}
+    )
     lines = [
         "# Product Readiness Runbook",
         "",
@@ -3826,11 +4324,29 @@ def render_product_readiness_runbook_markdown(payload: dict[str, Any]) -> str:
         f"- Blocked run classes: `{payload.get('blocked_run_class_count') or 0}`",
         f"- Recommended next action: `{payload.get('recommended_next_action_id') or '-'}`",
         "",
+        "## Recommended Next Action",
+        "",
+        f"- ID: `{recommended_action.get('id') or '-'}`",
+        f"- Step: `{recommended_action.get('step') or 0}`",
+        f"- Title: {recommended_action.get('title') or '-'}",
+        f"- Claim boundary: {recommended_action.get('claim_boundary') or '-'}",
+        "",
+        "### Manual Prerequisites",
+        "",
+    ]
+    for item in recommended_action.get("manual_prerequisites") or []:
+        lines.append(f"- {item}")
+    if not recommended_action.get("manual_prerequisites"):
+        lines.append("- -")
+    lines.extend(
+        [
+        "",
         "## Ordered Steps",
         "",
         "| Step | ID | Class | Requires env | Executes claims | Command | Success evidence |",
         "|------|----|-------|--------------|-----------------|---------|------------------|",
-    ]
+        ]
+    )
     for step in steps:
         lines.append(
             f"| `{step.get('step')}` | `{step.get('id')}` | `{step.get('execution_class')}` | "
@@ -3900,7 +4416,13 @@ def product_readiness_runbook_schema() -> dict[str, Any]:
             "artifact": {"const": "validation-product-readiness-runbook"},
             "generated_at": {"type": ["string", "null"]},
             "product_ready": {"type": "boolean"},
-            "automation_state": {"enum": ["blocked_missing_env", "ready_for_post_env_runner"]},
+            "automation_state": {
+                "enum": [
+                    "blocked_missing_env",
+                    "ready_for_post_env_runner",
+                    "runtime_evidence_blocked",
+                ]
+            },
             "required_env_count": {"type": "integer", "minimum": 0},
             "ready_after_env_required_count": {"type": "integer", "minimum": 0},
             "blocked_run_class_count": {"type": "integer", "minimum": 0},
@@ -3908,7 +4430,16 @@ def product_readiness_runbook_schema() -> dict[str, Any]:
             "recommended_next_action": {
                 "type": "object",
                 "additionalProperties": False,
-                "required": ["id", "step", "title", "claim_boundary", "commands", "claim_ids", "env"],
+                "required": [
+                    "id",
+                    "step",
+                    "title",
+                    "claim_boundary",
+                    "commands",
+                    "claim_ids",
+                    "manual_prerequisites",
+                    "env",
+                ],
                 "properties": {
                     "id": {"type": "string"},
                     "step": {"type": "integer"},
@@ -3916,6 +4447,7 @@ def product_readiness_runbook_schema() -> dict[str, Any]:
                     "claim_boundary": {"type": "string"},
                     "commands": {"type": "array", "items": {"type": "string"}},
                     "claim_ids": {"type": "array", "items": {"type": "string"}},
+                    "manual_prerequisites": {"type": "array", "items": {"type": "string"}},
                     "env": {"type": "array", "items": {"type": "string"}},
                 },
             },
@@ -3948,6 +4480,11 @@ def remaining_work_payload(
     requirement_by_id = {str(item.get("id") or ""): item for item in requirements}
     manual_claim_ids = list(release_gate_contract.get("manual_claim_ids") or [])
     items = []
+
+    def open_dependency_ids(depends_on: list[str] | None) -> list[str]:
+        open_item_ids = {str(item.get("id") or "") for item in items if isinstance(item, dict)}
+        return [str(dep) for dep in depends_on or [] if str(dep) in open_item_ids]
+
     def add_item(
         item_id: str,
         blocker_type: str,
@@ -3969,7 +4506,7 @@ def remaining_work_payload(
                 "owner": owner,
                 "next_artifact": next_artifact,
                 "evidence_required": evidence_required,
-                "depends_on": list(depends_on or []),
+                "depends_on": open_dependency_ids(depends_on),
             }
         )
 
@@ -3999,16 +4536,29 @@ def remaining_work_payload(
             ["provide-required-env-bundle"],
         )
     if "manual-claims" in requirement_by_id:
+        first_manual_claim = (
+            summary.get("manual_claims")[0]
+            if isinstance(summary.get("manual_claims"), list) and summary.get("manual_claims")
+            else {}
+        )
+        manual_evidence = [
+            "claim_status_report has zero manual_claim_required claims",
+            "external/runtime preconditions from current_next_action are resolved",
+        ]
+        next_action = str(first_manual_claim.get("next_action") or "")
+        if next_action:
+            manual_evidence.append(next_action)
+        for prerequisite in first_manual_claim.get("manual_prerequisites") or []:
+            prerequisite_text = str(prerequisite).strip()
+            if prerequisite_text:
+                manual_evidence.append(f"manual prerequisite satisfied: {prerequisite_text}")
         add_item(
             "resolve-manual-claims",
             "manual",
             "manual-claims",
             "validation-agent",
-            str((summary.get("manual_claims") or [{}])[0].get("prompt_path") or "") if manual_claim_ids else "",
-            [
-                "claim_status_report has zero manual_claim_required claims",
-                "Atomic T1047 manual boundary resolved by disposable WMI target or narrowed claim",
-            ],
+            str(first_manual_claim.get("prompt_path") or "") if manual_claim_ids else "",
+            manual_evidence,
         )
     if "post-agent-status" in requirement_by_id:
         add_item(
@@ -4209,10 +4759,42 @@ def manual_claim_resolution_payload(summary: dict[str, Any]) -> dict[str, Any]:
     )
     claims = []
     for claim in manual_claims:
+        package_id = str(claim.get("package_id") or "")
+        next_action = str(claim.get("next_action") or "")
+        manual_prerequisites = [
+            str(value)
+            for value in claim.get("manual_prerequisites") or []
+            if str(value).strip()
+        ]
+        if package_id == "wave-1-resolve-atomic-extended-preconditions":
+            resolution_options = [
+                "Use a WMI-capable disposable target and rerun the Atomic extended package.",
+                "Narrow the claim boundary for T1047 and refresh the claim-status report.",
+            ]
+            evidence_required = [
+                "claim_status_report has zero manual_claim_required claims",
+                "agent_status.json has status=pass, blocker_cleared=true, and missing_profiles=[]",
+                "Atomic T1047 manual boundary is resolved by disposable WMI target or narrowed claim",
+            ]
+        else:
+            guarded_resolution_command = ""
+            resolution_options = [
+                next_action or "Resolve the external/runtime precondition recorded on this claim.",
+                "Refresh the claim-status report after the runtime precondition is resolved.",
+            ]
+            evidence_required = [
+                "claim_status_report has zero manual_claim_required claims",
+                "agent_status.json has status=pass, blocker_cleared=true, and missing_profiles=[]",
+                "external/runtime preconditions from current_next_action are resolved",
+            ]
+            if next_action:
+                evidence_required.append(next_action)
+        for prerequisite in manual_prerequisites:
+            evidence_required.append(f"manual prerequisite satisfied: {prerequisite}")
         claims.append(
             {
                 "claim_id": str(claim.get("claim_id") or ""),
-                "package_id": str(claim.get("package_id") or ""),
+                "package_id": package_id,
                 "wave": int(claim.get("wave") or 0),
                 "owner": str(claim.get("owner") or ""),
                 "prompt_path": str(claim.get("prompt_path") or ""),
@@ -4221,21 +4803,22 @@ def manual_claim_resolution_payload(summary: dict[str, Any]) -> dict[str, Any]:
                 "check_only_command": (
                     "python tools/detection_validation/atomic_t1047_lab_capability_probe.py --output-dir "
                     f"{str(claim.get('script_path') or '').rsplit('.', 1)[0]}/outputs"
-                    if str(claim.get("package_id") or "") == "wave-1-resolve-atomic-extended-preconditions"
-                    else str(claim.get("command") or "")
+                    if package_id == "wave-1-resolve-atomic-extended-preconditions"
+                    else (
+                        "powershell -NoProfile -ExecutionPolicy Bypass -File "
+                        "docs/benchmarks/generated/validation_product_readiness_manual_claim_resolution_check.ps1 -Json"
+                    )
                 ),
-                "guarded_resolution_command": str(claim.get("command") or ""),
+                "guarded_resolution_command": (
+                    str(claim.get("command") or "")
+                    if package_id == "wave-1-resolve-atomic-extended-preconditions"
+                    else guarded_resolution_command
+                ),
                 "guard_env": "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION",
-                "next_action": str(claim.get("next_action") or ""),
-                "resolution_options": [
-                    "Use a WMI-capable disposable target and rerun the Atomic extended package.",
-                    "Narrow the claim boundary for T1047 and refresh the claim-status report.",
-                ],
-                "evidence_required": [
-                    "claim_status_report has zero manual_claim_required claims",
-                    "agent_status.json has status=pass, blocker_cleared=true, and missing_profiles=[]",
-                    "Atomic T1047 manual boundary is resolved by disposable WMI target or narrowed claim",
-                ],
+                "next_action": next_action,
+                "manual_prerequisites": manual_prerequisites,
+                "resolution_options": resolution_options,
+                "evidence_required": evidence_required,
                 "claim_boundary": str(claim.get("claim_boundary") or ""),
             }
         )
@@ -4247,6 +4830,11 @@ def manual_claim_resolution_payload(summary: dict[str, Any]) -> dict[str, Any]:
         "unresolved_manual_claim_count": len(claims),
         "can_claim_manual_resolution": len(claims) == 0,
         "claims": claims,
+        "source_artifacts": (
+            dict(summary.get("source_artifacts"))
+            if isinstance(summary.get("source_artifacts"), dict)
+            else {}
+        ),
         "runner_path": "docs/benchmarks/generated/validation_product_readiness_manual_claim_resolution_runner.ps1",
         "runner_execute_guard_env": "TAMANDUA_ALLOW_MANUAL_CLAIM_RESOLUTION",
         "runner_execute_guard_value": "1",
@@ -4269,6 +4857,11 @@ def manual_claim_resolution_payload(summary: dict[str, Any]) -> dict[str, Any]:
 
 def render_manual_claim_resolution_markdown(payload: dict[str, Any]) -> str:
     claims = payload.get("claims") if isinstance(payload.get("claims"), list) else []
+    source_artifacts = (
+        payload.get("source_artifacts")
+        if isinstance(payload.get("source_artifacts"), dict)
+        else {}
+    )
     lines = [
         "# Product Readiness Manual Claim Resolution",
         "",
@@ -4278,21 +4871,35 @@ def render_manual_claim_resolution_markdown(payload: dict[str, Any]) -> str:
         f"- Claim status report: `{payload.get('claim_status_report') or '-'}`",
         f"- Recommended next action: `{payload.get('recommended_next_action_id') or '-'}`",
         "",
+        "## Source Artifacts",
+        "",
+        "| Source | Artifact |",
+        "|--------|----------|",
+    ]
+    for key in sorted(source_artifacts):
+        lines.append(f"| `{key}` | `{source_artifacts.get(key) or '-'}` |")
+    lines.extend(
+        [
+        "",
         "## Claims",
         "",
-        "| Claim | Package | Owner | Prompt | Guard | Evidence required |",
-        "|-------|---------|-------|--------|-------|-------------------|",
-    ]
+        "| Claim | Package | Owner | Prompt | Guard | Manual prerequisites | Evidence required |",
+        "|-------|---------|-------|--------|-------|----------------------|-------------------|",
+        ]
+    )
     if claims:
         for claim in claims:
+            prerequisites = "<br>".join(
+                f"`{value}`" for value in claim.get("manual_prerequisites") or []
+            ) or "-"
             evidence = "<br>".join(f"`{value}`" for value in claim.get("evidence_required") or []) or "-"
             lines.append(
                 f"| `{claim.get('claim_id') or '-'}` | `{claim.get('package_id') or '-'}` | "
                 f"`{claim.get('owner') or '-'}` | `{claim.get('prompt_path') or '-'}` | "
-                f"`{claim.get('guard_env') or '-'}` | {evidence} |"
+                f"`{claim.get('guard_env') or '-'}` | {prerequisites} | {evidence} |"
             )
     else:
-        lines.append("| - | - | - | - | - | - |")
+        lines.append("| - | - | - | - | - | - | - |")
     lines.extend(
         [
             "",
@@ -4340,6 +4947,7 @@ def manual_claim_resolution_schema() -> dict[str, Any]:
             "guarded_resolution_command",
             "guard_env",
             "next_action",
+            "manual_prerequisites",
             "resolution_options",
             "evidence_required",
             "claim_boundary",
@@ -4356,6 +4964,7 @@ def manual_claim_resolution_schema() -> dict[str, Any]:
             "guarded_resolution_command": {"type": "string"},
             "guard_env": {"type": "string"},
             "next_action": {"type": "string"},
+            "manual_prerequisites": {"type": "array", "items": {"type": "string"}},
             "resolution_options": {"type": "array", "items": {"type": "string"}},
             "evidence_required": {"type": "array", "items": {"type": "string"}},
             "claim_boundary": {"type": "string"},
@@ -4375,6 +4984,7 @@ def manual_claim_resolution_schema() -> dict[str, Any]:
             "unresolved_manual_claim_count",
             "can_claim_manual_resolution",
             "claims",
+            "source_artifacts",
             "runner_path",
             "runner_execute_guard_env",
             "runner_execute_guard_value",
@@ -4391,6 +5001,10 @@ def manual_claim_resolution_schema() -> dict[str, Any]:
             "unresolved_manual_claim_count": {"type": "integer", "minimum": 0},
             "can_claim_manual_resolution": {"type": "boolean"},
             "claims": {"type": "array", "items": claim_schema},
+            "source_artifacts": {
+                "type": "object",
+                "additionalProperties": {"type": ["string", "null"]},
+            },
             "runner_path": {"type": "string"},
             "runner_execute_guard_env": {"type": "string"},
             "runner_execute_guard_value": {"type": "string"},
@@ -4477,6 +5091,7 @@ def render_manual_claim_resolution_runner(
             "$CanExecute = [bool]($Execute -and $GuardEnv -and $GuardActual -eq $GuardValue)",
             "$Commands = @($Claims | ForEach-Object { [string]$_.guarded_resolution_command } | Where-Object { $_ })",
             "$CheckOnlyCommands = @($Claims | ForEach-Object { [string]$_.check_only_command } | Where-Object { $_ })",
+            "$ManualPrerequisites = @($Claims | ForEach-Object { @($_.manual_prerequisites) } | Where-Object { $_ })",
             "$Result = [ordered]@{",
             "  schema_version = 1",
             "  artifact = 'validation-product-readiness-manual-claim-resolution-runner'",
@@ -4487,6 +5102,7 @@ def render_manual_claim_resolution_runner(
             "  claim_ids = @($Claims | ForEach-Object { [string]$_.claim_id })",
             "  check_only_commands = @($CheckOnlyCommands)",
             "  guarded_resolution_commands = @($Commands)",
+            "  manual_prerequisites = @($ManualPrerequisites)",
             "  guard_env = [string]$GuardEnv",
             "  guard_required_value = [string]$GuardValue",
             "  recommended_next_action_id = [string]$Payload.recommended_next_action_id",
@@ -4498,8 +5114,21 @@ def render_manual_claim_resolution_runner(
             "if (-not $Execute) {",
             "  if (-not $Json) {",
             "    Write-Host 'Manual claim resolution commands require explicit execution guard.'",
+            "    if ($ManualPrerequisites.Count -gt 0) {",
+            "      Write-Host 'Manual prerequisites must be satisfied before using -Execute:'",
+            "      foreach ($Prerequisite in $ManualPrerequisites) { Write-Host ('  ' + [string]$Prerequisite) }",
+            "    }",
+            "    if ($CheckOnlyCommands.Count -gt 0) {",
+            "      Write-Host 'Check-only commands:'",
+            "      foreach ($Command in $CheckOnlyCommands) { Write-Host ('  ' + [string]$Command) }",
+            "    }",
+            "    if ($Commands.Count -gt 0) { Write-Host 'Guarded resolution commands:' }",
             "    foreach ($Command in $Commands) { Write-Host ('  ' + [string]$Command) }",
             "  }",
+            "  exit 2",
+            "}",
+            "if ($Commands.Count -eq 0) {",
+            "  Write-Error 'No guarded manual resolution commands are generated for these claims; resolve the external/runtime preconditions and refresh claim status.'",
             "  exit 2",
             "}",
             "if (-not $CanExecute) {",
@@ -4535,6 +5164,7 @@ def manual_claim_resolution_runner_schema() -> dict[str, Any]:
             "claim_ids",
             "check_only_commands",
             "guarded_resolution_commands",
+            "manual_prerequisites",
             "guard_env",
             "guard_required_value",
             "recommended_next_action_id",
@@ -4551,6 +5181,7 @@ def manual_claim_resolution_runner_schema() -> dict[str, Any]:
             "claim_ids": {"type": "array", "items": {"type": "string"}},
             "check_only_commands": {"type": "array", "items": {"type": "string"}},
             "guarded_resolution_commands": {"type": "array", "items": {"type": "string"}},
+            "manual_prerequisites": {"type": "array", "items": {"type": "string"}},
             "guard_env": {"type": "string"},
             "guard_required_value": {"type": "string"},
             "recommended_next_action_id": {"type": "string"},
@@ -4734,17 +5365,25 @@ def ready_now_fanout_payload(remaining_work: dict[str, Any]) -> dict[str, Any]:
     lanes = []
     for row in ready_now:
         owner = row.get("owner") or "operator-or-agent"
-        lane_id = "operator-input" if owner == "operator" else "validation-agent"
+        blocker_type = str(row.get("blocker_type") or "")
+        if blocker_type == "env":
+            lane_id = "operator-input"
+            execution_class = "operator-secret-input"
+        elif blocker_type == "preflight-run-class":
+            lane_id = "operator-or-agent"
+            execution_class = "runtime-evidence-resolution"
+        elif blocker_type == "gate-rerun":
+            lane_id = "validation-authority"
+            execution_class = "gate-rerun"
+        else:
+            lane_id = "validation-agent"
+            execution_class = "manual-boundary-resolution"
         lanes.append(
             {
                 "lane_id": lane_id,
                 "item_id": row["id"],
                 "owner": owner,
-                "execution_class": (
-                    "operator-secret-input"
-                    if row.get("blocker_type") == "env"
-                    else "manual-boundary-resolution"
-                ),
+                "execution_class": execution_class,
                 "next_artifact": row.get("next_artifact") or "",
                 "evidence_required": list(row.get("evidence_required") or []),
             }
@@ -5049,18 +5688,25 @@ def agent_handoff_manifest_payload(
         if isinstance(summary.get("recommended_next_action"), dict)
         else {}
     )
+    action_manual_prerequisites = manual_claim_prerequisites(summary)
     return {
         "schema_version": 1,
         "artifact": "validation-product-readiness-agent-handoff",
         "generated_at": summary.get("generated_at"),
         "product_ready": bool(summary.get("product_ready")),
         "external_claim_allowed": bool(summary.get("external_claim_allowed")),
-        "automation_state": (
-            "blocked_missing_env"
-            if env_request.get("required_env_count")
-            else "ready_for_post_env_runner"
+        "automation_state": product_readiness_automation_state(
+            summary,
+            env_request,
+            release_gate_contract=release_gate_contract,
+            blocked_run_classes_contract=blocked_run_classes_contract,
         ),
         "source_summary": "docs/benchmarks/generated/validation_product_readiness_summary.json",
+        "source_artifacts": (
+            dict(summary.get("source_artifacts"))
+            if isinstance(summary.get("source_artifacts"), dict)
+            else {}
+        ),
         "contracts": {
             "env_request": "docs/benchmarks/generated/validation_product_readiness_env_request.json",
             "env_request_markdown": "docs/benchmarks/generated/validation_product_readiness_env_request.md",
@@ -5318,8 +5964,10 @@ def agent_handoff_manifest_payload(
             "step": int(recommended_action.get("step") or 0),
             "title": str(recommended_action.get("title") or ""),
             "claim_boundary": str(recommended_action.get("claim_boundary") or ""),
+            "actions": list(recommended_action.get("actions") or []),
             "commands": list(recommended_action.get("commands") or []),
             "claim_ids": list(recommended_action.get("claim_ids") or []),
+            "manual_prerequisites": action_manual_prerequisites,
             "env": list(recommended_action.get("env") or []),
         },
         "claim_boundary": (
@@ -5329,6 +5977,16 @@ def agent_handoff_manifest_payload(
 
 
 def render_agent_handoff_manifest_markdown(payload: dict[str, Any]) -> str:
+    recommended_action = (
+        payload.get("recommended_next_action")
+        if isinstance(payload.get("recommended_next_action"), dict)
+        else {}
+    )
+    source_artifacts = (
+        payload.get("source_artifacts")
+        if isinstance(payload.get("source_artifacts"), dict)
+        else {}
+    )
     lines = [
         "# Product Readiness Agent Handoff",
         "",
@@ -5340,11 +5998,58 @@ def render_agent_handoff_manifest_markdown(payload: dict[str, Any]) -> str:
         f"- Ready-after-env claims: `{(payload.get('counts') or {}).get('ready_after_env_claims') or 0}`",
         f"- Recommended next action: `{payload.get('recommended_next_action_id') or '-'}`",
         "",
+        "## Source Artifacts",
+        "",
+        "| Source | Artifact |",
+        "|--------|----------|",
+    ]
+    for key in sorted(source_artifacts):
+        lines.append(f"| `{key}` | `{source_artifacts.get(key) or '-'}` |")
+    lines.extend(
+        [
+        "",
+        "## Recommended Next Action",
+        "",
+        f"- ID: `{recommended_action.get('id') or '-'}`",
+        f"- Step: `{recommended_action.get('step') or 0}`",
+        f"- Title: {recommended_action.get('title') or '-'}",
+        f"- Claim boundary: {recommended_action.get('claim_boundary') or '-'}",
+        "",
+        "### Actions",
+        "",
+        ]
+    )
+    for item in recommended_action.get("actions") or []:
+        lines.append(f"- {item}")
+    if not recommended_action.get("actions"):
+        lines.append("- -")
+    lines.extend(["", "### Commands", ""])
+    for item in recommended_action.get("commands") or []:
+        lines.append(f"- `{item}`")
+    if not recommended_action.get("commands"):
+        lines.append("- -")
+    lines.extend(["", "### Claims", ""])
+    for item in recommended_action.get("claim_ids") or []:
+        lines.append(f"- `{item}`")
+    if not recommended_action.get("claim_ids"):
+        lines.append("- -")
+    lines.extend(["", "### Manual Prerequisites", ""])
+    for item in recommended_action.get("manual_prerequisites") or []:
+        lines.append(f"- {item}")
+    if not recommended_action.get("manual_prerequisites"):
+        lines.append("- -")
+    lines.extend(["", "### Env", ""])
+    for item in recommended_action.get("env") or []:
+        lines.append(f"- `{item}`")
+    if not recommended_action.get("env"):
+        lines.append("- -")
+    lines.extend([
+        "",
         "## Commands",
         "",
         "| Command | Value |",
         "|---------|-------|",
-    ]
+    ])
     for key, value in (payload.get("commands") or {}).items():
         lines.append(f"| `{key}` | `{value or '-'}` |")
     lines.extend(["", "## Contracts", "", "| Contract | Path |", "|----------|------|"])
@@ -5375,6 +6080,7 @@ def agent_handoff_manifest_schema() -> dict[str, Any]:
             "external_claim_allowed",
             "automation_state",
             "source_summary",
+            "source_artifacts",
             "contracts",
             "scripts",
             "commands",
@@ -5399,8 +6105,18 @@ def agent_handoff_manifest_schema() -> dict[str, Any]:
             "generated_at": {"type": ["string", "null"]},
             "product_ready": {"type": "boolean"},
             "external_claim_allowed": {"type": "boolean"},
-            "automation_state": {"enum": ["blocked_missing_env", "ready_for_post_env_runner"]},
+            "automation_state": {
+                "enum": [
+                    "blocked_missing_env",
+                    "ready_for_post_env_runner",
+                    "runtime_evidence_blocked",
+                ]
+            },
             "source_summary": {"type": "string"},
+            "source_artifacts": {
+                "type": "object",
+                "additionalProperties": {"type": ["string", "null"]},
+            },
             "contracts": {"type": "object"},
             "scripts": {"type": "object"},
             "commands": {"type": "object"},
@@ -5419,14 +6135,26 @@ def agent_handoff_manifest_schema() -> dict[str, Any]:
             "recommended_next_action": {
                 "type": "object",
                 "additionalProperties": False,
-                "required": ["id", "step", "title", "claim_boundary", "commands", "claim_ids", "env"],
+                "required": [
+                    "id",
+                    "step",
+                    "title",
+                    "claim_boundary",
+                    "actions",
+                    "commands",
+                    "claim_ids",
+                    "manual_prerequisites",
+                    "env",
+                ],
                 "properties": {
                     "id": {"type": "string"},
                     "step": {"type": "integer"},
                     "title": {"type": "string"},
                     "claim_boundary": {"type": "string"},
+                    "actions": {"type": "array", "items": {"type": "string"}},
                     "commands": {"type": "array", "items": {"type": "string"}},
                     "claim_ids": {"type": "array", "items": {"type": "string"}},
+                    "manual_prerequisites": {"type": "array", "items": {"type": "string"}},
                     "env": {"type": "array", "items": {"type": "string"}},
                 },
             },
@@ -5809,8 +6537,11 @@ def operator_check_schema() -> dict[str, Any]:
             "recommended_next_action_id": {
                 "enum": [
                     "fill-env-bundle",
+                    "launch-ready-claims",
                     "launch-single-env-fast-paths",
                     "refresh-validation-authority",
+                    "resolve-current-failed-claims",
+                    "resolve-manual-claims",
                     "validate-env-bundle",
                 ]
             },
