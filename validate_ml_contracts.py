@@ -23144,6 +23144,32 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
         raise ContractError(f"{path}.source_status_summary.passed_checks: must match checks")
     if int(summary["failed_checks"]) != failed_checks:
         raise ContractError(f"{path}.source_status_summary.failed_checks: must match checks")
+    transcript_contract_expectations = {
+        "transcript_contract_validation_before_run": str(checklist_summary["transcript_contract_validation_before_run"]),
+        "transcript_contract_valid_before_run": bool(checklist_summary["transcript_contract_valid_before_run"]),
+        "transcript_contract_missing_before_run": bool(checklist_summary["transcript_contract_missing_before_run"]),
+        "wave1_pre_execution_transcript_contract_validation_before_run": str(
+            checklist_summary["wave1_pre_execution_transcript_contract_validation_before_run"]
+        ),
+        "wave1_pre_execution_transcript_contract_valid_before_run": bool(
+            checklist_summary["wave1_pre_execution_transcript_contract_valid_before_run"]
+        ),
+        "wave1_pre_execution_transcript_contract_missing_before_run": bool(
+            checklist_summary["wave1_pre_execution_transcript_contract_missing_before_run"]
+        ),
+        "wave1_acceptance_intake_transcript_contract_validation": str(
+            checklist_summary["wave1_acceptance_intake_transcript_contract_validation"]
+        ),
+        "wave1_acceptance_intake_transcript_contract_valid": bool(
+            checklist_summary["wave1_acceptance_intake_transcript_contract_valid"]
+        ),
+        "wave1_transcript_contract_valid_for_manifest_publish": bool(
+            checklist_summary["wave1_transcript_contract_valid_for_manifest_publish"]
+        ),
+    }
+    for field, expected in transcript_contract_expectations.items():
+        if summary[field] != expected:
+            raise ContractError(f"{path}.source_status_summary.{field}: must match pre_execution_checklist")
     expected_ready = failed_checks == 0
     if bool(data["ready"]) != expected_ready or bool(summary["ready"]) != expected_ready:
         raise ContractError(f"{path}.ready: must match check results")
@@ -23181,32 +23207,6 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
         raise ContractError(f"{path}.source_status_summary.goal_snapshot_anchor_check_passed: must match pre_execution_checklist")
     if summary["goal_snapshot_anchor_check_passed"] is not True:
         raise ContractError(f"{path}.source_status_summary.goal_snapshot_anchor_check_passed: must be true")
-    transcript_contract_expectations = {
-        "transcript_contract_validation_before_run": str(checklist_summary["transcript_contract_validation_before_run"]),
-        "transcript_contract_valid_before_run": bool(checklist_summary["transcript_contract_valid_before_run"]),
-        "transcript_contract_missing_before_run": bool(checklist_summary["transcript_contract_missing_before_run"]),
-        "wave1_pre_execution_transcript_contract_validation_before_run": str(
-            checklist_summary["wave1_pre_execution_transcript_contract_validation_before_run"]
-        ),
-        "wave1_pre_execution_transcript_contract_valid_before_run": bool(
-            checklist_summary["wave1_pre_execution_transcript_contract_valid_before_run"]
-        ),
-        "wave1_pre_execution_transcript_contract_missing_before_run": bool(
-            checklist_summary["wave1_pre_execution_transcript_contract_missing_before_run"]
-        ),
-        "wave1_acceptance_intake_transcript_contract_validation": str(
-            checklist_summary["wave1_acceptance_intake_transcript_contract_validation"]
-        ),
-        "wave1_acceptance_intake_transcript_contract_valid": bool(
-            checklist_summary["wave1_acceptance_intake_transcript_contract_valid"]
-        ),
-        "wave1_transcript_contract_valid_for_manifest_publish": bool(
-            checklist_summary["wave1_transcript_contract_valid_for_manifest_publish"]
-        ),
-    }
-    for field, expected in transcript_contract_expectations.items():
-        if summary[field] != expected:
-            raise ContractError(f"{path}.source_status_summary.{field}: must match pre_execution_checklist")
     if summary["wave1_pre_execution_transcript_contract_validation_before_run"] != "missing":
         raise ContractError(
             f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_validation_before_run: must be missing"
