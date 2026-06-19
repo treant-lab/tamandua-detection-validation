@@ -510,6 +510,8 @@ EXECUTION_PLAN_LAUNCHER_GUARDS = {
         "--ml-benchmark-actionability-audit docs\\benchmarks\\runs\\20260604T-ml-benchmark-actionability-audit.json",
         "ml_mirror_publication_audit.py",
         "--ml-mirror-publication-audit docs\\benchmarks\\runs\\20260618T-ml-mirror-publication-audit.json",
+        "server_frontend_publication_audit.py",
+        "--server-frontend-publication-audit docs\\benchmarks\\runs\\20260619T-server-frontend-publication-audit.json",
     ],
     "ml_prelab_validation_launcher.ps1": [
         "Running ML pre-lab validation without acquisition, publication, training, inference, benchmarks, or live services.",
@@ -564,6 +566,8 @@ EXECUTION_PLAN_LAUNCHER_GUARDS = {
         "--ml-benchmark-actionability-audit docs\\benchmarks\\runs\\20260604T-ml-benchmark-actionability-audit.json",
         "ml_mirror_publication_audit.py",
         "--ml-mirror-publication-audit docs\\benchmarks\\runs\\20260618T-ml-mirror-publication-audit.json",
+        "server_frontend_publication_audit.py",
+        "--server-frontend-publication-audit docs\\benchmarks\\runs\\20260619T-server-frontend-publication-audit.json",
         "--ml-dvc-pipeline apps\\tamandua_ml\\dvc.yaml",
         "--ml5-pipeline-fixture docs\\benchmarks\\runs\\20260604T-ml5-pipeline-fixture.json",
         "--ml6-holdout-fixture docs\\benchmarks\\runs\\20260604T-ml6-holdout-fixture.json",
