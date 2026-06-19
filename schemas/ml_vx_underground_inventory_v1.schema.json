@@ -32,10 +32,24 @@
         "script_fetch_status": {"type": "string", "minLength": 1},
         "archive_downloaded": {"type": "boolean"},
         "inventory_role": {"const": "holdout_candidate"},
+        "holdout_role": {"const": "holdout_metadata_only"},
         "used_in_training": {"const": false},
         "raw_archives_in_repo": {"const": false},
         "archive_extraction_performed": {"const": false},
         "endpoint_exposed": {"const": false},
+        "downloads_require_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
+        "operator_next_command": {
+          "type": "string",
+          "minLength": 1,
+          "not": {
+            "anyOf": [
+              {"pattern": "--download"},
+              {"pattern": "[Ss][Ee][Cc][Rr][Ee][Tt]"},
+              {"pattern": "[Aa][Pp][Ii][_-]?[Kk][Ee][Yy]"},
+              {"pattern": "[Tt][Oo][Kk][Ee][Nn]"}
+            ]
+          }
+        },
         "claim_boundary": {"type": "string", "minLength": 20}
       }
     },
