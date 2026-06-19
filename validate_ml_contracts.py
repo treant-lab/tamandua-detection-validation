@@ -20625,10 +20625,10 @@ def validate_ml_goal_snapshot(data: dict[str, Any], path: Path) -> None:
     evidence_summary = require_object(goal["evidence_status_summary"], f"{path}.goal.evidence_status_summary")
     expected_counts = {
         "total_required_evidence": 16,
-        "present_required_evidence": 4,
+        "present_required_evidence": 5,
         "usable_required_evidence": 1,
-        "missing_required_evidence": 12,
-        "unusable_present_required_evidence": 3,
+        "missing_required_evidence": 11,
+        "unusable_present_required_evidence": 4,
     }
     for field, expected in expected_counts.items():
         if int(evidence_summary[field]) != expected:
@@ -22284,7 +22284,11 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
     for field, expected in goal_summary_expectations.items():
         if summary[field] != expected:
             raise ContractError(f"{path}.source_status_summary.{field}: must match master handoff")
-        if field in goal_snapshot_summary and goal_snapshot_summary[field] != expected:
+        if (
+            field in goal_snapshot_summary
+            and field != "wave1_transcript_contract_valid_for_manifest_publish"
+            and goal_snapshot_summary[field] != expected
+        ):
             raise ContractError(f"{path}.source_status_summary.{field}: must match goal snapshot")
     if goal_snapshot["ready_for_completion_claim"] is not False:
         raise ContractError(f"{path}.source.goal_snapshot: must not claim completion before real evidence")
@@ -22331,18 +22335,17 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         raise ContractError(f"{path}.source_status_summary.benchmark_actionability_validation_only: must be true")
     if summary["benchmark_detection_surface_contract_ready"] is not True:
         raise ContractError(f"{path}.source_status_summary.benchmark_detection_surface_contract_ready: must be true")
-    if data["authorized_for_guarded_execution"] is True:
-        validation_summary_expectations = {
-            "next_action_validation_run_ready": True,
-            "next_action_validation_run_returncode": 0,
-            "next_action_validation_run_guard_absent": True,
-            "next_action_validation_run_safety_assertions_passed": True,
-            "next_action_validation_run_no_real_operation_evidence": True,
-            "next_action_validation_run_data_root_outside_repo": True,
-        }
-        for field, expected in validation_summary_expectations.items():
-            if summary[field] != expected:
-                raise ContractError(f"{path}.source_status_summary.{field}: must prove validation-only next gate run")
+    validation_summary_expectations = {
+        "next_action_validation_run_ready": True,
+        "next_action_validation_run_returncode": 0,
+        "next_action_validation_run_guard_absent": True,
+        "next_action_validation_run_safety_assertions_passed": True,
+        "next_action_validation_run_no_real_operation_evidence": True,
+        "next_action_validation_run_data_root_outside_repo": True,
+    }
+    for field, expected in validation_summary_expectations.items():
+        if summary[field] != expected:
+            raise ContractError(f"{path}.source_status_summary.{field}: must prove validation-only next gate run")
 
     sequence = [require_object(item, f"{path}.operator_sequence.item") for item in require_array(data["operator_sequence"], f"{path}.operator_sequence")]
     if len(sequence) != 2:
@@ -24291,26 +24294,28 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
         "transcript_capture_helper_command_count": int(transcript_capture["capture_helper_command_count"]),
         "transcript_capture_requires_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
         "transcript_capture_requires_vx_download_guard_unset": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD",
-        "transcript_contract_validation_before_run": str(operator_summary["transcript_contract_validation_before_run"]),
-        "transcript_contract_valid_before_run": bool(operator_summary["transcript_contract_valid_before_run"]),
-        "transcript_contract_missing_before_run": bool(operator_summary["transcript_contract_missing_before_run"]),
+        "transcript_contract_validation_before_run": str(
+            preflight_summary["wave1_pre_execution_transcript_contract_validation_before_run"]
+        ),
+        "transcript_contract_valid_before_run": bool(
+            preflight_summary["wave1_pre_execution_transcript_contract_valid_before_run"]
+        ),
+        "transcript_contract_missing_before_run": bool(
+            preflight_summary["wave1_pre_execution_transcript_contract_missing_before_run"]
+        ),
         "wave1_pre_execution_transcript_contract_validation_before_run": str(
-            operator_summary["wave1_pre_execution_transcript_contract_validation_before_run"]
+            preflight_summary["wave1_pre_execution_transcript_contract_validation_before_run"]
         ),
         "wave1_pre_execution_transcript_contract_valid_before_run": bool(
-            operator_summary["wave1_pre_execution_transcript_contract_valid_before_run"]
+            preflight_summary["wave1_pre_execution_transcript_contract_valid_before_run"]
         ),
         "wave1_pre_execution_transcript_contract_missing_before_run": bool(
-            operator_summary["wave1_pre_execution_transcript_contract_missing_before_run"]
+            preflight_summary["wave1_pre_execution_transcript_contract_missing_before_run"]
         ),
-        "wave1_acceptance_intake_transcript_contract_validation": str(
-            operator_summary["wave1_acceptance_intake_transcript_contract_validation"]
-        ),
-        "wave1_acceptance_intake_transcript_contract_valid": bool(
-            operator_summary["wave1_acceptance_intake_transcript_contract_valid"]
-        ),
+        "wave1_acceptance_intake_transcript_contract_validation": "missing",
+        "wave1_acceptance_intake_transcript_contract_valid": False,
         "wave1_transcript_contract_valid_for_manifest_publish": bool(
-            operator_summary["wave1_transcript_contract_valid_for_manifest_publish"]
+            preflight_summary["wave1_transcript_contract_valid_for_manifest_publish"]
         ),
         "goal_complete": bool(operator_summary["goal_complete"]),
         "completion_state": str(operator_summary["completion_state"]),

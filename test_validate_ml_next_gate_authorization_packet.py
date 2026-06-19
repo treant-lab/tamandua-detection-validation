@@ -49,11 +49,8 @@ def test_validate_ml_next_gate_authorization_packet_rejects_execute_guard_drift(
 
 def test_validate_ml_next_gate_authorization_packet_rejects_false_authorized_claim(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["checks"][0]["passed"] = False
     data["authorized_for_guarded_execution"] = True
     data["source_status_summary"]["authorized_for_guarded_execution"] = True
-    data["source_status_summary"]["passed_checks"] -= 1
-    data["source_status_summary"]["failed_checks"] += 1
     drifted = tmp_path / "20260604T-ml-next-gate-authorization-packet.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
