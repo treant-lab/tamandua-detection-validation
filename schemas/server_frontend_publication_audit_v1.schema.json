@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/server_frontend_publication_audit_v1.schema.json",
+  "title": "Tamandua Server Frontend Publication Audit v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "summary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/server-frontend-publication-audit/v1"},
+    "kind": {"const": "ServerFrontendPublicationAudit"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"const": "server-frontend-publication-audit"},
+        "claim_boundary": {"type": "string", "minLength": 20}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["endpoint", "endpoint_host", "endpoint_ipv4", "local_hostname", "local_ipv4_observed", "local_manifest"],
+      "properties": {
+        "endpoint": {"type": "string", "pattern": "^https?://"},
+        "endpoint_host": {"type": "string", "minLength": 1},
+        "endpoint_ipv4": {"type": "array", "items": {"type": "string", "minLength": 7}},
+        "local_hostname": {"type": "string", "minLength": 1},
+        "local_ipv4_observed": {"type": "array", "items": {"type": "string", "minLength": 7}},
+        "local_manifest": {"type": "string", "pattern": "apps[\\\\/]tamandua_server[\\\\/]priv[\\\\/]static[\\\\/]assets[\\\\/]manifest\\.json$"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "health_body",
+        "health_error",
+        "health_status",
+        "local_css",
+        "local_main",
+        "manifest_error",
+        "manifest_status",
+        "publication_state",
+        "remote_css",
+        "remote_main",
+        "remote_manifest_available",
+        "same_bundle"
+      ],
+      "properties": {
+        "health_body": {"type": "string"},
+        "health_error": {"type": "string"},
+        "health_status": {"type": ["integer", "null"]},
+        "local_css": {"type": "string"},
+        "local_main": {"type": "string", "pattern": "^js/main-.*\\.js$"},
+        "manifest_error": {"type": "string"},
+        "manifest_status": {"type": ["integer", "null"]},
+        "publication_state": {
+          "enum": ["published_matches_local_build", "published_bundle_differs_from_local_build"]
+        },
+        "remote_css": {"type": "string"},
+        "remote_main": {"type": "string"},
+        "remote_manifest_available": {"type": "boolean"},
+        "same_bundle": {"type": "boolean"}
+      }
+    }
+  }
+}
