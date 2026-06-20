@@ -14,6 +14,7 @@
     "authorization",
     "vx_policy",
     "transcript_capture_contract",
+    "transcript_pre_run_state",
     "operator_sequence",
     "guard_preconditions",
     "source_status_summary",
@@ -133,6 +134,28 @@
         "guarded_run_command_packet_ref": {"type": "string", "pattern": "20260604T-ml-wave1-guarded-run-command-packet\\.json$"}
       }
     },
+    "transcript_pre_run_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "present",
+        "contract_validation",
+        "contract_valid",
+        "stale_or_invalid",
+        "usable_for_manifest_publish",
+        "expected_transcript_output",
+        "operator_note"
+      ],
+      "properties": {
+        "present": {"type": "boolean"},
+        "contract_validation": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "contract_valid": {"type": "boolean"},
+        "stale_or_invalid": {"type": "boolean"},
+        "usable_for_manifest_publish": {"const": false},
+        "expected_transcript_output": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.json$"},
+        "operator_note": {"type": "string", "minLength": 20}
+      }
+    },
     "operator_sequence": {
       "type": "array",
       "minItems": 2,
@@ -194,6 +217,8 @@
         "transcript_contract_validation_before_run",
         "transcript_contract_valid_before_run",
         "transcript_contract_missing_before_run",
+        "transcript_stale_or_invalid_before_run",
+        "transcript_usable_for_manifest_publish_before_run",
         "wave1_pre_execution_transcript_contract_validation_before_run",
         "wave1_pre_execution_transcript_contract_valid_before_run",
         "wave1_pre_execution_transcript_contract_missing_before_run",
@@ -244,6 +269,8 @@
         "transcript_contract_validation_before_run": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
         "transcript_contract_valid_before_run": {"type": "boolean"},
         "transcript_contract_missing_before_run": {"type": "boolean"},
+        "transcript_stale_or_invalid_before_run": {"type": "boolean"},
+        "transcript_usable_for_manifest_publish_before_run": {"const": false},
         "wave1_pre_execution_transcript_contract_validation_before_run": {"const": "missing"},
         "wave1_pre_execution_transcript_contract_valid_before_run": {"const": false},
         "wave1_pre_execution_transcript_contract_missing_before_run": {"const": true},

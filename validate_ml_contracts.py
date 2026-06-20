@@ -23356,6 +23356,7 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
             "authorization",
             "vx_policy",
             "transcript_capture_contract",
+            "transcript_pre_run_state",
             "operator_sequence",
             "guard_preconditions",
             "source_status_summary",
@@ -23400,6 +23401,10 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
     validate_ml_next_gate_authorization_packet(authorization_packet, authorization_packet_path)
     lab_run_intake = load_json(lab_run_intake_path)
     validate_wave1_lab_run_intake(lab_run_intake, lab_run_intake_path)
+    intake_summary = require_object(
+        require_object(lab_run_intake["source"], f"{lab_run_intake_path}.source")["source_status_summary"],
+        f"{lab_run_intake_path}.source.source_status_summary",
+    )
 
     authorization = require_object(data["authorization"], f"{path}.authorization")
     require_keys(authorization, {"validation_command", "execute_command", "execute_guard_env", "authorization_inputs_sha256"}, f"{path}.authorization")
@@ -23453,6 +23458,40 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
         raise ContractError(
             f"{path}.transcript_capture_contract.capture_helper_requires_vx_download_guard_unset: must keep VX guard unset"
         )
+    transcript_pre_run_state = require_object(data["transcript_pre_run_state"], f"{path}.transcript_pre_run_state")
+    require_keys(
+        transcript_pre_run_state,
+        {
+            "present",
+            "contract_validation",
+            "contract_valid",
+            "stale_or_invalid",
+            "usable_for_manifest_publish",
+            "expected_transcript_output",
+            "operator_note",
+        },
+        f"{path}.transcript_pre_run_state",
+    )
+    expected_transcript_present = bool(intake_summary["transcript_present"])
+    expected_transcript_contract_validation = str(intake_summary["transcript_contract_validation"])
+    expected_transcript_contract_valid = bool(intake_summary["transcript_contract_valid"])
+    expected_transcript_stale_or_invalid = expected_transcript_present and not expected_transcript_contract_valid
+    transcript_pre_run_expectations = {
+        "present": expected_transcript_present,
+        "contract_validation": expected_transcript_contract_validation,
+        "contract_valid": expected_transcript_contract_valid,
+        "stale_or_invalid": expected_transcript_stale_or_invalid,
+        "usable_for_manifest_publish": False,
+        "expected_transcript_output": transcript_capture["transcript_output"],
+    }
+    for field, expected in transcript_pre_run_expectations.items():
+        if transcript_pre_run_state[field] != expected:
+            raise ContractError(f"{path}.transcript_pre_run_state.{field}: must match lab run intake and capture contract")
+    operator_note = str(transcript_pre_run_state["operator_note"])
+    if expected_transcript_stale_or_invalid and "stale or invalid" not in operator_note:
+        raise ContractError(f"{path}.transcript_pre_run_state.operator_note: must flag stale or invalid pre-run transcript")
+    if not expected_transcript_stale_or_invalid and "No usable pre-run" not in operator_note:
+        raise ContractError(f"{path}.transcript_pre_run_state.operator_note: must state no usable pre-run transcript")
 
     operator_sequence = [
         require_object(item, f"{path}.operator_sequence.item")
@@ -23565,6 +23604,8 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
             "transcript_contract_validation_before_run",
             "transcript_contract_valid_before_run",
             "transcript_contract_missing_before_run",
+            "transcript_stale_or_invalid_before_run",
+            "transcript_usable_for_manifest_publish_before_run",
             "wave1_pre_execution_transcript_contract_validation_before_run",
             "wave1_pre_execution_transcript_contract_valid_before_run",
             "wave1_pre_execution_transcript_contract_missing_before_run",
@@ -23615,10 +23656,6 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
     if bool(summary["ready_to_set_real_acquisition_guard"]) != bool(data["ready_to_set_real_acquisition_guard"]):
         raise ContractError(f"{path}.source_status_summary.ready_to_set_real_acquisition_guard: must match report")
     authorization_summary = require_object(authorization_packet["source_status_summary"], f"{authorization_packet_path}.source_status_summary")
-    intake_summary = require_object(
-        require_object(lab_run_intake["source"], f"{lab_run_intake_path}.source")["source_status_summary"],
-        f"{lab_run_intake_path}.source.source_status_summary",
-    )
     source_expectations = {
         "authorization_ready": bool(authorization_packet["authorized_for_guarded_execution"]),
         "benchmark_standalone_detection_surface_covered": bool(
@@ -23639,6 +23676,8 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
         "transcript_contract_valid_before_run": bool(intake_summary["transcript_contract_valid"]),
         "transcript_contract_missing_before_run": str(intake_summary["transcript_contract_validation"]) == "missing"
         and bool(intake_summary["transcript_contract_valid"]) is False,
+        "transcript_stale_or_invalid_before_run": expected_transcript_stale_or_invalid,
+        "transcript_usable_for_manifest_publish_before_run": False,
         "wave1_pre_execution_transcript_contract_validation_before_run": str(
             authorization_summary["wave1_pre_execution_transcript_contract_validation_before_run"]
         ),

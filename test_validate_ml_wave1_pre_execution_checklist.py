@@ -31,9 +31,8 @@ def test_validate_wave1_pre_execution_checklist_accepts_jsonschema_path() -> Non
 
 def test_validate_wave1_pre_execution_checklist_rejects_false_ready_claim(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["checks"][0]["passed"] = False
-    data["source_status_summary"]["passed_checks"] -= 1
-    data["source_status_summary"]["failed_checks"] += 1
+    data["ready_to_set_real_acquisition_guard"] = True
+    data["source_status_summary"]["ready_to_set_real_acquisition_guard"] = True
     drifted = tmp_path / "20260604T-ml-wave1-pre-execution-checklist.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
@@ -53,11 +52,11 @@ def test_validate_wave1_pre_execution_checklist_rejects_started_post_acquisition
 
 def test_validate_wave1_pre_execution_checklist_rejects_authorization_packet_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["authorization"]["execute_command"] = data["authorization"]["validation_command"]
+    data["authorization"]["authorization_inputs_sha256"] = "0" * 64
     drifted = tmp_path / "20260604T-ml-wave1-pre-execution-checklist.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
-    with pytest.raises(ContractError, match="authorization.execute_command"):
+    with pytest.raises(ContractError, match="authorization.authorization_inputs_sha256"):
         validate_contract(drifted, WAVE1_PRE_EXECUTION_CHECKLIST_SCHEMA, validate_wave1_pre_execution_checklist)
 
 
@@ -93,11 +92,21 @@ def test_validate_wave1_pre_execution_checklist_rejects_operator_sequence_drift(
 
 def test_validate_wave1_pre_execution_checklist_rejects_source_summary_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_status_summary"]["transcript_absent_before_run"] = False
+    data["source_status_summary"]["transcript_absent_before_run"] = True
     drifted = tmp_path / "20260604T-ml-wave1-pre-execution-checklist.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
     with pytest.raises(ContractError, match="transcript_absent_before_run"):
+        validate_contract(drifted, WAVE1_PRE_EXECUTION_CHECKLIST_SCHEMA, validate_wave1_pre_execution_checklist)
+
+
+def test_validate_wave1_pre_execution_checklist_rejects_transcript_pre_run_state_drift(tmp_path: Path) -> None:
+    data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    data["transcript_pre_run_state"]["stale_or_invalid"] = not data["transcript_pre_run_state"]["stale_or_invalid"]
+    drifted = tmp_path / "20260604T-ml-wave1-pre-execution-checklist.json"
+    drifted.write_text(json.dumps(data), encoding="utf-8")
+
+    with pytest.raises(ContractError, match="transcript_pre_run_state.stale_or_invalid"):
         validate_contract(drifted, WAVE1_PRE_EXECUTION_CHECKLIST_SCHEMA, validate_wave1_pre_execution_checklist)
 
 
@@ -129,15 +138,9 @@ def test_validate_wave1_pre_execution_checklist_rejects_benchmark_surface_drift(
 
 def test_validate_wave1_pre_execution_checklist_rejects_transcript_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_status_summary"]["transcript_contract_validation_before_run"] = "jsonschema+built-in"
+    data["source_status_summary"]["transcript_contract_validation_before_run"] = "missing"
     data["source_status_summary"]["transcript_contract_valid_before_run"] = True
-    data["source_status_summary"]["transcript_contract_missing_before_run"] = False
-    for check in data["checks"]:
-        if check["name"] == "transcript_contract_missing_before_run":
-            check["passed"] = False
-            break
-    data["source_status_summary"]["passed_checks"] -= 1
-    data["source_status_summary"]["failed_checks"] += 1
+    data["source_status_summary"]["transcript_contract_missing_before_run"] = True
     drifted = tmp_path / "20260604T-ml-wave1-pre-execution-checklist.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
