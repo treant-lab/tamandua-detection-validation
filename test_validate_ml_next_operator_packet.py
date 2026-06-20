@@ -22,6 +22,7 @@ except ImportError:
     is_standalone = lambda: False
 
 CANONICAL = RUNS_DIR / "20260620T1840Z-ml-next-operator-virusshare-packet.json"
+SECRET_READINESS = RUNS_DIR / "20260620T2355Z-ml-next-operator-secret-readiness-packet.json"
 if not CANONICAL.exists():
     pytest.skip("ML next operator packet run artifact is not present in this standalone deployment", allow_module_level=True)
 
@@ -34,6 +35,24 @@ def test_validate_ml_next_operator_packet_accepts_jsonschema_path() -> None:
     )
 
     assert mode == "jsonschema+built-in"
+
+
+def test_validate_ml_next_operator_packet_accepts_secret_readiness_path() -> None:
+    mode = validate_contract(
+        SECRET_READINESS,
+        ML_NEXT_OPERATOR_PACKET_SCHEMA,
+        validate_ml_next_operator_packet,
+    )
+
+    data = json.loads(SECRET_READINESS.read_text(encoding="utf-8"))
+    markdown = SECRET_READINESS.with_suffix(".md").read_text(encoding="utf-8")
+
+    assert mode == "jsonschema+built-in"
+    assert set(data["commands"]) == {"env_remediation"}
+    assert data["operator_decision"]["publication_decision"] == "hold_do_not_push"
+    assert data["operator_decision"]["ready_for_guarded_execution"] is False
+    assert "No guarded execution is authorized by this packet." in markdown
+    assert "-Execute" not in markdown
 
 
 def test_validate_ml_next_operator_packet_rejects_false_publish_decision(tmp_path: Path) -> None:
@@ -72,6 +91,30 @@ def test_validate_ml_next_operator_packet_rejects_vx_download_authorization(tmp_
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
     with pytest.raises(ContractError, match="vx_download_authorized_by_this_packet"):
+        validate_contract(
+            drifted,
+            ML_NEXT_OPERATOR_PACKET_SCHEMA,
+            validate_ml_next_operator_packet,
+        )
+
+
+def test_validate_ml_next_operator_packet_rejects_env_remediation_guarded_commands(tmp_path: Path) -> None:
+    data = copy.deepcopy(json.loads(SECRET_READINESS.read_text(encoding="utf-8")))
+    data["commands"]["guarded_execute"] = {
+        "guard_set_command": "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = '1'",
+        "command": ".\\handoff\\wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute",
+        "required_env": {
+            "TAMANDUA_ML_DATA_ROOT": "D:\\tamandua_ml_lab",
+            "TAMANDUA_ALLOW_ML_REAL_ACQUISITION": "1",
+            "VIRUSSHARE_API_KEY": "<redacted: isolated lab secret store>",
+        },
+        "guard_cleanup_command": "Remove-Item Env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION -ErrorAction SilentlyContinue",
+        "claim_boundary": "Invalid guarded command.",
+    }
+    drifted = tmp_path / "20260620T2355Z-ml-next-operator-secret-readiness-packet.json"
+    drifted.write_text(json.dumps(data), encoding="utf-8")
+
+    with pytest.raises(ContractError, match="env remediation|guard_cleanup_command"):
         validate_contract(
             drifted,
             ML_NEXT_OPERATOR_PACKET_SCHEMA,

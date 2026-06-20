@@ -33,7 +33,7 @@
     },
     "source_authorization_packet": {
       "type": "string",
-      "pattern": "20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware\\.json$"
+      "pattern": "(20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware|20260620T2345Z-ml-next-gate-authorization-secret-readiness)\\.json$"
     },
     "operator_decision": {
       "type": "object",
@@ -48,7 +48,7 @@
         "failed_authorization_checks"
       ],
       "properties": {
-        "package_id": {"const": "ml_data_virusshare_fallback"},
+        "package_id": {"enum": ["ml_data_virusshare_fallback", "ml_data_governed_acquisition"]},
         "ready_for_guarded_execution": {"type": "boolean"},
         "authorized_for_guarded_execution": {"type": "boolean"},
         "publication_decision": {"enum": ["hold_do_not_push", "eligible_after_operator_approval"]},
@@ -60,8 +60,37 @@
     "commands": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["validation", "guarded_execute", "post_acquisition"],
+      "oneOf": [
+        {"required": ["validation", "guarded_execute", "post_acquisition"]},
+        {"required": ["env_remediation"]}
+      ],
       "properties": {
+        "env_remediation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "required_env",
+            "rerun_status_command",
+            "rerun_readiness_command",
+            "rerun_authorization_command",
+            "claim_boundary"
+          ],
+          "properties": {
+            "required_env": {
+              "type": "object",
+              "additionalProperties": {"type": "string"},
+              "required": ["TAMANDUA_ML_DATA_ROOT", "VIRUSSHARE_API_KEY"],
+              "properties": {
+                "TAMANDUA_ML_DATA_ROOT": {"const": "<external isolated lab data root>"},
+                "VIRUSSHARE_API_KEY": {"const": "<redacted: isolated lab secret store>"}
+              }
+            },
+            "rerun_status_command": {"type": "string", "pattern": "ml_execution_status\\.py"},
+            "rerun_readiness_command": {"type": "string", "pattern": "ml_virusshare_fallback_readiness_probe\\.py"},
+            "rerun_authorization_command": {"type": "string", "pattern": "ml_next_gate_authorization_packet\\.py"},
+            "claim_boundary": {"type": "string", "minLength": 10}
+          }
+        },
         "validation": {
           "type": "object",
           "additionalProperties": false,

@@ -103,7 +103,9 @@ def test_ml_training_pipeline_roadmap_uses_current_virusshare_next_step() -> Non
     assert "20260620T2310Z-ml-mirror-publication-after-secret-sanitization.json" in text
     assert "20260620T2320Z-ml-next-action-secret-readiness.json" in text
     assert "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json" in text
+    assert "20260620T2355Z-ml-next-operator-secret-readiness-packet.json" in text
     assert "renders no guarded launcher in Markdown" in text
+    assert "exposes only env-remediation commands" in text
     assert "no-execution env-remediation" in text
     assert "hold_do_not_push" in text
     assert "removes the stale MalwareBazaar secret\n  requirement" in text

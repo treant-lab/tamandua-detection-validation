@@ -25833,10 +25833,15 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.operator_decision.package_id: must match authorization packet")
     if decision["authorized_for_guarded_execution"] != authorization_packet["authorized_for_guarded_execution"]:
         raise ContractError(f"{path}.operator_decision.authorized_for_guarded_execution: must match authorization packet")
+    env_remediation_selected = authorization.get("action_type") in {"set_required_env", "fix_required_env"}
     expected_blockers = [str(item) for item in authorization_summary.get("virusshare_fallback_blockers", [])]
+    if env_remediation_selected:
+        expected_blockers.extend(["missing_env:TAMANDUA_ML_DATA_ROOT", "missing_env:VIRUSSHARE_API_KEY"])
     if blockers != expected_blockers:
         raise ContractError(f"{path}.operator_decision.blockers: must match VirusShare fallback blockers")
     ready = (
+        not env_remediation_selected
+        and
         authorization_packet["authorized_for_guarded_execution"] is True
         and authorization_summary.get("virusshare_fallback_readiness_ready") is True
         and not blockers
@@ -25851,35 +25856,54 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.operator_decision.publication_reason: hold decision must explain blocker")
 
     commands = require_object(data["commands"], f"{path}.commands")
-    validation = require_object(commands["validation"], f"{path}.commands.validation")
-    guarded_execute = require_object(commands["guarded_execute"], f"{path}.commands.guarded_execute")
-    post_acquisition = require_object(commands["post_acquisition"], f"{path}.commands.post_acquisition")
-    if str(validation["command"]) != str(authorization["validation_command"]):
-        raise ContractError(f"{path}.commands.validation.command: must match authorization validation command")
-    if "-Execute" in str(validation["command"]):
-        raise ContractError(f"{path}.commands.validation.command: must be validation-only")
-    if require_object(validation["required_env"], f"{path}.commands.validation.required_env"):
-        raise ContractError(f"{path}.commands.validation.required_env: validation must not require env")
-    if str(guarded_execute["command"]) != str(authorization["execute_command"]):
-        raise ContractError(f"{path}.commands.guarded_execute.command: must match authorization execute command")
-    if "-Execute" not in str(guarded_execute["command"]):
-        raise ContractError(f"{path}.commands.guarded_execute.command: must be guarded execute")
-    if str(guarded_execute["guard_set_command"]) != "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = '1'":
-        raise ContractError(f"{path}.commands.guarded_execute.guard_set_command: must set real acquisition guard separately")
-    required_env = require_object(guarded_execute["required_env"], f"{path}.commands.guarded_execute.required_env")
-    if required_env.get("TAMANDUA_ALLOW_ML_REAL_ACQUISITION") != "1":
-        raise ContractError(f"{path}.commands.guarded_execute.required_env: must require real acquisition guard")
-    if required_env.get("VIRUSSHARE_API_KEY") != "<redacted: isolated lab secret store>":
-        raise ContractError(f"{path}.commands.guarded_execute.required_env.VIRUSSHARE_API_KEY: must be redacted")
-    serialized = json.dumps(data, sort_keys=True, ensure_ascii=True)
-    if "VIRUSSHARE_API_KEY=" in serialized or "VIRUSSHARE_API_KEY = '" in serialized:
-        raise ContractError(f"{path}: must not embed a VirusShare secret value")
-    if "VIRUSSHARE_API_KEY" not in str(guarded_execute["guard_cleanup_command"]):
-        raise ContractError(f"{path}.commands.guarded_execute.guard_cleanup_command: must remove VirusShare secret")
-    if post_acquisition["manifest_guard_set_command"] != "$env:TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH = '1'":
-        raise ContractError(f"{path}.commands.post_acquisition.manifest_guard_set_command: invalid manifest guard")
-    if "-Execute" not in str(post_acquisition["manifest_publish_command"]):
-        raise ContractError(f"{path}.commands.post_acquisition.manifest_publish_command: must be guarded execute")
+    if env_remediation_selected:
+        if set(commands) != {"env_remediation"}:
+            raise ContractError(f"{path}.commands: env remediation packet must not expose guarded commands")
+        remediation = require_object(commands["env_remediation"], f"{path}.commands.env_remediation")
+        required_env = require_object(remediation["required_env"], f"{path}.commands.env_remediation.required_env")
+        if required_env.get("TAMANDUA_ML_DATA_ROOT") != "<external isolated lab data root>":
+            raise ContractError(f"{path}.commands.env_remediation.required_env.TAMANDUA_ML_DATA_ROOT: must be placeholder")
+        if required_env.get("VIRUSSHARE_API_KEY") != "<redacted: isolated lab secret store>":
+            raise ContractError(f"{path}.commands.env_remediation.required_env.VIRUSSHARE_API_KEY: must be redacted")
+        if "ml_execution_status.py" not in str(remediation["rerun_status_command"]):
+            raise ContractError(f"{path}.commands.env_remediation.rerun_status_command: must rerun execution status")
+        if "ml_virusshare_fallback_readiness_probe.py" not in str(remediation["rerun_readiness_command"]):
+            raise ContractError(f"{path}.commands.env_remediation.rerun_readiness_command: must rerun readiness")
+        if "ml_next_gate_authorization_packet.py" not in str(remediation["rerun_authorization_command"]):
+            raise ContractError(f"{path}.commands.env_remediation.rerun_authorization_command: must rerun authorization")
+        serialized = json.dumps(data, sort_keys=True, ensure_ascii=True)
+        if "-Execute" in serialized or "TAMANDUA_ALLOW_ML_REAL_ACQUISITION = '1'" in serialized:
+            raise ContractError(f"{path}.commands.env_remediation: must not expose guarded execution")
+    else:
+        validation = require_object(commands["validation"], f"{path}.commands.validation")
+        guarded_execute = require_object(commands["guarded_execute"], f"{path}.commands.guarded_execute")
+        post_acquisition = require_object(commands["post_acquisition"], f"{path}.commands.post_acquisition")
+        if str(validation["command"]) != str(authorization["validation_command"]):
+            raise ContractError(f"{path}.commands.validation.command: must match authorization validation command")
+        if "-Execute" in str(validation["command"]):
+            raise ContractError(f"{path}.commands.validation.command: must be validation-only")
+        if require_object(validation["required_env"], f"{path}.commands.validation.required_env"):
+            raise ContractError(f"{path}.commands.validation.required_env: validation must not require env")
+        if str(guarded_execute["command"]) != str(authorization["execute_command"]):
+            raise ContractError(f"{path}.commands.guarded_execute.command: must match authorization execute command")
+        if "-Execute" not in str(guarded_execute["command"]):
+            raise ContractError(f"{path}.commands.guarded_execute.command: must be guarded execute")
+        if str(guarded_execute["guard_set_command"]) != "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = '1'":
+            raise ContractError(f"{path}.commands.guarded_execute.guard_set_command: must set real acquisition guard separately")
+        required_env = require_object(guarded_execute["required_env"], f"{path}.commands.guarded_execute.required_env")
+        if required_env.get("TAMANDUA_ALLOW_ML_REAL_ACQUISITION") != "1":
+            raise ContractError(f"{path}.commands.guarded_execute.required_env: must require real acquisition guard")
+        if required_env.get("VIRUSSHARE_API_KEY") != "<redacted: isolated lab secret store>":
+            raise ContractError(f"{path}.commands.guarded_execute.required_env.VIRUSSHARE_API_KEY: must be redacted")
+        serialized = json.dumps(data, sort_keys=True, ensure_ascii=True)
+        if "VIRUSSHARE_API_KEY=" in serialized or "VIRUSSHARE_API_KEY = '" in serialized:
+            raise ContractError(f"{path}: must not embed a VirusShare secret value")
+        if "VIRUSSHARE_API_KEY" not in str(guarded_execute["guard_cleanup_command"]):
+            raise ContractError(f"{path}.commands.guarded_execute.guard_cleanup_command: must remove VirusShare secret")
+        if post_acquisition["manifest_guard_set_command"] != "$env:TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH = '1'":
+            raise ContractError(f"{path}.commands.post_acquisition.manifest_guard_set_command: invalid manifest guard")
+        if "-Execute" not in str(post_acquisition["manifest_publish_command"]):
+            raise ContractError(f"{path}.commands.post_acquisition.manifest_publish_command: must be guarded execute")
 
     safety = require_object(data["safety_invariants"], f"{path}.safety_invariants")
     safety_expectations = {
