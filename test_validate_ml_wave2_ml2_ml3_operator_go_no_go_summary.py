@@ -28,6 +28,13 @@ AGENT_SMOKE_CONTEXT = (
     / "runs"
     / "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go.json"
 )
+AGENT_SMOKE_ML1_PACKETS_CONTEXT = (
+    ROOT
+    / "docs"
+    / "benchmarks"
+    / "runs"
+    / "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go.json"
+)
 if not CANONICAL.exists() or not AGENT_SMOKE_CONTEXT.exists():
     pytest.skip("ML Wave 2 ML-2/ML-3 run artifacts are not present in this standalone deployment", allow_module_level=True)
 
@@ -45,6 +52,19 @@ def test_validate_wave2_ml2_ml3_operator_go_no_go_summary_accepts_jsonschema_pat
 def test_validate_wave2_ml2_ml3_operator_go_no_go_summary_accepts_agent_smoke_context_path() -> None:
     mode = validate_contract(
         AGENT_SMOKE_CONTEXT,
+        WAVE2_ML2_ML3_OPERATOR_GO_NO_GO_SUMMARY_SCHEMA,
+        validate_wave2_ml2_ml3_operator_go_no_go_summary,
+    )
+
+    assert mode == "jsonschema+built-in"
+
+
+def test_validate_wave2_ml2_ml3_operator_go_no_go_summary_accepts_ml1_packet_readiness() -> None:
+    if not AGENT_SMOKE_ML1_PACKETS_CONTEXT.exists():
+        pytest.skip("ML-2/ML-3 ML-1 packet go/no-go artifact is not present")
+
+    mode = validate_contract(
+        AGENT_SMOKE_ML1_PACKETS_CONTEXT,
         WAVE2_ML2_ML3_OPERATOR_GO_NO_GO_SUMMARY_SCHEMA,
         validate_wave2_ml2_ml3_operator_go_no_go_summary,
     )

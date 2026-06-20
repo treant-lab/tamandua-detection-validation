@@ -77,7 +77,13 @@
         "next_gate_authorization_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "next_operator_packet": {"type": "string", "pattern": "20260620T1840Z-ml-next-operator-virusshare-packet\\.json$"},
         "next_operator_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "ml2_ml3_agent_smoke_go_no_go": {"type": "string", "pattern": "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go\\.json$"},
+        "ml2_ml3_agent_smoke_go_no_go": {
+          "type": "string",
+          "anyOf": [
+            {"pattern": "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go\\.json$"},
+            {"pattern": "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go\\.json$"}
+          ]
+        },
         "ml2_ml3_agent_smoke_go_no_go_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "contract_packet_count": {"const": 3},
         "contract_packets_validated": {"const": 3},

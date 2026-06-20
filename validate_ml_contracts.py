@@ -10763,6 +10763,7 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
     valid_readiness_suffixes = (
         "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
         "20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening.json",
+        "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
     )
     if not str(source["wave2_ml2_ml3_readiness"]).endswith(valid_readiness_suffixes):
         raise ContractError(f"{path}.source.wave2_ml2_ml3_readiness: must reference canonical ML-2/ML-3 readiness")
@@ -16140,9 +16141,11 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
         raise ContractError(
             f"{path}.source.source_status_summary.contract_packet_coverage.next_operator_packet: must reference canonical packet"
         )
-    if not str(packet_coverage["ml2_ml3_agent_smoke_go_no_go"]).endswith(
-        "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go.json"
-    ):
+    accepted_ml2_ml3_agent_smoke_packets = (
+        "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go.json",
+        "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go.json",
+    )
+    if not str(packet_coverage["ml2_ml3_agent_smoke_go_no_go"]).endswith(accepted_ml2_ml3_agent_smoke_packets):
         raise ContractError(
             f"{path}.source.source_status_summary.contract_packet_coverage.ml2_ml3_agent_smoke_go_no_go: must reference canonical packet"
         )
