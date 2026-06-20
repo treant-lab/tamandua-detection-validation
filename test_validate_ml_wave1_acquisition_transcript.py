@@ -21,13 +21,14 @@ except ImportError:
     ROOT = Path(__file__).resolve().parents[2]
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
-GUARDED_RUN_PACKET = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-wave1-guarded-run-command-packet.json"
-LAUNCHER = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-execution-plan.handoff" / "wave_1_real_acquisition_launcher.ps1"
+GUARDED_RUN_PACKET = ROOT / "docs" / "benchmarks" / "runs" / "20260618T-ml-virusshare-fallback-command-packet.json"
+LAUNCHER = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-execution-plan.handoff" / "wave_1_virusshare_fallback_acquisition_launcher.ps1"
 SANITIZATION_RULES = [
     "replace_resolved_data_root_with_placeholder",
     "replace_raw_data_root_with_placeholder",
     "redact_infected_password_assignment",
     "redact_7z_infected_password_flag",
+    "redact_virusshare_api_key",
 ]
 
 
@@ -41,20 +42,17 @@ def valid_transcript(tmp_path: Path) -> dict:
     stderr_ref = tmp_path / "20260604T-ml-wave1-real-acquisition.stderr.txt"
     stdout_ref.write_text("ok", encoding="utf-8")
     stderr_ref.write_text("", encoding="utf-8")
-    acquisition_command = (
-        "python apps\\tamandua_ml\\scripts\\download_production_dataset.py "
-        "--output $env:TAMANDUA_ML_DATA_ROOT\\production --samples-per-class 10000 "
-        "--skip-vt-validation --vx-inventory docs\\benchmarks\\runs\\ml-vx-inthewild-inventory.json --resume --yes"
-    )
+    packet = json.loads(GUARDED_RUN_PACKET.read_text(encoding="utf-8"))
+    acquisition_command = packet["operator_commands"]["execute_command"]
     return {
         "api_version": "tamandua.io/ml-wave1-acquisition-transcript/v1",
         "kind": "MLWave1AcquisitionTranscript",
         "metadata": {
             "report_id": "test",
-            "created_by": "wave_1_real_acquisition_launcher.ps1",
+            "created_by": "wave_1_virusshare_fallback_acquisition_launcher.ps1",
             "claim_boundary": "Real Wave 1 acquisition transcript from isolated lab. Raw malware remains outside Git.",
         },
-        "command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_real_acquisition_launcher.ps1 -Execute",
+        "command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute",
         "launcher_ref": str(LAUNCHER),
         "launcher_sha256": hashlib.sha256(LAUNCHER.read_bytes()).hexdigest(),
         "acquisition_command": acquisition_command,
@@ -272,4 +270,14 @@ def test_validate_wave1_acquisition_transcript_rejects_archive_password_in_log(t
     payload["stdout_sha256"] = hashlib.sha256(stdout_ref.read_bytes()).hexdigest()
 
     with pytest.raises(ContractError, match="archive password"):
+        validate_wave1_acquisition_transcript(payload, tmp_path / "20260604T-ml-wave1-real-acquisition-transcript.json")
+
+
+def test_validate_wave1_acquisition_transcript_rejects_virusshare_api_key_in_log(tmp_path: Path) -> None:
+    payload = valid_transcript(tmp_path)
+    stdout_ref = Path(payload["stdout_ref"])
+    stdout_ref.write_text("VIRUSSHARE_API_KEY=real-secret", encoding="utf-8")
+    payload["stdout_sha256"] = hashlib.sha256(stdout_ref.read_bytes()).hexdigest()
+
+    with pytest.raises(ContractError, match="VirusShare API key"):
         validate_wave1_acquisition_transcript(payload, tmp_path / "20260604T-ml-wave1-real-acquisition-transcript.json")

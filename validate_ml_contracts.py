@@ -139,6 +139,7 @@ WAVE1_ACQUISITION_TRANSCRIPT_SANITIZATION_RULES = [
     "replace_raw_data_root_with_placeholder",
     "redact_infected_password_assignment",
     "redact_7z_infected_password_flag",
+    "redact_virusshare_api_key",
 ]
 WAVE1_ACQUISITION_RECEIPT_API_VERSION = "tamandua.io/ml-wave1-acquisition-receipt/v1"
 WAVE1_MANIFEST_PUBLISH_RECEIPT_API_VERSION = "tamandua.io/ml-wave1-manifest-publish-receipt/v1"
@@ -5946,6 +5947,8 @@ def validate_wave1_acquisition_transcript(data: dict[str, Any], path: Path) -> N
             raise ContractError(f"{path}.{field}: sanitized log must not expose local lab dataset paths")
         if re.search(r"(?i)(?:password\s*[:=]\s*infected\b|-pinfected\b)", log_text):
             raise ContractError(f"{path}.{field}: sanitized log must not expose malware archive password")
+        if re.search(r"(?i)VIRUSSHARE_API_KEY\s*[:=]\s*(?!<redacted>|<redacted-present-or-absent>|<redacted-placeholder-check>)\S+", log_text):
+            raise ContractError(f"{path}.{field}: sanitized log must not expose VirusShare API key")
 
 
 def validate_wave1_acquisition_receipt(data: dict[str, Any], path: Path) -> None:
