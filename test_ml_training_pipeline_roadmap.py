@@ -88,6 +88,17 @@ def test_ml_training_pipeline_roadmap_lists_all_completion_requirements() -> Non
         assert requirement_id in text
 
 
+def test_ml_training_pipeline_roadmap_uses_current_virusshare_next_step() -> None:
+    text = read(ROADMAP)
+    next_step = text.split("## Next Operator Step", 1)[1]
+
+    assert "wave_1_virusshare_fallback_readiness_launcher.ps1" in next_step
+    assert "wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute" in next_step
+    assert "download_production_dataset.py" in next_step
+    assert "do not invoke the direct acquisition" in next_step
+    assert "wave_1_real_acquisition_launcher.ps1" not in next_step
+
+
 def test_ml_training_pipeline_roadmap_is_linked_from_operator_docs() -> None:
     relative_link = "docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP.md"
     assert relative_link in read(DATASET_GUIDE)
