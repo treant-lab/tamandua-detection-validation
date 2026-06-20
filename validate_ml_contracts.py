@@ -12277,7 +12277,11 @@ def validate_wave3_ml5_operator_go_no_go_summary(data: dict[str, Any], path: Pat
         raise ContractError(f"{path}.source.wave1_acceptance_checklist: must reference canonical Wave 1 acceptance checklist")
     if source["wave1_acceptance_checklist_validation"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source.wave1_acceptance_checklist_validation: invalid validation mode")
-    if not str(source["wave3_ml5_readiness"]).endswith("20260604T-ml-wave3-ml5-readiness-probe.json"):
+    allowed_ml5_readiness_suffixes = (
+        "20260604T-ml-wave3-ml5-readiness-probe.json",
+        "20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
+    )
+    if not any(str(source["wave3_ml5_readiness"]).endswith(suffix) for suffix in allowed_ml5_readiness_suffixes):
         raise ContractError(f"{path}.source.wave3_ml5_readiness: must reference canonical ML-5 readiness")
     acceptance_path = Path(str(source["wave1_acceptance_checklist"]))
     if not acceptance_path.is_absolute():
@@ -12300,14 +12304,17 @@ def validate_wave3_ml5_operator_go_no_go_summary(data: dict[str, Any], path: Pat
     }
     expected_source_suffixes = {
         "wave1_acceptance_checklist": "20260604T-ml-wave1-acceptance-checklist.json",
-        "wave3_ml5_readiness": "20260604T-ml-wave3-ml5-readiness-probe.json",
+        "wave3_ml5_readiness": allowed_ml5_readiness_suffixes,
     }
     if set(source_hashes) != set(expected_source_hash_paths):
         raise ContractError(f"{path}.source_artifact_hashes: must contain exactly the ML-5 source artifacts")
     for name, source_path in expected_source_hash_paths.items():
         hash_item = require_object(source_hashes.get(name), f"{path}.source_artifact_hashes.{name}")
         require_keys(hash_item, {"path", "sha256"}, f"{path}.source_artifact_hashes.{name}")
-        if not str(hash_item["path"]).endswith(expected_source_suffixes[name]):
+        suffixes = expected_source_suffixes[name]
+        if isinstance(suffixes, str):
+            suffixes = (suffixes,)
+        if not any(str(hash_item["path"]).endswith(suffix) for suffix in suffixes):
             raise ContractError(f"{path}.source_artifact_hashes.{name}.path: must match source artifact")
         if str(hash_item["sha256"]) != hashlib.sha256(source_path.read_bytes()).hexdigest():
             raise ContractError(f"{path}.source_artifact_hashes.{name}.sha256: must match current artifact")
