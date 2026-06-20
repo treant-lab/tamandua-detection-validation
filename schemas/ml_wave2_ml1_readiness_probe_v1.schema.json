@@ -46,7 +46,10 @@
         "status_ref": {"type": "string", "minLength": 1},
         "ml_execution_master_handoff_ref": {
           "type": "string",
-          "pattern": "20260604T-ml-execution-master-handoff\\.json$"
+          "anyOf": [
+            {"pattern": "20260604T-ml-execution-master-handoff\\.json$"},
+            {"pattern": "20260620T2045Z-ml-execution-master-handoff-actionability-packets\\.json$"}
+          ]
         },
         "ml_local_training_readiness_ref": {
           "type": "string",
@@ -87,7 +90,13 @@
       "properties": {
         "execution_status": {"type": "string", "pattern": "20260604T-ml-execution-status\\.json$"},
         "execution_status_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
-        "ml_execution_master_handoff": {"type": "string", "pattern": "20260604T-ml-execution-master-handoff\\.json$"},
+        "ml_execution_master_handoff": {
+          "type": "string",
+          "anyOf": [
+            {"pattern": "20260604T-ml-execution-master-handoff\\.json$"},
+            {"pattern": "20260620T2045Z-ml-execution-master-handoff-actionability-packets\\.json$"}
+          ]
+        },
         "ml_execution_master_handoff_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
         "ml_local_training_readiness": {"type": "string", "pattern": "20260604T-ml-local-training-readiness\\.json$"},
         "ml_local_training_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},

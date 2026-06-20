@@ -9483,7 +9483,11 @@ def validate_wave2_ml1_readiness(data: dict[str, Any], path: Path) -> None:
         raise ContractError(
             f"{path}.configuration.wave1_manifest_publish_receipt_ref: must reference canonical Wave 1 manifest publish receipt"
         )
-    if not str(configuration["ml_execution_master_handoff_ref"]).endswith("20260604T-ml-execution-master-handoff.json"):
+    accepted_master_handoffs = (
+        "20260604T-ml-execution-master-handoff.json",
+        "20260620T2045Z-ml-execution-master-handoff-actionability-packets.json",
+    )
+    if not str(configuration["ml_execution_master_handoff_ref"]).endswith(accepted_master_handoffs):
         raise ContractError(f"{path}.configuration.ml_execution_master_handoff_ref: must reference canonical master handoff")
     if not str(configuration["ml_local_training_readiness_ref"]).endswith("20260604T-ml-local-training-readiness.json"):
         raise ContractError(
@@ -9619,7 +9623,17 @@ def validate_wave2_ml1_readiness(data: dict[str, Any], path: Path) -> None:
     master_path = Path(str(source["ml_execution_master_handoff"]))
     if not master_path.is_absolute():
         master_path = ROOT / master_path
-    if master_path.exists() and str(source["ml_execution_master_handoff_validation"]) == "jsonschema+built-in":
+    try:
+        path_is_repo_artifact = not str(path).startswith("memory:")
+        if path_is_repo_artifact:
+            Path(path).resolve().relative_to(ROOT.resolve())
+    except (OSError, ValueError):
+        path_is_repo_artifact = False
+    if (
+        path_is_repo_artifact
+        and master_path.exists()
+        and str(source["ml_execution_master_handoff_validation"]) == "jsonschema+built-in"
+    ):
         master = load_json(master_path)
         master_summary = require_object(master["summary"], f"{master_path}.summary")
         master_audit = require_object(master["goal_completion_audit"], f"{master_path}.goal_completion_audit")
