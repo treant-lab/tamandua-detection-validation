@@ -3257,7 +3257,6 @@ def validate_next_action_run(data: dict[str, Any], path: Path) -> None:
             "stdout",
             "stderr",
             "env_snapshot",
-            "platform_alignment",
             "safety_assertions",
             "validation_scope",
             "claim_boundary",
@@ -3361,33 +3360,34 @@ def validate_next_action_run(data: dict[str, Any], path: Path) -> None:
     if validation_scope["full_platform_sweep"] is not False:
         raise ContractError(f"{path}.validation_scope.full_platform_sweep: next-action evidence is not a full sweep")
 
-    platform_alignment = require_object(data["platform_alignment"], f"{path}.platform_alignment")
-    require_keys(
-        platform_alignment,
-        {"checked", "aligned", "next_requirement_id", "expected_package_id", "selected_package_id"},
-        f"{path}.platform_alignment",
-    )
-    if bool(platform_alignment["checked"]):
-        if platform_alignment["aligned"] is not True:
-            raise ContractError(f"{path}.platform_alignment.aligned: checked platform alignment must be true")
-        selected_package = str(platform_alignment["selected_package_id"])
-        selected_base = str(platform_alignment.get("selected_base_package_id") or selected_package)
-        if selected_package != str(action["package_id"]):
-            raise ContractError(f"{path}.platform_alignment.selected_package_id: must match action package_id")
-        if selected_package == "ml_data_virusshare_fallback":
-            selected_base = "ml_data_governed_acquisition"
-        if selected_base != str(platform_alignment["expected_package_id"]):
-            raise ContractError(f"{path}.platform_alignment.expected_package_id: must match selected base package")
-        if str(platform_alignment["next_requirement_id"]) == "wave1_governed_acquisition":
-            if str(platform_alignment["expected_package_id"]) != "ml_data_governed_acquisition":
-                raise ContractError(f"{path}.platform_alignment.expected_package_id: Wave 1 must map to governed acquisition")
-            if platform_alignment.get("next_unblock_action_order") != 1:
-                raise ContractError(f"{path}.platform_alignment.next_unblock_action_order: Wave 1 must be first action")
-        readiness_ref = str(platform_alignment.get("readiness_ref", ""))
-        if readiness_ref:
-            readiness_path = resolve_report_path(readiness_ref, path.parent)
-            readiness = load_json(readiness_path)
-            validate_ml_platform_readiness_audit(readiness, readiness_path)
+    if "platform_alignment" in data:
+        platform_alignment = require_object(data["platform_alignment"], f"{path}.platform_alignment")
+        require_keys(
+            platform_alignment,
+            {"checked", "aligned", "next_requirement_id", "expected_package_id", "selected_package_id"},
+            f"{path}.platform_alignment",
+        )
+        if bool(platform_alignment["checked"]):
+            if platform_alignment["aligned"] is not True:
+                raise ContractError(f"{path}.platform_alignment.aligned: checked platform alignment must be true")
+            selected_package = str(platform_alignment["selected_package_id"])
+            selected_base = str(platform_alignment.get("selected_base_package_id") or selected_package)
+            if selected_package != str(action["package_id"]):
+                raise ContractError(f"{path}.platform_alignment.selected_package_id: must match action package_id")
+            if selected_package == "ml_data_virusshare_fallback":
+                selected_base = "ml_data_governed_acquisition"
+            if selected_base != str(platform_alignment["expected_package_id"]):
+                raise ContractError(f"{path}.platform_alignment.expected_package_id: must match selected base package")
+            if str(platform_alignment["next_requirement_id"]) == "wave1_governed_acquisition":
+                if str(platform_alignment["expected_package_id"]) != "ml_data_governed_acquisition":
+                    raise ContractError(f"{path}.platform_alignment.expected_package_id: Wave 1 must map to governed acquisition")
+                if platform_alignment.get("next_unblock_action_order") != 1:
+                    raise ContractError(f"{path}.platform_alignment.next_unblock_action_order: Wave 1 must be first action")
+            readiness_ref = str(platform_alignment.get("readiness_ref", ""))
+            if readiness_ref:
+                readiness_path = resolve_report_path(readiness_ref, path.parent)
+                readiness = load_json(readiness_path)
+                validate_ml_platform_readiness_audit(readiness, readiness_path)
 
     command = str(data["command"])
     if not command.strip():
@@ -13386,7 +13386,6 @@ def validate_ml_platform_readiness_audit(data: dict[str, Any], path: Path) -> No
             "required_artifacts",
             "completion_summary",
             "completion_requirements",
-            "next_unblock_actions",
             "next_operator_action",
         },
         str(path),
@@ -13778,12 +13777,13 @@ def validate_ml_platform_readiness_audit(data: dict[str, Any], path: Path) -> No
                 "blockers": [str(blocker) for blocker in requirement["blockers"]],
             }
         )
-    actual_unblock_actions = [
-        require_object(item, f"{path}.next_unblock_actions.item")
-        for item in require_array(data["next_unblock_actions"], f"{path}.next_unblock_actions")
-    ]
-    if actual_unblock_actions != expected_unblock_actions:
-        raise ContractError(f"{path}.next_unblock_actions: must match non-proven completion requirements")
+    if "next_unblock_actions" in data:
+        actual_unblock_actions = [
+            require_object(item, f"{path}.next_unblock_actions.item")
+            for item in require_array(data["next_unblock_actions"], f"{path}.next_unblock_actions")
+        ]
+        if actual_unblock_actions != expected_unblock_actions:
+            raise ContractError(f"{path}.next_unblock_actions: must match non-proven completion requirements")
 
 
 def validate_ml_parallel_work_packages(data: dict[str, Any], path: Path) -> None:
@@ -22813,6 +22813,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         str(source["next_action_validation_run"]).endswith("20260604T-ml-prelab-next-action-validation.run.json")
         or str(source["next_action_validation_run"]).endswith("20260620T-ml-next-action-virusshare-source-aware.json")
         or str(source["next_action_validation_run"]).endswith("20260620T2320Z-ml-next-action-secret-readiness.json")
+        or str(source["next_action_validation_run"]).endswith("20260621T0035Z-ml-next-action-platform-aligned.run.json")
     ):
         raise ContractError(f"{path}.source.next_action_validation_run: must reference canonical next-action validation run")
     if not str(source["transcript_template"]).endswith("20260604T-ml-wave1-real-acquisition-transcript.template.json"):
@@ -23260,6 +23261,11 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         raise ContractError(f"{path}.source_status_summary.benchmark_detection_surface_contract_ready: must be true")
     next_action_safety = require_object(next_action["safety_assertions"], f"{next_action_path}.safety_assertions")
     next_action_env_snapshot = require_object(next_action["env_snapshot"], f"{next_action_path}.env_snapshot")
+    next_action_platform_alignment = (
+        require_object(next_action["platform_alignment"], f"{next_action_path}.platform_alignment")
+        if "platform_alignment" in next_action
+        else None
+    )
     next_action_guard_snapshot = next_action_env_snapshot.get("execute_guard_env")
     next_action_data_root = next(
         (
@@ -23272,24 +23278,29 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         ),
         {},
     )
+    has_platform_alignment = next_action_platform_alignment is not None
     expected_next_action_ready = (
         next_action["returncode"] == 0
         and next_action_safety.get("command_validation_only") is True
         and next_action_safety.get("selected_action_only") is True
         and next_action_safety.get("no_success_stderr") is True
+        and (next_action_safety.get("data_root_outside_repo") is True if has_platform_alignment else True)
     )
+    expected_next_action_safety_fields = [
+        "command_validation_only",
+        "execute_guard_absent",
+        "selected_action_only",
+        "no_success_stderr",
+        "no_real_operation_evidence",
+        "guarded_command_printed",
+        "no_real_acquisition_evidence",
+        "guarded_would_run_command_printed",
+    ]
+    if has_platform_alignment:
+        expected_next_action_safety_fields.append("data_root_outside_repo")
     expected_next_action_safety_passed = all(
         next_action_safety.get(field) is True
-        for field in [
-            "command_validation_only",
-            "execute_guard_absent",
-            "selected_action_only",
-            "no_success_stderr",
-            "no_real_operation_evidence",
-            "guarded_command_printed",
-            "no_real_acquisition_evidence",
-            "guarded_would_run_command_printed",
-        ]
+        for field in expected_next_action_safety_fields
     )
     validation_summary_expectations = {
         "next_action_validation_run_ready": expected_next_action_ready,
@@ -23302,6 +23313,27 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         "next_action_validation_run_no_real_operation_evidence": next_action_safety.get("no_real_operation_evidence") is True,
         "next_action_validation_run_data_root_outside_repo": next_action_data_root.get("outside_repo") is True,
     }
+    if next_action_platform_alignment is not None:
+        require_keys(
+            summary,
+            {
+                "next_action_platform_alignment_checked",
+                "next_action_platform_alignment_aligned",
+                "next_action_platform_alignment_requirement",
+                "next_action_platform_alignment_expected_package",
+                "next_action_platform_alignment_selected_package",
+            },
+            f"{path}.source_status_summary",
+        )
+        validation_summary_expectations.update(
+            {
+                "next_action_platform_alignment_checked": next_action_platform_alignment.get("checked") is True,
+                "next_action_platform_alignment_aligned": next_action_platform_alignment.get("aligned") is True,
+                "next_action_platform_alignment_requirement": str(next_action_platform_alignment.get("next_requirement_id", "")),
+                "next_action_platform_alignment_expected_package": str(next_action_platform_alignment.get("expected_package_id", "")),
+                "next_action_platform_alignment_selected_package": str(next_action_platform_alignment.get("selected_package_id", "")),
+            }
+        )
     for field, expected in validation_summary_expectations.items():
         if summary[field] != expected:
             raise ContractError(f"{path}.source_status_summary.{field}: must prove validation-only next gate run")

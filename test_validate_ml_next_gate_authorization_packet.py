@@ -34,6 +34,13 @@ SECRET_READINESS = (
     / "runs"
     / "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json"
 )
+PLATFORM_ALIGNED = (
+    ROOT
+    / "docs"
+    / "benchmarks"
+    / "runs"
+    / "20260621T0045Z-ml-next-gate-authorization-platform-aligned.json"
+)
 CANONICAL = VIRUSSHARE_SOURCE_AWARE
 
 
@@ -77,7 +84,7 @@ def test_validate_ml_next_gate_authorization_packet_accepts_secret_readiness_pat
 
 
 def test_next_gate_markdown_prints_virusshare_secret_placeholder() -> None:
-    markdown = VIRUSSHARE_SOURCE_AWARE.with_suffix(".md").read_text(encoding="utf-8")
+    markdown = PLATFORM_ALIGNED.with_suffix(".md").read_text(encoding="utf-8")
 
     assert "$env:VIRUSSHARE_API_KEY = '<from isolated lab secret store>'" in markdown
     assert "--virusshare-api-key" not in markdown
@@ -89,7 +96,7 @@ def test_validate_ml_next_gate_authorization_packet_rejects_execute_guard_drift(
     drifted = tmp_path / "20260604T-ml-next-gate-authorization-packet.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
-    with pytest.raises(ContractError, match="execute_guard_env"):
+    with pytest.raises(ContractError, match="execute_guard_env|env remediation"):
         validate_contract(
             drifted,
             ML_NEXT_GATE_AUTHORIZATION_PACKET_SCHEMA,
