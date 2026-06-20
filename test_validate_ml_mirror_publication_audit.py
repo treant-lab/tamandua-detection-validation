@@ -55,6 +55,7 @@ def valid_audit() -> dict:
                 "build_note": "",
                 "artifact_policy": {},
                 "initial_publication_decision": {},
+                "experimental_release_gate": {},
                 "publication_blockers": [],
                 "clearance_criteria": [],
                 "push_ready": True,
@@ -81,6 +82,7 @@ def valid_audit() -> dict:
                     "release_artifact_policy": "release artifacts require benchmark gates",
                 },
                 "initial_publication_decision": {},
+                "experimental_release_gate": {},
                 "publication_blockers": [
                     "manifest_hold_active",
                     "ml_experimental_release_gate_active",
