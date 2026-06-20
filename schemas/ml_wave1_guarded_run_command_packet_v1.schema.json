@@ -18,6 +18,8 @@
     "source_artifact_hashes",
     "source_status_summary",
     "ready_for_guarded_wave1_acquisition",
+    "execution_blockers",
+    "next_unblock_actions",
     "checks"
   ],
   "properties": {
@@ -475,6 +477,32 @@
       }
     },
     "ready_for_guarded_wave1_acquisition": {"type": "boolean"},
+    "execution_blockers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check", "detail", "operator_action"],
+        "properties": {
+          "check": {"type": "string", "minLength": 1},
+          "detail": {"type": "string"},
+          "operator_action": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "next_unblock_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["order", "check", "action"],
+        "properties": {
+          "order": {"type": "integer", "minimum": 1},
+          "check": {"type": "string", "minLength": 1},
+          "action": {"type": "string", "minLength": 10}
+        }
+      }
+    },
     "checks": {
       "type": "array",
       "minItems": 1,

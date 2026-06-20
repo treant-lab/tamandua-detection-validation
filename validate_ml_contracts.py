@@ -24885,6 +24885,8 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
             "source_artifact_hashes",
             "source_status_summary",
             "ready_for_guarded_wave1_acquisition",
+            "execution_blockers",
+            "next_unblock_actions",
             "checks",
         },
         str(path),
@@ -25251,6 +25253,48 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
     passed_checks = sum(1 for check in checks if bool(check.get("passed")))
     failed_checks = len(checks) - passed_checks
     expected_ready = failed_checks == 0
+    blocker_actions = {
+        "authorizations_green": (
+            "Regenerate and validate the authorization packet, pre-execution checklist, preflight, and operator "
+            "go/no-go summary until all pre-run authorization checks are green."
+        ),
+        "transcript_contract_missing_before_run": (
+            "Keep the real acquisition transcript absent before execution; if a stale transcript exists, move it "
+            "out of docs/benchmarks/runs before requesting a guarded run packet."
+        ),
+        "malware_bazaar_auth_key_present": (
+            "Set the selected source credential in the isolated lab secret store, then rerun readiness and "
+            "preflight without exposing the secret value."
+        ),
+    }
+    expected_blockers = [
+        {
+            "check": str(check["name"]),
+            "detail": str(check["detail"]),
+            "operator_action": blocker_actions.get(
+                str(check["name"]),
+                "Resolve the failed check, regenerate this command packet, and revalidate contracts.",
+            ),
+        }
+        for check in checks
+        if check.get("passed") is not True
+    ]
+    actual_blockers = [
+        require_object(item, f"{path}.execution_blockers.item")
+        for item in require_array(data["execution_blockers"], f"{path}.execution_blockers")
+    ]
+    if actual_blockers != expected_blockers:
+        raise ContractError(f"{path}.execution_blockers: must match failed checks")
+    expected_actions = [
+        {"order": index + 1, "check": blocker["check"], "action": blocker["operator_action"]}
+        for index, blocker in enumerate(expected_blockers)
+    ]
+    actual_actions = [
+        require_object(item, f"{path}.next_unblock_actions.item")
+        for item in require_array(data["next_unblock_actions"], f"{path}.next_unblock_actions")
+    ]
+    if actual_actions != expected_actions:
+        raise ContractError(f"{path}.next_unblock_actions: must match execution blockers")
     expected_summary = {
         "ready_for_guarded_wave1_acquisition": expected_ready,
         "check_count": len(checks),

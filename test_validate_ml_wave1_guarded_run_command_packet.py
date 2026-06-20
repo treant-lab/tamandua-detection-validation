@@ -162,6 +162,17 @@ def test_validate_wave1_guarded_run_command_packet_rejects_transcript_contract_s
         validate_contract(drifted, WAVE1_GUARDED_RUN_COMMAND_PACKET_SCHEMA, validate_wave1_guarded_run_command_packet)
 
 
+def test_validate_wave1_guarded_run_command_packet_rejects_execution_blocker_drift(tmp_path: Path) -> None:
+    data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    data["execution_blockers"] = []
+    data["next_unblock_actions"] = []
+    drifted = tmp_path / "20260604T-ml-wave1-guarded-run-command-packet.json"
+    drifted.write_text(json.dumps(data), encoding="utf-8")
+
+    with pytest.raises(ContractError, match="execution_blockers"):
+        validate_contract(drifted, WAVE1_GUARDED_RUN_COMMAND_PACKET_SCHEMA, validate_wave1_guarded_run_command_packet)
+
+
 def test_validate_wave1_guarded_run_command_packet_rejects_wave1_publish_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
     data["source_status_summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = True
