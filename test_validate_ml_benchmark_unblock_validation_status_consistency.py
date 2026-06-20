@@ -47,8 +47,9 @@ def valid_report() -> dict:
             "goal_snapshot_matches_sources": True,
             "status_preserves_handoff_coverage": True,
             "status_preserves_validation_command_proof": True,
-            "check_count": 13,
-            "passed_checks": 13,
+            "status_preserves_contract_packet_coverage": True,
+            "check_count": 14,
+            "passed_checks": 14,
             "failed_checks": 0,
             "blocker_count": 0,
             "queue_items": 1,
@@ -59,6 +60,10 @@ def valid_report() -> dict:
             "summary_mismatches": 0,
             "upstream_ready_validation_only": 1,
             "upstream_blocked": 5,
+            "contract_packets_all_validated": True,
+            "contract_packets_validated": 3,
+            "next_operator_publication_decision": "hold_do_not_push",
+            "ml2_ml3_agent_smoke_unblocks_production": False,
             "missing_handoffs": 0,
             "stale_handoffs": 0,
             "pending_by_category": {"dependency": 0, "artifact": 1, "env": 0, "other": 0},
@@ -68,7 +73,7 @@ def valid_report() -> dict:
         },
         "configuration": {
             "benchmark_unblock_queue": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.json",
-            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status.json",
+            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
             "benchmark_unblock_handoff_consistency": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-handoff-consistency.json",
         },
         "summary": {
@@ -80,6 +85,10 @@ def valid_report() -> dict:
             "summary_mismatches": 0,
             "upstream_ready_validation_only": 1,
             "upstream_blocked": 5,
+            "contract_packets_all_validated": True,
+            "contract_packets_validated": 3,
+            "next_operator_publication_decision": "hold_do_not_push",
+            "ml2_ml3_agent_smoke_unblocks_production": False,
             "missing_handoffs": 0,
             "stale_handoffs": 0,
             "pending_by_category": {"dependency": 0, "artifact": 1, "env": 0, "other": 0},
@@ -100,6 +109,7 @@ def valid_report() -> dict:
             {"name": "goal_snapshot_matches_sources", "passed": True, "detail": ""},
             {"name": "status_preserves_handoff_coverage", "passed": True, "detail": ""},
             {"name": "status_preserves_validation_command_proof", "passed": True, "detail": ""},
+            {"name": "status_preserves_contract_packet_coverage", "passed": True, "detail": ""},
         ],
     }
 
@@ -237,6 +247,26 @@ def test_validate_ml_benchmark_unblock_validation_status_consistency_requires_ha
             check["passed"] = False
 
     with pytest.raises(ContractError, match="handoff coverage mismatch"):
+        validate_ml_benchmark_unblock_validation_status_consistency(
+            payload,
+            Path("memory://ml-benchmark-unblock-validation-status-consistency.json"),
+        )
+
+
+def test_validate_ml_benchmark_unblock_validation_status_consistency_requires_contract_packet_blocker() -> None:
+    payload = valid_report()
+    payload["consistent"] = False
+    payload["blockers"] = ["wrong_blocker"]
+    payload["source_status_summary"]["consistent"] = False
+    payload["source_status_summary"]["blocker_count"] = 1
+    payload["source_status_summary"]["passed_checks"] = 13
+    payload["source_status_summary"]["failed_checks"] = 1
+    payload["source_status_summary"]["status_preserves_contract_packet_coverage"] = False
+    for check in payload["checks"]:
+        if check["name"] == "status_preserves_contract_packet_coverage":
+            check["passed"] = False
+
+    with pytest.raises(ContractError, match="contract packet coverage mismatch"):
         validate_ml_benchmark_unblock_validation_status_consistency(
             payload,
             Path("memory://ml-benchmark-unblock-validation-status-consistency.json"),

@@ -16224,7 +16224,9 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
     )
     if not str(configuration["benchmark_unblock_queue"]).endswith("20260604T-ml-benchmark-unblock-queue.json"):
         raise ContractError(f"{path}.configuration.benchmark_unblock_queue: must reference canonical benchmark unblock queue")
-    if not str(configuration["benchmark_unblock_validation_status"]).endswith("20260604T-ml-benchmark-unblock-validation-status.json"):
+    if not str(configuration["benchmark_unblock_validation_status"]).endswith(
+        "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json"
+    ):
         raise ContractError(f"{path}.configuration.benchmark_unblock_validation_status: must reference canonical benchmark unblock validation status")
     if not str(configuration["benchmark_unblock_handoff_consistency"]).endswith("20260604T-ml-benchmark-unblock-handoff-consistency.json"):
         raise ContractError(f"{path}.configuration.benchmark_unblock_handoff_consistency: must reference canonical benchmark unblock handoff consistency")
@@ -16241,6 +16243,10 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
             "summary_mismatches",
             "upstream_ready_validation_only",
             "upstream_blocked",
+            "contract_packets_all_validated",
+            "contract_packets_validated",
+            "next_operator_publication_decision",
+            "ml2_ml3_agent_smoke_unblocks_production",
             "missing_handoffs",
             "stale_handoffs",
             "pending_by_category",
@@ -16274,6 +16280,7 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
         "goal_snapshot_matches_sources",
         "status_preserves_handoff_coverage",
         "status_preserves_validation_command_proof",
+        "status_preserves_contract_packet_coverage",
     }
     missing = sorted(required_checks.difference(check_by_name))
     if missing:
@@ -16327,6 +16334,11 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
         and "benchmark_unblock_validation_command_proof_mismatch" not in blockers
     ):
         raise ContractError(f"{path}.blockers: validation command proof mismatch must be reported as blocker")
+    if (
+        check_by_name["status_preserves_contract_packet_coverage"]["passed"] is False
+        and "benchmark_unblock_contract_packet_coverage_mismatch" not in blockers
+    ):
+        raise ContractError(f"{path}.blockers: contract packet coverage mismatch must be reported as blocker")
     source_summary = require_object(data["source_status_summary"], f"{path}.source_status_summary")
     require_keys(
         source_summary,
@@ -16347,6 +16359,7 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
             "goal_snapshot_matches_sources",
             "status_preserves_handoff_coverage",
             "status_preserves_validation_command_proof",
+            "status_preserves_contract_packet_coverage",
             "check_count",
             "passed_checks",
             "failed_checks",
@@ -16359,6 +16372,10 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
             "summary_mismatches",
             "upstream_ready_validation_only",
             "upstream_blocked",
+            "contract_packets_all_validated",
+            "contract_packets_validated",
+            "next_operator_publication_decision",
+            "ml2_ml3_agent_smoke_unblocks_production",
             "missing_handoffs",
             "stale_handoffs",
             "pending_by_category",
@@ -16387,6 +16404,7 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
         "goal_snapshot_matches_sources": "goal_snapshot_matches_sources",
         "status_preserves_handoff_coverage": "status_preserves_handoff_coverage",
         "status_preserves_validation_command_proof": "status_preserves_validation_command_proof",
+        "status_preserves_contract_packet_coverage": "status_preserves_contract_packet_coverage",
     }
     for source_field, check_name in validation_fields.items():
         if bool(source_summary[source_field]) != (check_by_name[check_name]["passed"] is True):
@@ -16412,12 +16430,28 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
         "summary_mismatches": int(summary["summary_mismatches"]),
         "upstream_ready_validation_only": int(summary["upstream_ready_validation_only"]),
         "upstream_blocked": int(summary["upstream_blocked"]),
+        "contract_packets_validated": int(summary["contract_packets_validated"]),
         "missing_handoffs": int(summary["missing_handoffs"]),
         "stale_handoffs": int(summary["stale_handoffs"]),
     }
     for field, expected in derived_counts.items():
         if int(source_summary[field]) != expected:
             raise ContractError(f"{path}.source_status_summary.{field}: must match derived consistency state")
+    for field in [
+        "contract_packets_all_validated",
+        "next_operator_publication_decision",
+        "ml2_ml3_agent_smoke_unblocks_production",
+    ]:
+        if source_summary[field] != summary[field]:
+            raise ContractError(f"{path}.source_status_summary.{field}: must match summary")
+    if bool(summary["contract_packets_all_validated"]) is not True:
+        raise ContractError(f"{path}.summary.contract_packets_all_validated: must be true")
+    if int(summary["contract_packets_validated"]) != 3:
+        raise ContractError(f"{path}.summary.contract_packets_validated: must be 3")
+    if str(summary["next_operator_publication_decision"]) != "hold_do_not_push":
+        raise ContractError(f"{path}.summary.next_operator_publication_decision: must remain hold_do_not_push")
+    if bool(summary["ml2_ml3_agent_smoke_unblocks_production"]) is not False:
+        raise ContractError(f"{path}.summary.ml2_ml3_agent_smoke_unblocks_production: must be false")
     derived_goal_summary = {
         "goal_complete": bool(summary["goal_complete"]),
         "completion_state": str(summary["completion_state"]),
