@@ -18,6 +18,9 @@ DATASET_QUICKSTART = ROOT / "apps" / "tamandua_ml" / "docs" / "DATASET_QUICKSTAR
 RUNBOOK = ROOT / "docs" / "apps" / "tamandua_ml" / "PRODUCTION_ACQUISITION_RUNBOOK.md"
 SCRIPTS_README = ROOT / "apps" / "tamandua_ml" / "scripts" / "README.md"
 README = ROOT / "apps" / "tamandua_ml" / "README.md"
+TRAINING_QUICKSTART = ROOT / "docs" / "apps" / "tamandua_ml" / "TRAINING_QUICKSTART.md"
+ML_PLATFORM_EVOLUTION_PLAN = ROOT / "docs" / "apps" / "tamandua_ml" / "ML_PLATFORM_EVOLUTION_PLAN.md"
+ML_BENCHMARK_VALIDATION_PLAN = ROOT / "docs" / "apps" / "tamandua_ml" / "ML_BENCHMARK_VALIDATION_PLAN.md"
 
 
 def read(path: Path) -> str:
@@ -140,10 +143,12 @@ def test_ml_training_pipeline_roadmap_is_linked_from_operator_docs() -> None:
 
 def test_operator_docs_route_real_acquisition_through_guarded_launcher() -> None:
     guarded_fragments = [
-        "wave_1_real_acquisition_launcher.ps1 -Execute",
+        "wave_1_virusshare_fallback_readiness_launcher.ps1",
+        "wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute",
         "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "VIRUSSHARE_API_KEY",
     ]
-    for path in [RUNBOOK, DATASET_QUICKSTART, SCRIPTS_README]:
+    for path in [RUNBOOK, DATASET_GUIDE, DATASET_QUICKSTART, SCRIPTS_README, TRAINING_QUICKSTART]:
         text = read(path)
         for fragment in guarded_fragments:
             assert fragment in text
@@ -161,3 +166,29 @@ def test_operator_docs_route_real_acquisition_through_guarded_launcher() -> None
 
     scripts_readme = read(SCRIPTS_README)
     assert "Direct `download_production_dataset.py` calls are for dry-run/debugging only" in scripts_readme
+
+
+def test_ml_operator_docs_do_not_present_malwarebazaar_launcher_as_current() -> None:
+    stale_current_claims = [
+        "first production candidate should be based on MalwareBazaar + goodware",
+        "Run `wave_1_real_acquisition_launcher.ps1 -Execute`.",
+        "Only `20260604T-ml-prelab-next-action-validation.run.json` is the current",
+        "current production path\nis the generated Wave 1 handoff",
+    ]
+
+    for path in [
+        RUNBOOK,
+        DATASET_GUIDE,
+        DATASET_QUICKSTART,
+        SCRIPTS_README,
+        TRAINING_QUICKSTART,
+        ML_PLATFORM_EVOLUTION_PLAN,
+        ML_BENCHMARK_VALIDATION_PLAN,
+    ]:
+        text = read(path)
+        for claim in stale_current_claims:
+            assert claim not in text
+
+    benchmark_plan = read(ML_BENCHMARK_VALIDATION_PLAN)
+    assert "20260620T-ml-next-action-virusshare-source-aware.json" in benchmark_plan
+    assert "must not authorize the current Wave 1 route" in benchmark_plan
