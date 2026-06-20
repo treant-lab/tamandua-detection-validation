@@ -53,6 +53,7 @@ def valid_audit() -> dict:
                 "dirty_top_levels": [],
                 "build_deferred": False,
                 "build_note": "",
+                "artifact_policy": {},
                 "publication_blockers": [],
                 "clearance_criteria": [],
                 "push_ready": True,
@@ -73,6 +74,11 @@ def valid_audit() -> dict:
                 "dirty_top_levels": [".github", "README.md", "docs", "pyproject.toml", "scripts", "src"],
                 "build_deferred": True,
                 "build_note": "Experimental",
+                "artifact_policy": {
+                    "status": "resolved",
+                    "source_mirror_policy": "metadata_and_code_only",
+                    "release_artifact_policy": "release artifacts require benchmark gates",
+                },
                 "publication_blockers": [
                     "manifest_hold_active",
                     "ml_experimental_release_gate_active",

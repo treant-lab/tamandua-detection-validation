@@ -50,6 +50,7 @@
           "dirty_top_levels",
           "build_deferred",
           "build_note",
+          "artifact_policy",
           "publication_blockers",
           "clearance_criteria",
           "push_ready",
@@ -79,6 +80,7 @@
           "dirty_top_levels": {"type": "array", "items": {"type": "string", "minLength": 1}},
           "build_deferred": {"type": "boolean"},
           "build_note": {"type": "string"},
+          "artifact_policy": {"type": "object"},
           "publication_blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
           "clearance_criteria": {
             "type": "array",
