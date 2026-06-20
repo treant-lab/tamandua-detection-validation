@@ -41,7 +41,14 @@
         },
         "package_id": {"type": "string", "pattern": "^ml[a-z0-9_]+$"},
         "wave": {"type": "integer", "minimum": 0},
-        "execute_guard_env": {"type": ["string", "null"], "pattern": "^TAMANDUA_ALLOW_[A-Z0-9_]+$"}
+        "execute_guard_env": {"type": ["string", "null"], "pattern": "^TAMANDUA_ALLOW_[A-Z0-9_]+$"},
+        "source_decision_status": {"type": "string", "minLength": 1},
+        "source_decision_ref": {"type": "string", "minLength": 1},
+        "required_env": {
+          "type": "array",
+          "items": {"type": "string", "pattern": "^(TAMANDUA_[A-Z0-9_]+|VIRUSSHARE_API_KEY)$"},
+          "uniqueItems": true
+        }
       }
     },
     "command": {"type": "string", "minLength": 1},
@@ -60,7 +67,7 @@
             "additionalProperties": false,
             "required": ["name", "present", "placeholder", "value_redacted"],
             "properties": {
-              "name": {"type": "string", "pattern": "^TAMANDUA_[A-Z0-9_]+$"},
+              "name": {"type": "string", "pattern": "^(TAMANDUA_[A-Z0-9_]+|VIRUSSHARE_API_KEY)$"},
               "present": {"type": "boolean"},
               "placeholder": {"type": "boolean"},
               "value_redacted": {"enum": ["present", "missing_or_placeholder"]},

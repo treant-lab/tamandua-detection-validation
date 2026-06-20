@@ -54,13 +54,15 @@
         "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "operator_launch_brief": {"type": "string", "pattern": "20260604T-ml-wave1-operator-launch-brief\\.json$"},
         "operator_launch_brief_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "next_action_validation_run": {"type": "string", "pattern": "20260604T-ml-prelab-next-action-validation\\.run\\.json$"},
+        "next_action_validation_run": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware)\\.json$"},
         "next_action_validation_run_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "transcript_template": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.template\\.json$"},
         "transcript_template_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "goal_snapshot": {"type": "string", "pattern": "20260604T-ml-goal-snapshot\\.json$"},
         "goal_snapshot_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "operator_roadmap": {"type": "string", "pattern": "docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP\\.md$|docs\\\\benchmarks\\\\ML_TRAINING_PIPELINE_ROADMAP\\.md$"}
+        "operator_roadmap": {"type": "string", "pattern": "docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP\\.md$|docs\\\\benchmarks\\\\ML_TRAINING_PIPELINE_ROADMAP\\.md$"},
+        "source_decision": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"},
+        "virusshare_fallback_packet": {"type": "string", "pattern": "20260618T-ml-virusshare-fallback-command-packet\\.json$"}
       }
     },
     "source_artifact_hashes": {
@@ -98,7 +100,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-prelab-next-action-validation\\.run\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -128,6 +130,24 @@
             "path": {"type": "string", "pattern": "docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP\\.md$|docs\\\\benchmarks\\\\ML_TRAINING_PIPELINE_ROADMAP\\.md$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
+        },
+        "source_decision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "virusshare_fallback_packet": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260618T-ml-virusshare-fallback-command-packet\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
         }
       }
     },
@@ -146,7 +166,7 @@
         "authorization_inputs_sha256"
       ],
       "properties": {
-        "package_id": {"const": "ml_data_governed_acquisition"},
+        "package_id": {"enum": ["ml_data_governed_acquisition", "ml_data_virusshare_fallback"]},
         "action_type": {"enum": ["launch_package", "set_required_env", "fix_required_env"]},
         "wave": {"const": 1},
         "priority": {"const": 1},
@@ -206,7 +226,7 @@
         "capture_helper_requires_vx_download_guard_unset": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
         "published_stdout_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stdout\\.txt$"},
         "published_stderr_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stderr\\.txt$"},
-        "guarded_run_command_packet_ref": {"type": "string", "pattern": "20260604T-ml-wave1-guarded-run-command-packet\\.json$"}
+        "guarded_run_command_packet_ref": {"type": "string", "pattern": "(20260604T-ml-wave1-guarded-run-command-packet|20260618T-ml-virusshare-fallback-command-packet)\\.json$"}
       }
     },
     "source_status_summary": {
@@ -286,6 +306,12 @@
         "lab_guards_unset": {"type": "boolean"},
         "operator_sequence_steps": {"const": 2},
         "post_execution_sequence_steps": {"const": 3},
+        "source_aware_virusshare_fallback": {"type": "boolean"},
+        "source_decision_status": {"type": "string"},
+        "source_decision_selected_route": {"type": "string"},
+        "virusshare_api_key_required": {"type": "boolean"},
+        "virusshare_fallback_readiness_ready": {"type": "boolean"},
+        "virusshare_fallback_blockers": {"type": "array", "items": {"type": "string"}},
         "manifest_publish_guard_env": {"const": "TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH"},
         "vx_archive_download_guard_env": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
         "vx_archive_download_guard_present": {"type": "boolean"},

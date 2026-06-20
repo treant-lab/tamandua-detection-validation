@@ -20,12 +20,29 @@ except ImportError:
     ROOT = Path(__file__).resolve().parents[2]
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
-CANONICAL = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-next-gate-authorization-packet.json"
+VIRUSSHARE_SOURCE_AWARE = (
+    ROOT
+    / "docs"
+    / "benchmarks"
+    / "runs"
+    / "20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware.json"
+)
+CANONICAL = VIRUSSHARE_SOURCE_AWARE
 
 
 def test_validate_ml_next_gate_authorization_packet_accepts_jsonschema_path() -> None:
     mode = validate_contract(
         CANONICAL,
+        ML_NEXT_GATE_AUTHORIZATION_PACKET_SCHEMA,
+        validate_ml_next_gate_authorization_packet,
+    )
+
+    assert mode == "jsonschema+built-in"
+
+
+def test_validate_ml_next_gate_authorization_packet_accepts_virusshare_source_aware_path() -> None:
+    mode = validate_contract(
+        VIRUSSHARE_SOURCE_AWARE,
         ML_NEXT_GATE_AUTHORIZATION_PACKET_SCHEMA,
         validate_ml_next_gate_authorization_packet,
     )

@@ -99,21 +99,17 @@ def fresh_next_action_run(tmp_path: Path) -> dict:
     write_handoff(build_plan(environ={}), handoff_dir)
     status = build_status(
         handoff_dir=handoff_dir,
-        environ={"TAMANDUA_ML_DATA_ROOT": str(tmp_path / "external-ml-data")},
+        environ={
+            "TAMANDUA_ML_DATA_ROOT": str(tmp_path / "external-ml-data"),
+            "TAMANDUA_MALWAREBAZAAR_AUTH_KEY": "fixture-auth-key",
+        },
     )
-    status_path = tmp_path / "ml-execution-status.json"
-    status_path.write_text(json.dumps(status), encoding="utf-8")
-    action = status["next_actions"][0]
     payload = valid_next_action_run()
+    status_path = tmp_path / "ml-execution-status.json"
     payload["status_ref"] = str(status_path)
-    payload["action"] = {
-        "priority": action["priority"],
-        "action_type": action["action_type"],
-        "package_id": action["package_id"],
-        "wave": action["wave"],
-        "execute_guard_env": action["execute_guard_env"],
-    }
-    payload["command"] = action["validation_command"]
+    payload["env_snapshot"]["status_required_env"][0]["name"] = "TAMANDUA_ML_DATA_ROOT"
+    payload["env_snapshot"]["status_required_env"][0]["present"] = True
+    payload["env_snapshot"]["status_required_env"][0]["outside_repo"] = True
     payload["stdout"] = (
         f"validated execution status: {status_path}\n"
         "Validation-only mode. Real acquisition was not executed.\n"
@@ -125,6 +121,17 @@ def fresh_next_action_run(tmp_path: Path) -> dict:
         "python apps\\tamandua_ml\\scripts\\download_production_dataset.py --output "
         "$env:TAMANDUA_ML_DATA_ROOT\\production --samples-per-class 10000 --resume --yes\n"
     )
+    status_action = next(item for item in status["next_actions"] if item["priority"] == payload["action"]["priority"])
+    status_action.update(
+        {
+            **payload["action"],
+            "description": "Fixture governed acquisition validation action",
+            "validation_command": payload["command"],
+            "execute_command": payload["command"] + " -Execute",
+            "claim_boundary": "Fixture guarded acquisition action; validation command does not execute acquisition.",
+        }
+    )
+    status_path.write_text(json.dumps(status), encoding="utf-8")
     return payload
 
 
@@ -135,6 +142,14 @@ def test_validate_next_action_run_accepts_valid_contract() -> None:
 def test_validate_next_action_run_accepts_jsonschema_path(tmp_path: Path) -> None:
     report_path = tmp_path / "ml-next-action-run.json"
     report_path.write_text(json.dumps(fresh_next_action_run(tmp_path)), encoding="utf-8")
+
+    mode = validate_contract(report_path, NEXT_ACTION_RUN_SCHEMA, validate_next_action_run)
+
+    assert mode == "jsonschema+built-in"
+
+
+def test_validate_next_action_run_accepts_source_aware_virusshare_artifact() -> None:
+    report_path = RUNS_DIR / "20260620T-ml-next-action-virusshare-source-aware.json"
 
     mode = validate_contract(report_path, NEXT_ACTION_RUN_SCHEMA, validate_next_action_run)
 
