@@ -97,6 +97,8 @@ def test_ml_training_pipeline_roadmap_uses_current_virusshare_next_step() -> Non
     text = read(ROADMAP)
     next_step = text.split("## Next Operator Step", 1)[1]
 
+    assert "20260620T-ml-execution-status-virusshare-source-aware.json" in text
+    assert "removes the stale MalwareBazaar secret\n  requirement" in text
     assert "wave_1_virusshare_fallback_readiness_launcher.ps1" in next_step
     assert "wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute" in next_step
     assert "download_production_dataset.py" in next_step
