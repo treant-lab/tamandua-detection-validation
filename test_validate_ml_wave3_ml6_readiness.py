@@ -37,6 +37,7 @@ def valid_wave3_ml6_readiness() -> dict:
         "configuration": {
             "status_ref": "docs/benchmarks/runs/20260604T-ml-execution-status.json",
             "wave2_ml1_readiness_ref": "docs/benchmarks/runs/20260604T-ml-wave2-ml1-readiness-probe.json",
+            "wave3_ml5_readiness_ref": "docs/benchmarks/runs/20260604T-ml-wave3-ml5-readiness-probe.json",
             "ml1_report": "docs/benchmarks/runs/ml-prod-candidate-v1-ml1.json",
             "model_contract": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
             "model_card": "docs/benchmarks/runs/ml-prod-candidate-v1-model-card.md",
@@ -49,6 +50,8 @@ def valid_wave3_ml6_readiness() -> dict:
             "execution_status_validation": "jsonschema+built-in",
             "wave2_ml1_readiness": "docs/benchmarks/runs/20260604T-ml-wave2-ml1-readiness-probe.json",
             "wave2_ml1_readiness_validation": "jsonschema+built-in",
+            "wave3_ml5_readiness": "docs/benchmarks/runs/20260604T-ml-wave3-ml5-readiness-probe.json",
+            "wave3_ml5_readiness_validation": "jsonschema+built-in",
             "ml1_report": "docs/benchmarks/runs/ml-prod-candidate-v1-ml1.json",
             "ml1_report_validation": "missing",
             "ml1_model_contract": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
@@ -59,6 +62,7 @@ def valid_wave3_ml6_readiness() -> dict:
             "holdout_outcomes": "docs/benchmarks/runs/ml-prod-candidate-v1-ml6-holdout-prediction-outcomes.json",
             "source_status_summary": {
                 **GOAL_SNAPSHOT,
+                "wave3_ml5_ready_for_pipeline_replay": False,
                 "wave2_ml1_ready_for_candidate": False,
                 "wave2_ml1_lab_guard_proof_mismatch_count": 0,
                 "wave2_ml1_ml_lab_standby_guards_unset": True,
@@ -80,8 +84,9 @@ def valid_wave3_ml6_readiness() -> dict:
                 "ml6_launcher_exists": True,
                 "required_input_count": 3,
                 "required_inputs_present": 3,
-                "blocker_count": 6,
+                "blocker_count": 7,
                 "blockers": [
+                    "wave3_ml5_readiness_blocked",
                     "wave2_ml1_readiness_blocked",
                     "missing_ml1_benchmark_report",
                     "missing_ml1_model_contract",
@@ -93,6 +98,7 @@ def valid_wave3_ml6_readiness() -> dict:
         },
         "ready_for_ml6_holdout": False,
         "blockers": [
+            "wave3_ml5_readiness_blocked",
             "wave2_ml1_readiness_blocked",
             "missing_ml1_benchmark_report",
             "missing_ml1_model_contract",
@@ -103,6 +109,8 @@ def valid_wave3_ml6_readiness() -> dict:
         "checks": [
             {"name": "execution_status_valid", "passed": True, "detail": "status"},
             {"name": "wave2_ml1_readiness_valid", "passed": True, "detail": "ml1 readiness"},
+            {"name": "wave3_ml5_readiness_valid", "passed": True, "detail": "ml5 readiness"},
+            {"name": "wave3_ml5_ready_for_pipeline_replay", "passed": False, "detail": "ml5 blockers"},
             {"name": "wave2_ml1_ready_for_candidate", "passed": False, "detail": "ml1 blockers"},
             {"name": "wave2_ml1_lab_guard_proof_clean", "passed": True, "detail": "mismatch_count=0"},
             {"name": "wave2_ml1_ml_lab_standby_guards_unset", "passed": True, "detail": "guards_unset=True"},
@@ -158,6 +166,7 @@ def sync_source(payload: dict) -> None:
     check_by_name = {check["name"]: check for check in payload["checks"]}
     for field, check_name in {
         "wave2_ml1_ready_for_candidate": "wave2_ml1_ready_for_candidate",
+        "wave3_ml5_ready_for_pipeline_replay": "wave3_ml5_ready_for_pipeline_replay",
         "wave2_ml1_ml_lab_standby_guards_unset": "wave2_ml1_ml_lab_standby_guards_unset",
         "ml1_benchmark_report_present": "ml1_benchmark_report_present",
         "ml1_model_contract_present": "ml1_model_contract_present",
@@ -198,6 +207,18 @@ def test_validate_wave3_ml6_readiness_accepts_jsonschema_path(tmp_path: Path) ->
     assert mode == "jsonschema+built-in"
 
 
+def test_validate_wave3_ml6_readiness_accepts_packet_upstream_refs() -> None:
+    payload = valid_wave3_ml6_readiness()
+    ml1_ref = "docs/benchmarks/runs/20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json"
+    ml5_ref = "docs/benchmarks/runs/20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json"
+    payload["configuration"]["wave2_ml1_readiness_ref"] = ml1_ref
+    payload["configuration"]["wave3_ml5_readiness_ref"] = ml5_ref
+    payload["source"]["wave2_ml1_readiness"] = ml1_ref
+    payload["source"]["wave3_ml5_readiness"] = ml5_ref
+
+    validate_wave3_ml6_readiness(payload, Path("memory://ml-wave3-ml6-readiness.json"))
+
+
 def test_validate_wave3_ml6_readiness_rejects_ready_with_missing_dependencies() -> None:
     payload = copy.deepcopy(valid_wave3_ml6_readiness())
     payload["ready_for_ml6_holdout"] = True
@@ -235,6 +256,7 @@ def test_validate_wave3_ml6_readiness_rejects_ready_with_failed_required_input()
 def test_validate_wave3_ml6_readiness_rejects_missing_cutoff_blocker() -> None:
     payload = copy.deepcopy(valid_wave3_ml6_readiness())
     payload["blockers"] = [
+        "wave3_ml5_readiness_blocked",
         "wave2_ml1_readiness_blocked",
         "missing_ml1_benchmark_report",
         "missing_ml1_model_contract",
@@ -254,6 +276,7 @@ def test_validate_wave3_ml6_readiness_rejects_missing_cutoff_blocker() -> None:
 def test_validate_wave3_ml6_readiness_rejects_missing_invalid_cutoff_blocker() -> None:
     payload = copy.deepcopy(valid_wave3_ml6_readiness())
     payload["blockers"] = [
+        "wave3_ml5_readiness_blocked",
         "wave2_ml1_readiness_blocked",
         "missing_ml1_benchmark_report",
         "missing_ml1_model_contract",
@@ -287,6 +310,7 @@ def test_validate_wave3_ml6_readiness_rejects_missing_vx_training_blocker() -> N
 def test_validate_wave3_ml6_readiness_rejects_missing_invalid_ml1_report_blocker() -> None:
     payload = copy.deepcopy(valid_wave3_ml6_readiness())
     payload["blockers"] = [
+        "wave3_ml5_readiness_blocked",
         "wave2_ml1_readiness_blocked",
         "missing_ml1_model_contract",
         "missing_ml1_model_card",
@@ -308,6 +332,7 @@ def test_validate_wave3_ml6_readiness_rejects_missing_invalid_ml1_report_blocker
 def test_validate_wave3_ml6_readiness_rejects_missing_ml1_readiness_blocker() -> None:
     payload = copy.deepcopy(valid_wave3_ml6_readiness())
     payload["blockers"] = [
+        "wave3_ml5_readiness_blocked",
         "missing_ml1_benchmark_report",
         "missing_ml1_model_contract",
         "missing_ml1_model_card",

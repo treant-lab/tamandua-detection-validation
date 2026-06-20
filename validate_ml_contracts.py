@@ -12612,7 +12612,11 @@ def validate_wave3_ml6_operator_go_no_go_summary(data: dict[str, Any], path: Pat
         raise ContractError(f"{path}.source.wave1_acceptance_checklist: must reference canonical Wave 1 acceptance checklist")
     if source["wave1_acceptance_checklist_validation"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source.wave1_acceptance_checklist_validation: invalid validation mode")
-    if not str(source["wave3_ml6_readiness"]).endswith("20260604T-ml-wave3-ml6-readiness-probe.json"):
+    allowed_ml6_readiness_suffixes = (
+        "20260604T-ml-wave3-ml6-readiness-probe.json",
+        "20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.json",
+    )
+    if not any(str(source["wave3_ml6_readiness"]).endswith(suffix) for suffix in allowed_ml6_readiness_suffixes):
         raise ContractError(f"{path}.source.wave3_ml6_readiness: must reference canonical ML-6 readiness")
     acceptance_path = Path(str(source["wave1_acceptance_checklist"]))
     if not acceptance_path.is_absolute():
@@ -12635,14 +12639,17 @@ def validate_wave3_ml6_operator_go_no_go_summary(data: dict[str, Any], path: Pat
     }
     expected_source_suffixes = {
         "wave1_acceptance_checklist": "20260604T-ml-wave1-acceptance-checklist.json",
-        "wave3_ml6_readiness": "20260604T-ml-wave3-ml6-readiness-probe.json",
+        "wave3_ml6_readiness": allowed_ml6_readiness_suffixes,
     }
     if set(source_hashes) != set(expected_source_hash_paths):
         raise ContractError(f"{path}.source_artifact_hashes: must contain exactly the ML-6 source artifacts")
     for name, source_path in expected_source_hash_paths.items():
         hash_item = require_object(source_hashes.get(name), f"{path}.source_artifact_hashes.{name}")
         require_keys(hash_item, {"path", "sha256"}, f"{path}.source_artifact_hashes.{name}")
-        if not str(hash_item["path"]).endswith(expected_source_suffixes[name]):
+        suffixes = expected_source_suffixes[name]
+        if isinstance(suffixes, str):
+            suffixes = (suffixes,)
+        if not any(str(hash_item["path"]).endswith(suffix) for suffix in suffixes):
             raise ContractError(f"{path}.source_artifact_hashes.{name}.path: must match source artifact")
         if str(hash_item["sha256"]) != hashlib.sha256(source_path.read_bytes()).hexdigest():
             raise ContractError(f"{path}.source_artifact_hashes.{name}.sha256: must match current artifact")
@@ -12944,10 +12951,28 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
     configuration = require_object(data["configuration"], f"{path}.configuration")
     require_keys(
         configuration,
-        {"status_ref", "wave2_ml1_readiness_ref", "ml1_report", "model_contract", "model_card", "vx_inventory", "holdout_outcomes", "launcher"},
+        {
+            "status_ref",
+            "wave2_ml1_readiness_ref",
+            "wave3_ml5_readiness_ref",
+            "ml1_report",
+            "model_contract",
+            "model_card",
+            "vx_inventory",
+            "holdout_outcomes",
+            "launcher",
+        },
         f"{path}.configuration",
     )
     expected_suffixes = {
+        "wave2_ml1_readiness_ref": (
+            "20260604T-ml-wave2-ml1-readiness-probe.json",
+            "20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json",
+        ),
+        "wave3_ml5_readiness_ref": (
+            "20260604T-ml-wave3-ml5-readiness-probe.json",
+            "20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
+        ),
         "ml1_report": "ml-prod-candidate-v1-ml1.json",
         "model_contract": "ml-prod-candidate-v1-model-contract.json",
         "model_card": "ml-prod-candidate-v1-model-card.md",
@@ -12956,7 +12981,8 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
         "launcher": "wave_3_ml6_holdout_launcher.ps1",
     }
     for key, suffix in expected_suffixes.items():
-        if not str(configuration[key]).endswith(suffix):
+        suffixes = suffix if isinstance(suffix, tuple) else (suffix,)
+        if not any(str(configuration[key]).endswith(item) for item in suffixes):
             raise ContractError(f"{path}.configuration.{key}: must end with {suffix}")
 
     source = require_object(data["source"], f"{path}.source")
@@ -12967,6 +12993,8 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
             "execution_status_validation",
             "wave2_ml1_readiness",
             "wave2_ml1_readiness_validation",
+            "wave3_ml5_readiness",
+            "wave3_ml5_readiness_validation",
             "ml1_report",
             "ml1_report_validation",
             "ml1_model_contract",
@@ -12982,6 +13010,7 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
     source_to_configuration = {
         "execution_status": "status_ref",
         "wave2_ml1_readiness": "wave2_ml1_readiness_ref",
+        "wave3_ml5_readiness": "wave3_ml5_readiness_ref",
         "ml1_report": "ml1_report",
         "ml1_model_contract": "model_contract",
         "ml1_model_card": "model_card",
@@ -13003,6 +13032,8 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
     required_checks = {
         "execution_status_valid",
         "wave2_ml1_readiness_valid",
+        "wave3_ml5_readiness_valid",
+        "wave3_ml5_ready_for_pipeline_replay",
         "wave2_ml1_ready_for_candidate",
         "wave2_ml1_lab_guard_proof_clean",
         "wave2_ml1_ml_lab_standby_guards_unset",
@@ -13039,6 +13070,7 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
         GOAL_SNAPSHOT_SUMMARY_FIELDS
         | {
             "wave2_ml1_ready_for_candidate",
+            "wave3_ml5_ready_for_pipeline_replay",
             "wave2_ml1_lab_guard_proof_mismatch_count",
             "wave2_ml1_ml_lab_standby_guards_unset",
             "ml1_benchmark_report_present",
@@ -13064,11 +13096,22 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
         },
         f"{path}.source.source_status_summary",
     )
-    upstream_readiness_path = Path(str(source["wave2_ml1_readiness"]))
+    upstream_readiness_path = Path(str(source["wave3_ml5_readiness"]))
     if not upstream_readiness_path.is_absolute():
         upstream_readiness_path = ROOT / upstream_readiness_path
+    path_is_repo_artifact = False
+    try:
+        if Path(path).exists():
+            Path(path).resolve().relative_to(ROOT.resolve())
+            path_is_repo_artifact = True
+    except (OSError, ValueError):
+        path_is_repo_artifact = False
     upstream_summary = None
-    if upstream_readiness_path.exists() and str(source["wave2_ml1_readiness_validation"]) == "jsonschema+built-in":
+    if (
+        path_is_repo_artifact
+        and upstream_readiness_path.exists()
+        and str(source["wave3_ml5_readiness_validation"]) == "jsonschema+built-in"
+    ):
         upstream_readiness = load_json(upstream_readiness_path)
         upstream_summary = require_object(
             upstream_readiness["source"]["source_status_summary"],
@@ -13079,7 +13122,7 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
         path,
         f"{path}.source.source_status_summary",
         upstream_summary=upstream_summary,
-        upstream_label="Wave 2 ML-1 readiness",
+        upstream_label="Wave 3 ML-5 readiness",
     )
     source_blockers = require_array(source_summary["blockers"], f"{path}.source.source_status_summary.blockers")
     if sorted(str(item) for item in source_blockers) != sorted(str(item) for item in blockers):
@@ -13091,6 +13134,7 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
     if int(source_summary["required_inputs_present"]) != sum(1 for name in required_input_checks if check_by_name[name]["passed"] is True):
         raise ContractError(f"{path}.source.source_status_summary.required_inputs_present: must match passing required input checks")
     source_status_checks = {
+        "wave3_ml5_ready_for_pipeline_replay": "wave3_ml5_ready_for_pipeline_replay",
         "wave2_ml1_ready_for_candidate": "wave2_ml1_ready_for_candidate",
         "wave2_ml1_ml_lab_standby_guards_unset": "wave2_ml1_ml_lab_standby_guards_unset",
         "ml1_benchmark_report_present": "ml1_benchmark_report_present",
@@ -13117,6 +13161,7 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
     check_to_source_validation = {
         "execution_status_valid": "execution_status_validation",
         "wave2_ml1_readiness_valid": "wave2_ml1_readiness_validation",
+        "wave3_ml5_readiness_valid": "wave3_ml5_readiness_validation",
     }
     if "ml1_benchmark_report_valid" in check_by_name:
         check_to_source_validation["ml1_benchmark_report_valid"] = "ml1_report_validation"
@@ -13144,6 +13189,7 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
     if not ready and all(check["passed"] is True for check in check_by_name.values()):
         raise ContractError(f"{path}.ready_for_ml6_holdout: cannot be false when all checks pass")
     dependency_blockers = {
+        "wave3_ml5_ready_for_pipeline_replay": "wave3_ml5_readiness_blocked",
         "wave2_ml1_ready_for_candidate": "wave2_ml1_readiness_blocked",
         "wave2_ml1_lab_guard_proof_clean": "wave2_ml1_lab_guard_proof_mismatch",
         "wave2_ml1_ml_lab_standby_guards_unset": "wave2_ml1_lab_execution_guards_set",
