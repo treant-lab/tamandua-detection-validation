@@ -81,6 +81,7 @@
           "build_deferred": {"type": "boolean"},
           "build_note": {"type": "string"},
           "artifact_policy": {"type": "object"},
+          "initial_publication_decision": {"type": "object"},
           "publication_blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
           "clearance_criteria": {
             "type": "array",
