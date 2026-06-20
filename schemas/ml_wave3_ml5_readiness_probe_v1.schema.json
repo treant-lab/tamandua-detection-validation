@@ -25,7 +25,13 @@
       "required": ["status_ref", "wave2_ml2_ml3_readiness_ref", "wave2_ml4_readiness_ref", "ml1_report", "model_contract", "model_card", "ml3_report", "ml3_agent_side_evidence", "ml4_report", "replay_outcomes", "launcher"],
       "properties": {
         "status_ref": {"type": "string", "minLength": 1},
-        "wave2_ml2_ml3_readiness_ref": {"type": "string", "minLength": 1},
+        "wave2_ml2_ml3_readiness_ref": {
+          "type": "string",
+          "anyOf": [
+            {"pattern": "20260604T-ml-wave2-ml2-ml3-readiness-probe\\.json$"},
+            {"pattern": "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets\\.json$"}
+          ]
+        },
         "wave2_ml4_readiness_ref": {"type": "string", "minLength": 1},
         "ml1_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml1\\.json$"},
         "model_contract": {"type": "string", "pattern": "ml-prod-candidate-v1-model-contract\\.json$"},
@@ -65,7 +71,13 @@
       "properties": {
         "execution_status": {"type": "string", "pattern": "20260604T-ml-execution-status\\.json$"},
         "execution_status_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
-        "wave2_ml2_ml3_readiness": {"type": "string", "pattern": "20260604T-ml-wave2-ml2-ml3-readiness-probe\\.json$"},
+        "wave2_ml2_ml3_readiness": {
+          "type": "string",
+          "anyOf": [
+            {"pattern": "20260604T-ml-wave2-ml2-ml3-readiness-probe\\.json$"},
+            {"pattern": "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets\\.json$"}
+          ]
+        },
         "wave2_ml2_ml3_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
         "wave2_ml4_readiness": {"type": "string", "pattern": "20260604T-ml-wave2-ml4-readiness-probe\\.json$"},
         "wave2_ml4_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},

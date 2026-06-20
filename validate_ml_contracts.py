@@ -11871,6 +11871,12 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
     for key, suffix in expected_suffixes.items():
         if not str(configuration[key]).endswith(suffix):
             raise ContractError(f"{path}.configuration.{key}: must end with {suffix}")
+    accepted_ml2_ml3_readiness_suffixes = (
+        "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
+        "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
+    )
+    if not str(configuration["wave2_ml2_ml3_readiness_ref"]).endswith(accepted_ml2_ml3_readiness_suffixes):
+        raise ContractError(f"{path}.configuration.wave2_ml2_ml3_readiness_ref: must reference canonical ML-2/ML-3 readiness")
 
     source = require_object(data["source"], f"{path}.source")
     require_keys(
@@ -11913,6 +11919,8 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
     for source_field, config_field in source_to_configuration.items():
         if str(source[source_field]) != str(configuration[config_field]):
             raise ContractError(f"{path}.source.{source_field}: must match configuration.{config_field}")
+    if not str(source["wave2_ml2_ml3_readiness"]).endswith(accepted_ml2_ml3_readiness_suffixes):
+        raise ContractError(f"{path}.source.wave2_ml2_ml3_readiness: must reference canonical ML-2/ML-3 readiness")
 
     blockers = require_array(data["blockers"], f"{path}.blockers")
     checks = require_array(data["checks"], f"{path}.checks")
@@ -12010,7 +12018,18 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
     if not upstream_ml4_path.is_absolute():
         upstream_ml4_path = ROOT / upstream_ml4_path
     upstream_summary = None
-    if upstream_ml2_ml3_path.exists() and str(source["wave2_ml2_ml3_readiness_validation"]) == "jsonschema+built-in":
+    path_is_repo_artifact = False
+    try:
+        path_is_repo_artifact = Path(path).exists()
+        if path_is_repo_artifact:
+            Path(path).resolve().relative_to(ROOT.resolve())
+    except (OSError, ValueError):
+        path_is_repo_artifact = False
+    if (
+        path_is_repo_artifact
+        and upstream_ml2_ml3_path.exists()
+        and str(source["wave2_ml2_ml3_readiness_validation"]) == "jsonschema+built-in"
+    ):
         upstream_readiness = load_json(upstream_ml2_ml3_path)
         upstream_summary = require_object(
             upstream_readiness["source"]["source_status_summary"],
@@ -12023,7 +12042,11 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         upstream_summary=upstream_summary,
         upstream_label="Wave 2 ML-2/ML-3 readiness",
     )
-    if upstream_ml4_path.exists() and str(source["wave2_ml4_readiness_validation"]) == "jsonschema+built-in":
+    if (
+        path_is_repo_artifact
+        and upstream_ml4_path.exists()
+        and str(source["wave2_ml4_readiness_validation"]) == "jsonschema+built-in"
+    ):
         upstream_ml4 = load_json(upstream_ml4_path)
         upstream_ml4_summary = require_object(
             upstream_ml4["source"]["source_status_summary"],

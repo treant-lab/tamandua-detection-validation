@@ -243,6 +243,15 @@ def test_validate_wave3_ml5_readiness_accepts_blocked_contract() -> None:
     validate_wave3_ml5_readiness(valid_wave3_ml5_readiness(), Path("memory://ml-wave3-ml5-readiness.json"))
 
 
+def test_validate_wave3_ml5_readiness_accepts_ml2_ml3_packet_readiness() -> None:
+    payload = valid_wave3_ml5_readiness()
+    readiness = "docs/benchmarks/runs/20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json"
+    payload["configuration"]["wave2_ml2_ml3_readiness_ref"] = readiness
+    payload["source"]["wave2_ml2_ml3_readiness"] = readiness
+
+    validate_wave3_ml5_readiness(payload, Path("memory://ml-wave3-ml5-readiness.json"))
+
+
 def test_validate_wave3_ml5_readiness_accepts_jsonschema_path(tmp_path: Path) -> None:
     report_path = tmp_path / "ml-wave3-ml5-readiness.json"
     report_path.write_text(json.dumps(valid_wave3_ml5_readiness()), encoding="utf-8")
