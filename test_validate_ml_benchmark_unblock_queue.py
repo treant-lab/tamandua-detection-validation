@@ -24,7 +24,7 @@ from validate_ml_contracts import (  # noqa: E402
 
 
 def goal_snapshot() -> dict:
-    return {
+    fallback = {
         "goal_complete": False,
         "completion_state": "partial_evidence",
         "goal_snapshot_anchor_check_passed": True,
@@ -72,6 +72,17 @@ def goal_snapshot() -> dict:
             ],
         },
     }
+    matrix = RUNS_DIR / "20260604T-ml-benchmark-execution-matrix.json"
+    if not matrix.exists():
+        return fallback
+    payload = json.loads(matrix.read_text(encoding="utf-8"))
+    summary = payload.get("source", {}).get("source_status_summary", {})
+    if not isinstance(summary, dict):
+        return fallback
+    for key in fallback:
+        if key in summary:
+            fallback[key] = summary[key]
+    return fallback
 
 
 def valid_queue() -> dict:
