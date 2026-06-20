@@ -40,6 +40,19 @@ def test_validate_ml_prelab_contract_coverage_requires_parallel_resolution_contr
     assert "candidate_ml2_report" in invariant_names
 
 
+def test_validate_ml_prelab_contract_coverage_requires_virusshare_contract_invariants() -> None:
+    data = json.loads(CANONICAL.read_text(encoding="utf-8"))
+    invariant_names = data["source"]["source_validator_invariant_summary"]["required_invariant_term_names"]
+
+    assert "ML_VIRUSSHARE_FALLBACK_READINESS_SCHEMA" in invariant_names
+    assert "validate_ml_virusshare_fallback_readiness" in invariant_names
+    assert "--ml-virusshare-fallback-readiness" in invariant_names
+    assert "--ml-virusshare-fallback-command-packet-check" in invariant_names
+    assert "--ml-virusshare-fallback-transition-audit" in invariant_names
+    assert "ready_for_guarded_virusshare_fallback" in invariant_names
+    assert "virusshare_api_key_not_placeholder" in invariant_names
+
+
 def test_validate_ml_prelab_contract_coverage_tracks_canonical_next_action_receipt() -> None:
     data = json.loads(CANONICAL.read_text(encoding="utf-8"))
     audit = data["source"]["source_next_action_receipt_summary"]
