@@ -3257,6 +3257,7 @@ def validate_next_action_run(data: dict[str, Any], path: Path) -> None:
             "stdout",
             "stderr",
             "env_snapshot",
+            "platform_alignment",
             "safety_assertions",
             "validation_scope",
             "claim_boundary",
@@ -3359,6 +3360,34 @@ def validate_next_action_run(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.validation_scope.selected_wave: must match action wave")
     if validation_scope["full_platform_sweep"] is not False:
         raise ContractError(f"{path}.validation_scope.full_platform_sweep: next-action evidence is not a full sweep")
+
+    platform_alignment = require_object(data["platform_alignment"], f"{path}.platform_alignment")
+    require_keys(
+        platform_alignment,
+        {"checked", "aligned", "next_requirement_id", "expected_package_id", "selected_package_id"},
+        f"{path}.platform_alignment",
+    )
+    if bool(platform_alignment["checked"]):
+        if platform_alignment["aligned"] is not True:
+            raise ContractError(f"{path}.platform_alignment.aligned: checked platform alignment must be true")
+        selected_package = str(platform_alignment["selected_package_id"])
+        selected_base = str(platform_alignment.get("selected_base_package_id") or selected_package)
+        if selected_package != str(action["package_id"]):
+            raise ContractError(f"{path}.platform_alignment.selected_package_id: must match action package_id")
+        if selected_package == "ml_data_virusshare_fallback":
+            selected_base = "ml_data_governed_acquisition"
+        if selected_base != str(platform_alignment["expected_package_id"]):
+            raise ContractError(f"{path}.platform_alignment.expected_package_id: must match selected base package")
+        if str(platform_alignment["next_requirement_id"]) == "wave1_governed_acquisition":
+            if str(platform_alignment["expected_package_id"]) != "ml_data_governed_acquisition":
+                raise ContractError(f"{path}.platform_alignment.expected_package_id: Wave 1 must map to governed acquisition")
+            if platform_alignment.get("next_unblock_action_order") != 1:
+                raise ContractError(f"{path}.platform_alignment.next_unblock_action_order: Wave 1 must be first action")
+        readiness_ref = str(platform_alignment.get("readiness_ref", ""))
+        if readiness_ref:
+            readiness_path = resolve_report_path(readiness_ref, path.parent)
+            readiness = load_json(readiness_path)
+            validate_ml_platform_readiness_audit(readiness, readiness_path)
 
     command = str(data["command"])
     if not command.strip():

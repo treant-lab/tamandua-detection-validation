@@ -15,6 +15,7 @@
     "stdout",
     "stderr",
     "env_snapshot",
+    "platform_alignment",
     "safety_assertions",
     "validation_scope",
     "claim_boundary"
@@ -85,6 +86,28 @@
             "value_redacted": {"enum": ["present", "missing_or_placeholder"]}
           }
         }
+      }
+    },
+    "platform_alignment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "checked",
+        "aligned",
+        "next_requirement_id",
+        "expected_package_id",
+        "selected_package_id"
+      ],
+      "properties": {
+        "readiness_ref": {"type": ["string", "null"]},
+        "checked": {"type": "boolean"},
+        "aligned": {"type": "boolean"},
+        "next_requirement_id": {"type": "string"},
+        "expected_package_id": {"type": "string"},
+        "selected_package_id": {"type": "string", "minLength": 1},
+        "selected_base_package_id": {"type": "string"},
+        "next_unblock_action_order": {"type": ["integer", "null"], "minimum": 1},
+        "next_unblock_action": {"type": "string"}
       }
     },
     "safety_assertions": {

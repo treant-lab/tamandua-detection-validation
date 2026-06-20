@@ -70,6 +70,14 @@ def valid_next_action_run() -> dict:
                 "value_redacted": "missing_or_placeholder",
             },
         },
+        "platform_alignment": {
+            "readiness_ref": None,
+            "checked": False,
+            "aligned": True,
+            "next_requirement_id": "",
+            "expected_package_id": "",
+            "selected_package_id": "ml_data_governed_acquisition",
+        },
         "safety_assertions": {
             "command_validation_only": True,
             "execute_guard_absent": True,
@@ -149,11 +157,30 @@ def test_validate_next_action_run_accepts_jsonschema_path(tmp_path: Path) -> Non
 
 
 def test_validate_next_action_run_accepts_source_aware_virusshare_artifact() -> None:
-    report_path = RUNS_DIR / "20260620T-ml-next-action-virusshare-source-aware.json"
+    report_path = RUNS_DIR / "20260621T0035Z-ml-next-action-platform-aligned.run.json"
 
     mode = validate_contract(report_path, NEXT_ACTION_RUN_SCHEMA, validate_next_action_run)
 
     assert mode == "jsonschema+built-in"
+
+
+def test_validate_next_action_run_rejects_platform_alignment_drift() -> None:
+    payload = valid_next_action_run()
+    payload["platform_alignment"] = {
+        "readiness_ref": None,
+        "checked": True,
+        "aligned": False,
+        "next_requirement_id": "wave1_governed_acquisition",
+        "expected_package_id": "ml_data_governed_acquisition",
+        "selected_package_id": "ml4_service_benchmark",
+    }
+
+    try:
+        validate_next_action_run(payload, Path("memory://ml-next-action-run.json"))
+    except ContractError as exc:
+        assert "platform_alignment" in str(exc)
+    else:
+        raise AssertionError("expected platform alignment drift to fail")
 
 
 def test_validate_next_action_run_rejects_stale_status_command(tmp_path: Path) -> None:
