@@ -35,7 +35,13 @@
       "required": ["status_ref", "wave2_ml1_readiness_ref", "ml1_report", "model_contract", "onnx_model", "onnx_metadata", "launcher", "data_root"],
       "properties": {
         "status_ref": {"type": "string", "minLength": 1},
-        "wave2_ml1_readiness_ref": {"type": "string", "minLength": 1},
+        "wave2_ml1_readiness_ref": {
+          "type": "string",
+          "anyOf": [
+            {"pattern": "20260604T-ml-wave2-ml1-readiness-probe\\.json$"},
+            {"pattern": "20260620T2055Z-ml-wave2-ml1-readiness-master-packets\\.json$"}
+          ]
+        },
         "ml1_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml1\\.json$"},
         "model_contract": {"type": "string", "pattern": "ml-prod-candidate-v1-model-contract\\.json$"},
         "onnx_model": {"type": "string", "pattern": "ml-prod-candidate-v1-artifacts[\\\\/]malware_smell\\.onnx$"},
@@ -64,7 +70,13 @@
       "properties": {
         "execution_status": {"type": "string", "pattern": "20260604T-ml-execution-status\\.json$"},
         "execution_status_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
-        "wave2_ml1_readiness": {"type": "string", "pattern": "20260604T-ml-wave2-ml1-readiness-probe\\.json$"},
+        "wave2_ml1_readiness": {
+          "type": "string",
+          "anyOf": [
+            {"pattern": "20260604T-ml-wave2-ml1-readiness-probe\\.json$"},
+            {"pattern": "20260620T2055Z-ml-wave2-ml1-readiness-master-packets\\.json$"}
+          ]
+        },
         "wave2_ml1_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
         "ml1_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml1\\.json$"},
         "ml1_report_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed", "missing"]},
