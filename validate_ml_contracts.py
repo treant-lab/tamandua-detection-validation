@@ -22042,6 +22042,8 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
     )
     transcript_template = load_json(transcript_template_path)
     validate_wave1_lab_transcript_template(transcript_template, transcript_template_path)
+    next_action = load_json(next_action_path)
+    validate_next_action_run(next_action, next_action_path)
     goal_snapshot = load_json(goal_snapshot_path)
     validate_ml_goal_snapshot(goal_snapshot, goal_snapshot_path)
     goal_snapshot_summary = require_object(goal_snapshot["source_status_summary"], f"{goal_snapshot_path}.source_status_summary")
@@ -22410,13 +22412,49 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         raise ContractError(f"{path}.source_status_summary.benchmark_actionability_validation_only: must be true")
     if summary["benchmark_detection_surface_contract_ready"] is not True:
         raise ContractError(f"{path}.source_status_summary.benchmark_detection_surface_contract_ready: must be true")
+    next_action_safety = require_object(next_action["safety_assertions"], f"{next_action_path}.safety_assertions")
+    next_action_env_snapshot = require_object(next_action["env_snapshot"], f"{next_action_path}.env_snapshot")
+    next_action_guard_snapshot = next_action_env_snapshot.get("execute_guard_env")
+    next_action_data_root = next(
+        (
+            item
+            for item in require_array(
+                next_action_env_snapshot["status_required_env"],
+                f"{next_action_path}.env_snapshot.status_required_env",
+            )
+            if isinstance(item, dict) and item.get("name") == "TAMANDUA_ML_DATA_ROOT"
+        ),
+        {},
+    )
+    expected_next_action_ready = (
+        next_action["returncode"] == 0
+        and next_action_safety.get("command_validation_only") is True
+        and next_action_safety.get("selected_action_only") is True
+        and next_action_safety.get("no_success_stderr") is True
+    )
+    expected_next_action_safety_passed = all(
+        next_action_safety.get(field) is True
+        for field in [
+            "command_validation_only",
+            "execute_guard_absent",
+            "selected_action_only",
+            "no_success_stderr",
+            "no_real_operation_evidence",
+            "guarded_command_printed",
+            "no_real_acquisition_evidence",
+            "guarded_would_run_command_printed",
+        ]
+    )
     validation_summary_expectations = {
-        "next_action_validation_run_ready": False if source_aware_virusshare_fallback else True,
+        "next_action_validation_run_ready": expected_next_action_ready,
         "next_action_validation_run_returncode": 0,
-        "next_action_validation_run_guard_absent": True,
-        "next_action_validation_run_safety_assertions_passed": False if source_aware_virusshare_fallback else True,
-        "next_action_validation_run_no_real_operation_evidence": True,
-        "next_action_validation_run_data_root_outside_repo": False if source_aware_virusshare_fallback else True,
+        "next_action_validation_run_guard_absent": (
+            not isinstance(next_action_guard_snapshot, dict)
+            or next_action_guard_snapshot.get("present") is False
+        ),
+        "next_action_validation_run_safety_assertions_passed": expected_next_action_safety_passed,
+        "next_action_validation_run_no_real_operation_evidence": next_action_safety.get("no_real_operation_evidence") is True,
+        "next_action_validation_run_data_root_outside_repo": next_action_data_root.get("outside_repo") is True,
     }
     for field, expected in validation_summary_expectations.items():
         if summary[field] != expected:
