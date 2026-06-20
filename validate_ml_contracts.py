@@ -17874,6 +17874,18 @@ def validate_ml_benchmark_critical_path_handoff_bundle(data: dict[str, Any], pat
 
 
 def validate_ml_benchmark_actionability_audit(data: dict[str, Any], path: Path) -> None:
+    accepted_critical_paths = (
+        "20260604T-ml-benchmark-critical-path.json",
+        "20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+    )
+    accepted_handoff_bundles = (
+        "20260604T-ml-benchmark-critical-path-handoff-bundle.json",
+        "20260620T2015Z-ml-benchmark-critical-path-handoff-bundle-contract-packets.json",
+    )
+    accepted_handoff_consistency = (
+        "20260604T-ml-benchmark-critical-path-handoff-consistency.json",
+        "20260620T2025Z-ml-benchmark-critical-path-handoff-consistency-contract-packets.json",
+    )
     require_keys(data, {"api_version", "kind", "metadata", "actionable", "source", "summary", "checks"}, str(path))
     if data["api_version"] != ML_BENCHMARK_ACTIONABILITY_AUDIT_API_VERSION:
         raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
@@ -17908,6 +17920,16 @@ def validate_ml_benchmark_actionability_audit(data: dict[str, Any], path: Path) 
     ]:
         if source[field] not in {"jsonschema+built-in", "built-in"}:
             raise ContractError(f"{path}.source.{field}: invalid validation mode")
+    if not str(source["benchmark_critical_path"]).endswith(accepted_critical_paths):
+        raise ContractError(f"{path}.source.benchmark_critical_path: must reference canonical benchmark critical path")
+    if not str(source["benchmark_critical_path_handoff_bundle"]).endswith(accepted_handoff_bundles):
+        raise ContractError(
+            f"{path}.source.benchmark_critical_path_handoff_bundle: must reference canonical benchmark critical path handoff bundle"
+        )
+    if not str(source["benchmark_critical_path_handoff_consistency"]).endswith(accepted_handoff_consistency):
+        raise ContractError(
+            f"{path}.source.benchmark_critical_path_handoff_consistency: must reference canonical benchmark critical path handoff consistency"
+        )
     source_summary = None
     if "source_status_summary" in source:
         source_summary = require_object(source["source_status_summary"], f"{path}.source.source_status_summary")
