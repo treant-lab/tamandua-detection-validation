@@ -11,6 +11,8 @@ except ImportError:
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
 ROADMAP = ROOT / "docs" / "benchmarks" / "ML_TRAINING_PIPELINE_ROADMAP.md"
+NEXT_VALIDATION_QUEUE = ROOT / "docs" / "benchmarks" / "NEXT_VALIDATION_WORK_QUEUE.md"
+PARALLEL_EXECUTION_BOARD = ROOT / "docs" / "benchmarks" / "PARALLEL_EXECUTION_BOARD.md"
 DATASET_GUIDE = ROOT / "apps" / "tamandua_ml" / "docs" / "DATASET_ACQUISITION.md"
 DATASET_QUICKSTART = ROOT / "apps" / "tamandua_ml" / "docs" / "DATASET_QUICKSTART.md"
 RUNBOOK = ROOT / "docs" / "apps" / "tamandua_ml" / "PRODUCTION_ACQUISITION_RUNBOOK.md"
@@ -97,6 +99,37 @@ def test_ml_training_pipeline_roadmap_uses_current_virusshare_next_step() -> Non
     assert "download_production_dataset.py" in next_step
     assert "do not invoke the direct acquisition" in next_step
     assert "wave_1_real_acquisition_launcher.ps1" not in next_step
+
+
+def test_ml_validation_queue_uses_current_virusshare_next_step() -> None:
+    text = read(NEXT_VALIDATION_QUEUE)
+
+    assert "20260620T-ml-next-action-virusshare-source-aware.json" in text
+    assert "ml_data_virusshare_fallback" in text
+    assert "wave_1_virusshare_fallback_readiness_launcher.ps1" in text
+    assert "wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute" in text
+    assert "VIRUSSHARE_API_KEY" in text
+    assert "authorized_for_guarded_execution=false" in text
+    assert "`download_production_dataset.py` invocation is\nnot valid production evidence" in text
+
+    current_intro = text.split("only the first launchable validation command by default", 1)[1]
+    current_intro = current_intro.split("The current pre-lab sweep also", 1)[0]
+    assert "20260604T-ml-prelab-next-action-validation.run.json" not in current_intro
+    assert "wave_1_real_acquisition_launcher.ps1" not in current_intro
+
+
+def test_parallel_execution_board_uses_current_virusshare_next_step() -> None:
+    text = read(PARALLEL_EXECUTION_BOARD)
+    active_work = text.split("## Current Active Work", 1)[1]
+    active_work = active_work.split("The synthetic validation-only transition probe", 1)[0]
+
+    assert "20260620T-ml-next-action-virusshare-source-aware.json" in active_work
+    assert "ml_data_virusshare_fallback" in active_work
+    assert "wave_1_virusshare_fallback_readiness_launcher.ps1" in active_work
+    assert "wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute" in active_work
+    assert "VIRUSSHARE_API_KEY" in active_work
+    assert "20260604T-ml-prelab-next-action-validation.run.json` are historical" in active_work
+    assert "Only `20260604T-ml-prelab-next-action-validation.run.json` is the current" not in active_work
 
 
 def test_ml_training_pipeline_roadmap_is_linked_from_operator_docs() -> None:
