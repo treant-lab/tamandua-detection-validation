@@ -106,7 +106,13 @@
       "additionalProperties": false,
       "required": ["benchmark_critical_path", "benchmark_critical_path_validation", "source_critical_path_summary"],
       "properties": {
-        "benchmark_critical_path": {"type": "string", "pattern": "20260604T-ml-benchmark-critical-path\\.json$"},
+        "benchmark_critical_path": {
+          "type": "string",
+          "anyOf": [
+            {"pattern": "20260604T-ml-benchmark-critical-path\\.json$"},
+            {"pattern": "20260620T2005Z-ml-benchmark-critical-path-contract-packets\\.json$"}
+          ]
+        },
         "benchmark_critical_path_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "source_critical_path_summary": {
           "type": "object",
@@ -206,8 +212,20 @@
         }
       }
     },
-    "output_dir": {"type": "string", "pattern": "20260604T-ml-benchmark-critical-path\\.handoff$"},
-    "readme": {"type": "string", "pattern": "20260604T-ml-benchmark-critical-path\\.handoff/README\\.md$"},
+    "output_dir": {
+      "type": "string",
+      "anyOf": [
+        {"pattern": "20260604T-ml-benchmark-critical-path\\.handoff$"},
+        {"pattern": "20260620T2015Z-ml-benchmark-critical-path-contract-packets\\.handoff$"}
+      ]
+    },
+    "readme": {
+      "type": "string",
+      "anyOf": [
+        {"pattern": "20260604T-ml-benchmark-critical-path\\.handoff/README\\.md$"},
+        {"pattern": "20260620T2015Z-ml-benchmark-critical-path-contract-packets\\.handoff/README\\.md$"}
+      ]
+    },
     "summary": {
       "type": "object",
       "additionalProperties": false,
@@ -248,7 +266,13 @@
           "target": {"type": "string", "minLength": 1},
           "pending_item_ids": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^ml-benchmark-unblock-[0-9]{3}$"}},
           "impacted_lanes": {"type": "array", "minItems": 1, "items": {"enum": ["ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]}},
-          "path": {"type": "string", "pattern": "20260604T-ml-benchmark-critical-path\\.handoff/.+\\.md$"},
+          "path": {
+            "type": "string",
+            "anyOf": [
+              {"pattern": "20260604T-ml-benchmark-critical-path\\.handoff/.+\\.md$"},
+              {"pattern": "20260620T2015Z-ml-benchmark-critical-path-contract-packets\\.handoff/.+\\.md$"}
+            ]
+          },
           "expected_evidence": {"type": "string", "minLength": 10},
           "evidence_items": {"type": "array", "items": {"$ref": "#/$defs/evidence_item"}},
           "evidence_item_count": {"type": "integer", "minimum": 0},

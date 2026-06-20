@@ -17468,6 +17468,15 @@ def validate_ml_benchmark_critical_path(data: dict[str, Any], path: Path) -> Non
 
 
 def validate_ml_benchmark_critical_path_handoff_bundle(data: dict[str, Any], path: Path) -> None:
+    accepted_critical_paths = (
+        "20260604T-ml-benchmark-critical-path.json",
+        "20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+    )
+    accepted_output_dirs = (
+        "20260604T-ml-benchmark-critical-path.handoff",
+        "20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff",
+    )
+    accepted_readmes = tuple(f"{output_dir}/README.md" for output_dir in accepted_output_dirs)
     require_keys(data, {"api_version", "kind", "metadata", "source", "output_dir", "readme", "summary", "handoff_files"}, str(path))
     if data["api_version"] != ML_BENCHMARK_CRITICAL_PATH_HANDOFF_BUNDLE_API_VERSION:
         raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
@@ -17486,7 +17495,7 @@ def validate_ml_benchmark_critical_path_handoff_bundle(data: dict[str, Any], pat
         {"benchmark_critical_path", "benchmark_critical_path_validation", "source_critical_path_summary"},
         f"{path}.source",
     )
-    if not str(source["benchmark_critical_path"]).endswith("20260604T-ml-benchmark-critical-path.json"):
+    if not str(source["benchmark_critical_path"]).endswith(accepted_critical_paths):
         raise ContractError(f"{path}.source.benchmark_critical_path: must reference canonical benchmark critical path")
     source_summary = require_object(source["source_critical_path_summary"], f"{path}.source.source_critical_path_summary")
     require_keys(
@@ -17572,9 +17581,9 @@ def validate_ml_benchmark_critical_path_handoff_bundle(data: dict[str, Any], pat
         raise ContractError(
             f"{path}.source.source_critical_path_summary.handoff_pending_item_ids: must match source pending item IDs"
         )
-    if not str(data["output_dir"]).endswith("20260604T-ml-benchmark-critical-path.handoff"):
+    if not str(data["output_dir"]).endswith(accepted_output_dirs):
         raise ContractError(f"{path}.output_dir: must reference canonical critical path handoff directory")
-    if not str(data["readme"]).endswith("20260604T-ml-benchmark-critical-path.handoff/README.md"):
+    if not str(data["readme"]).endswith(accepted_readmes):
         raise ContractError(f"{path}.readme: must reference canonical critical path handoff README")
     readme_path = (ROOT / str(data["readme"])).resolve() if not Path(str(data["readme"])).is_absolute() else Path(str(data["readme"]))
     if bool(source_summary["readme_written"]) != readme_path.exists():
@@ -18257,6 +18266,14 @@ def validate_server_frontend_publication_audit(data: dict[str, Any], path: Path)
 
 
 def validate_ml_benchmark_critical_path_handoff_consistency(data: dict[str, Any], path: Path) -> None:
+    accepted_critical_paths = (
+        "20260604T-ml-benchmark-critical-path.json",
+        "20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+    )
+    accepted_handoff_bundles = (
+        "20260604T-ml-benchmark-critical-path-handoff-bundle.json",
+        "20260620T2015Z-ml-benchmark-critical-path-handoff-bundle-contract-packets.json",
+    )
     require_keys(
         data,
         {"api_version", "kind", "metadata", "consistent", "blockers", "source_status_summary", "configuration", "summary", "checks"},
@@ -18275,9 +18292,9 @@ def validate_ml_benchmark_critical_path_handoff_consistency(data: dict[str, Any]
 
     configuration = require_object(data["configuration"], f"{path}.configuration")
     require_keys(configuration, {"benchmark_critical_path", "benchmark_critical_path_handoff_bundle"}, f"{path}.configuration")
-    if not str(configuration["benchmark_critical_path"]).endswith("20260604T-ml-benchmark-critical-path.json"):
+    if not str(configuration["benchmark_critical_path"]).endswith(accepted_critical_paths):
         raise ContractError(f"{path}.configuration.benchmark_critical_path: must reference canonical benchmark critical path")
-    if not str(configuration["benchmark_critical_path_handoff_bundle"]).endswith("20260604T-ml-benchmark-critical-path-handoff-bundle.json"):
+    if not str(configuration["benchmark_critical_path_handoff_bundle"]).endswith(accepted_handoff_bundles):
         raise ContractError(f"{path}.configuration.benchmark_critical_path_handoff_bundle: must reference canonical benchmark critical path handoff bundle")
 
     summary = require_object(data["summary"], f"{path}.summary")
