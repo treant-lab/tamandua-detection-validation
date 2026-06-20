@@ -8042,9 +8042,17 @@ def validate_wave1_lab_transcript_template(data: dict[str, Any], path: Path) -> 
         raise ContractError(f"{path}.metadata.claim_boundary: must describe no-execution transcript template boundary")
 
     configuration = require_object(data["configuration"], f"{path}.configuration")
-    require_keys(configuration, {"execution_packet", "lab_run_intake", "transcript_output"}, f"{path}.configuration")
+    require_keys(
+        configuration,
+        {"execution_packet", "guarded_run_command_packet", "lab_run_intake", "transcript_output"},
+        f"{path}.configuration",
+    )
     if not str(configuration["execution_packet"]).endswith("20260604T-ml-wave1-execution-packet.json"):
         raise ContractError(f"{path}.configuration.execution_packet: must reference canonical execution packet")
+    if not str(configuration["guarded_run_command_packet"]).endswith("20260604T-ml-wave1-guarded-run-command-packet.json"):
+        raise ContractError(
+            f"{path}.configuration.guarded_run_command_packet: must reference canonical guarded-run command packet"
+        )
     if not str(configuration["lab_run_intake"]).endswith("20260604T-ml-wave1-lab-run-intake.json"):
         raise ContractError(f"{path}.configuration.lab_run_intake: must reference canonical lab-run intake")
     output_path = str(data["output_path"])
@@ -8214,9 +8222,15 @@ def validate_wave1_lab_transcript_template(data: dict[str, Any], path: Path) -> 
         raise ContractError(f"{path}.vx_policy.operator_note: must explain metadata-only split exclusion")
 
     source_validation = require_object(data["source_validation"], f"{path}.source_validation")
-    require_keys(source_validation, {"execution_packet", "lab_run_intake", "source_status_summary"}, f"{path}.source_validation")
+    require_keys(
+        source_validation,
+        {"execution_packet", "guarded_run_command_packet", "lab_run_intake", "source_status_summary"},
+        f"{path}.source_validation",
+    )
     if source_validation["execution_packet"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source_validation.execution_packet: invalid validation mode")
+    if source_validation["guarded_run_command_packet"] not in {"jsonschema+built-in", "built-in"}:
+        raise ContractError(f"{path}.source_validation.guarded_run_command_packet: invalid validation mode")
     if source_validation["lab_run_intake"] not in {"jsonschema", "schema-unavailable"}:
         raise ContractError(f"{path}.source_validation.lab_run_intake: invalid validation mode")
     source_status_summary = require_object(source_validation["source_status_summary"], f"{path}.source_validation.source_status_summary")
@@ -8224,6 +8238,9 @@ def validate_wave1_lab_transcript_template(data: dict[str, Any], path: Path) -> 
         source_status_summary,
         {
             "execution_packet_safe_to_operator",
+            "guarded_run_command_packet_ready",
+            "guarded_run_command_packet_acquisition_command_matches_template",
+            "template_ready_for_operator_execution",
             "lab_run_intake_ready_for_post_acquisition_refresh",
             "lab_run_intake_blockers",
             "required_transcript_fields",
@@ -8250,6 +8267,21 @@ def validate_wave1_lab_transcript_template(data: dict[str, Any], path: Path) -> 
         },
         f"{path}.source_validation.source_status_summary",
     )
+    expected_template_ready = (
+        bool(source_status_summary["execution_packet_safe_to_operator"])
+        and bool(source_status_summary["guarded_run_command_packet_ready"])
+        and bool(source_status_summary["guarded_run_command_packet_acquisition_command_matches_template"])
+    )
+    if bool(source_status_summary["template_ready_for_operator_execution"]) != expected_template_ready:
+        raise ContractError(
+            f"{path}.source_validation.source_status_summary.template_ready_for_operator_execution: "
+            "must require execution packet safety, guarded packet readiness, and command alignment"
+        )
+    if source_status_summary["template_ready_for_operator_execution"] and not source_status_summary["guarded_run_command_packet_ready"]:
+        raise ContractError(
+            f"{path}.source_validation.source_status_summary.template_ready_for_operator_execution: "
+            "must not be true while guarded-run command packet is not ready"
+        )
     if source_status_summary["execute_guard_env"] != "1":
         raise ContractError(f"{path}.source_validation.source_status_summary.execute_guard_env: must match template guard")
     if guard_env.get("TAMANDUA_ALLOW_ML_REAL_ACQUISITION") != source_status_summary["execute_guard_env"]:

@@ -48,6 +48,19 @@ def test_validate_wave1_lab_transcript_template_rejects_source_field_summary_dri
         validate_contract(drifted, WAVE1_LAB_TRANSCRIPT_TEMPLATE_SCHEMA, validate_wave1_lab_transcript_template)
 
 
+def test_validate_wave1_lab_transcript_template_rejects_operator_ready_drift(tmp_path: Path) -> None:
+    data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    summary = data["source_validation"]["source_status_summary"]
+    summary["guarded_run_command_packet_ready"] = False
+    summary["guarded_run_command_packet_acquisition_command_matches_template"] = True
+    summary["template_ready_for_operator_execution"] = True
+    drifted = tmp_path / "20260604T-ml-wave1-real-acquisition-transcript.template.json"
+    drifted.write_text(json.dumps(data), encoding="utf-8")
+
+    with pytest.raises(ContractError, match="template_ready_for_operator_execution"):
+        validate_contract(drifted, WAVE1_LAB_TRANSCRIPT_TEMPLATE_SCHEMA, validate_wave1_lab_transcript_template)
+
+
 def test_validate_wave1_lab_transcript_template_rejects_output_summary_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
     data["source_validation"]["source_status_summary"]["output_path"] = "docs/benchmarks/runs/other.json"

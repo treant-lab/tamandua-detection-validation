@@ -22,9 +22,10 @@
     "configuration": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["execution_packet", "lab_run_intake", "transcript_output"],
+      "required": ["execution_packet", "guarded_run_command_packet", "lab_run_intake", "transcript_output"],
       "properties": {
         "execution_packet": {"type": "string", "pattern": "20260604T-ml-wave1-execution-packet\\.json$"},
+        "guarded_run_command_packet": {"type": "string", "pattern": "20260604T-ml-wave1-guarded-run-command-packet\\.json$"},
         "lab_run_intake": {"type": "string", "pattern": "20260604T-ml-wave1-lab-run-intake\\.json$"},
         "transcript_output": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.json$"}
       }
@@ -228,15 +229,19 @@
     "source_validation": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["execution_packet", "lab_run_intake", "source_status_summary"],
+      "required": ["execution_packet", "guarded_run_command_packet", "lab_run_intake", "source_status_summary"],
       "properties": {
         "execution_packet": {"enum": ["jsonschema+built-in", "built-in"]},
+        "guarded_run_command_packet": {"enum": ["jsonschema+built-in", "built-in"]},
         "lab_run_intake": {"enum": ["jsonschema", "schema-unavailable"]},
         "source_status_summary": {
           "type": "object",
           "additionalProperties": false,
           "required": [
             "execution_packet_safe_to_operator",
+            "guarded_run_command_packet_ready",
+            "guarded_run_command_packet_acquisition_command_matches_template",
+            "template_ready_for_operator_execution",
             "lab_run_intake_ready_for_post_acquisition_refresh",
             "lab_run_intake_blockers",
             "required_transcript_fields",
@@ -265,6 +270,9 @@
           ],
           "properties": {
             "execution_packet_safe_to_operator": {"type": "boolean"},
+            "guarded_run_command_packet_ready": {"type": "boolean"},
+            "guarded_run_command_packet_acquisition_command_matches_template": {"type": "boolean"},
+            "template_ready_for_operator_execution": {"type": "boolean"},
             "lab_run_intake_ready_for_post_acquisition_refresh": {"type": "boolean"},
             "lab_run_intake_blockers": {
               "type": "array",
