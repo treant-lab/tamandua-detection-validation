@@ -15829,10 +15829,6 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
             "items_with_resolution_command_exposure",
             "items_without_resolution_command_exposure",
             "contract_packet_coverage",
-            "contract_packets_all_validated",
-            "contract_packets_validated",
-            "next_operator_publication_decision",
-            "ml2_ml3_agent_smoke_unblocks_production",
             "pending_item_ids",
             "resolved_item_ids",
             "goal_complete",
@@ -16963,9 +16959,17 @@ def validate_ml_benchmark_critical_path(data: dict[str, Any], path: Path) -> Non
         },
         f"{path}.source",
     )
-    if not str(source["benchmark_lane_rollup"]).endswith("20260604T-ml-benchmark-lane-rollup.json"):
+    if not (
+        str(source["benchmark_lane_rollup"]).endswith("20260604T-ml-benchmark-lane-rollup.json")
+        or str(source["benchmark_lane_rollup"]).endswith("20260620T1955Z-ml-benchmark-lane-rollup-contract-packets.json")
+    ):
         raise ContractError(f"{path}.source.benchmark_lane_rollup: must reference canonical benchmark lane rollup")
-    if not str(source["benchmark_unblock_validation_status"]).endswith("20260604T-ml-benchmark-unblock-validation-status.json"):
+    if not (
+        str(source["benchmark_unblock_validation_status"]).endswith("20260604T-ml-benchmark-unblock-validation-status.json")
+        or str(source["benchmark_unblock_validation_status"]).endswith(
+            "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json"
+        )
+    ):
         raise ContractError(f"{path}.source.benchmark_unblock_validation_status: must reference canonical benchmark unblock validation status")
     source_alignment = require_object(source["source_alignment"], f"{path}.source.source_alignment")
     require_keys(
@@ -17031,6 +17035,28 @@ def validate_ml_benchmark_critical_path(data: dict[str, Any], path: Path) -> Non
     for field in ["benchmark_lane_rollup_validation", "benchmark_unblock_validation_status_validation"]:
         if source_status_summary[field] != source[field]:
             raise ContractError(f"{path}.source.source_status_summary.{field}: must match source.{field}")
+    packet_fields = [
+        "contract_packets_all_validated",
+        "contract_packets_validated",
+        "next_operator_publication_decision",
+        "ml2_ml3_agent_smoke_unblocks_production",
+    ]
+    summary = require_object(data["summary"], f"{path}.summary")
+    if any(field in summary or field in source_status_summary for field in packet_fields):
+        for field in packet_fields:
+            if field not in summary or field not in source_status_summary:
+                raise ContractError(f"{path}.summary.{field}: packet coverage fields must be present together")
+        if bool(summary["contract_packets_all_validated"]) is not True:
+            raise ContractError(f"{path}.summary.contract_packets_all_validated: must be true")
+        if int(summary["contract_packets_validated"]) != 3:
+            raise ContractError(f"{path}.summary.contract_packets_validated: must be 3")
+        if str(summary["next_operator_publication_decision"]) != "hold_do_not_push":
+            raise ContractError(f"{path}.summary.next_operator_publication_decision: must remain hold_do_not_push")
+        if bool(summary["ml2_ml3_agent_smoke_unblocks_production"]) is not False:
+            raise ContractError(f"{path}.summary.ml2_ml3_agent_smoke_unblocks_production: must be false")
+        for field in packet_fields:
+            if source_status_summary[field] != summary[field]:
+                raise ContractError(f"{path}.source.source_status_summary.{field}: must match summary")
     source_pending_ids = {
         str(item_id)
         for item_id in require_array(
@@ -17072,7 +17098,6 @@ def validate_ml_benchmark_critical_path(data: dict[str, Any], path: Path) -> Non
         validate_ml_benchmark_lane_rollup(rollup_payload, rollup_path)
         rollup_summary = require_object(rollup_payload["summary"], f"{rollup_path}.summary")
 
-    summary = require_object(data["summary"], f"{path}.summary")
     require_keys(
         summary,
         {

@@ -116,6 +116,14 @@ def add_evidence_contract(report: dict) -> dict:
     report["summary"]["agent_onnx_detection_surface_covered"] = True
     report["summary"]["tamandua_detection_surface_covered"] = True
     report["summary"]["benchmark_detection_surface_contract_ready"] = True
+    packet_coverage = {
+        "contract_packets_all_validated": True,
+        "contract_packets_validated": 3,
+        "next_operator_publication_decision": "hold_do_not_push",
+        "ml2_ml3_agent_smoke_unblocks_production": False,
+    }
+    report["source"]["source_status_summary"].update(packet_coverage)
+    report["summary"].update(packet_coverage)
     report["summary"]["goal_complete"] = GOAL_SNAPSHOT["goal_complete"]
     report["summary"]["completion_state"] = GOAL_SNAPSHOT["completion_state"]
     report["summary"]["goal_usable_required_evidence"] = GOAL_SNAPSHOT["goal_usable_required_evidence"]
@@ -136,9 +144,9 @@ def test_validate_ml_benchmark_critical_path_accepts_jsonschema_path(tmp_path: P
             "claim_boundary": "No-execution ML benchmark critical path only.",
         },
         "source": {
-            "benchmark_lane_rollup": "docs/benchmarks/runs/20260604T-ml-benchmark-lane-rollup.json",
+            "benchmark_lane_rollup": "docs/benchmarks/runs/20260620T1955Z-ml-benchmark-lane-rollup-contract-packets.json",
             "benchmark_lane_rollup_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status.json",
+            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
             "benchmark_unblock_validation_status_validation": "jsonschema+built-in",
             "source_alignment": {
                 "critical_path_status_matches_rollup_status": True,
@@ -221,9 +229,9 @@ def test_validate_ml_benchmark_critical_path_rejects_false_source_alignment(tmp_
             "claim_boundary": "No-execution ML benchmark critical path only.",
         },
         "source": {
-            "benchmark_lane_rollup": "docs/benchmarks/runs/20260604T-ml-benchmark-lane-rollup.json",
+            "benchmark_lane_rollup": "docs/benchmarks/runs/20260620T1955Z-ml-benchmark-lane-rollup-contract-packets.json",
             "benchmark_lane_rollup_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status.json",
+            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
             "benchmark_unblock_validation_status_validation": "jsonschema+built-in",
             "source_alignment": {
                 "critical_path_status_matches_rollup_status": False,
@@ -309,9 +317,9 @@ def test_validate_ml_benchmark_critical_path_rejects_wave1_step_without_transcri
             "claim_boundary": "No-execution ML benchmark critical path only.",
         },
         "source": {
-            "benchmark_lane_rollup": "docs/benchmarks/runs/20260604T-ml-benchmark-lane-rollup.json",
+            "benchmark_lane_rollup": "docs/benchmarks/runs/20260620T1955Z-ml-benchmark-lane-rollup-contract-packets.json",
             "benchmark_lane_rollup_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status.json",
+            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
             "benchmark_unblock_validation_status_validation": "jsonschema+built-in",
             "source_alignment": {
                 "critical_path_status_matches_rollup_status": True,
@@ -390,9 +398,9 @@ def test_validate_ml_benchmark_critical_path_rejects_missing_source_pending_item
             "claim_boundary": "No-execution ML benchmark critical path only.",
         },
         "source": {
-            "benchmark_lane_rollup": "docs/benchmarks/runs/20260604T-ml-benchmark-lane-rollup.json",
+            "benchmark_lane_rollup": "docs/benchmarks/runs/20260620T1955Z-ml-benchmark-lane-rollup-contract-packets.json",
             "benchmark_lane_rollup_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status.json",
+            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
             "benchmark_unblock_validation_status_validation": "jsonschema+built-in",
             "source_alignment": {
                 "critical_path_status_matches_rollup_status": True,

@@ -106,9 +106,15 @@
       "additionalProperties": false,
       "required": ["benchmark_lane_rollup", "benchmark_lane_rollup_validation", "benchmark_unblock_validation_status", "benchmark_unblock_validation_status_validation", "source_alignment", "source_status_summary"],
       "properties": {
-        "benchmark_lane_rollup": {"type": "string", "pattern": "20260604T-ml-benchmark-lane-rollup\\.json$"},
+        "benchmark_lane_rollup": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-lane-rollup|20260620T1955Z-ml-benchmark-lane-rollup-contract-packets)\\.json$"
+        },
         "benchmark_lane_rollup_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "benchmark_unblock_validation_status": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-validation-status\\.json$"},
+        "benchmark_unblock_validation_status": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-unblock-validation-status|20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets)\\.json$"
+        },
         "benchmark_unblock_validation_status_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "source_alignment": {
           "type": "object",
@@ -182,6 +188,10 @@
             "resolved_by_category": {"$ref": "#/$defs/category_counts"},
             "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
             "upstream_blocked": {"type": "integer", "minimum": 0},
+            "contract_packets_all_validated": {"const": true},
+            "contract_packets_validated": {"const": 3},
+            "next_operator_publication_decision": {"const": "hold_do_not_push"},
+            "ml2_ml3_agent_smoke_unblocks_production": {"const": false},
             "pending_item_ids": {
               "type": "array",
               "items": {"type": "string", "pattern": "^ml-benchmark-unblock-[0-9]{3}$"}
@@ -236,6 +246,10 @@
         "resolved_by_category": {"$ref": "#/$defs/category_counts"},
         "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
         "upstream_blocked": {"type": "integer", "minimum": 0},
+        "contract_packets_all_validated": {"const": true},
+        "contract_packets_validated": {"const": 3},
+        "next_operator_publication_decision": {"const": "hold_do_not_push"},
+        "ml2_ml3_agent_smoke_unblocks_production": {"const": false},
         "lanes_impacted": {"type": "integer", "minimum": 0},
         "evidence_item_count": {"type": "integer", "minimum": 0},
         "evidence_usable_for_goal": {"type": "integer", "minimum": 0},
