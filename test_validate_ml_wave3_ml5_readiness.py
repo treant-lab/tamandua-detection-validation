@@ -24,6 +24,20 @@ from validate_ml_contracts import (  # noqa: E402
 from test_validate_ml_wave2_ml1_readiness import GOAL_SNAPSHOT  # noqa: E402
 
 
+def upstream_goal_snapshot() -> dict:
+    upstream = RUNS_DIR / "20260604T-ml-wave2-ml2-ml3-readiness-probe.json"
+    if not upstream.exists():
+        return copy.deepcopy(GOAL_SNAPSHOT)
+    payload = json.loads(upstream.read_text(encoding="utf-8"))
+    source = payload.get("source", {}) if isinstance(payload.get("source"), dict) else {}
+    summary = source.get("source_status_summary", {}) if isinstance(source.get("source_status_summary"), dict) else {}
+    snapshot = copy.deepcopy(GOAL_SNAPSHOT)
+    for key in snapshot:
+        if key in summary:
+            snapshot[key] = summary[key]
+    return snapshot
+
+
 def valid_wave3_ml5_readiness() -> dict:
     return {
         "api_version": "tamandua.io/ml-wave3-ml5-readiness-probe/v1",
@@ -42,6 +56,7 @@ def valid_wave3_ml5_readiness() -> dict:
             "model_contract": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
             "model_card": "docs/benchmarks/runs/ml-prod-candidate-v1-model-card.md",
             "ml3_report": "docs/benchmarks/runs/ml-prod-candidate-v1-ml3-agent-parity.json",
+            "ml3_agent_side_evidence": "docs/benchmarks/runs/20260620T-ml3-agent-parity-with-win-template.json",
             "ml4_report": "docs/benchmarks/runs/ml-prod-candidate-v1-ml4-api.json",
             "replay_outcomes": "docs/benchmarks/runs/ml-prod-candidate-v1-ml5-replay-outcomes.json",
             "launcher": "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_3_ml5_pipeline_launcher.ps1",
@@ -60,11 +75,13 @@ def valid_wave3_ml5_readiness() -> dict:
             "ml1_model_card": "docs/benchmarks/runs/ml-prod-candidate-v1-model-card.md",
             "ml3_report": "docs/benchmarks/runs/ml-prod-candidate-v1-ml3-agent-parity.json",
             "ml3_report_validation": "missing",
+            "ml3_agent_side_evidence": "docs/benchmarks/runs/20260620T-ml3-agent-parity-with-win-template.json",
+            "ml3_agent_side_evidence_validation": "missing",
             "ml4_report": "docs/benchmarks/runs/ml-prod-candidate-v1-ml4-api.json",
             "ml4_report_validation": "missing",
             "replay_outcomes": "docs/benchmarks/runs/ml-prod-candidate-v1-ml5-replay-outcomes.json",
             "source_status_summary": {
-                **GOAL_SNAPSHOT,
+                **upstream_goal_snapshot(),
                 "wave2_ml2_ml3_ready_for_parity": False,
                 "wave2_ml2_ml3_lab_guard_proof_mismatch_count": 0,
                 "wave2_ml2_ml3_ml_lab_standby_guards_unset": True,
@@ -78,6 +95,11 @@ def valid_wave3_ml5_readiness() -> dict:
                 "ml1_model_card_nonempty": False,
                 "ml1_model_card_references_contract": False,
                 "ml3_agent_parity_report_present": False,
+                "ml3_agent_side_evidence_present": False,
+                "ml3_agent_side_evidence_valid": False,
+                "ml3_agent_side_evidence_quality_gate_passed": False,
+                "ml3_agent_side_evidence_sample_count": 0,
+                "ml3_agent_side_evidence_win_template_attached": False,
                 "ml4_service_report_present": False,
                 "ml5_replay_outcomes_present": False,
                 "ml5_replay_outcome_sample_count": 0,
@@ -134,6 +156,10 @@ def valid_wave3_ml5_readiness() -> dict:
             {"name": "ml3_agent_parity_report_present", "passed": False, "detail": "ml3"},
             {"name": "ml3_agent_parity_report_passed", "passed": False, "detail": "ml3"},
             {"name": "ml3_agent_parity_report_passed_sample_coverage", "passed": False, "detail": "ml3"},
+            {"name": "ml3_agent_side_evidence_present", "passed": False, "detail": "ml3 agent-side"},
+            {"name": "ml3_agent_side_evidence_valid", "passed": False, "detail": "ml3 agent-side"},
+            {"name": "ml3_agent_side_evidence_quality_gate_passed", "passed": False, "detail": "ml3 agent-side"},
+            {"name": "ml3_agent_side_evidence_win_template_attached", "passed": False, "detail": "ml3 agent-side"},
             {"name": "ml4_service_report_present", "passed": False, "detail": "ml4"},
             {"name": "ml4_service_report_passed", "passed": False, "detail": "ml4"},
             {"name": "ml4_service_report_passed_sample_coverage", "passed": False, "detail": "ml4"},
@@ -183,6 +209,10 @@ def sync_source(payload: dict) -> None:
         "ml1_model_card_nonempty": "ml1_model_card_nonempty",
         "ml1_model_card_references_contract": "ml1_model_card_references_contract",
         "ml3_agent_parity_report_present": "ml3_agent_parity_report_present",
+        "ml3_agent_side_evidence_present": "ml3_agent_side_evidence_present",
+        "ml3_agent_side_evidence_valid": "ml3_agent_side_evidence_valid",
+        "ml3_agent_side_evidence_quality_gate_passed": "ml3_agent_side_evidence_quality_gate_passed",
+        "ml3_agent_side_evidence_win_template_attached": "ml3_agent_side_evidence_win_template_attached",
         "ml4_service_report_present": "ml4_service_report_present",
         "ml5_replay_outcomes_present": "ml5_replay_outcomes_present",
         "ml5_replay_outcomes_have_malicious": "ml5_replay_outcomes_have_malicious",
@@ -199,6 +229,9 @@ def sync_source(payload: dict) -> None:
         0 if check_by_name["wave2_ml4_lab_guard_proof_clean"]["passed"] else 1
     )
     source_summary["ml5_replay_outcome_sample_count"] = 2 if check_by_name["ml5_replay_outcomes_nonempty"]["passed"] else 0
+    source_summary["ml3_agent_side_evidence_sample_count"] = (
+        6 if check_by_name["ml3_agent_side_evidence_quality_gate_passed"]["passed"] else 0
+    )
     input_checks = [name for name in check_by_name if name.startswith("required_input_exists:")]
     source_summary["required_input_count"] = len(input_checks)
     source_summary["required_inputs_present"] = sum(1 for name in input_checks if check_by_name[name]["passed"] is True)
@@ -244,6 +277,7 @@ def test_validate_wave3_ml5_readiness_rejects_ready_with_failed_required_input()
     payload["source"]["ml1_report_validation"] = "jsonschema+built-in"
     payload["source"]["ml1_model_contract_validation"] = "jsonschema+built-in"
     payload["source"]["ml3_report_validation"] = "jsonschema+built-in"
+    payload["source"]["ml3_agent_side_evidence_validation"] = "jsonschema+built-in"
     payload["source"]["ml4_report_validation"] = "jsonschema+built-in"
     sync_source(payload)
 
@@ -426,6 +460,7 @@ def test_validate_wave3_ml5_readiness_rejects_not_ready_when_all_checks_pass() -
     payload["source"]["ml1_report_validation"] = "jsonschema+built-in"
     payload["source"]["ml1_model_contract_validation"] = "jsonschema+built-in"
     payload["source"]["ml3_report_validation"] = "jsonschema+built-in"
+    payload["source"]["ml3_agent_side_evidence_validation"] = "jsonschema+built-in"
     payload["source"]["ml4_report_validation"] = "jsonschema+built-in"
     sync_source(payload)
 

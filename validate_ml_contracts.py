@@ -11720,6 +11720,7 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
             "model_contract",
             "model_card",
             "ml3_report",
+            "ml3_agent_side_evidence",
             "ml4_report",
             "replay_outcomes",
             "launcher",
@@ -11731,6 +11732,7 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         "model_contract": "ml-prod-candidate-v1-model-contract.json",
         "model_card": "ml-prod-candidate-v1-model-card.md",
         "ml3_report": "ml-prod-candidate-v1-ml3-agent-parity.json",
+        "ml3_agent_side_evidence": "20260620T-ml3-agent-parity-with-win-template.json",
         "ml4_report": "ml-prod-candidate-v1-ml4-api.json",
         "replay_outcomes": "ml-prod-candidate-v1-ml5-replay-outcomes.json",
         "launcher": "wave_3_ml5_pipeline_launcher.ps1",
@@ -11756,6 +11758,8 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
             "ml1_model_card",
             "ml3_report",
             "ml3_report_validation",
+            "ml3_agent_side_evidence",
+            "ml3_agent_side_evidence_validation",
             "ml4_report",
             "ml4_report_validation",
             "replay_outcomes",
@@ -11771,6 +11775,7 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         "ml1_model_contract": "model_contract",
         "ml1_model_card": "model_card",
         "ml3_report": "ml3_report",
+        "ml3_agent_side_evidence": "ml3_agent_side_evidence",
         "ml4_report": "ml4_report",
         "replay_outcomes": "replay_outcomes",
     }
@@ -11808,6 +11813,10 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         "ml3_agent_parity_report_present",
         "ml3_agent_parity_report_passed",
         "ml3_agent_parity_report_passed_sample_coverage",
+        "ml3_agent_side_evidence_present",
+        "ml3_agent_side_evidence_valid",
+        "ml3_agent_side_evidence_quality_gate_passed",
+        "ml3_agent_side_evidence_win_template_attached",
         "ml4_service_report_present",
         "ml4_service_report_passed",
         "ml4_service_report_passed_sample_coverage",
@@ -11843,6 +11852,11 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
             "ml1_model_card_nonempty",
             "ml1_model_card_references_contract",
             "ml3_agent_parity_report_present",
+            "ml3_agent_side_evidence_present",
+            "ml3_agent_side_evidence_valid",
+            "ml3_agent_side_evidence_quality_gate_passed",
+            "ml3_agent_side_evidence_sample_count",
+            "ml3_agent_side_evidence_win_template_attached",
             "ml4_service_report_present",
             "ml5_replay_outcomes_present",
             "ml5_replay_outcome_sample_count",
@@ -11912,6 +11926,10 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         "ml1_model_card_nonempty": "ml1_model_card_nonempty",
         "ml1_model_card_references_contract": "ml1_model_card_references_contract",
         "ml3_agent_parity_report_present": "ml3_agent_parity_report_present",
+        "ml3_agent_side_evidence_present": "ml3_agent_side_evidence_present",
+        "ml3_agent_side_evidence_valid": "ml3_agent_side_evidence_valid",
+        "ml3_agent_side_evidence_quality_gate_passed": "ml3_agent_side_evidence_quality_gate_passed",
+        "ml3_agent_side_evidence_win_template_attached": "ml3_agent_side_evidence_win_template_attached",
         "ml4_service_report_present": "ml4_service_report_present",
         "ml5_replay_outcomes_present": "ml5_replay_outcomes_present",
         "ml5_replay_outcomes_have_malicious": "ml5_replay_outcomes_have_malicious",
@@ -11938,6 +11956,7 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         "ml1_benchmark_report_valid": "ml1_report_validation",
         "ml1_model_contract_valid": "ml1_model_contract_validation",
         "ml3_agent_parity_report_valid": "ml3_report_validation",
+        "ml3_agent_side_evidence_valid": "ml3_agent_side_evidence_validation",
         "ml4_service_report_valid": "ml4_report_validation",
     }
     for check_name, source_field in optional_report_validations.items():
@@ -12010,6 +12029,13 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
             raise ContractError(f"{path}.ready_for_ml5_pipeline_replay: cannot be ready with weak replay outcomes {check_name}")
         if check_by_name["ml5_replay_outcomes_present"]["passed"] is True and not passed and blocker not in blockers:
             raise ContractError(f"{path}.blockers: {blocker} is required")
+
+    if (int(source_summary["ml3_agent_side_evidence_sample_count"]) > 0) != (
+        check_by_name.get("ml3_agent_side_evidence_quality_gate_passed", {}).get("passed") is True
+    ):
+        raise ContractError(
+            f"{path}.source.source_status_summary.ml3_agent_side_evidence_sample_count: must match agent-side quality gate"
+        )
 
     quality_blockers = {
         "ml1_benchmark_report_candidate_passed": "ml1_benchmark_report_quality_gate_not_pass",
