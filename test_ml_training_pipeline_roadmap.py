@@ -98,7 +98,12 @@ def test_ml_training_pipeline_roadmap_uses_current_virusshare_next_step() -> Non
     next_step = text.split("## Next Operator Step", 1)[1]
 
     assert "20260620T-ml-execution-status-virusshare-source-aware.json" in text
+    assert "20260620T2310Z-ml-execution-status-after-secret-sanitization.json" in text
+    assert "20260620T2310Z-ml-platform-readiness-after-secret-sanitization.json" in text
+    assert "20260620T2310Z-ml-mirror-publication-after-secret-sanitization.json" in text
+    assert "hold_do_not_push" in text
     assert "removes the stale MalwareBazaar secret\n  requirement" in text
+    assert "keeps guarded execution blocked until a real non-placeholder\n  `VIRUSSHARE_API_KEY` is present" in text
     assert "wave_1_virusshare_fallback_readiness_launcher.ps1" in next_step
     assert "wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute" in next_step
     assert "download_production_dataset.py" in next_step
