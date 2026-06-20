@@ -101,6 +101,8 @@ def test_ml_training_pipeline_roadmap_uses_current_virusshare_next_step() -> Non
     assert "20260620T2310Z-ml-execution-status-after-secret-sanitization.json" in text
     assert "20260620T2310Z-ml-platform-readiness-after-secret-sanitization.json" in text
     assert "20260620T2310Z-ml-mirror-publication-after-secret-sanitization.json" in text
+    assert "20260620T2320Z-ml-next-action-secret-readiness.json" in text
+    assert "no-execution env-remediation" in text
     assert "hold_do_not_push" in text
     assert "removes the stale MalwareBazaar secret\n  requirement" in text
     assert "keeps guarded execution blocked until a real non-placeholder\n  `VIRUSSHARE_API_KEY` is present" in text

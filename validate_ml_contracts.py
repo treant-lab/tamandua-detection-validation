@@ -3389,6 +3389,8 @@ def validate_next_action_run(data: dict[str, Any], path: Path) -> None:
         and env_by_name["TAMANDUA_ML_DATA_ROOT"].get("outside_repo") is True
     )
     no_real_operation_markers = {
+        "set_required_env": ("No execution: required env remediation only.",),
+        "fix_required_env": ("No execution: required env remediation only.",),
         "launch_package": (
             "Real acquisition was not executed",
             "VirusShare fallback readiness refreshed without acquisition",
