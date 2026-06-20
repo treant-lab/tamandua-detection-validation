@@ -25883,6 +25883,8 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
             "metadata",
             "source_authorization_packet",
             "operator_decision",
+            "source_auth",
+            "pre_run_transcript_state",
             "commands",
             "safety_invariants",
             "expected_evidence",
@@ -25954,6 +25956,65 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.operator_decision.publication_decision: must match guarded readiness")
     if decision["publication_decision"] == "hold_do_not_push" and "blocked" not in str(decision["publication_reason"]).lower():
         raise ContractError(f"{path}.operator_decision.publication_reason: hold decision must explain blocker")
+
+    source_auth = require_object(data["source_auth"], f"{path}.source_auth")
+    require_keys(
+        source_auth,
+        {"selected_route", "env", "required_for_selected_route", "present", "value_redacted", "operator_note"},
+        f"{path}.source_auth",
+    )
+    expected_selected_route = str(authorization_summary.get("source_decision_selected_route", "virusshare_fallback"))
+    expected_source_auth_present = "virusshare_api_key_present" not in blockers
+    if source_auth["selected_route"] != expected_selected_route:
+        raise ContractError(f"{path}.source_auth.selected_route: must match authorization source decision")
+    if source_auth["env"] != "VIRUSSHARE_API_KEY":
+        raise ContractError(f"{path}.source_auth.env: must be VIRUSSHARE_API_KEY")
+    if source_auth["required_for_selected_route"] is not (expected_selected_route == "virusshare_fallback"):
+        raise ContractError(f"{path}.source_auth.required_for_selected_route: must match selected route")
+    if source_auth["present"] is not expected_source_auth_present:
+        raise ContractError(f"{path}.source_auth.present: must match VirusShare blockers")
+    if source_auth["value_redacted"] != ("present" if expected_source_auth_present else "absent"):
+        raise ContractError(f"{path}.source_auth.value_redacted: must expose only redacted presence")
+    if "secret store" not in str(source_auth["operator_note"]):
+        raise ContractError(f"{path}.source_auth.operator_note: must direct operator to isolated secret store")
+
+    transcript_state = require_object(data["pre_run_transcript_state"], f"{path}.pre_run_transcript_state")
+    require_keys(
+        transcript_state,
+        {
+            "pre_execution_contract_validation",
+            "pre_execution_contract_valid",
+            "pre_execution_contract_missing",
+            "acceptance_intake_contract_validation",
+            "acceptance_intake_contract_valid",
+            "valid_for_manifest_publish",
+            "operator_note",
+        },
+        f"{path}.pre_run_transcript_state",
+    )
+    transcript_expectations = {
+        "pre_execution_contract_validation": str(
+            authorization_summary.get("wave1_pre_execution_transcript_contract_validation_before_run", "missing")
+        ),
+        "pre_execution_contract_valid": bool(
+            authorization_summary.get("wave1_pre_execution_transcript_contract_valid_before_run", False)
+        ),
+        "pre_execution_contract_missing": bool(
+            authorization_summary.get("wave1_pre_execution_transcript_contract_missing_before_run", True)
+        ),
+        "acceptance_intake_contract_validation": str(
+            authorization_summary.get("wave1_acceptance_intake_transcript_contract_validation", "missing")
+        ),
+        "acceptance_intake_contract_valid": bool(
+            authorization_summary.get("wave1_acceptance_intake_transcript_contract_valid", False)
+        ),
+        "valid_for_manifest_publish": False,
+    }
+    for field, expected in transcript_expectations.items():
+        if transcript_state[field] != expected:
+            raise ContractError(f"{path}.pre_run_transcript_state.{field}: must match authorization transcript state")
+    if "fresh guarded acquisition transcript" not in str(transcript_state["operator_note"]):
+        raise ContractError(f"{path}.pre_run_transcript_state.operator_note: must require fresh guarded transcript")
 
     commands = require_object(data["commands"], f"{path}.commands")
     if env_remediation_selected:

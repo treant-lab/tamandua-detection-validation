@@ -10,6 +10,8 @@
     "metadata",
     "source_authorization_packet",
     "operator_decision",
+    "source_auth",
+    "pre_run_transcript_state",
     "commands",
     "safety_invariants",
     "expected_evidence",
@@ -55,6 +57,48 @@
         "publication_reason": {"type": "string", "minLength": 10},
         "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
         "failed_authorization_checks": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "source_auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selected_route",
+        "env",
+        "required_for_selected_route",
+        "present",
+        "value_redacted",
+        "operator_note"
+      ],
+      "properties": {
+        "selected_route": {"const": "virusshare_fallback"},
+        "env": {"const": "VIRUSSHARE_API_KEY"},
+        "required_for_selected_route": {"const": true},
+        "present": {"type": "boolean"},
+        "value_redacted": {"enum": ["present", "absent"]},
+        "operator_note": {"type": "string", "minLength": 40}
+      }
+    },
+    "pre_run_transcript_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pre_execution_contract_validation",
+        "pre_execution_contract_valid",
+        "pre_execution_contract_missing",
+        "acceptance_intake_contract_validation",
+        "acceptance_intake_contract_valid",
+        "valid_for_manifest_publish",
+        "operator_note"
+      ],
+      "properties": {
+        "pre_execution_contract_validation": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "pre_execution_contract_valid": {"type": "boolean"},
+        "pre_execution_contract_missing": {"type": "boolean"},
+        "acceptance_intake_contract_validation": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "acceptance_intake_contract_valid": {"type": "boolean"},
+        "valid_for_manifest_publish": {"const": false},
+        "operator_note": {"type": "string", "minLength": 40}
       }
     },
     "commands": {
