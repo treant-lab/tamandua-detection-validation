@@ -102,6 +102,8 @@ def test_ml_training_pipeline_roadmap_uses_current_virusshare_next_step() -> Non
     assert "20260620T2310Z-ml-platform-readiness-after-secret-sanitization.json" in text
     assert "20260620T2310Z-ml-mirror-publication-after-secret-sanitization.json" in text
     assert "20260620T2320Z-ml-next-action-secret-readiness.json" in text
+    assert "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json" in text
+    assert "renders no guarded launcher in Markdown" in text
     assert "no-execution env-remediation" in text
     assert "hold_do_not_push" in text
     assert "removes the stale MalwareBazaar secret\n  requirement" in text
@@ -173,6 +175,8 @@ def test_operator_docs_route_real_acquisition_through_guarded_launcher() -> None
     runbook = read(RUNBOOK)
     normalized_runbook = re.sub(r"\s+", " ", runbook)
     assert "safe_commands" in runbook
+    assert "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json" in runbook
+    assert "contains no validation or execute command" in runbook
     assert "direct `download_production_dataset.py` invocation" in runbook
     assert "dry-run command" in normalized_runbook
     assert "validation-only launchers" in normalized_runbook
@@ -211,14 +215,16 @@ def test_ml_operator_docs_do_not_present_malwarebazaar_launcher_as_current() -> 
     training_quickstart = read(TRAINING_QUICKSTART)
 
     assert "20260620T2320Z-ml-next-action-secret-readiness.json" in benchmark_plan
+    assert "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json" in benchmark_plan
     assert "not the current next action while the secret is missing" in benchmark_plan
     assert "20260620T-ml-next-action-virusshare-source-aware.json" in benchmark_plan
     assert "must not authorize the\n  current Wave 1 route" in benchmark_plan
     assert "authorized_for_guarded_execution=true" not in benchmark_plan
 
     assert "20260620T2320Z-ml-next-action-secret-readiness.json" in platform_plan
+    assert "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json" in platform_plan
     assert "authorized_for_guarded_execution=false" in platform_plan
-    assert "non-placeholder\n  `VIRUSSHARE_API_KEY`" in platform_plan
+    assert "non-placeholder `VIRUSSHARE_API_KEY`" in platform_plan
     assert "It must stay\n  `authorized_for_guarded_execution=true`" not in platform_plan
 
     assert "no-execution env remediation" in training_quickstart

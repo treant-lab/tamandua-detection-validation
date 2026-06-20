@@ -27,6 +27,13 @@ VIRUSSHARE_SOURCE_AWARE = (
     / "runs"
     / "20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware.json"
 )
+SECRET_READINESS = (
+    ROOT
+    / "docs"
+    / "benchmarks"
+    / "runs"
+    / "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json"
+)
 CANONICAL = VIRUSSHARE_SOURCE_AWARE
 
 
@@ -48,6 +55,25 @@ def test_validate_ml_next_gate_authorization_packet_accepts_virusshare_source_aw
     )
 
     assert mode == "jsonschema+built-in"
+
+
+def test_validate_ml_next_gate_authorization_packet_accepts_secret_readiness_path() -> None:
+    mode = validate_contract(
+        SECRET_READINESS,
+        ML_NEXT_GATE_AUTHORIZATION_PACKET_SCHEMA,
+        validate_ml_next_gate_authorization_packet,
+    )
+
+    data = json.loads(SECRET_READINESS.read_text(encoding="utf-8"))
+    markdown = SECRET_READINESS.with_suffix(".md").read_text(encoding="utf-8")
+
+    assert mode == "jsonschema+built-in"
+    assert data["authorization"]["action_type"] == "set_required_env"
+    assert data["authorization"]["validation_command"] is None
+    assert data["authorization"]["execute_command"] is None
+    assert data["authorized_for_guarded_execution"] is False
+    assert "No guarded execution is authorized by this packet." in markdown
+    assert "-Execute" not in markdown
 
 
 def test_next_gate_markdown_prints_virusshare_secret_placeholder() -> None:
