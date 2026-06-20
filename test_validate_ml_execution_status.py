@@ -32,7 +32,10 @@ def valid_status(tmp_path: Path) -> dict:
     write_handoff(build_plan(environ={}), handoff_dir)
     return build_status(
         handoff_dir=handoff_dir,
-        environ={"TAMANDUA_ML_DATA_ROOT": str(tmp_path / "external-ml-data")},
+        environ={
+            "TAMANDUA_ML_DATA_ROOT": str(tmp_path / "external-ml-data"),
+            "TAMANDUA_MALWAREBAZAAR_AUTH_KEY": "redacted-test-key",
+        },
         report_id="test_ml_execution_status",
     )
 

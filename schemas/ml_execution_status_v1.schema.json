@@ -46,7 +46,9 @@
             "blocked_dependency": {"type": "integer", "minimum": 0}
           }
         },
-        "handoff_dir": {"type": "string", "minLength": 1}
+        "handoff_dir": {"type": "string", "minLength": 1},
+        "source_decision_ref": {"type": ["string", "null"]},
+        "source_decision_route": {"type": ["string", "null"]}
       }
     },
     "required_env": {
@@ -108,6 +110,12 @@
           "placeholder": {"type": "string", "minLength": 1},
           "artifact": {"type": "string", "minLength": 1},
           "source_artifact": {"type": "string", "minLength": 1},
+          "source_decision_ref": {"type": "string"},
+          "source_decision_status": {"type": "string"},
+          "required_env": {
+            "type": "array",
+            "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"}
+          },
           "dependency_id": {"type": "string", "pattern": "^ml[a-z0-9_]+$"},
           "dependency_status": {"type": "string", "minLength": 1},
           "dependency_evidence_state": {"type": "string", "minLength": 1}

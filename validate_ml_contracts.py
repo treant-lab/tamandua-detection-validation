@@ -1602,9 +1602,12 @@ def validate_execution_status(data: dict[str, Any], path: Path) -> None:
         if action_type not in EXECUTION_STATUS_ACTION_TYPES:
             raise ContractError(f"{path}.next_actions[{index}].action_type: invalid value {action_type!r}")
         package_id = str(action["package_id"])
-        if package_id not in package_by_id:
+        package_lookup_id = {
+            "ml_data_virusshare_fallback": "ml_data_governed_acquisition",
+        }.get(package_id, package_id)
+        if package_lookup_id not in package_by_id:
             raise ContractError(f"{path}.next_actions[{index}].package_id: unknown package {package_id!r}")
-        if action["wave"] != package_by_id[package_id]["wave"]:
+        if action["wave"] != package_by_id[package_lookup_id]["wave"]:
             raise ContractError(f"{path}.next_actions[{index}].wave: must match package wave")
         priority = action["priority"]
         if not isinstance(priority, int) or priority < 1:
@@ -1617,7 +1620,7 @@ def validate_execution_status(data: dict[str, Any], path: Path) -> None:
                 {"validation_command", "execute_command", "execute_guard_env", "claim_boundary"},
                 f"{path}.next_actions[{index}]",
             )
-            if not package_by_id[package_id]["launch_ready"] or package_by_id[package_id]["status"] != "ready":
+            if not package_by_id[package_lookup_id]["launch_ready"] or package_by_id[package_lookup_id]["status"] != "ready":
                 raise ContractError(f"{path}.next_actions[{index}]: launch_package must target a ready launchable package")
             if " -Execute" not in str(action["execute_command"]):
                 raise ContractError(f"{path}.next_actions[{index}].execute_command: must include -Execute")
