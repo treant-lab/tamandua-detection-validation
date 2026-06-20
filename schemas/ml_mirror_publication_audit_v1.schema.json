@@ -50,6 +50,8 @@
           "dirty_top_levels",
           "build_deferred",
           "build_note",
+          "publication_blockers",
+          "clearance_criteria",
           "push_ready",
           "publication_decision"
         ],
@@ -77,6 +79,20 @@
           "dirty_top_levels": {"type": "array", "items": {"type": "string", "minLength": 1}},
           "build_deferred": {"type": "boolean"},
           "build_note": {"type": "string"},
+          "publication_blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "clearance_criteria": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "passed", "evidence"],
+              "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "passed": {"type": "boolean"},
+                "evidence": {"type": "string"}
+              }
+            }
+          },
           "push_ready": {"type": "boolean"},
           "publication_decision": {"enum": ["ready_to_push", "hold_do_not_push", "not_ready"]}
         }
@@ -98,6 +114,8 @@
         "tamandua_ml_remote_state",
         "tamandua_ml_publication_ready",
         "tamandua_ml_publication_decision",
+        "tamandua_ml_publication_blockers",
+        "tamandua_ml_clearance_criteria",
         "recommended_next_action"
       ],
       "properties": {
@@ -113,6 +131,20 @@
         "tamandua_ml_remote_state": {"enum": ["missing", "empty", "has_content"]},
         "tamandua_ml_publication_ready": {"type": "boolean"},
         "tamandua_ml_publication_decision": {"enum": ["ready_to_push", "hold_do_not_push", "not_ready", "missing"]},
+        "tamandua_ml_publication_blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "tamandua_ml_clearance_criteria": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "passed", "evidence"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "passed": {"type": "boolean"},
+              "evidence": {"type": "string"}
+            }
+          }
+        },
         "recommended_next_action": {"type": "string", "minLength": 1}
       }
     }

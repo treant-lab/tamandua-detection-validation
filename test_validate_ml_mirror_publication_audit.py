@@ -53,6 +53,8 @@ def valid_audit() -> dict:
                 "dirty_top_levels": [],
                 "build_deferred": False,
                 "build_note": "",
+                "publication_blockers": [],
+                "clearance_criteria": [],
                 "push_ready": True,
                 "publication_decision": "ready_to_push",
             },
@@ -71,6 +73,26 @@ def valid_audit() -> dict:
                 "dirty_top_levels": [".github", "README.md", "docs", "pyproject.toml", "scripts", "src"],
                 "build_deferred": True,
                 "build_note": "Experimental",
+                "publication_blockers": [
+                    "manifest_hold_active",
+                    "ml_experimental_release_gate_active",
+                    "ml_remote_empty_initial_publish_requires_explicit_release_decision",
+                    "ml_staging_dirty",
+                    "ml_standalone_validation_deferred",
+                    "staging_dirty",
+                ],
+                "clearance_criteria": [
+                    {
+                        "id": "ml_manifest_hold_removed",
+                        "passed": False,
+                        "evidence": "Experimental release gate",
+                    },
+                    {
+                        "id": "ml_staging_clean",
+                        "passed": False,
+                        "evidence": ".github,README.md,docs,pyproject.toml,scripts,src",
+                    },
+                ],
                 "push_ready": False,
                 "publication_decision": "hold_do_not_push",
             },
@@ -88,6 +110,26 @@ def valid_audit() -> dict:
             "tamandua_ml_remote_state": "empty",
             "tamandua_ml_publication_ready": False,
             "tamandua_ml_publication_decision": "hold_do_not_push",
+            "tamandua_ml_publication_blockers": [
+                "manifest_hold_active",
+                "ml_experimental_release_gate_active",
+                "ml_remote_empty_initial_publish_requires_explicit_release_decision",
+                "ml_staging_dirty",
+                "ml_standalone_validation_deferred",
+                "staging_dirty",
+            ],
+            "tamandua_ml_clearance_criteria": [
+                {
+                    "id": "ml_manifest_hold_removed",
+                    "passed": False,
+                    "evidence": "Experimental release gate",
+                },
+                {
+                    "id": "ml_staging_clean",
+                    "passed": False,
+                    "evidence": ".github,README.md,docs,pyproject.toml,scripts,src",
+                },
+            ],
             "recommended_next_action": "keep_tamandua_ml_mirror_on_hold_until_experimental_release_gate_clears",
         },
     }
