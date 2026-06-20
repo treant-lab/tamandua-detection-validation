@@ -16234,13 +16234,19 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
     ]:
         if packet_coverage[field] not in {"jsonschema+built-in", "built-in"}:
             raise ContractError(f"{path}.source.source_status_summary.contract_packet_coverage.{field}: invalid mode")
-    if not str(packet_coverage["next_gate_authorization_packet"]).endswith(
-        "20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware.json"
-    ):
+    accepted_next_gate_packets = (
+        "20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware.json",
+        "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json",
+    )
+    if not str(packet_coverage["next_gate_authorization_packet"]).endswith(accepted_next_gate_packets):
         raise ContractError(
             f"{path}.source.source_status_summary.contract_packet_coverage.next_gate_authorization_packet: must reference canonical packet"
         )
-    if not str(packet_coverage["next_operator_packet"]).endswith("20260620T1840Z-ml-next-operator-virusshare-packet.json"):
+    accepted_next_operator_packets = (
+        "20260620T1840Z-ml-next-operator-virusshare-packet.json",
+        "20260620T2355Z-ml-next-operator-secret-readiness-packet.json",
+    )
+    if not str(packet_coverage["next_operator_packet"]).endswith(accepted_next_operator_packets):
         raise ContractError(
             f"{path}.source.source_status_summary.contract_packet_coverage.next_operator_packet: must reference canonical packet"
         )

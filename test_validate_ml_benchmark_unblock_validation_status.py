@@ -59,9 +59,9 @@ TRAINING_CUTOFF_ENV_PLAN = {
 }
 
 CONTRACT_PACKET_COVERAGE = {
-    "next_gate_authorization_packet": "docs/benchmarks/runs/20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware.json",
+    "next_gate_authorization_packet": "docs/benchmarks/runs/20260620T2345Z-ml-next-gate-authorization-secret-readiness.json",
     "next_gate_authorization_packet_validation": "jsonschema+built-in",
-    "next_operator_packet": "docs/benchmarks/runs/20260620T1840Z-ml-next-operator-virusshare-packet.json",
+    "next_operator_packet": "docs/benchmarks/runs/20260620T2355Z-ml-next-operator-secret-readiness-packet.json",
     "next_operator_packet_validation": "jsonschema+built-in",
     "ml2_ml3_agent_smoke_go_no_go": "docs/benchmarks/runs/20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go.json",
     "ml2_ml3_agent_smoke_go_no_go_validation": "jsonschema+built-in",
@@ -70,7 +70,7 @@ CONTRACT_PACKET_COVERAGE = {
     "contract_packets_all_validated": True,
     "next_operator_publication_decision": "hold_do_not_push",
     "next_operator_ready_for_guarded_execution": False,
-    "next_operator_blocker_count": 1,
+    "next_operator_blocker_count": 4,
     "ml2_ml3_agent_smoke_decision": "no_go",
     "ml2_ml3_agent_smoke_unblocks_production": False,
     "ml2_ml3_agent_smoke_valid": True,
