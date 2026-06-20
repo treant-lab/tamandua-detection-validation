@@ -1752,7 +1752,10 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
     expected_refs = {
         "execution_status": ("20260604T-ml-execution-status.json",),
         "parallel_work_packages": ("20260604T-ml-parallel-work-packages.json",),
-        "platform_readiness_audit": ("20260604T-ml-platform-readiness-audit.json",),
+        "platform_readiness_audit": (
+            "20260604T-ml-platform-readiness-audit.json",
+            "20260620T2155Z-ml-platform-readiness-ml6-packets.json",
+        ),
         "wave1_operator_handoff_index": ("20260604T-ml-wave1-operator-handoff-index.json",),
         "wave1_guarded_run_command_packet": ("20260604T-ml-wave1-guarded-run-command-packet.json",),
         "benchmark_critical_path": (
@@ -13323,15 +13326,28 @@ def validate_ml_platform_readiness_audit(data: dict[str, Any], path: Path) -> No
     readiness_inputs = require_object(source.get("readiness_inputs"), f"{path}.source.readiness_inputs")
     required_input_refs = {
         "wave1_go_no_go": "20260604T-ml-wave1-go-no-go.json",
-        "wave2_ml1_readiness": "20260604T-ml-wave2-ml1-readiness-probe.json",
-        "wave2_ml2_ml3_readiness": "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
+        "wave2_ml1_readiness": (
+            "20260604T-ml-wave2-ml1-readiness-probe.json",
+            "20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json",
+        ),
+        "wave2_ml2_ml3_readiness": (
+            "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
+            "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
+        ),
         "wave2_ml4_readiness": "20260604T-ml-wave2-ml4-readiness-probe.json",
-        "wave3_ml5_readiness": "20260604T-ml-wave3-ml5-readiness-probe.json",
-        "wave3_ml6_readiness": "20260604T-ml-wave3-ml6-readiness-probe.json",
+        "wave3_ml5_readiness": (
+            "20260604T-ml-wave3-ml5-readiness-probe.json",
+            "20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
+        ),
+        "wave3_ml6_readiness": (
+            "20260604T-ml-wave3-ml6-readiness-probe.json",
+            "20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.json",
+        ),
     }
     require_keys(readiness_inputs, set(required_input_refs), f"{path}.source.readiness_inputs")
-    for key, suffix in required_input_refs.items():
-        if not str(readiness_inputs[key]).endswith(suffix):
+    for key, suffixes in required_input_refs.items():
+        suffix_tuple = suffixes if isinstance(suffixes, tuple) else (suffixes,)
+        if not any(str(readiness_inputs[key]).endswith(suffix) for suffix in suffix_tuple):
             raise ContractError(f"{path}.source.readiness_inputs.{key}: must reference {suffix}")
 
     lane_states = require_array(data["lane_states"], f"{path}.lane_states")

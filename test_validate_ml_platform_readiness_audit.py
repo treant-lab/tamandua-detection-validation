@@ -256,6 +256,28 @@ def test_validate_ml_platform_readiness_audit_accepts_jsonschema_path(tmp_path: 
     assert mode == "jsonschema+built-in"
 
 
+def test_validate_ml_platform_readiness_audit_accepts_packet_readiness_refs() -> None:
+    payload = valid_audit()
+    packet_refs = {
+        "wave2_ml1_readiness": "docs/benchmarks/runs/20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json",
+        "wave2_ml2_ml3_readiness": "docs/benchmarks/runs/20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
+        "wave3_ml5_readiness": "docs/benchmarks/runs/20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
+        "wave3_ml6_readiness": "docs/benchmarks/runs/20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.json",
+    }
+    payload["source"]["readiness_inputs"].update(packet_refs)
+    for lane in payload["lane_states"]:
+        source_key = {
+            "ml1_candidate": "wave2_ml1_readiness",
+            "ml2_ml3_parity": "wave2_ml2_ml3_readiness",
+            "ml5_pipeline_replay": "wave3_ml5_readiness",
+            "ml6_cross_time_holdout": "wave3_ml6_readiness",
+        }.get(lane["name"])
+        if source_key:
+            lane["evidence_ref"] = packet_refs[source_key]
+
+    validate_ml_platform_readiness_audit(payload, Path("memory://ml-platform-readiness-audit.json"))
+
+
 def test_validate_ml_platform_readiness_audit_rejects_ready_with_missing_artifacts() -> None:
     payload = copy.deepcopy(valid_audit())
     payload["production_candidate_ready"] = True
