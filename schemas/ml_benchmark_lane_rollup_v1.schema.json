@@ -39,9 +39,15 @@
       "properties": {
         "benchmark_execution_matrix": {"type": "string", "pattern": "20260604T-ml-benchmark-execution-matrix\\.json$"},
         "benchmark_execution_matrix_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "benchmark_unblock_validation_status": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-validation-status\\.json$"},
+        "benchmark_unblock_validation_status": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-unblock-validation-status|20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets)\\.json$"
+        },
         "benchmark_unblock_validation_status_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "benchmark_unblock_validation_status_consistency": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-validation-status-consistency\\.json$"},
+        "benchmark_unblock_validation_status_consistency": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-unblock-validation-status-consistency|20260620T1945Z-ml-benchmark-unblock-validation-status-consistency-contract-packets)\\.json$"
+        },
         "benchmark_unblock_validation_status_consistency_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "source_alignment": {
           "type": "object",
@@ -134,6 +140,10 @@
             "benchmark_detection_surface_contract_ready": {"const": true},
             "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
             "upstream_blocked": {"type": "integer", "minimum": 0},
+            "contract_packets_all_validated": {"const": true},
+            "contract_packets_validated": {"const": 3},
+            "next_operator_publication_decision": {"const": "hold_do_not_push"},
+            "ml2_ml3_agent_smoke_unblocks_production": {"const": false},
             "pending_by_category": {"$ref": "#/$defs/category_counts"},
             "resolved_by_category": {"$ref": "#/$defs/category_counts"},
             "dependency_pending": {"type": "integer", "minimum": 0},
@@ -176,6 +186,10 @@
         "total_pending_items": {"type": "integer", "minimum": 0},
         "upstream_ready_validation_only": {"type": "integer", "minimum": 0},
         "upstream_blocked": {"type": "integer", "minimum": 0},
+        "contract_packets_all_validated": {"const": true},
+        "contract_packets_validated": {"const": 3},
+        "next_operator_publication_decision": {"const": "hold_do_not_push"},
+        "ml2_ml3_agent_smoke_unblocks_production": {"const": false},
         "pending_by_category": {"$ref": "#/$defs/category_counts"},
         "resolved_by_category": {"$ref": "#/$defs/category_counts"},
         "dependency_pending": {"type": "integer", "minimum": 0},

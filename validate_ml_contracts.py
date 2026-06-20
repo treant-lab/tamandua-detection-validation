@@ -16519,9 +16519,21 @@ def validate_ml_benchmark_lane_rollup(data: dict[str, Any], path: Path) -> None:
     )
     if not str(source["benchmark_execution_matrix"]).endswith("20260604T-ml-benchmark-execution-matrix.json"):
         raise ContractError(f"{path}.source.benchmark_execution_matrix: must reference canonical benchmark execution matrix")
-    if not str(source["benchmark_unblock_validation_status"]).endswith("20260604T-ml-benchmark-unblock-validation-status.json"):
+    if not (
+        str(source["benchmark_unblock_validation_status"]).endswith("20260604T-ml-benchmark-unblock-validation-status.json")
+        or str(source["benchmark_unblock_validation_status"]).endswith(
+            "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json"
+        )
+    ):
         raise ContractError(f"{path}.source.benchmark_unblock_validation_status: must reference canonical benchmark unblock validation status")
-    if not str(source["benchmark_unblock_validation_status_consistency"]).endswith("20260604T-ml-benchmark-unblock-validation-status-consistency.json"):
+    if not (
+        str(source["benchmark_unblock_validation_status_consistency"]).endswith(
+            "20260604T-ml-benchmark-unblock-validation-status-consistency.json"
+        )
+        or str(source["benchmark_unblock_validation_status_consistency"]).endswith(
+            "20260620T1945Z-ml-benchmark-unblock-validation-status-consistency-contract-packets.json"
+        )
+    ):
         raise ContractError(f"{path}.source.benchmark_unblock_validation_status_consistency: must reference canonical benchmark unblock validation status consistency")
     source_alignment = require_object(source["source_alignment"], f"{path}.source.source_alignment")
     require_keys(
@@ -16849,6 +16861,27 @@ def validate_ml_benchmark_lane_rollup(data: dict[str, Any], path: Path) -> None:
     for field in ["upstream_ready_validation_only", "upstream_blocked"]:
         if int(source_status_summary[field]) != int(summary[field]):
             raise ContractError(f"{path}.source.source_status_summary.{field}: must match summary")
+    packet_fields = [
+        "contract_packets_all_validated",
+        "contract_packets_validated",
+        "next_operator_publication_decision",
+        "ml2_ml3_agent_smoke_unblocks_production",
+    ]
+    if any(field in summary or field in source_status_summary for field in packet_fields):
+        for field in packet_fields:
+            if field not in summary or field not in source_status_summary:
+                raise ContractError(f"{path}.summary.{field}: packet coverage fields must be present together")
+        if bool(summary["contract_packets_all_validated"]) is not True:
+            raise ContractError(f"{path}.summary.contract_packets_all_validated: must be true")
+        if int(summary["contract_packets_validated"]) != 3:
+            raise ContractError(f"{path}.summary.contract_packets_validated: must be 3")
+        if str(summary["next_operator_publication_decision"]) != "hold_do_not_push":
+            raise ContractError(f"{path}.summary.next_operator_publication_decision: must remain hold_do_not_push")
+        if bool(summary["ml2_ml3_agent_smoke_unblocks_production"]) is not False:
+            raise ContractError(f"{path}.summary.ml2_ml3_agent_smoke_unblocks_production: must be false")
+        for field in packet_fields:
+            if source_status_summary[field] != summary[field]:
+                raise ContractError(f"{path}.source.source_status_summary.{field}: must match summary")
     for field in [
         "goal_complete",
         "completion_state",

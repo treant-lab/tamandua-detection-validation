@@ -51,6 +51,14 @@ def modality(lane_id: str) -> dict:
 
 def add_goal_snapshot(report: dict) -> dict:
     report["source"]["source_status_summary"].update(GOAL_SNAPSHOT)
+    packet_coverage = {
+        "contract_packets_all_validated": True,
+        "contract_packets_validated": 3,
+        "next_operator_publication_decision": "hold_do_not_push",
+        "ml2_ml3_agent_smoke_unblocks_production": False,
+    }
+    report["source"]["source_status_summary"].update(packet_coverage)
+    report["summary"].update(packet_coverage)
     report["summary"]["goal_complete"] = GOAL_SNAPSHOT["goal_complete"]
     report["summary"]["completion_state"] = GOAL_SNAPSHOT["completion_state"]
     report["summary"]["goal_usable_required_evidence"] = GOAL_SNAPSHOT["goal_usable_required_evidence"]
@@ -73,9 +81,9 @@ def test_validate_ml_benchmark_lane_rollup_accepts_jsonschema_path(tmp_path: Pat
         "source": {
             "benchmark_execution_matrix": "docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.json",
             "benchmark_execution_matrix_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status.json",
+            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
             "benchmark_unblock_validation_status_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status_consistency": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status-consistency.json",
+            "benchmark_unblock_validation_status_consistency": "docs/benchmarks/runs/20260620T1945Z-ml-benchmark-unblock-validation-status-consistency-contract-packets.json",
             "benchmark_unblock_validation_status_consistency_validation": "jsonschema+built-in",
             "source_alignment": {
                 "status_source_matches_handoff_consistency": True,
@@ -191,9 +199,9 @@ def test_validate_ml_benchmark_lane_rollup_rejects_source_summary_pending_drift(
         "source": {
             "benchmark_execution_matrix": "docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.json",
             "benchmark_execution_matrix_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status.json",
+            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
             "benchmark_unblock_validation_status_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status_consistency": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status-consistency.json",
+            "benchmark_unblock_validation_status_consistency": "docs/benchmarks/runs/20260620T1945Z-ml-benchmark-unblock-validation-status-consistency-contract-packets.json",
             "benchmark_unblock_validation_status_consistency_validation": "jsonschema+built-in",
             "source_alignment": {
                 "status_source_matches_handoff_consistency": True,
@@ -312,9 +320,9 @@ def test_validate_ml_benchmark_lane_rollup_rejects_summary_category_rollup_drift
         "source": {
             "benchmark_execution_matrix": "docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.json",
             "benchmark_execution_matrix_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status.json",
+            "benchmark_unblock_validation_status": "docs/benchmarks/runs/20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
             "benchmark_unblock_validation_status_validation": "jsonschema+built-in",
-            "benchmark_unblock_validation_status_consistency": "docs/benchmarks/runs/20260604T-ml-benchmark-unblock-validation-status-consistency.json",
+            "benchmark_unblock_validation_status_consistency": "docs/benchmarks/runs/20260620T1945Z-ml-benchmark-unblock-validation-status-consistency-contract-packets.json",
             "benchmark_unblock_validation_status_consistency_validation": "jsonschema+built-in",
             "source_alignment": {
                 "status_source_matches_handoff_consistency": True,
