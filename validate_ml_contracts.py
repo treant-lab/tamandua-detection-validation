@@ -15828,6 +15828,11 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
             "evidence_path_count",
             "items_with_resolution_command_exposure",
             "items_without_resolution_command_exposure",
+            "contract_packet_coverage",
+            "contract_packets_all_validated",
+            "contract_packets_validated",
+            "next_operator_publication_decision",
+            "ml2_ml3_agent_smoke_unblocks_production",
             "pending_item_ids",
             "resolved_item_ids",
             "goal_complete",
@@ -15872,6 +15877,10 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
             "unknown_evidence_targets",
             "items_with_resolution_command_exposure",
             "items_without_resolution_command_exposure",
+            "contract_packets_all_validated",
+            "contract_packets_validated",
+            "next_operator_publication_decision",
+            "ml2_ml3_agent_smoke_unblocks_production",
             "upstream_ready_validation_only",
             "upstream_blocked",
             "goal_complete",
@@ -16032,6 +16041,104 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
     for field in ["upstream_ready_validation_only", "upstream_blocked"]:
         if int(summary[field]) != int(source_summary[field]):
             raise ContractError(f"{path}.summary.{field}: must match source.source_status_summary.{field}")
+    for field in [
+        "contract_packets_all_validated",
+        "contract_packets_validated",
+        "next_operator_publication_decision",
+        "ml2_ml3_agent_smoke_unblocks_production",
+    ]:
+        if summary[field] != source_summary[field]:
+            raise ContractError(f"{path}.summary.{field}: must match source.source_status_summary.{field}")
+    packet_coverage = require_object(
+        source_summary["contract_packet_coverage"],
+        f"{path}.source.source_status_summary.contract_packet_coverage",
+    )
+    require_keys(
+        packet_coverage,
+        {
+            "next_gate_authorization_packet",
+            "next_gate_authorization_packet_validation",
+            "next_operator_packet",
+            "next_operator_packet_validation",
+            "ml2_ml3_agent_smoke_go_no_go",
+            "ml2_ml3_agent_smoke_go_no_go_validation",
+            "contract_packet_count",
+            "contract_packets_validated",
+            "contract_packets_all_validated",
+            "next_operator_publication_decision",
+            "next_operator_ready_for_guarded_execution",
+            "next_operator_blocker_count",
+            "ml2_ml3_agent_smoke_decision",
+            "ml2_ml3_agent_smoke_unblocks_production",
+            "ml2_ml3_agent_smoke_valid",
+        },
+        f"{path}.source.source_status_summary.contract_packet_coverage",
+    )
+    if int(packet_coverage["contract_packet_count"]) != 3:
+        raise ContractError(f"{path}.source.source_status_summary.contract_packet_coverage.contract_packet_count: must be 3")
+    if int(packet_coverage["contract_packets_validated"]) != 3:
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.contract_packets_validated: must be 3"
+        )
+    if bool(packet_coverage["contract_packets_all_validated"]) is not True:
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.contract_packets_all_validated: must be true"
+        )
+    if int(source_summary["contract_packets_validated"]) != int(packet_coverage["contract_packets_validated"]):
+        raise ContractError(f"{path}.source.source_status_summary.contract_packets_validated: must match coverage")
+    if bool(source_summary["contract_packets_all_validated"]) != bool(packet_coverage["contract_packets_all_validated"]):
+        raise ContractError(f"{path}.source.source_status_summary.contract_packets_all_validated: must match coverage")
+    for field in [
+        "next_gate_authorization_packet_validation",
+        "next_operator_packet_validation",
+        "ml2_ml3_agent_smoke_go_no_go_validation",
+    ]:
+        if packet_coverage[field] not in {"jsonschema+built-in", "built-in"}:
+            raise ContractError(f"{path}.source.source_status_summary.contract_packet_coverage.{field}: invalid mode")
+    if not str(packet_coverage["next_gate_authorization_packet"]).endswith(
+        "20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware.json"
+    ):
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.next_gate_authorization_packet: must reference canonical packet"
+        )
+    if not str(packet_coverage["next_operator_packet"]).endswith("20260620T1840Z-ml-next-operator-virusshare-packet.json"):
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.next_operator_packet: must reference canonical packet"
+        )
+    if not str(packet_coverage["ml2_ml3_agent_smoke_go_no_go"]).endswith(
+        "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go.json"
+    ):
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.ml2_ml3_agent_smoke_go_no_go: must reference canonical packet"
+        )
+    if str(packet_coverage["next_operator_publication_decision"]) != "hold_do_not_push":
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.next_operator_publication_decision: must remain hold"
+        )
+    if str(source_summary["next_operator_publication_decision"]) != str(packet_coverage["next_operator_publication_decision"]):
+        raise ContractError(f"{path}.source.source_status_summary.next_operator_publication_decision: must match coverage")
+    if bool(packet_coverage["next_operator_ready_for_guarded_execution"]) is not False:
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.next_operator_ready_for_guarded_execution: must be false"
+        )
+    if int(packet_coverage["next_operator_blocker_count"]) < 1:
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.next_operator_blocker_count: must be positive"
+        )
+    if str(packet_coverage["ml2_ml3_agent_smoke_decision"]) != "no_go":
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.ml2_ml3_agent_smoke_decision: must be no_go"
+        )
+    if bool(packet_coverage["ml2_ml3_agent_smoke_unblocks_production"]) is not False:
+        raise ContractError(
+            f"{path}.source.source_status_summary.contract_packet_coverage.ml2_ml3_agent_smoke_unblocks_production: must be false"
+        )
+    if bool(source_summary["ml2_ml3_agent_smoke_unblocks_production"]) != bool(
+        packet_coverage["ml2_ml3_agent_smoke_unblocks_production"]
+    ):
+        raise ContractError(f"{path}.source.source_status_summary.ml2_ml3_agent_smoke_unblocks_production: must match coverage")
+    if bool(packet_coverage["ml2_ml3_agent_smoke_valid"]) is not True:
+        raise ContractError(f"{path}.source.source_status_summary.contract_packet_coverage.ml2_ml3_agent_smoke_valid: must be true")
     for field in [
         "goal_complete",
         "completion_state",

@@ -58,6 +58,24 @@ TRAINING_CUTOFF_ENV_PLAN = {
     "operator_note": "Validate TAMANDUA_ML_TRAINING_CUTOFF before ML-6 holdout.",
 }
 
+CONTRACT_PACKET_COVERAGE = {
+    "next_gate_authorization_packet": "docs/benchmarks/runs/20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware.json",
+    "next_gate_authorization_packet_validation": "jsonschema+built-in",
+    "next_operator_packet": "docs/benchmarks/runs/20260620T1840Z-ml-next-operator-virusshare-packet.json",
+    "next_operator_packet_validation": "jsonschema+built-in",
+    "ml2_ml3_agent_smoke_go_no_go": "docs/benchmarks/runs/20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go.json",
+    "ml2_ml3_agent_smoke_go_no_go_validation": "jsonschema+built-in",
+    "contract_packet_count": 3,
+    "contract_packets_validated": 3,
+    "contract_packets_all_validated": True,
+    "next_operator_publication_decision": "hold_do_not_push",
+    "next_operator_ready_for_guarded_execution": False,
+    "next_operator_blocker_count": 1,
+    "ml2_ml3_agent_smoke_decision": "no_go",
+    "ml2_ml3_agent_smoke_unblocks_production": False,
+    "ml2_ml3_agent_smoke_valid": True,
+}
+
 GOAL_SNAPSHOT = {
     "goal_complete": False,
     "completion_state": "partial_evidence",
@@ -115,9 +133,18 @@ def add_resolution_contract(report: dict) -> dict:
     report["summary"]["goal_required_evidence_total"] = GOAL_SNAPSHOT["goal_required_evidence_total"]
     report["summary"]["next_unproven_requirement_id"] = GOAL_SNAPSHOT["next_unproven_requirement_id"]
     report["summary"]["next_unproven_execute_guard_env"] = GOAL_SNAPSHOT["next_unproven_execute_guard_env"]
+    report["summary"]["contract_packets_all_validated"] = True
+    report["summary"]["contract_packets_validated"] = 3
+    report["summary"]["next_operator_publication_decision"] = "hold_do_not_push"
+    report["summary"]["ml2_ml3_agent_smoke_unblocks_production"] = False
     report["source"]["source_status_summary"].update(GOAL_SNAPSHOT)
     report["source"]["source_status_summary"]["items_with_resolution_command_exposure"] = exposed
     report["source"]["source_status_summary"]["items_without_resolution_command_exposure"] = missing
+    report["source"]["source_status_summary"]["contract_packet_coverage"] = dict(CONTRACT_PACKET_COVERAGE)
+    report["source"]["source_status_summary"]["contract_packets_all_validated"] = True
+    report["source"]["source_status_summary"]["contract_packets_validated"] = 3
+    report["source"]["source_status_summary"]["next_operator_publication_decision"] = "hold_do_not_push"
+    report["source"]["source_status_summary"]["ml2_ml3_agent_smoke_unblocks_production"] = False
     return report
 
 
