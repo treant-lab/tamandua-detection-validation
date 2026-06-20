@@ -89,6 +89,69 @@ def add_goal_snapshot(payload: dict) -> None:
     )
 
 
+def add_next_unblock_actions(payload: dict) -> None:
+    phase = {
+        "wave1_governed_acquisition": "01-wave1-manifest-publication",
+        "wave1_sanitized_manifest": "01-wave1-manifest-publication",
+        "ml1_model_quality": "02-ml1-candidate-quality",
+        "ml1_model_contract_and_card": "02-ml1-candidate-quality",
+        "ml2_pytorch_onnx_parity": "03-onnx-agent-parity",
+        "ml3_agent_onnx_parity": "03-onnx-agent-parity",
+        "ml4_service_benchmark": "04-service-benchmark",
+        "ml5_tamandua_replay": "05-platform-replay",
+        "ml6_cross_time_holdout": "06-cross-time-holdout",
+    }
+    guard = {
+        "wave1_governed_acquisition": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "wave1_sanitized_manifest": "TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH",
+        "ml1_model_quality": "TAMANDUA_ALLOW_ML_TRAINING",
+        "ml1_model_contract_and_card": "TAMANDUA_ALLOW_ML_TRAINING",
+        "ml2_pytorch_onnx_parity": "TAMANDUA_ALLOW_ML_PARITY",
+        "ml3_agent_onnx_parity": "TAMANDUA_ALLOW_ML_PARITY",
+        "ml4_service_benchmark": "TAMANDUA_ALLOW_ML_SERVICE_BENCH",
+        "ml5_tamandua_replay": "TAMANDUA_ALLOW_ML_PIPELINE_REPLAY",
+        "ml6_cross_time_holdout": "TAMANDUA_ALLOW_ML_HOLDOUT",
+    }
+    action = {
+        "wave1_governed_acquisition": (
+            "Run the guarded Wave 1 acquisition packet in the isolated lab, then publish the validated "
+            "acquisition transcript and receipt."
+        ),
+        "wave1_sanitized_manifest": (
+            "Publish the sanitized production candidate dataset manifest and Wave 1 acceptance checklist after "
+            "the governed acquisition receipt is usable."
+        ),
+        "ml1_model_quality": (
+            "Train/evaluate the ML-1 candidate against the production candidate dataset and publish a passing "
+            "standalone benchmark report."
+        ),
+        "ml1_model_contract_and_card": "Generate the candidate model contract and model card from passing ML-1 evidence.",
+        "ml2_pytorch_onnx_parity": "Export the candidate ONNX model and publish PyTorch versus ONNX parity evidence.",
+        "ml3_agent_onnx_parity": "Run the Rust agent ONNX parity benchmark with the exported candidate model.",
+        "ml4_service_benchmark": "Run the live FastAPI ML service benchmark with the production candidate model contract.",
+        "ml5_tamandua_replay": "Run the full Tamandua replay benchmark with ML-1, ML-3, and ML-4 evidence linked.",
+        "ml6_cross_time_holdout": "Run the cross-time holdout benchmark against the governed holdout window.",
+    }
+    payload["next_unblock_actions"] = []
+    for requirement in payload["completion_requirements"]:
+        requirement_id = requirement["requirement_id"]
+        if requirement_id == "public_claim_evidence_boundary" or requirement["status"] == "proven":
+            continue
+        payload["next_unblock_actions"].append(
+            {
+                "order": len(payload["next_unblock_actions"]) + 1,
+                "requirement_id": requirement_id,
+                "lane": requirement["lane"],
+                "phase": phase[requirement_id],
+                "execute_guard_env": guard[requirement_id],
+                "status": requirement["status"],
+                "action": action[requirement_id],
+                "evidence_refs": [evidence["path"] for evidence in requirement["evidence_refs"]],
+                "blockers": list(requirement["blockers"]),
+            }
+        )
+
+
 def valid_audit() -> dict:
     lane_states = []
     source_refs = {
@@ -240,6 +303,7 @@ def valid_audit() -> dict:
         "next_operator_action": "Continue the guarded ML execution queue in dependency order.",
     }
     add_goal_snapshot(payload)
+    add_next_unblock_actions(payload)
     return payload
 
 
@@ -464,3 +528,15 @@ def test_validate_ml_platform_readiness_audit_rejects_completion_summary_drift()
         assert "completion_summary.missing" in str(exc)
     else:
         raise AssertionError("expected completion summary drift to fail")
+
+
+def test_validate_ml_platform_readiness_audit_rejects_next_unblock_action_drift() -> None:
+    payload = copy.deepcopy(valid_audit())
+    payload["next_unblock_actions"] = []
+
+    try:
+        validate_ml_platform_readiness_audit(payload, Path("memory://ml-platform-readiness-audit.json"))
+    except ContractError as exc:
+        assert "next_unblock_actions" in str(exc)
+    else:
+        raise AssertionError("expected next unblock action drift to fail")

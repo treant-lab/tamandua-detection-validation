@@ -4,7 +4,7 @@
   "title": "Tamandua ML Platform Readiness Audit v1",
   "type": "object",
   "additionalProperties": false,
-  "required": ["api_version", "kind", "metadata", "source", "production_candidate_ready", "blockers", "lane_states", "required_artifacts", "completion_summary", "completion_requirements", "next_operator_action"],
+  "required": ["api_version", "kind", "metadata", "source", "production_candidate_ready", "blockers", "lane_states", "required_artifacts", "completion_summary", "completion_requirements", "next_unblock_actions", "next_operator_action"],
   "properties": {
     "api_version": {"const": "tamandua.io/ml-platform-readiness-audit/v1"},
     "kind": {"const": "MLPlatformReadinessAudit"},
@@ -144,6 +144,25 @@
             "minItems": 1,
             "items": {"$ref": "#/$defs/artifact_state"}
           },
+          "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "next_unblock_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["order", "requirement_id", "lane", "phase", "execute_guard_env", "status", "action", "evidence_refs", "blockers"],
+        "properties": {
+          "order": {"type": "integer", "minimum": 1},
+          "requirement_id": {"type": "string", "minLength": 1},
+          "lane": {"type": "string", "enum": ["Wave 1", "ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]},
+          "phase": {"type": "string", "minLength": 1},
+          "execute_guard_env": {"type": "string", "minLength": 1},
+          "status": {"type": "string", "enum": ["incomplete", "missing"]},
+          "action": {"type": "string", "minLength": 10},
+          "evidence_refs": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
           "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}}
         }
       }

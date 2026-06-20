@@ -83,6 +83,7 @@
           "artifact_policy": {"type": "object"},
           "initial_publication_decision": {"type": "object"},
           "experimental_release_gate": {"type": "object"},
+          "experimental_release_gate_evidence": {"type": "object"},
           "publication_blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
           "clearance_criteria": {
             "type": "array",
@@ -136,6 +137,7 @@
         "tamandua_ml_publication_ready": {"type": "boolean"},
         "tamandua_ml_publication_decision": {"enum": ["ready_to_push", "hold_do_not_push", "not_ready", "missing"]},
         "tamandua_ml_publication_blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "tamandua_ml_experimental_release_gate_evidence": {"type": "object"},
         "tamandua_ml_clearance_criteria": {
           "type": "array",
           "items": {

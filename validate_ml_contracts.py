@@ -13357,6 +13357,7 @@ def validate_ml_platform_readiness_audit(data: dict[str, Any], path: Path) -> No
             "required_artifacts",
             "completion_summary",
             "completion_requirements",
+            "next_unblock_actions",
             "next_operator_action",
         },
         str(path),
@@ -13685,6 +13686,75 @@ def validate_ml_platform_readiness_audit(data: dict[str, Any], path: Path) -> No
             raise ContractError(f"{path}.completion_summary.next_unproven_execute_guard_env: must match next requirement payload")
     elif str(completion_summary["next_unproven_requirement_id"]) != "none":
         raise ContractError(f"{path}.completion_summary.next_unproven_requirement_id: must be none when goal is complete")
+    requirement_phase = {
+        "wave1_governed_acquisition": "01-wave1-manifest-publication",
+        "wave1_sanitized_manifest": "01-wave1-manifest-publication",
+        "ml1_model_quality": "02-ml1-candidate-quality",
+        "ml1_model_contract_and_card": "02-ml1-candidate-quality",
+        "ml2_pytorch_onnx_parity": "03-onnx-agent-parity",
+        "ml3_agent_onnx_parity": "03-onnx-agent-parity",
+        "ml4_service_benchmark": "04-service-benchmark",
+        "ml5_tamandua_replay": "05-platform-replay",
+        "ml6_cross_time_holdout": "06-cross-time-holdout",
+    }
+    requirement_guard = {
+        "wave1_governed_acquisition": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "wave1_sanitized_manifest": "TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH",
+        "ml1_model_quality": "TAMANDUA_ALLOW_ML_TRAINING",
+        "ml1_model_contract_and_card": "TAMANDUA_ALLOW_ML_TRAINING",
+        "ml2_pytorch_onnx_parity": "TAMANDUA_ALLOW_ML_PARITY",
+        "ml3_agent_onnx_parity": "TAMANDUA_ALLOW_ML_PARITY",
+        "ml4_service_benchmark": "TAMANDUA_ALLOW_ML_SERVICE_BENCH",
+        "ml5_tamandua_replay": "TAMANDUA_ALLOW_ML_PIPELINE_REPLAY",
+        "ml6_cross_time_holdout": "TAMANDUA_ALLOW_ML_HOLDOUT",
+    }
+    requirement_action = {
+        "wave1_governed_acquisition": (
+            "Run the guarded Wave 1 acquisition packet in the isolated lab, then publish the validated "
+            "acquisition transcript and receipt."
+        ),
+        "wave1_sanitized_manifest": (
+            "Publish the sanitized production candidate dataset manifest and Wave 1 acceptance checklist after "
+            "the governed acquisition receipt is usable."
+        ),
+        "ml1_model_quality": (
+            "Train/evaluate the ML-1 candidate against the production candidate dataset and publish a passing "
+            "standalone benchmark report."
+        ),
+        "ml1_model_contract_and_card": "Generate the candidate model contract and model card from passing ML-1 evidence.",
+        "ml2_pytorch_onnx_parity": "Export the candidate ONNX model and publish PyTorch versus ONNX parity evidence.",
+        "ml3_agent_onnx_parity": "Run the Rust agent ONNX parity benchmark with the exported candidate model.",
+        "ml4_service_benchmark": "Run the live FastAPI ML service benchmark with the production candidate model contract.",
+        "ml5_tamandua_replay": "Run the full Tamandua replay benchmark with ML-1, ML-3, and ML-4 evidence linked.",
+        "ml6_cross_time_holdout": "Run the cross-time holdout benchmark against the governed holdout window.",
+    }
+    expected_unblock_actions = []
+    for requirement in completion_order:
+        requirement_id = str(requirement["requirement_id"])
+        if requirement_id == "public_claim_evidence_boundary" or str(requirement["status"]) == "proven":
+            continue
+        expected_unblock_actions.append(
+            {
+                "order": len(expected_unblock_actions) + 1,
+                "requirement_id": requirement_id,
+                "lane": str(requirement["lane"]),
+                "phase": requirement_phase.get(requirement_id, "unknown"),
+                "execute_guard_env": requirement_guard.get(requirement_id, "unknown"),
+                "status": str(requirement["status"]),
+                "action": requirement_action.get(
+                    requirement_id,
+                    "Resolve the requirement blockers, publish its evidence, and rerun readiness.",
+                ),
+                "evidence_refs": [str(evidence["path"]) for evidence in requirement["evidence_refs"]],
+                "blockers": [str(blocker) for blocker in requirement["blockers"]],
+            }
+        )
+    actual_unblock_actions = [
+        require_object(item, f"{path}.next_unblock_actions.item")
+        for item in require_array(data["next_unblock_actions"], f"{path}.next_unblock_actions")
+    ]
+    if actual_unblock_actions != expected_unblock_actions:
+        raise ContractError(f"{path}.next_unblock_actions: must match non-proven completion requirements")
 
 
 def validate_ml_parallel_work_packages(data: dict[str, Any], path: Path) -> None:
