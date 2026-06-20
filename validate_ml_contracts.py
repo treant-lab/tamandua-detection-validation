@@ -22814,6 +22814,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         or str(source["next_action_validation_run"]).endswith("20260620T-ml-next-action-virusshare-source-aware.json")
         or str(source["next_action_validation_run"]).endswith("20260620T2320Z-ml-next-action-secret-readiness.json")
         or str(source["next_action_validation_run"]).endswith("20260621T0035Z-ml-next-action-platform-aligned.run.json")
+        or str(source["next_action_validation_run"]).endswith("20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json")
     ):
         raise ContractError(f"{path}.source.next_action_validation_run: must reference canonical next-action validation run")
     if not str(source["transcript_template"]).endswith("20260604T-ml-wave1-real-acquisition-transcript.template.json"):
