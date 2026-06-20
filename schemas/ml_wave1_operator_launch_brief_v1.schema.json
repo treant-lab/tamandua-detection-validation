@@ -141,7 +141,10 @@
         "ml_local_training_readiness_validated": {"type": "boolean"},
         "next_action_run_mode": {"const": "validation_only"},
         "next_action_run_returncode": {"type": "integer", "enum": [0, 1]},
-        "next_action_run_package_id": {"const": "ml_data_governed_acquisition"},
+        "next_action_run_package_id": {
+          "type": "string",
+          "enum": ["ml_data_governed_acquisition", "ml_data_virusshare_fallback"]
+        },
         "next_action_run_wave": {"const": 1},
         "next_action_validation_scope_selected": {"type": "boolean"},
         "next_action_safety_assertions": {
@@ -287,7 +290,10 @@
         "dry_run_ref": {"type": "string", "minLength": 1},
         "go_no_go_ref": {"type": "string", "minLength": 1},
         "execute_guard_ref": {"type": "string", "minLength": 1},
-        "next_action_run_ref": {"type": "string", "pattern": "20260604T-ml-prelab-next-action-validation\\.run\\.json$"},
+        "next_action_run_ref": {
+          "type": "string",
+          "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run)\\.json$"
+        },
         "ml_lab_standby_readiness_ref": {
           "type": "string",
           "pattern": "20260604T-ml-lab-standby-readiness\\.json$"

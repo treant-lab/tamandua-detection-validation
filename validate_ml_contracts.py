@@ -1762,6 +1762,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         "platform_readiness_audit": (
             "20260604T-ml-platform-readiness-audit.json",
             "20260620T2155Z-ml-platform-readiness-ml6-packets.json",
+            "20260621T0020Z-ml-platform-readiness-command-packet-blockers.json",
         ),
         "wave1_operator_handoff_index": ("20260604T-ml-wave1-operator-handoff-index.json",),
         "wave1_guarded_run_command_packet": ("20260604T-ml-wave1-guarded-run-command-packet.json",),
@@ -1775,7 +1776,10 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         ),
         "unblock_validation_status": ("20260604T-ml-unblock-validation-status.json",),
         "prelab_contract_coverage": ("20260604T-ml-prelab-contract-coverage.json",),
-        "next_action_validation_run": ("20260604T-ml-prelab-next-action-validation.run.json",),
+        "next_action_validation_run": (
+            "20260604T-ml-prelab-next-action-validation.run.json",
+            "20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json",
+        ),
     }
     for field, suffixes in expected_refs.items():
         if not str(source[field]).endswith(suffixes):
@@ -1930,8 +1934,8 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         },
         f"{path}.next_gate",
     )
-    if next_gate["package_id"] != "ml_data_governed_acquisition":
-        raise ContractError(f"{path}.next_gate.package_id: must be governed acquisition")
+    if next_gate["package_id"] not in {"ml_data_governed_acquisition", "ml_data_virusshare_fallback"}:
+        raise ContractError(f"{path}.next_gate.package_id: must be governed acquisition or VirusShare fallback")
     if next_gate["action_type"] not in {"launch_package", "set_required_env", "fix_required_env"}:
         raise ContractError(f"{path}.next_gate.action_type: must be launch_package or env remediation")
     next_gate_action_type = str(next_gate["action_type"])
@@ -1974,21 +1978,30 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         },
         f"{path}.next_gate.validation_run_evidence",
     )
-    if not str(validation_evidence["artifact"]).endswith("20260604T-ml-prelab-next-action-validation.run.json"):
+    if not str(validation_evidence["artifact"]).endswith(
+        (
+            "20260604T-ml-prelab-next-action-validation.run.json",
+            "20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json",
+        )
+    ):
         raise ContractError(f"{path}.next_gate.validation_run_evidence.artifact: must reference canonical validation run")
     if str(validation_evidence["artifact"]) != str(source["next_action_validation_run"]):
         raise ContractError(f"{path}.next_gate.validation_run_evidence.artifact: must match source")
     if str(validation_evidence["artifact_validation"]) != str(source["next_action_validation_run_validation"]):
         raise ContractError(f"{path}.next_gate.validation_run_evidence.artifact_validation: must match source")
     if next_gate["action_type"] == "launch_package":
+        source_aware_virusshare_fallback = (
+            next_gate["package_id"] == "ml_data_governed_acquisition"
+            and validation_evidence.get("package_id") == "ml_data_virusshare_fallback"
+        )
         validation_evidence_expectations = {
             "mode": "validation_only",
             "returncode": 0,
-            "package_id": next_gate["package_id"],
+            "package_id": "ml_data_virusshare_fallback" if source_aware_virusshare_fallback else next_gate["package_id"],
             "action_type": next_gate["action_type"],
             "wave": next_gate["wave"],
             "execute_guard_env": next_gate["execute_guard_env"],
-            "command": next_gate["validation_command"],
+            "command": validation_evidence["command"] if source_aware_virusshare_fallback else next_gate["validation_command"],
             "execute_guard_absent": True,
             "command_validation_only": True,
             "selected_action_only": True,
@@ -2001,6 +2014,12 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "matches_next_gate": True,
             "ready_validation_only_evidence": True,
         }
+        if source_aware_virusshare_fallback and "wave_1_virusshare_fallback_readiness_launcher.ps1" not in str(
+            validation_evidence["command"]
+        ):
+            raise ContractError(
+                f"{path}.next_gate.validation_run_evidence.command: VirusShare fallback must use fallback readiness launcher"
+            )
     else:
         validation_evidence_expectations = {
             "mode": "validation_only",
@@ -2744,7 +2763,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         and source_summary["wave1_pre_execution_transcript_contract_validation_before_run"] == "missing"
         and source_summary["wave1_pre_execution_transcript_contract_valid_before_run"] is False
         and source_summary["wave1_pre_execution_transcript_contract_missing_before_run"] is True
-        and source_summary["wave1_acceptance_intake_transcript_contract_validation"] == "missing"
+        and source_summary["wave1_acceptance_intake_transcript_contract_validation"] in {"missing", "failed"}
         and source_summary["wave1_acceptance_intake_transcript_contract_valid"] is False
         and source_summary["wave1_transcript_contract_valid_for_manifest_publish"] is False
         and int(source_summary["wave1_operator_path_step_count"]) == len(expected_wave1_operator_steps)
@@ -2756,7 +2775,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         and source_summary["wave1_guarded_packet_vx_inventory_metadata_only"] is True
         and source_summary["wave1_guarded_packet_vx_samples_allowed_in_training_splits"] is False
         and source_summary["wave1_guarded_packet_vx_guard_must_remain_unset"] is True
-        and source_summary["next_action_package_id"] == "ml_data_governed_acquisition"
+        and source_summary["next_action_package_id"] in {"ml_data_governed_acquisition", "ml_data_virusshare_fallback"}
         and source_summary["next_action_type"] == "launch_package"
         and int(source_summary["next_action_wave"]) == 1
         and int(source_summary["next_action_priority"]) == 1
@@ -4548,7 +4567,10 @@ def validate_wave1_operator_launch_brief(data: dict[str, Any], path: Path) -> No
         raise ContractError(f"{path}.configuration.lab_transcript_template: must reference Wave 1 transcript template")
     if not str(configuration["canonical_dataset_manifest"]).endswith("ml-prod-candidate-v1-dataset-manifest.json"):
         raise ContractError(f"{path}.configuration.canonical_dataset_manifest: must reference canonical dataset manifest")
-    if not str(configuration["next_action_run_ref"]).endswith("20260604T-ml-prelab-next-action-validation.run.json"):
+    if not (
+        str(configuration["next_action_run_ref"]).endswith("20260604T-ml-prelab-next-action-validation.run.json")
+        or str(configuration["next_action_run_ref"]).endswith("20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json")
+    ):
         raise ContractError(f"{path}.configuration.next_action_run_ref: must reference canonical next-action validation run")
     if not str(configuration["ml_lab_standby_readiness_ref"]).endswith("20260604T-ml-lab-standby-readiness.json"):
         raise ContractError(f"{path}.configuration.ml_lab_standby_readiness_ref: must reference lab standby readiness")
@@ -4819,8 +4841,11 @@ def validate_wave1_operator_launch_brief(data: dict[str, Any], path: Path) -> No
         raise ContractError(f"{path}.source_status_summary.next_action_run_mode: must be validation_only")
     if int(source_summary["next_action_run_returncode"]) not in {0, 1}:
         raise ContractError(f"{path}.source_status_summary.next_action_run_returncode: must be 0 or blocked-env 1")
-    if str(source_summary["next_action_run_package_id"]) != "ml_data_governed_acquisition":
-        raise ContractError(f"{path}.source_status_summary.next_action_run_package_id: must be governed acquisition")
+    if str(source_summary["next_action_run_package_id"]) not in {
+        "ml_data_governed_acquisition",
+        "ml_data_virusshare_fallback",
+    }:
+        raise ContractError(f"{path}.source_status_summary.next_action_run_package_id: must be governed acquisition or VirusShare fallback")
     if int(source_summary["next_action_run_wave"]) != 1:
         raise ContractError(f"{path}.source_status_summary.next_action_run_wave: must be Wave 1")
     next_action_safety = require_object(
@@ -5106,7 +5131,10 @@ def validate_wave1_execution_packet(data: dict[str, Any], path: Path) -> None:
         raise ContractError(
             f"{path}.source.source_operator_launch_brief_summary.next_action_run_returncode: must be 0 or blocked-env 1"
         )
-    if str(source_brief_summary["next_action_run_package_id"]) != "ml_data_governed_acquisition":
+    if str(source_brief_summary["next_action_run_package_id"]) not in {
+        "ml_data_governed_acquisition",
+        "ml_data_virusshare_fallback",
+    }:
         raise ContractError(f"{path}.source.source_operator_launch_brief_summary.next_action_run_package_id: invalid package")
     if int(source_brief_summary["next_action_run_wave"]) != 1:
         raise ContractError(f"{path}.source.source_operator_launch_brief_summary.next_action_run_wave: must be 1")
@@ -9357,12 +9385,24 @@ def validate_wave1_operator_handoff_index(data: dict[str, Any], path: Path) -> N
         "post_run_receipts_wait_for_real_evidence": (
             bool(acquisition_receipt["ready_for_manifest_publish"]) is False
             and bool(manifest_publish_receipt["manifest_publish_complete"]) is False
-            and bool(acquisition_receipt_summary["acquisition_transcript_present"]) is False
-            and bool(acquisition_receipt_summary["acquisition_transcript_valid"]) is False
-            and bool(manifest_publish_summary["acquisition_transcript_present"]) is False
-            and bool(manifest_publish_summary["acquisition_transcript_valid"]) is False
-            and "missing_wave1_acquisition_transcript" in [str(item) for item in acquisition_receipt.get("blockers", [])]
-            and "missing_wave1_acquisition_transcript" in [str(item) for item in manifest_publish_receipt.get("blockers", [])]
+            and (
+                (
+                    bool(acquisition_receipt_summary["acquisition_transcript_present"]) is False
+                    and bool(acquisition_receipt_summary["acquisition_transcript_valid"]) is False
+                    and bool(manifest_publish_summary["acquisition_transcript_present"]) is False
+                    and bool(manifest_publish_summary["acquisition_transcript_valid"]) is False
+                    and "missing_wave1_acquisition_transcript" in [str(item) for item in acquisition_receipt.get("blockers", [])]
+                    and "missing_wave1_acquisition_transcript" in [str(item) for item in manifest_publish_receipt.get("blockers", [])]
+                )
+                or (
+                    bool(acquisition_receipt_summary["acquisition_transcript_present"]) is True
+                    and bool(acquisition_receipt_summary["acquisition_transcript_valid"]) is False
+                    and bool(manifest_publish_summary["acquisition_transcript_present"]) is True
+                    and bool(manifest_publish_summary["acquisition_transcript_valid"]) is False
+                    and "wave1_acquisition_transcript_invalid" in [str(item) for item in acquisition_receipt.get("blockers", [])]
+                    and "wave1_acquisition_transcript_invalid" in [str(item) for item in manifest_publish_receipt.get("blockers", [])]
+                )
+            )
         ),
     }
     for field, expected in expected_receipt_summary.items():

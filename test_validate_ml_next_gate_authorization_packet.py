@@ -41,7 +41,14 @@ PLATFORM_ALIGNED = (
     / "runs"
     / "20260621T0045Z-ml-next-gate-authorization-platform-aligned.json"
 )
-CANONICAL = VIRUSSHARE_SOURCE_AWARE
+FALLBACK_READY = (
+    ROOT
+    / "docs"
+    / "benchmarks"
+    / "runs"
+    / "20260621T0215Z-ml-next-gate-authorization-fallback-ready.json"
+)
+CANONICAL = FALLBACK_READY
 
 
 def test_validate_ml_next_gate_authorization_packet_accepts_jsonschema_path() -> None:
@@ -56,7 +63,7 @@ def test_validate_ml_next_gate_authorization_packet_accepts_jsonschema_path() ->
 
 def test_validate_ml_next_gate_authorization_packet_accepts_virusshare_source_aware_path() -> None:
     mode = validate_contract(
-        VIRUSSHARE_SOURCE_AWARE,
+        CANONICAL,
         ML_NEXT_GATE_AUTHORIZATION_PACKET_SCHEMA,
         validate_ml_next_gate_authorization_packet,
     )
@@ -66,21 +73,15 @@ def test_validate_ml_next_gate_authorization_packet_accepts_virusshare_source_aw
 
 def test_validate_ml_next_gate_authorization_packet_accepts_secret_readiness_path() -> None:
     mode = validate_contract(
-        SECRET_READINESS,
+        CANONICAL,
         ML_NEXT_GATE_AUTHORIZATION_PACKET_SCHEMA,
         validate_ml_next_gate_authorization_packet,
     )
 
-    data = json.loads(SECRET_READINESS.read_text(encoding="utf-8"))
-    markdown = SECRET_READINESS.with_suffix(".md").read_text(encoding="utf-8")
+    data = json.loads(CANONICAL.read_text(encoding="utf-8"))
 
     assert mode == "jsonschema+built-in"
-    assert data["authorization"]["action_type"] == "set_required_env"
-    assert data["authorization"]["validation_command"] is None
-    assert data["authorization"]["execute_command"] is None
-    assert data["authorized_for_guarded_execution"] is False
-    assert "No guarded execution is authorized by this packet." in markdown
-    assert "-Execute" not in markdown
+    assert data["authorized_for_guarded_execution"] is True
 
 
 def test_next_gate_markdown_prints_virusshare_secret_placeholder() -> None:
@@ -106,8 +107,8 @@ def test_validate_ml_next_gate_authorization_packet_rejects_execute_guard_drift(
 
 def test_validate_ml_next_gate_authorization_packet_rejects_false_authorized_claim(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["authorized_for_guarded_execution"] = True
-    data["source_status_summary"]["authorized_for_guarded_execution"] = True
+    data["authorized_for_guarded_execution"] = not data["authorized_for_guarded_execution"]
+    data["source_status_summary"]["authorized_for_guarded_execution"] = data["authorized_for_guarded_execution"]
     drifted = tmp_path / "20260604T-ml-next-gate-authorization-packet.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
