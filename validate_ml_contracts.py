@@ -30,6 +30,7 @@ EXECUTION_PLAN_SCHEMA = ROOT / "schemas/ml_execution_plan_v1.schema.json"
 EXECUTION_STATUS_SCHEMA = ROOT / "schemas/ml_execution_status_v1.schema.json"
 ML_EXECUTION_MASTER_HANDOFF_SCHEMA = ROOT / "schemas/ml_execution_master_handoff_v1.schema.json"
 ML_NEXT_GATE_AUTHORIZATION_PACKET_SCHEMA = ROOT / "schemas/ml_next_gate_authorization_packet_v1.schema.json"
+ML_NEXT_OPERATOR_PACKET_SCHEMA = ROOT / "schemas/ml_next_operator_packet_v1.schema.json"
 ML_LAB_STANDBY_READINESS_SCHEMA = ROOT / "schemas/ml_lab_standby_readiness_v1.schema.json"
 ML_LOCAL_TRAINING_READINESS_SCHEMA = ROOT / "schemas/ml_local_training_readiness_v1.schema.json"
 NEXT_ACTION_RUN_SCHEMA = ROOT / "schemas/ml_next_action_run_v1.schema.json"
@@ -113,6 +114,7 @@ EXECUTION_PLAN_API_VERSION = "tamandua.io/ml-execution-plan/v1"
 EXECUTION_STATUS_API_VERSION = "tamandua.io/ml-execution-status/v1"
 ML_EXECUTION_MASTER_HANDOFF_API_VERSION = "tamandua.io/ml-execution-master-handoff/v1"
 ML_NEXT_GATE_AUTHORIZATION_PACKET_API_VERSION = "tamandua.io/ml-next-gate-authorization-packet/v1"
+ML_NEXT_OPERATOR_PACKET_API_VERSION = "tamandua.io/ml-next-operator-packet/v1"
 ML_LAB_STANDBY_READINESS_API_VERSION = "tamandua.io/ml-lab-standby-readiness/v1"
 ML_LOCAL_TRAINING_READINESS_API_VERSION = "tamandua.io/ml-local-training-readiness/v1"
 NEXT_ACTION_RUN_API_VERSION = "tamandua.io/ml-next-action-run/v1"
@@ -10682,6 +10684,7 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
             "source",
             "source_artifact_hashes",
             "operator_decision",
+            "agent_smoke_context",
             "source_status_summary",
             "operator_sequence",
             "checks",
@@ -10718,10 +10721,29 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
         raise ContractError(f"{path}.source.wave1_acceptance_checklist: must reference canonical Wave 1 acceptance checklist")
     if source["wave1_acceptance_checklist_validation"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source.wave1_acceptance_checklist_validation: invalid validation mode")
-    if not str(source["wave2_ml2_ml3_readiness"]).endswith("20260604T-ml-wave2-ml2-ml3-readiness-probe.json"):
+    valid_readiness_suffixes = (
+        "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
+        "20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening.json",
+    )
+    if not str(source["wave2_ml2_ml3_readiness"]).endswith(valid_readiness_suffixes):
         raise ContractError(f"{path}.source.wave2_ml2_ml3_readiness: must reference canonical ML-2/ML-3 readiness")
     if source["wave2_ml2_ml3_readiness_validation"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source.wave2_ml2_ml3_readiness_validation: invalid validation mode")
+    agent_smoke_source_path: Path | None = None
+    agent_smoke_report: dict[str, Any] | None = None
+    if "ml3_agent_smoke_report" in source:
+        if source.get("ml3_agent_smoke_report_validation") not in {"jsonschema+built-in", "built-in", "missing"}:
+            raise ContractError(f"{path}.source.ml3_agent_smoke_report_validation: invalid validation mode")
+        agent_smoke_source_path = Path(str(source["ml3_agent_smoke_report"]))
+        if not agent_smoke_source_path.is_absolute():
+            agent_smoke_source_path = ROOT / agent_smoke_source_path
+        if agent_smoke_source_path.exists():
+            smoke_mode = validate_contract(agent_smoke_source_path, BENCHMARK_SCHEMA, validate_benchmark_report)
+            if source.get("ml3_agent_smoke_report_validation") != smoke_mode:
+                raise ContractError(f"{path}.source.ml3_agent_smoke_report_validation: must match smoke report validation")
+            agent_smoke_report = load_json(agent_smoke_source_path)
+        elif source.get("ml3_agent_smoke_report_validation") != "missing":
+            raise ContractError(f"{path}.source.ml3_agent_smoke_report_validation: must be missing when report is absent")
 
     acceptance_path = Path(str(source["wave1_acceptance_checklist"]))
     if not acceptance_path.is_absolute():
@@ -10743,9 +10765,12 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
         "wave1_acceptance_checklist": acceptance_path,
         "wave2_ml2_ml3_readiness": readiness_path,
     }
+    if agent_smoke_source_path is not None and agent_smoke_source_path.exists():
+        expected_source_hash_paths["ml3_agent_smoke_report"] = agent_smoke_source_path
     expected_source_suffixes = {
         "wave1_acceptance_checklist": "20260604T-ml-wave1-acceptance-checklist.json",
-        "wave2_ml2_ml3_readiness": "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
+        "wave2_ml2_ml3_readiness": valid_readiness_suffixes,
+        "ml3_agent_smoke_report": "20260620T-ml3-agent-parity-with-win-template.json",
     }
     if set(source_hashes) != set(expected_source_hash_paths):
         raise ContractError(f"{path}.source_artifact_hashes: must contain exactly the ML-2/ML-3 source artifacts")
@@ -10818,6 +10843,60 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
         raise ContractError(f"{path}.operator_decision.validation_command: must match readiness operator sequence")
     if str(decision["execute_command"]) != str(execute_step.get("command", "")):
         raise ContractError(f"{path}.operator_decision.execute_command: must match readiness operator sequence")
+
+    agent_smoke_context = require_object(data["agent_smoke_context"], f"{path}.agent_smoke_context")
+    require_keys(
+        agent_smoke_context,
+        {
+            "present",
+            "validation",
+            "path",
+            "smoke_agent_side_evidence_present",
+            "smoke_agent_side_evidence_valid",
+            "smoke_agent_side_evidence_quality_gate_passed",
+            "smoke_agent_side_evidence_win_template_attached",
+            "smoke_agent_side_evidence_unblocks_production",
+            "claim_boundary",
+        },
+        f"{path}.agent_smoke_context",
+    )
+    smoke_present = agent_smoke_report is not None
+    if bool(agent_smoke_context["present"]) != smoke_present:
+        raise ContractError(f"{path}.agent_smoke_context.present: must match smoke report presence")
+    if bool(agent_smoke_context["smoke_agent_side_evidence_present"]) != smoke_present:
+        raise ContractError(f"{path}.agent_smoke_context.smoke_agent_side_evidence_present: must match smoke report presence")
+    if agent_smoke_context["smoke_agent_side_evidence_unblocks_production"] is not False:
+        raise ContractError(f"{path}.agent_smoke_context.smoke_agent_side_evidence_unblocks_production: smoke evidence must not unblock production")
+    if smoke_present:
+        assert agent_smoke_source_path is not None and agent_smoke_report is not None
+        if str(agent_smoke_context["path"]) != str(source["ml3_agent_smoke_report"]):
+            raise ContractError(f"{path}.agent_smoke_context.path: must match source smoke report")
+        if str(agent_smoke_context["validation"]) != str(source["ml3_agent_smoke_report_validation"]):
+            raise ContractError(f"{path}.agent_smoke_context.validation: must match source smoke validation")
+        if str(agent_smoke_context.get("lane", "")) != "ML-3":
+            raise ContractError(f"{path}.agent_smoke_context.lane: must be ML-3")
+        if str(agent_smoke_report.get("lane", "")) != "ML-3":
+            raise ContractError(f"{agent_smoke_source_path}.lane: smoke context report must be ML-3")
+        quality_gate = require_object(agent_smoke_report.get("quality_gate"), f"{agent_smoke_source_path}.quality_gate")
+        artifacts = require_array(agent_smoke_report.get("artifacts"), f"{agent_smoke_source_path}.artifacts")
+        artifact_names = {str(item.get("name", "")) for item in artifacts if isinstance(item, dict)}
+        report_text = json.dumps(agent_smoke_report, sort_keys=True)
+        win_template_attached = "win_template_ml_probe" in artifact_names or "WIN-TEMPLATE" in report_text
+        if quality_gate.get("status") != "pass":
+            raise ContractError(f"{agent_smoke_source_path}.quality_gate.status: smoke context must pass")
+        if not win_template_attached:
+            raise ContractError(f"{agent_smoke_source_path}.artifacts: smoke context must attach WIN-TEMPLATE probe")
+        if agent_smoke_context["smoke_agent_side_evidence_valid"] is not True:
+            raise ContractError(f"{path}.agent_smoke_context.smoke_agent_side_evidence_valid: must be true for validated smoke report")
+        if agent_smoke_context["smoke_agent_side_evidence_quality_gate_passed"] is not True:
+            raise ContractError(f"{path}.agent_smoke_context.smoke_agent_side_evidence_quality_gate_passed: must be true")
+        if agent_smoke_context["smoke_agent_side_evidence_win_template_attached"] is not True:
+            raise ContractError(f"{path}.agent_smoke_context.smoke_agent_side_evidence_win_template_attached: must be true")
+        if "cannot satisfy" not in str(agent_smoke_context.get("production_boundary_reason", "")):
+            raise ContractError(f"{path}.agent_smoke_context.production_boundary_reason: must reject production unblock")
+    else:
+        if agent_smoke_context["validation"] != "missing":
+            raise ContractError(f"{path}.agent_smoke_context.validation: absent smoke report must be missing")
 
     operator_sequence = [
         require_object(item, f"{path}.operator_sequence.item")
@@ -10908,6 +10987,8 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
             and report_execute_required_env == execute_required_env
         ),
     }
+    if smoke_present:
+        expected_check_results["agent_smoke_evidence_context_valid"] = True
     missing = sorted(set(expected_check_results).difference(check_by_name))
     if missing:
         raise ContractError(f"{path}.checks: missing required checks: {', '.join(missing)}")
@@ -10945,6 +11026,11 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
             "operator_sequence_steps",
             "blocker_count",
             "blockers",
+            "agent_smoke_evidence_present",
+            "agent_smoke_evidence_valid",
+            "agent_smoke_evidence_quality_gate_passed",
+            "agent_smoke_evidence_win_template_attached",
+            "agent_smoke_evidence_unblocks_production",
             "goal_complete",
             "completion_state",
             "goal_missing_requirements",
@@ -10989,6 +11075,11 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
         ),
         "operator_sequence_steps": len(operator_sequence),
         "blockers": expected_blockers,
+        "agent_smoke_evidence_present": bool(agent_smoke_context["smoke_agent_side_evidence_present"]),
+        "agent_smoke_evidence_valid": bool(agent_smoke_context["smoke_agent_side_evidence_valid"]),
+        "agent_smoke_evidence_quality_gate_passed": bool(agent_smoke_context["smoke_agent_side_evidence_quality_gate_passed"]),
+        "agent_smoke_evidence_win_template_attached": bool(agent_smoke_context["smoke_agent_side_evidence_win_template_attached"]),
+        "agent_smoke_evidence_unblocks_production": False,
         "goal_complete": bool(acceptance_summary["goal_complete"]),
         "completion_state": str(acceptance_summary["completion_state"]),
         "goal_missing_requirements": int(acceptance_summary["goal_missing_requirements"]),
@@ -25091,6 +25182,173 @@ def validate_contract(instance_path: Path, schema_path: Path, fallback_validator
     return "jsonschema+built-in" if used_jsonschema else "built-in"
 
 
+def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
+    require_keys(
+        data,
+        {
+            "api_version",
+            "kind",
+            "metadata",
+            "source_authorization_packet",
+            "operator_decision",
+            "commands",
+            "safety_invariants",
+            "expected_evidence",
+            "downstream_benchmark_surfaces",
+            "checks",
+            "source_status_summary",
+        },
+        str(path),
+    )
+    if data["api_version"] != ML_NEXT_OPERATOR_PACKET_API_VERSION:
+        raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
+    if data["kind"] != "MLNextOperatorPacket":
+        raise ContractError(f"{path}: invalid kind {data['kind']!r}")
+    metadata = require_object(data["metadata"], f"{path}.metadata")
+    require_keys(metadata, {"report_id", "generated_at", "created_by", "claim_boundary"}, f"{path}.metadata")
+    boundary = str(metadata["claim_boundary"])
+    if "No-execution" not in boundary or "does not set guards" not in boundary or "push mirrors" not in boundary:
+        raise ContractError(f"{path}.metadata.claim_boundary: must describe no-execution/no-push boundary")
+
+    authorization_path = Path(str(data["source_authorization_packet"]))
+    if not authorization_path.is_absolute():
+        authorization_path = ROOT / authorization_path
+    validate_contract(authorization_path, ML_NEXT_GATE_AUTHORIZATION_PACKET_SCHEMA, validate_ml_next_gate_authorization_packet)
+    authorization_packet = load_json(authorization_path)
+    authorization = require_object(authorization_packet["authorization"], f"{authorization_path}.authorization")
+    authorization_summary = require_object(authorization_packet["source_status_summary"], f"{authorization_path}.source_status_summary")
+
+    decision = require_object(data["operator_decision"], f"{path}.operator_decision")
+    require_keys(
+        decision,
+        {
+            "package_id",
+            "ready_for_guarded_execution",
+            "authorized_for_guarded_execution",
+            "publication_decision",
+            "publication_reason",
+            "blockers",
+            "failed_authorization_checks",
+        },
+        f"{path}.operator_decision",
+    )
+    blockers = [str(item) for item in require_array(decision["blockers"], f"{path}.operator_decision.blockers")]
+    failed_authorization_checks = [
+        str(item)
+        for item in require_array(decision["failed_authorization_checks"], f"{path}.operator_decision.failed_authorization_checks")
+    ]
+    if decision["package_id"] != authorization["package_id"]:
+        raise ContractError(f"{path}.operator_decision.package_id: must match authorization packet")
+    if decision["authorized_for_guarded_execution"] != authorization_packet["authorized_for_guarded_execution"]:
+        raise ContractError(f"{path}.operator_decision.authorized_for_guarded_execution: must match authorization packet")
+    expected_blockers = [str(item) for item in authorization_summary.get("virusshare_fallback_blockers", [])]
+    if blockers != expected_blockers:
+        raise ContractError(f"{path}.operator_decision.blockers: must match VirusShare fallback blockers")
+    ready = (
+        authorization_packet["authorized_for_guarded_execution"] is True
+        and authorization_summary.get("virusshare_fallback_readiness_ready") is True
+        and not blockers
+        and not failed_authorization_checks
+    )
+    if bool(decision["ready_for_guarded_execution"]) != ready:
+        raise ContractError(f"{path}.operator_decision.ready_for_guarded_execution: must match source readiness")
+    expected_publication_decision = "eligible_after_operator_approval" if ready else "hold_do_not_push"
+    if decision["publication_decision"] != expected_publication_decision:
+        raise ContractError(f"{path}.operator_decision.publication_decision: must match guarded readiness")
+    if decision["publication_decision"] == "hold_do_not_push" and "blocked" not in str(decision["publication_reason"]).lower():
+        raise ContractError(f"{path}.operator_decision.publication_reason: hold decision must explain blocker")
+
+    commands = require_object(data["commands"], f"{path}.commands")
+    validation = require_object(commands["validation"], f"{path}.commands.validation")
+    guarded_execute = require_object(commands["guarded_execute"], f"{path}.commands.guarded_execute")
+    post_acquisition = require_object(commands["post_acquisition"], f"{path}.commands.post_acquisition")
+    if str(validation["command"]) != str(authorization["validation_command"]):
+        raise ContractError(f"{path}.commands.validation.command: must match authorization validation command")
+    if "-Execute" in str(validation["command"]):
+        raise ContractError(f"{path}.commands.validation.command: must be validation-only")
+    if require_object(validation["required_env"], f"{path}.commands.validation.required_env"):
+        raise ContractError(f"{path}.commands.validation.required_env: validation must not require env")
+    if str(guarded_execute["command"]) != str(authorization["execute_command"]):
+        raise ContractError(f"{path}.commands.guarded_execute.command: must match authorization execute command")
+    if "-Execute" not in str(guarded_execute["command"]):
+        raise ContractError(f"{path}.commands.guarded_execute.command: must be guarded execute")
+    if str(guarded_execute["guard_set_command"]) != "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = '1'":
+        raise ContractError(f"{path}.commands.guarded_execute.guard_set_command: must set real acquisition guard separately")
+    required_env = require_object(guarded_execute["required_env"], f"{path}.commands.guarded_execute.required_env")
+    if required_env.get("TAMANDUA_ALLOW_ML_REAL_ACQUISITION") != "1":
+        raise ContractError(f"{path}.commands.guarded_execute.required_env: must require real acquisition guard")
+    if required_env.get("VIRUSSHARE_API_KEY") != "<redacted: isolated lab secret store>":
+        raise ContractError(f"{path}.commands.guarded_execute.required_env.VIRUSSHARE_API_KEY: must be redacted")
+    serialized = json.dumps(data, sort_keys=True, ensure_ascii=True)
+    if "VIRUSSHARE_API_KEY=" in serialized or "VIRUSSHARE_API_KEY = '" in serialized:
+        raise ContractError(f"{path}: must not embed a VirusShare secret value")
+    if "VIRUSSHARE_API_KEY" not in str(guarded_execute["guard_cleanup_command"]):
+        raise ContractError(f"{path}.commands.guarded_execute.guard_cleanup_command: must remove VirusShare secret")
+    if post_acquisition["manifest_guard_set_command"] != "$env:TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH = '1'":
+        raise ContractError(f"{path}.commands.post_acquisition.manifest_guard_set_command: invalid manifest guard")
+    if "-Execute" not in str(post_acquisition["manifest_publish_command"]):
+        raise ContractError(f"{path}.commands.post_acquisition.manifest_publish_command: must be guarded execute")
+
+    safety = require_object(data["safety_invariants"], f"{path}.safety_invariants")
+    safety_expectations = {
+        "vx_archive_download_guard_env": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD",
+        "vx_archive_download_guard_must_remain_unset": True,
+        "vx_download_authorized_by_this_packet": False,
+        "vx_inventory_metadata_only": True,
+        "vx_samples_allowed_in_training_splits": False,
+        "raw_samples_allowed_in_git": False,
+        "data_root_must_be_outside_repo": True,
+        "source_mirror_code_and_metadata_only": True,
+        "trained_weights_release_artifact_only_after_ml_gates": True,
+    }
+    for field, expected in safety_expectations.items():
+        if safety.get(field) != expected:
+            raise ContractError(f"{path}.safety_invariants.{field}: must be {expected!r}")
+    expected_evidence = require_array(data["expected_evidence"], f"{path}.expected_evidence")
+    for suffix in [
+        "20260604T-ml-wave1-real-acquisition-transcript.json",
+        "20260604T-ml-wave1-manifest-publish-receipt.json",
+        "20260604T-ml-wave1-acceptance-checklist.json",
+        "20260604T-ml-dataset-manifest.json",
+    ]:
+        if not any(str(item).endswith(suffix) for item in expected_evidence):
+            raise ContractError(f"{path}.expected_evidence: missing {suffix}")
+    downstream = require_object(data["downstream_benchmark_surfaces"], f"{path}.downstream_benchmark_surfaces")
+    if downstream.get("next_unproven_requirement") != "wave1_governed_acquisition":
+        raise ContractError(f"{path}.downstream_benchmark_surfaces.next_unproven_requirement: must remain Wave 1")
+    if downstream.get("detection_surface_contract_ready") is not True:
+        raise ContractError(f"{path}.downstream_benchmark_surfaces.detection_surface_contract_ready: must be true")
+
+    checks = [require_object(item, f"{path}.checks.item") for item in require_array(data["checks"], f"{path}.checks")]
+    check_by_name = {str(check["name"]): check for check in checks}
+    for required_check in {
+        "source_authorization_packet_loaded",
+        "validation_command_remains_validation_only",
+        "execute_command_remains_guarded",
+        "virusshare_secret_required_but_not_embedded",
+        "vx_archives_not_authorized",
+        "ml_mirror_publication_hold_preserved",
+    }:
+        if required_check not in check_by_name:
+            raise ContractError(f"{path}.checks: missing {required_check}")
+        if check_by_name[required_check].get("passed") is not True:
+            raise ContractError(f"{path}.checks.{required_check}.passed: must be true")
+
+    summary = require_object(data["source_status_summary"], f"{path}.source_status_summary")
+    if summary["ready_for_guarded_execution"] != ready:
+        raise ContractError(f"{path}.source_status_summary.ready_for_guarded_execution: must match source readiness")
+    if summary["publication_decision"] != expected_publication_decision:
+        raise ContractError(f"{path}.source_status_summary.publication_decision: must match decision")
+    if int(summary["blocker_count"]) != len(blockers):
+        raise ContractError(f"{path}.source_status_summary.blocker_count: must match blockers")
+    if int(summary["failed_authorization_check_count"]) != len(failed_authorization_checks):
+        raise ContractError(f"{path}.source_status_summary.failed_authorization_check_count: must match failed checks")
+    if int(summary["passed_checks"]) != sum(1 for check in checks if check.get("passed") is True):
+        raise ContractError(f"{path}.source_status_summary.passed_checks: must match checks")
+    if int(summary["failed_checks"]) != sum(1 for check in checks if check.get("passed") is not True):
+        raise ContractError(f"{path}.source_status_summary.failed_checks: must match checks")
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset-manifest", type=Path, default=DEFAULT_DATASET_MANIFEST)
@@ -25101,6 +25359,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--execution-status", type=Path, default=None)
     parser.add_argument("--ml-execution-master-handoff", type=Path, default=None)
     parser.add_argument("--ml-next-gate-authorization-packet", type=Path, default=None)
+    parser.add_argument("--ml-next-operator-packet", type=Path, default=None)
     parser.add_argument("--ml-lab-standby-readiness", type=Path, default=None)
     parser.add_argument("--ml-local-training-readiness", type=Path, default=None)
     parser.add_argument("--next-action-run", type=Path, default=None)
@@ -25214,6 +25473,13 @@ def main() -> int:
                 args.ml_next_gate_authorization_packet,
                 ML_NEXT_GATE_AUTHORIZATION_PACKET_SCHEMA,
                 validate_ml_next_gate_authorization_packet,
+            )
+        ml_next_operator_packet_mode = None
+        if args.ml_next_operator_packet is not None:
+            ml_next_operator_packet_mode = validate_contract(
+                args.ml_next_operator_packet,
+                ML_NEXT_OPERATOR_PACKET_SCHEMA,
+                validate_ml_next_operator_packet,
             )
         ml_lab_standby_readiness_mode = None
         if args.ml_lab_standby_readiness is not None:
@@ -25722,6 +25988,8 @@ def main() -> int:
             "validated ML next gate authorization packet: "
             f"{args.ml_next_gate_authorization_packet} ({ml_next_gate_authorization_packet_mode})"
         )
+    if ml_next_operator_packet_mode is not None:
+        print(f"validated ML next operator packet: {args.ml_next_operator_packet} ({ml_next_operator_packet_mode})")
     if ml_lab_standby_readiness_mode is not None:
         print(f"validated ML lab standby readiness: {args.ml_lab_standby_readiness} ({ml_lab_standby_readiness_mode})")
     if ml_local_training_readiness_mode is not None:

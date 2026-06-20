@@ -11,6 +11,7 @@
     "source",
     "source_artifact_hashes",
     "operator_decision",
+    "agent_smoke_context",
     "source_status_summary",
     "operator_sequence",
     "checks"
@@ -41,8 +42,10 @@
       "properties": {
         "wave1_acceptance_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-acceptance-checklist\\.json$"},
         "wave1_acceptance_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "wave2_ml2_ml3_readiness": {"type": "string", "pattern": "20260604T-ml-wave2-ml2-ml3-readiness-probe\\.json$"},
-        "wave2_ml2_ml3_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]}
+        "wave2_ml2_ml3_readiness": {"type": "string", "pattern": "(20260604T-ml-wave2-ml2-ml3-readiness-probe|20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening)\\.json$"},
+        "wave2_ml2_ml3_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "ml3_agent_smoke_report": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|missing)\\.json$|20260620T-ml3-agent-parity-with-win-template\\.json$"},
+        "ml3_agent_smoke_report_validation": {"enum": ["jsonschema+built-in", "built-in", "missing"]}
       }
     },
     "source_artifact_hashes": {
@@ -67,7 +70,16 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-wave2-ml2-ml3-readiness-probe\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave2-ml2-ml3-readiness-probe|20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening)\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "ml3_agent_smoke_report": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260620T-ml3-agent-parity-with-win-template\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         }
@@ -101,6 +113,40 @@
         "no_execution_claim_boundary": {"type": "string", "minLength": 10}
       }
     },
+    "agent_smoke_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "present",
+        "validation",
+        "path",
+        "smoke_agent_side_evidence_present",
+        "smoke_agent_side_evidence_valid",
+        "smoke_agent_side_evidence_quality_gate_passed",
+        "smoke_agent_side_evidence_win_template_attached",
+        "smoke_agent_side_evidence_unblocks_production",
+        "claim_boundary"
+      ],
+      "properties": {
+        "present": {"type": "boolean"},
+        "validation": {"enum": ["jsonschema+built-in", "built-in", "missing"]},
+        "path": {"type": "string", "minLength": 1},
+        "lane": {"type": "string"},
+        "model_version": {"type": "string"},
+        "dataset_id": {"type": "string"},
+        "sample_count": {"type": "integer", "minimum": 0},
+        "verdict_agreement": {"type": ["number", "null"]},
+        "confidence_delta_p95": {"type": ["number", "null"]},
+        "quality_gate_status": {"type": "string"},
+        "smoke_agent_side_evidence_present": {"type": "boolean"},
+        "smoke_agent_side_evidence_valid": {"type": "boolean"},
+        "smoke_agent_side_evidence_quality_gate_passed": {"type": "boolean"},
+        "smoke_agent_side_evidence_win_template_attached": {"type": "boolean"},
+        "smoke_agent_side_evidence_unblocks_production": {"const": false},
+        "claim_boundary": {"type": "string", "minLength": 10},
+        "production_boundary_reason": {"type": "string", "minLength": 10}
+      }
+    },
     "source_status_summary": {
       "type": "object",
       "additionalProperties": false,
@@ -131,6 +177,11 @@
         "operator_sequence_steps",
         "blocker_count",
         "blockers",
+        "agent_smoke_evidence_present",
+        "agent_smoke_evidence_valid",
+        "agent_smoke_evidence_quality_gate_passed",
+        "agent_smoke_evidence_win_template_attached",
+        "agent_smoke_evidence_unblocks_production",
         "goal_complete",
         "completion_state",
         "goal_missing_requirements",
@@ -172,6 +223,11 @@
         "operator_sequence_steps": {"const": 2},
         "blocker_count": {"type": "integer", "minimum": 0},
         "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "agent_smoke_evidence_present": {"type": "boolean"},
+        "agent_smoke_evidence_valid": {"type": "boolean"},
+        "agent_smoke_evidence_quality_gate_passed": {"type": "boolean"},
+        "agent_smoke_evidence_win_template_attached": {"type": "boolean"},
+        "agent_smoke_evidence_unblocks_production": {"const": false},
         "goal_complete": {"const": false},
         "completion_state": {"enum": ["not_executed", "partial_evidence"]},
         "goal_missing_requirements": {"const": 9},
