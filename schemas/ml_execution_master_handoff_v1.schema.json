@@ -76,7 +76,7 @@
         "unblock_validation_status_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "prelab_contract_coverage": {"type": "string", "pattern": "20260604T-ml-prelab-contract-coverage\\.json$"},
         "prelab_contract_coverage_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "next_action_validation_run": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0110Z-ml-next-action-platform-aligned-lab-root)\\.run\\.json$"},
+        "next_action_validation_run": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0110Z-ml-next-action-platform-aligned-lab-root|20260621T0300Z-ml-next-action-governed-lab-root)\\.run\\.json$"},
         "next_action_validation_run_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "source_status_summary": {
           "type": "object",
@@ -311,7 +311,7 @@
             "ready_validation_only_evidence"
           ],
           "properties": {
-            "artifact": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0110Z-ml-next-action-platform-aligned-lab-root)\\.run\\.json$"},
+            "artifact": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0110Z-ml-next-action-platform-aligned-lab-root|20260621T0300Z-ml-next-action-governed-lab-root)\\.run\\.json$"},
             "artifact_validation": {"enum": ["jsonschema+built-in", "built-in"]},
             "mode": {"const": "validation_only"},
             "returncode": {"type": ["integer", "null"]},
@@ -699,7 +699,7 @@
         "next_gate_validation_command": {"type": ["string", "null"]},
         "next_gate_execute_command": {"type": ["string", "null"]},
         "next_gate_execute_guard_env": {"type": ["string", "null"]},
-        "next_gate_validation_run": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0110Z-ml-next-action-platform-aligned-lab-root)\\.run\\.json$"},
+        "next_gate_validation_run": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0110Z-ml-next-action-platform-aligned-lab-root|20260621T0300Z-ml-next-action-governed-lab-root)\\.run\\.json$"},
         "next_gate_validation_run_ready": {"type": "boolean"},
         "next_gate_validation_run_returncode": {"type": ["integer", "null"]},
         "next_gate_validation_run_safety_assertions_passed": {"type": "boolean"},

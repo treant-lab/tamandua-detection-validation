@@ -1779,6 +1779,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         "next_action_validation_run": (
             "20260604T-ml-prelab-next-action-validation.run.json",
             "20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json",
+            "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
         ),
     }
     for field, suffixes in expected_refs.items():
@@ -1982,6 +1983,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         (
             "20260604T-ml-prelab-next-action-validation.run.json",
             "20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json",
+            "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
         )
     ):
         raise ContractError(f"{path}.next_gate.validation_run_evidence.artifact: must reference canonical validation run")
@@ -4570,6 +4572,7 @@ def validate_wave1_operator_launch_brief(data: dict[str, Any], path: Path) -> No
     if not (
         str(configuration["next_action_run_ref"]).endswith("20260604T-ml-prelab-next-action-validation.run.json")
         or str(configuration["next_action_run_ref"]).endswith("20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json")
+        or str(configuration["next_action_run_ref"]).endswith("20260621T0300Z-ml-next-action-governed-lab-root.run.json")
     ):
         raise ContractError(f"{path}.configuration.next_action_run_ref: must reference canonical next-action validation run")
     if not str(configuration["ml_lab_standby_readiness_ref"]).endswith("20260604T-ml-lab-standby-readiness.json"):
@@ -22855,6 +22858,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         or str(source["next_action_validation_run"]).endswith("20260620T2320Z-ml-next-action-secret-readiness.json")
         or str(source["next_action_validation_run"]).endswith("20260621T0035Z-ml-next-action-platform-aligned.run.json")
         or str(source["next_action_validation_run"]).endswith("20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json")
+        or str(source["next_action_validation_run"]).endswith("20260621T0300Z-ml-next-action-governed-lab-root.run.json")
     ):
         raise ContractError(f"{path}.source.next_action_validation_run: must reference canonical next-action validation run")
     if not str(source["transcript_template"]).endswith("20260604T-ml-wave1-real-acquisition-transcript.template.json"):

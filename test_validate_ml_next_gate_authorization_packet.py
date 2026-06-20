@@ -48,7 +48,14 @@ FALLBACK_READY = (
     / "runs"
     / "20260621T0215Z-ml-next-gate-authorization-fallback-ready.json"
 )
-CANONICAL = FALLBACK_READY
+GOVERNED_READY = (
+    ROOT
+    / "docs"
+    / "benchmarks"
+    / "runs"
+    / "20260621T0310Z-ml-next-gate-authorization-governed-ready.json"
+)
+CANONICAL = GOVERNED_READY
 
 
 def test_validate_ml_next_gate_authorization_packet_accepts_jsonschema_path() -> None:

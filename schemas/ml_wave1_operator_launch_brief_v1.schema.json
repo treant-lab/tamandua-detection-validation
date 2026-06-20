@@ -292,7 +292,7 @@
         "execute_guard_ref": {"type": "string", "minLength": 1},
         "next_action_run_ref": {
           "type": "string",
-          "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run)\\.json$"
+          "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run|20260621T0300Z-ml-next-action-governed-lab-root\\.run)\\.json$"
         },
         "ml_lab_standby_readiness_ref": {
           "type": "string",
