@@ -50,6 +50,13 @@ def test_validate_ml_next_gate_authorization_packet_accepts_virusshare_source_aw
     assert mode == "jsonschema+built-in"
 
 
+def test_next_gate_markdown_prints_virusshare_secret_placeholder() -> None:
+    markdown = VIRUSSHARE_SOURCE_AWARE.with_suffix(".md").read_text(encoding="utf-8")
+
+    assert "$env:VIRUSSHARE_API_KEY = '<from isolated lab secret store>'" in markdown
+    assert "--virusshare-api-key" not in markdown
+
+
 def test_validate_ml_next_gate_authorization_packet_rejects_execute_guard_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
     data["authorization"]["execute_guard_env"] = "TAMANDUA_ALLOW_OTHER"
