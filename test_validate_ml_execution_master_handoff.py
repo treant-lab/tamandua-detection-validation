@@ -41,7 +41,7 @@ def test_validate_ml_execution_master_handoff_rejects_execute_guard_drift(tmp_pa
 
 def test_validate_ml_execution_master_handoff_rejects_ready_summary_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["summary"]["ready_for_lab_operator"] = False
+    data["summary"]["ready_for_lab_operator"] = not data["summary"]["ready_for_lab_operator"]
     drifted = tmp_path / "20260604T-ml-execution-master-handoff.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

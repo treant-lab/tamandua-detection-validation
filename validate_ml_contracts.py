@@ -1746,20 +1746,26 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         f"{path}.source",
     )
     expected_refs = {
-        "execution_status": "20260604T-ml-execution-status.json",
-        "parallel_work_packages": "20260604T-ml-parallel-work-packages.json",
-        "platform_readiness_audit": "20260604T-ml-platform-readiness-audit.json",
-        "wave1_operator_handoff_index": "20260604T-ml-wave1-operator-handoff-index.json",
-        "wave1_guarded_run_command_packet": "20260604T-ml-wave1-guarded-run-command-packet.json",
-        "benchmark_critical_path": "20260604T-ml-benchmark-critical-path.json",
-        "benchmark_actionability_audit": "20260604T-ml-benchmark-actionability-audit.json",
-        "unblock_validation_status": "20260604T-ml-unblock-validation-status.json",
-        "prelab_contract_coverage": "20260604T-ml-prelab-contract-coverage.json",
-        "next_action_validation_run": "20260604T-ml-prelab-next-action-validation.run.json",
+        "execution_status": ("20260604T-ml-execution-status.json",),
+        "parallel_work_packages": ("20260604T-ml-parallel-work-packages.json",),
+        "platform_readiness_audit": ("20260604T-ml-platform-readiness-audit.json",),
+        "wave1_operator_handoff_index": ("20260604T-ml-wave1-operator-handoff-index.json",),
+        "wave1_guarded_run_command_packet": ("20260604T-ml-wave1-guarded-run-command-packet.json",),
+        "benchmark_critical_path": (
+            "20260604T-ml-benchmark-critical-path.json",
+            "20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+        ),
+        "benchmark_actionability_audit": (
+            "20260604T-ml-benchmark-actionability-audit.json",
+            "20260620T2035Z-ml-benchmark-actionability-audit-contract-packets.json",
+        ),
+        "unblock_validation_status": ("20260604T-ml-unblock-validation-status.json",),
+        "prelab_contract_coverage": ("20260604T-ml-prelab-contract-coverage.json",),
+        "next_action_validation_run": ("20260604T-ml-prelab-next-action-validation.run.json",),
     }
-    for field, suffix in expected_refs.items():
-        if not str(source[field]).endswith(suffix):
-            raise ContractError(f"{path}.source.{field}: must reference canonical {suffix}")
+    for field, suffixes in expected_refs.items():
+        if not str(source[field]).endswith(suffixes):
+            raise ContractError(f"{path}.source.{field}: must reference canonical {' or '.join(suffixes)}")
     platform_path = resolve_report_path(str(source["platform_readiness_audit"]), path.parent)
     platform_payload = load_json(platform_path)
     validate_ml_platform_readiness_audit(platform_payload, platform_path)
