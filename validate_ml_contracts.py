@@ -23768,6 +23768,7 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
             "vx_policy",
             "guard_policy",
             "malware_bazaar_auth",
+            "source_auth",
             "source_status_summary",
             "checks",
         },
@@ -23784,12 +23785,19 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
         raise ContractError(f"{path}.metadata.claim_boundary: must preserve no-execution environment boundary")
 
     source = require_object(data["source"], f"{path}.source")
-    require_keys(source, {"pre_execution_checklist", "pre_execution_checklist_validation"}, f"{path}.source")
+    require_keys(
+        source,
+        {"pre_execution_checklist", "pre_execution_checklist_validation", "source_decision"},
+        f"{path}.source",
+    )
     if not str(source["pre_execution_checklist"]).endswith("20260604T-ml-wave1-pre-execution-checklist.json"):
         raise ContractError(f"{path}.source.pre_execution_checklist: must reference canonical Wave 1 pre-execution checklist")
     if source["pre_execution_checklist_validation"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source.pre_execution_checklist_validation: invalid validation mode")
     checklist_path = resolve_report_path(str(source["pre_execution_checklist"]), path.parent)
+    if not str(source["source_decision"]).endswith("20260620T-ml-wave1-source-decision-secret-hardened.json"):
+        raise ContractError(f"{path}.source.source_decision: must reference canonical Wave 1 source decision")
+    source_decision_path = resolve_report_path(str(source["source_decision"]), path.parent)
     source_hashes = require_object(data["source_artifact_hashes"], f"{path}.source_artifact_hashes")
     checklist_hash = require_object(
         source_hashes.get("pre_execution_checklist"),
@@ -23804,8 +23812,22 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
         raise ContractError(f"{path}.source_artifact_hashes.pre_execution_checklist.path: must match source artifact")
     if str(checklist_hash["sha256"]) != hashlib.sha256(checklist_path.read_bytes()).hexdigest():
         raise ContractError(f"{path}.source_artifact_hashes.pre_execution_checklist.sha256: must match current artifact")
+    source_decision_hash = require_object(
+        source_hashes.get("source_decision"),
+        f"{path}.source_artifact_hashes.source_decision",
+    )
+    require_keys(source_decision_hash, {"path", "sha256"}, f"{path}.source_artifact_hashes.source_decision")
+    if not str(source_decision_hash["path"]).endswith("20260620T-ml-wave1-source-decision-secret-hardened.json"):
+        raise ContractError(f"{path}.source_artifact_hashes.source_decision.path: must match source artifact")
+    if str(source_decision_hash["sha256"]) != hashlib.sha256(source_decision_path.read_bytes()).hexdigest():
+        raise ContractError(f"{path}.source_artifact_hashes.source_decision.sha256: must match current artifact")
     checklist = load_json(checklist_path)
+    source_decision = load_json(source_decision_path)
     validate_wave1_pre_execution_checklist(checklist, checklist_path)
+    source_decision_summary = require_object(source_decision.get("source_status_summary"), f"{source_decision_path}.source_status_summary")
+    selected_route = str(source_decision_summary.get("selected_route"))
+    expected_source_auth_env = "VIRUSSHARE_API_KEY" if selected_route == "virusshare_fallback" else "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"
+    expected_source_auth_required = selected_route in {"malwarebazaar_primary", "virusshare_fallback"}
     checklist_guard = require_object(checklist["guard_preconditions"], f"{checklist_path}.guard_preconditions")
     checklist_summary = require_object(checklist["source_status_summary"], f"{checklist_path}.source_status_summary")
     operator_sequence = [
@@ -23934,6 +23956,21 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
     expected_redaction = "present" if bool(malware_bazaar_auth["present"]) else "absent"
     if malware_bazaar_auth["value_redacted"] != expected_redaction:
         raise ContractError(f"{path}.malware_bazaar_auth.value_redacted: must match presence without exposing value")
+    source_auth = require_object(data["source_auth"], f"{path}.source_auth")
+    require_keys(
+        source_auth,
+        {"selected_route", "env", "required_for_selected_route", "present", "value_redacted"},
+        f"{path}.source_auth",
+    )
+    if source_auth["selected_route"] != selected_route:
+        raise ContractError(f"{path}.source_auth.selected_route: must match source decision")
+    if source_auth["env"] != expected_source_auth_env:
+        raise ContractError(f"{path}.source_auth.env: must match selected route")
+    if bool(source_auth["required_for_selected_route"]) != expected_source_auth_required:
+        raise ContractError(f"{path}.source_auth.required_for_selected_route: must match selected route")
+    expected_source_redaction = "present" if bool(source_auth["present"]) else "absent"
+    if source_auth["value_redacted"] != expected_source_redaction:
+        raise ContractError(f"{path}.source_auth.value_redacted: must match presence without exposing value")
 
     summary = require_object(data["source_status_summary"], f"{path}.source_status_summary")
     require_keys(
@@ -23963,6 +24000,10 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
             "guard_state_matches_mode",
             "malware_bazaar_auth_key_env",
             "malware_bazaar_auth_key_present",
+            "source_selected_route",
+            "source_auth_env",
+            "source_auth_required_for_selected_route",
+            "source_auth_present",
             "vx_archive_download_guard_absent",
             "vx_download_authorized_by_preflight",
             "vx_inventory_metadata_only",
@@ -24026,11 +24067,25 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
         raise ContractError(f"{path}.source_status_summary.malware_bazaar_auth_key_env: invalid Auth-Key env")
     if bool(summary["malware_bazaar_auth_key_present"]) != bool(malware_bazaar_auth["present"]):
         raise ContractError(f"{path}.source_status_summary.malware_bazaar_auth_key_present: must match auth snapshot")
+    if summary["source_selected_route"] != selected_route:
+        raise ContractError(f"{path}.source_status_summary.source_selected_route: must match source decision")
+    if summary["source_auth_env"] != source_auth["env"]:
+        raise ContractError(f"{path}.source_status_summary.source_auth_env: must match source_auth")
+    if bool(summary["source_auth_required_for_selected_route"]) != bool(source_auth["required_for_selected_route"]):
+        raise ContractError(f"{path}.source_status_summary.source_auth_required_for_selected_route: must match source_auth")
+    if bool(summary["source_auth_present"]) != bool(source_auth["present"]):
+        raise ContractError(f"{path}.source_status_summary.source_auth_present: must match source_auth")
     check_by_name = {str(check.get("name")): check for check in checks}
     if check_by_name.get("malware_bazaar_auth_key_present") is None:
         raise ContractError(f"{path}.checks: missing malware_bazaar_auth_key_present")
     if bool(check_by_name["malware_bazaar_auth_key_present"].get("passed")) != bool(malware_bazaar_auth["present"]):
         raise ContractError(f"{path}.checks.malware_bazaar_auth_key_present: must match auth snapshot")
+    source_auth_check = check_by_name.get("source_auth_present_for_selected_route")
+    if source_auth_check is None:
+        raise ContractError(f"{path}.checks: missing source_auth_present_for_selected_route")
+    expected_source_auth_check = bool(source_auth["present"]) if bool(source_auth["required_for_selected_route"]) else True
+    if bool(source_auth_check.get("passed")) != expected_source_auth_check:
+        raise ContractError(f"{path}.checks.source_auth_present_for_selected_route: must match source_auth")
     if bool(summary["data_root_configured"]) != bool(data_root["configured"]):
         raise ContractError(f"{path}.source_status_summary.data_root_configured: must match data_root")
     if bool(summary["data_root_outside_repo"]) != bool(data_root["outside_repo"]):

@@ -17,6 +17,7 @@
     "vx_policy",
     "guard_policy",
     "malware_bazaar_auth",
+    "source_auth",
     "source_status_summary",
     "checks"
   ],
@@ -37,16 +38,17 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["pre_execution_checklist", "pre_execution_checklist_validation"],
+      "required": ["pre_execution_checklist", "pre_execution_checklist_validation", "source_decision"],
       "properties": {
         "pre_execution_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
-        "pre_execution_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]}
+        "pre_execution_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
+        "source_decision": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"}
       }
     },
     "source_artifact_hashes": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["pre_execution_checklist"],
+      "required": ["pre_execution_checklist", "source_decision"],
       "properties": {
         "pre_execution_checklist": {
           "type": "object",
@@ -54,6 +56,15 @@
           "required": ["path", "sha256"],
           "properties": {
             "path": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "source_decision": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sha256"],
+          "properties": {
+            "path": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         }
@@ -168,6 +179,18 @@
         "value_redacted": {"enum": ["present", "absent"]}
       }
     },
+    "source_auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selected_route", "env", "required_for_selected_route", "present", "value_redacted"],
+      "properties": {
+        "selected_route": {"enum": ["malwarebazaar_primary", "virusshare_fallback", "vx_underground_inthewild"]},
+        "env": {"enum": ["TAMANDUA_MALWAREBAZAAR_AUTH_KEY", "VIRUSSHARE_API_KEY"]},
+        "required_for_selected_route": {"type": "boolean"},
+        "present": {"type": "boolean"},
+        "value_redacted": {"enum": ["present", "absent"]}
+      }
+    },
     "source_status_summary": {
       "type": "object",
       "additionalProperties": false,
@@ -196,6 +219,10 @@
         "guard_state_matches_mode",
         "malware_bazaar_auth_key_env",
         "malware_bazaar_auth_key_present",
+        "source_selected_route",
+        "source_auth_env",
+        "source_auth_required_for_selected_route",
+        "source_auth_present",
         "vx_archive_download_guard_absent",
         "vx_download_authorized_by_preflight",
         "vx_inventory_metadata_only",
@@ -240,6 +267,10 @@
         "guard_state_matches_mode": {"type": "boolean"},
         "malware_bazaar_auth_key_env": {"const": "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"},
         "malware_bazaar_auth_key_present": {"type": "boolean"},
+        "source_selected_route": {"enum": ["malwarebazaar_primary", "virusshare_fallback", "vx_underground_inthewild"]},
+        "source_auth_env": {"enum": ["TAMANDUA_MALWAREBAZAAR_AUTH_KEY", "VIRUSSHARE_API_KEY"]},
+        "source_auth_required_for_selected_route": {"type": "boolean"},
+        "source_auth_present": {"type": "boolean"},
         "vx_archive_download_guard_absent": {"const": true},
         "vx_download_authorized_by_preflight": {"const": false},
         "vx_inventory_metadata_only": {"const": true},
