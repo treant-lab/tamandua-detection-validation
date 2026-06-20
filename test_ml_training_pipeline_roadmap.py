@@ -207,5 +207,20 @@ def test_ml_operator_docs_do_not_present_malwarebazaar_launcher_as_current() -> 
             assert claim not in text
 
     benchmark_plan = read(ML_BENCHMARK_VALIDATION_PLAN)
+    platform_plan = read(ML_PLATFORM_EVOLUTION_PLAN)
+    training_quickstart = read(TRAINING_QUICKSTART)
+
+    assert "20260620T2320Z-ml-next-action-secret-readiness.json" in benchmark_plan
+    assert "not the current next action while the secret is missing" in benchmark_plan
     assert "20260620T-ml-next-action-virusshare-source-aware.json" in benchmark_plan
-    assert "must not authorize the current Wave 1 route" in benchmark_plan
+    assert "must not authorize the\n  current Wave 1 route" in benchmark_plan
+    assert "authorized_for_guarded_execution=true" not in benchmark_plan
+
+    assert "20260620T2320Z-ml-next-action-secret-readiness.json" in platform_plan
+    assert "authorized_for_guarded_execution=false" in platform_plan
+    assert "non-placeholder\n  `VIRUSSHARE_API_KEY`" in platform_plan
+    assert "It must stay\n  `authorized_for_guarded_execution=true`" not in platform_plan
+
+    assert "no-execution env remediation" in training_quickstart
+    assert "does not invoke PowerShell or a guarded launcher" in training_quickstart
+    assert "To consume the first launchable `next_actions` item safely" not in training_quickstart
