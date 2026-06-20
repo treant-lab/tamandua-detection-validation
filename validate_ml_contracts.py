@@ -23804,6 +23804,7 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
             "ready",
             "data_root",
             "operator_sequence",
+            "runtime_operator_sequence",
             "vx_policy",
             "guard_policy",
             "malware_bazaar_auth",
@@ -23881,6 +23882,12 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
         raise ContractError(f"{path}.operator_sequence: must match pre_execution_checklist operator sequence")
     if len(operator_sequence) != 2:
         raise ContractError(f"{path}.operator_sequence: expected validation and guarded execute steps")
+    runtime_operator_sequence = [
+        require_object(item, f"{path}.runtime_operator_sequence.item")
+        for item in require_array(data["runtime_operator_sequence"], f"{path}.runtime_operator_sequence")
+    ]
+    if len(runtime_operator_sequence) != 2:
+        raise ContractError(f"{path}.runtime_operator_sequence: expected validation and guarded execute steps")
     vx_policy = require_object(data["vx_policy"], f"{path}.vx_policy")
     checklist_vx_policy = require_object(checklist["vx_policy"], f"{checklist_path}.vx_policy")
     if vx_policy != checklist_vx_policy:
@@ -23928,6 +23935,25 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
         raise ContractError(f"{path}.data_root.capacity_sufficient_for_guarded_execution: must match free bytes")
     if mode == "guarded_execution" and bool(data_root["capacity_sufficient_for_guarded_execution"]) is not True:
         raise ContractError(f"{path}.data_root.capacity_sufficient_for_guarded_execution: guarded execution requires 50 GiB free")
+    if runtime_operator_sequence[0] != operator_sequence[0]:
+        raise ContractError(f"{path}.runtime_operator_sequence[0]: must preserve validation step")
+    runtime_execute = dict(runtime_operator_sequence[1])
+    original_execute = dict(operator_sequence[1])
+    runtime_required_env = require_object(
+        runtime_execute.get("required_env"),
+        f"{path}.runtime_operator_sequence[1].required_env",
+    )
+    original_required_env = require_object(
+        original_execute.get("required_env"),
+        f"{path}.operator_sequence[1].required_env",
+    )
+    runtime_execute["required_env"] = dict(original_required_env)
+    if runtime_execute != original_execute:
+        raise ContractError(f"{path}.runtime_operator_sequence[1]: must only normalize required_env")
+    if runtime_required_env.get("TAMANDUA_ML_DATA_ROOT") != data_root["raw"]:
+        raise ContractError(f"{path}.runtime_operator_sequence[1].required_env.TAMANDUA_ML_DATA_ROOT: must match data_root.raw")
+    if runtime_required_env.get("TAMANDUA_ALLOW_ML_REAL_ACQUISITION") != "1":
+        raise ContractError(f"{path}.runtime_operator_sequence[1].required_env: must preserve real acquisition guard")
 
     guard_policy = require_object(data["guard_policy"], f"{path}.guard_policy")
     require_keys(

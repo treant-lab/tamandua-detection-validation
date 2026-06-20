@@ -14,6 +14,7 @@
     "ready",
     "data_root",
     "operator_sequence",
+    "runtime_operator_sequence",
     "vx_policy",
     "guard_policy",
     "malware_bazaar_auth",
@@ -97,6 +98,28 @@
       }
     },
     "operator_sequence": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["step", "mode", "command", "required_env", "claim_boundary"],
+        "properties": {
+          "step": {"type": "integer", "minimum": 1, "maximum": 2},
+          "mode": {"enum": ["validation_only", "guarded_execute"]},
+          "guard_set_command": {"type": "string", "minLength": 1},
+          "command": {"type": "string", "minLength": 1},
+          "required_env": {
+            "type": "object",
+            "additionalProperties": {"type": "string"}
+          },
+          "guard_cleanup_command": {"type": "string", "minLength": 1},
+          "claim_boundary": {"type": "string", "minLength": 10}
+        }
+      }
+    },
+    "runtime_operator_sequence": {
       "type": "array",
       "minItems": 2,
       "maxItems": 2,

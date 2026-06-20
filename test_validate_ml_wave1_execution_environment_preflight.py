@@ -102,6 +102,16 @@ def test_validate_wave1_execution_environment_preflight_rejects_operator_sequenc
         validate_contract(drifted, WAVE1_EXECUTION_ENVIRONMENT_PREFLIGHT_SCHEMA, validate_wave1_execution_environment_preflight)
 
 
+def test_validate_wave1_execution_environment_preflight_rejects_runtime_data_root_drift(tmp_path: Path) -> None:
+    data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
+    data["runtime_operator_sequence"][1]["required_env"]["TAMANDUA_ML_DATA_ROOT"] = "D:\\wrong-lab-root"
+    drifted = tmp_path / "20260604T-ml-wave1-execution-environment-preflight.json"
+    drifted.write_text(json.dumps(data), encoding="utf-8")
+
+    with pytest.raises(ContractError, match="runtime_operator_sequence.*TAMANDUA_ML_DATA_ROOT"):
+        validate_contract(drifted, WAVE1_EXECUTION_ENVIRONMENT_PREFLIGHT_SCHEMA, validate_wave1_execution_environment_preflight)
+
+
 def test_validate_wave1_execution_environment_preflight_rejects_transcript_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
     data["source_status_summary"]["transcript_contract_validation_before_run"] = "jsonschema+built-in"
