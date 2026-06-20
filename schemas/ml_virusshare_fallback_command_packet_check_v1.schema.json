@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tamandua.io/ml-virusshare-fallback-command-packet-check/v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["api_version", "kind", "metadata", "source", "source_status_summary", "checks"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-virusshare-fallback-command-packet-check/v1"},
+    "kind": {"const": "MLVirusShareFallbackCommandPacketCheck"},
+    "metadata": {
+      "type": "object",
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string"},
+        "generated_at": {"type": "string"},
+        "created_by": {"const": "tamandua-ml-virusshare-fallback-command-packet-check"},
+        "claim_boundary": {"type": "string"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["packet", "readiness", "dry_run", "hashlist_probe"]
+    },
+    "source_status_summary": {
+      "type": "object",
+      "required": [
+        "passed",
+        "packet_consistent_for_secret_injection",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "blockers"
+      ]
+    },
+    "checks": {"type": "array", "items": {"type": "object"}}
+  }
+}

@@ -83,6 +83,9 @@ ML_BENCHMARK_UNBLOCK_HANDOFF_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_benchmark_u
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_SCHEMA = ROOT / "schemas/ml_benchmark_unblock_validation_status_v1.schema.json"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_benchmark_unblock_validation_status_consistency_v1.schema.json"
 ML_MIRROR_PUBLICATION_AUDIT_SCHEMA = ROOT / "schemas/ml_mirror_publication_audit_v1.schema.json"
+ML_VIRUSSHARE_FALLBACK_READINESS_SCHEMA = ROOT / "schemas/ml_virusshare_fallback_readiness_v1.schema.json"
+ML_VIRUSSHARE_FALLBACK_COMMAND_PACKET_CHECK_SCHEMA = ROOT / "schemas/ml_virusshare_fallback_command_packet_check_v1.schema.json"
+ML_VIRUSSHARE_FALLBACK_TRANSITION_AUDIT_SCHEMA = ROOT / "schemas/ml_virusshare_fallback_transition_audit_v1.schema.json"
 SERVER_FRONTEND_PUBLICATION_AUDIT_SCHEMA = ROOT / "schemas/server_frontend_publication_audit_v1.schema.json"
 ML_PARALLEL_WORK_PACKAGES_SCHEMA = ROOT / "schemas/ml_parallel_work_packages_v1.schema.json"
 ML_PARALLEL_HANDOFF_BUNDLE_SCHEMA = ROOT / "schemas/ml_parallel_handoff_bundle_v1.schema.json"
@@ -177,6 +180,9 @@ ML_BENCHMARK_UNBLOCK_HANDOFF_CONSISTENCY_API_VERSION = "tamandua.io/ml-benchmark
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_API_VERSION = "tamandua.io/ml-benchmark-unblock-validation-status/v1"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_CONSISTENCY_API_VERSION = "tamandua.io/ml-benchmark-unblock-validation-status-consistency/v1"
 ML_MIRROR_PUBLICATION_AUDIT_API_VERSION = "tamandua.io/ml-mirror-publication-audit/v1"
+ML_VIRUSSHARE_FALLBACK_READINESS_API_VERSION = "tamandua.io/ml-virusshare-fallback-readiness/v1"
+ML_VIRUSSHARE_FALLBACK_COMMAND_PACKET_CHECK_API_VERSION = "tamandua.io/ml-virusshare-fallback-command-packet-check/v1"
+ML_VIRUSSHARE_FALLBACK_TRANSITION_AUDIT_API_VERSION = "tamandua.io/ml-virusshare-fallback-transition-audit/v1"
 SERVER_FRONTEND_PUBLICATION_AUDIT_API_VERSION = "tamandua.io/server-frontend-publication-audit/v1"
 ML_PARALLEL_WORK_PACKAGES_API_VERSION = "tamandua.io/ml-parallel-work-packages/v1"
 ML_PARALLEL_HANDOFF_BUNDLE_API_VERSION = "tamandua.io/ml-parallel-handoff-bundle/v1"
@@ -18211,6 +18217,214 @@ def validate_ml_benchmark_actionability_audit(data: dict[str, Any], path: Path) 
                 raise ContractError(f"{path}.summary.{field}: must match critical path summary")
 
 
+def _require_no_secret_text(value: Any, field: str) -> None:
+    text = json.dumps(value, sort_keys=True) if isinstance(value, (dict, list)) else str(value)
+    if "--virusshare-api-key" in text:
+        raise ContractError(f"{field}: must not embed or pass VirusShare API secrets")
+    for match in re.finditer(r"VIRUSSHARE_API_KEY\s*=\s*['\"]?([^'\"\\\s]+)", text):
+        assigned = match.group(1)
+        if not assigned.startswith("<"):
+            raise ContractError(f"{field}: must use a placeholder for VirusShare API key")
+
+
+def validate_ml_virusshare_fallback_readiness(data: dict[str, Any], path: Path) -> None:
+    require_keys(data, {"api_version", "kind", "metadata", "configuration", "source_status_summary", "checks"}, str(path))
+    if data["api_version"] != ML_VIRUSSHARE_FALLBACK_READINESS_API_VERSION:
+        raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
+    if data["kind"] != "MLVirusShareFallbackReadiness":
+        raise ContractError(f"{path}: invalid kind {data['kind']!r}")
+
+    metadata = require_object(data["metadata"], f"{path}.metadata")
+    require_keys(metadata, {"report_id", "generated_at", "created_by", "claim_boundary"}, f"{path}.metadata")
+    if metadata["created_by"] != "tamandua-ml-virusshare-fallback-readiness-probe":
+        raise ContractError(f"{path}.metadata.created_by: must identify VirusShare readiness probe")
+    boundary = str(metadata["claim_boundary"])
+    for phrase in ["No-execution", "does not contact services", "download malware", "publish manifests", "train models"]:
+        if phrase not in boundary:
+            raise ContractError(f"{path}.metadata.claim_boundary: missing safety phrase {phrase!r}")
+
+    configuration = require_object(data["configuration"], f"{path}.configuration")
+    require_keys(
+        configuration,
+        {
+            "data_root",
+            "production_dir",
+            "dry_run_ref",
+            "hashlist_probe_ref",
+            "virusshare_api_key_env",
+            "real_acquisition_guard_env",
+            "manifest_publish_guard_env",
+            "metadata_probe_guard_env",
+            "vx_archive_download_guard_env",
+            "min_free_gib",
+        },
+        f"{path}.configuration",
+    )
+    if configuration["virusshare_api_key_env"] != "VIRUSSHARE_API_KEY":
+        raise ContractError(f"{path}.configuration.virusshare_api_key_env: must use governed env")
+    if configuration["real_acquisition_guard_env"] != "TAMANDUA_ALLOW_ML_REAL_ACQUISITION":
+        raise ContractError(f"{path}.configuration.real_acquisition_guard_env: must use real acquisition guard")
+    if configuration["vx_archive_download_guard_env"] != "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD":
+        raise ContractError(f"{path}.configuration.vx_archive_download_guard_env: must preserve VX guard boundary")
+    if not str(configuration["dry_run_ref"]).endswith("20260618T-ml-virusshare-fallback-dry-run.json"):
+        raise ContractError(f"{path}.configuration.dry_run_ref: must reference canonical VirusShare dry-run")
+    if not str(configuration["hashlist_probe_ref"]).endswith("20260618T-ml-virusshare-metadata-probe.json"):
+        raise ContractError(f"{path}.configuration.hashlist_probe_ref: must reference canonical VirusShare hashlist probe")
+
+    summary = require_object(data["source_status_summary"], f"{path}.source_status_summary")
+    require_keys(
+        summary,
+        {
+            "passed",
+            "ready_for_guarded_virusshare_fallback",
+            "data_root_outside_repo",
+            "virusshare_dry_run_configured",
+            "virusshare_hashlist_ready",
+            "virusshare_api_key_present",
+            "virusshare_api_key_not_placeholder",
+            "all_guards_absent",
+            "check_count",
+            "passed_checks",
+            "failed_checks",
+            "blockers",
+        },
+        f"{path}.source_status_summary",
+    )
+    checks = [require_object(item, f"{path}.checks.item") for item in require_array(data["checks"], f"{path}.checks")]
+    if int(summary["check_count"]) != len(checks):
+        raise ContractError(f"{path}.source_status_summary.check_count: must match checks")
+    passed_checks = sum(1 for check in checks if bool(check.get("passed")))
+    failed_checks = len(checks) - passed_checks
+    if int(summary["passed_checks"]) != passed_checks or int(summary["failed_checks"]) != failed_checks:
+        raise ContractError(f"{path}.source_status_summary: pass/fail counts must match checks")
+    blockers = [str(item) for item in require_array(summary["blockers"], f"{path}.source_status_summary.blockers")]
+    if bool(summary["ready_for_guarded_virusshare_fallback"]):
+        if blockers:
+            raise ContractError(f"{path}.source_status_summary.blockers: ready readiness must not have blockers")
+        if not bool(summary["virusshare_api_key_present"]) or not bool(summary["virusshare_api_key_not_placeholder"]):
+            raise ContractError(f"{path}.source_status_summary: ready readiness requires real non-placeholder key evidence")
+    else:
+        for blocker in ["virusshare_api_key_present", "virusshare_api_key_not_placeholder"]:
+            if blocker not in blockers:
+                raise ContractError(f"{path}.source_status_summary.blockers: blocked readiness must preserve secret blockers")
+    if bool(summary["all_guards_absent"]) is not True:
+        raise ContractError(f"{path}.source_status_summary.all_guards_absent: no-execution readiness must keep guards absent")
+    _require_no_secret_text(data, str(path))
+
+
+def validate_ml_virusshare_fallback_command_packet_check(data: dict[str, Any], path: Path) -> None:
+    require_keys(data, {"api_version", "kind", "metadata", "source", "source_status_summary", "checks"}, str(path))
+    if data["api_version"] != ML_VIRUSSHARE_FALLBACK_COMMAND_PACKET_CHECK_API_VERSION:
+        raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
+    if data["kind"] != "MLVirusShareFallbackCommandPacketCheck":
+        raise ContractError(f"{path}: invalid kind {data['kind']!r}")
+    metadata = require_object(data["metadata"], f"{path}.metadata")
+    require_keys(metadata, {"report_id", "generated_at", "created_by", "claim_boundary"}, f"{path}.metadata")
+    if metadata["created_by"] != "tamandua-ml-virusshare-fallback-command-packet-check":
+        raise ContractError(f"{path}.metadata.created_by: must identify command packet check")
+    boundary = str(metadata["claim_boundary"])
+    for phrase in ["No-execution", "does not set guards", "contact services", "download malware", "train"]:
+        if phrase not in boundary:
+            raise ContractError(f"{path}.metadata.claim_boundary: missing safety phrase {phrase!r}")
+    source = require_object(data["source"], f"{path}.source")
+    require_keys(source, {"packet", "readiness", "dry_run", "hashlist_probe"}, f"{path}.source")
+    if not str(source["packet"]).endswith("20260618T-ml-virusshare-fallback-command-packet.json"):
+        raise ContractError(f"{path}.source.packet: must reference canonical fallback packet")
+    if not str(source["readiness"]).endswith("20260620T-ml-virusshare-fallback-readiness-secret-hardened.json"):
+        raise ContractError(f"{path}.source.readiness: must reference hardened readiness")
+    summary = require_object(data["source_status_summary"], f"{path}.source_status_summary")
+    require_keys(summary, {"passed", "packet_consistent_for_secret_injection", "check_count", "passed_checks", "failed_checks", "blockers"}, f"{path}.source_status_summary")
+    checks = [require_object(item, f"{path}.checks.item") for item in require_array(data["checks"], f"{path}.checks")]
+    if int(summary["check_count"]) != len(checks):
+        raise ContractError(f"{path}.source_status_summary.check_count: must match checks")
+    passed_checks = sum(1 for check in checks if bool(check.get("passed")))
+    failed_checks = len(checks) - passed_checks
+    if int(summary["passed_checks"]) != passed_checks or int(summary["failed_checks"]) != failed_checks:
+        raise ContractError(f"{path}.source_status_summary: pass/fail counts must match checks")
+    if bool(summary["passed"]) is not True or bool(summary["packet_consistent_for_secret_injection"]) is not True:
+        raise ContractError(f"{path}.source_status_summary: command packet check must pass before fallback handoff")
+    if require_array(summary["blockers"], f"{path}.source_status_summary.blockers"):
+        raise ContractError(f"{path}.source_status_summary.blockers: passing packet check must not list blockers")
+    _require_no_secret_text(data, str(path))
+
+
+def validate_ml_virusshare_fallback_transition_audit(data: dict[str, Any], path: Path) -> None:
+    require_keys(
+        data,
+        {
+            "api_version",
+            "kind",
+            "metadata",
+            "source",
+            "source_status_summary",
+            "required_before_real_fallback_execution",
+            "required_before_manifest_publish",
+            "checks",
+        },
+        str(path),
+    )
+    if data["api_version"] != ML_VIRUSSHARE_FALLBACK_TRANSITION_AUDIT_API_VERSION:
+        raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
+    if data["kind"] != "MLVirusShareFallbackTransitionAudit":
+        raise ContractError(f"{path}: invalid kind {data['kind']!r}")
+    metadata = require_object(data["metadata"], f"{path}.metadata")
+    require_keys(metadata, {"report_id", "generated_at", "created_by", "claim_boundary"}, f"{path}.metadata")
+    if metadata["created_by"] != "tamandua-ml-virusshare-fallback-transition-audit":
+        raise ContractError(f"{path}.metadata.created_by: must identify transition audit")
+    boundary = str(metadata["claim_boundary"])
+    for phrase in ["No-execution", "does not set guards", "contact services", "download malware", "publish manifests"]:
+        if phrase not in boundary:
+            raise ContractError(f"{path}.metadata.claim_boundary: missing safety phrase {phrase!r}")
+    source = require_object(data["source"], f"{path}.source")
+    require_keys(source, {"readiness", "packet_check", "fallback_packet", "canonical_guarded_packet"}, f"{path}.source")
+    if not str(source["readiness"]).endswith("20260620T-ml-virusshare-fallback-readiness-secret-hardened.json"):
+        raise ContractError(f"{path}.source.readiness: must reference hardened readiness")
+    if not str(source["packet_check"]).endswith("20260618T-ml-virusshare-fallback-command-packet-check.json"):
+        raise ContractError(f"{path}.source.packet_check: must reference fallback packet check")
+    if not str(source["fallback_packet"]).endswith("20260618T-ml-virusshare-fallback-command-packet.json"):
+        raise ContractError(f"{path}.source.fallback_packet: must reference fallback packet")
+    summary = require_object(data["source_status_summary"], f"{path}.source_status_summary")
+    require_keys(
+        summary,
+        {
+            "passed",
+            "ready_for_secret_gated_fallback_execution",
+            "ready_for_manifest_publish_after_fallback",
+            "transcript_contract_ready_for_fallback",
+            "fallback_packet_check_passed",
+            "readiness_blockers",
+            "transition_blockers",
+            "check_count",
+            "passed_checks",
+            "failed_checks",
+        },
+        f"{path}.source_status_summary",
+    )
+    checks = [require_object(item, f"{path}.checks.item") for item in require_array(data["checks"], f"{path}.checks")]
+    if int(summary["check_count"]) != len(checks):
+        raise ContractError(f"{path}.source_status_summary.check_count: must match checks")
+    passed_checks = sum(1 for check in checks if bool(check.get("passed")))
+    failed_checks = len(checks) - passed_checks
+    if int(summary["passed_checks"]) != passed_checks or int(summary["failed_checks"]) != failed_checks:
+        raise ContractError(f"{path}.source_status_summary: pass/fail counts must match checks")
+    readiness_blockers = [str(item) for item in require_array(summary["readiness_blockers"], f"{path}.source_status_summary.readiness_blockers")]
+    transition_blockers = [str(item) for item in require_array(summary["transition_blockers"], f"{path}.source_status_summary.transition_blockers")]
+    if bool(summary["ready_for_secret_gated_fallback_execution"]):
+        if readiness_blockers:
+            raise ContractError(f"{path}.source_status_summary.readiness_blockers: execution-ready audit must not have readiness blockers")
+    else:
+        for blocker in ["virusshare_api_key_present", "virusshare_api_key_not_placeholder"]:
+            if blocker not in transition_blockers:
+                raise ContractError(f"{path}.source_status_summary.transition_blockers: must preserve secret blockers before real fallback")
+    if bool(summary["ready_for_manifest_publish_after_fallback"]):
+        if "missing_real_fallback_transcript_and_refreshed_receipts" in transition_blockers:
+            raise ContractError(f"{path}.source_status_summary.transition_blockers: manifest publish cannot be ready without refreshed receipts")
+    else:
+        if "missing_real_fallback_transcript_and_refreshed_receipts" not in transition_blockers:
+            raise ContractError(f"{path}.source_status_summary.transition_blockers: must require real fallback transcript before manifest publish")
+    _require_no_secret_text(data, str(path))
+
+
 def validate_ml_mirror_publication_audit(data: dict[str, Any], path: Path) -> None:
     require_keys(data, {"api_version", "kind", "metadata", "source", "components", "summary"}, str(path))
     if data["api_version"] != ML_MIRROR_PUBLICATION_AUDIT_API_VERSION:
@@ -25783,6 +25997,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ml-benchmark-unblock-validation-status", type=Path, default=None)
     parser.add_argument("--ml-benchmark-unblock-validation-status-consistency", type=Path, default=None)
     parser.add_argument("--ml-mirror-publication-audit", type=Path, default=None)
+    parser.add_argument("--ml-virusshare-fallback-readiness", type=Path, default=None)
+    parser.add_argument("--ml-virusshare-fallback-command-packet-check", type=Path, default=None)
+    parser.add_argument("--ml-virusshare-fallback-transition-audit", type=Path, default=None)
     parser.add_argument("--server-frontend-publication-audit", type=Path, default=None)
     parser.add_argument("--ml-parallel-work-packages", type=Path, default=None)
     parser.add_argument("--ml-parallel-handoff-bundle", type=Path, default=None)
@@ -26210,6 +26427,27 @@ def main() -> int:
                 ML_MIRROR_PUBLICATION_AUDIT_SCHEMA,
                 validate_ml_mirror_publication_audit,
             )
+        ml_virusshare_fallback_readiness_mode = None
+        if args.ml_virusshare_fallback_readiness is not None:
+            ml_virusshare_fallback_readiness_mode = validate_contract(
+                args.ml_virusshare_fallback_readiness,
+                ML_VIRUSSHARE_FALLBACK_READINESS_SCHEMA,
+                validate_ml_virusshare_fallback_readiness,
+            )
+        ml_virusshare_fallback_command_packet_check_mode = None
+        if args.ml_virusshare_fallback_command_packet_check is not None:
+            ml_virusshare_fallback_command_packet_check_mode = validate_contract(
+                args.ml_virusshare_fallback_command_packet_check,
+                ML_VIRUSSHARE_FALLBACK_COMMAND_PACKET_CHECK_SCHEMA,
+                validate_ml_virusshare_fallback_command_packet_check,
+            )
+        ml_virusshare_fallback_transition_audit_mode = None
+        if args.ml_virusshare_fallback_transition_audit is not None:
+            ml_virusshare_fallback_transition_audit_mode = validate_contract(
+                args.ml_virusshare_fallback_transition_audit,
+                ML_VIRUSSHARE_FALLBACK_TRANSITION_AUDIT_SCHEMA,
+                validate_ml_virusshare_fallback_transition_audit,
+            )
         server_frontend_publication_audit_mode = None
         if args.server_frontend_publication_audit is not None:
             server_frontend_publication_audit_mode = validate_contract(
@@ -26520,6 +26758,21 @@ def main() -> int:
         print(
             "validated ML mirror publication audit: "
             f"{args.ml_mirror_publication_audit} ({ml_mirror_publication_audit_mode})"
+        )
+    if ml_virusshare_fallback_readiness_mode is not None:
+        print(
+            "validated ML VirusShare fallback readiness: "
+            f"{args.ml_virusshare_fallback_readiness} ({ml_virusshare_fallback_readiness_mode})"
+        )
+    if ml_virusshare_fallback_command_packet_check_mode is not None:
+        print(
+            "validated ML VirusShare fallback command packet check: "
+            f"{args.ml_virusshare_fallback_command_packet_check} ({ml_virusshare_fallback_command_packet_check_mode})"
+        )
+    if ml_virusshare_fallback_transition_audit_mode is not None:
+        print(
+            "validated ML VirusShare fallback transition audit: "
+            f"{args.ml_virusshare_fallback_transition_audit} ({ml_virusshare_fallback_transition_audit_mode})"
         )
     if server_frontend_publication_audit_mode is not None:
         print(

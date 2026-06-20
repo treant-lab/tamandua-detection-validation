@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tamandua.io/ml-virusshare-fallback-transition-audit/v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "source",
+    "source_status_summary",
+    "required_before_real_fallback_execution",
+    "required_before_manifest_publish",
+    "checks"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-virusshare-fallback-transition-audit/v1"},
+    "kind": {"const": "MLVirusShareFallbackTransitionAudit"},
+    "metadata": {
+      "type": "object",
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string"},
+        "generated_at": {"type": "string"},
+        "created_by": {"const": "tamandua-ml-virusshare-fallback-transition-audit"},
+        "claim_boundary": {"type": "string"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["readiness", "packet_check", "fallback_packet", "canonical_guarded_packet"]
+    },
+    "source_status_summary": {
+      "type": "object",
+      "required": [
+        "passed",
+        "ready_for_secret_gated_fallback_execution",
+        "ready_for_manifest_publish_after_fallback",
+        "transcript_contract_ready_for_fallback",
+        "fallback_packet_check_passed",
+        "readiness_blockers",
+        "transition_blockers",
+        "check_count",
+        "passed_checks",
+        "failed_checks"
+      ]
+    },
+    "required_before_real_fallback_execution": {"type": "array", "items": {"type": "string"}},
+    "required_before_manifest_publish": {"type": "array", "items": {"type": "string"}},
+    "checks": {"type": "array", "items": {"type": "object"}}
+  }
+}

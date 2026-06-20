@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tamandua.io/ml-virusshare-fallback-readiness/v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["api_version", "kind", "metadata", "configuration", "source_status_summary", "checks"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-virusshare-fallback-readiness/v1"},
+    "kind": {"const": "MLVirusShareFallbackReadiness"},
+    "metadata": {
+      "type": "object",
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string"},
+        "generated_at": {"type": "string"},
+        "created_by": {"const": "tamandua-ml-virusshare-fallback-readiness-probe"},
+        "claim_boundary": {"type": "string"}
+      }
+    },
+    "configuration": {
+      "type": "object",
+      "required": [
+        "data_root",
+        "production_dir",
+        "dry_run_ref",
+        "hashlist_probe_ref",
+        "virusshare_api_key_env",
+        "real_acquisition_guard_env",
+        "manifest_publish_guard_env",
+        "metadata_probe_guard_env",
+        "vx_archive_download_guard_env",
+        "min_free_gib"
+      ]
+    },
+    "source_status_summary": {
+      "type": "object",
+      "required": [
+        "passed",
+        "ready_for_guarded_virusshare_fallback",
+        "all_guards_absent",
+        "check_count",
+        "passed_checks",
+        "failed_checks",
+        "blockers"
+      ]
+    },
+    "checks": {"type": "array", "items": {"type": "object"}}
+  }
+}
