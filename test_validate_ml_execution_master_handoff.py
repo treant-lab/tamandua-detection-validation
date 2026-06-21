@@ -23,10 +23,26 @@ except ImportError:
 CANONICAL = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-execution-master-handoff.json"
 if not CANONICAL.exists():
     pytest.skip("ML execution master handoff run artifact is not present in this standalone deployment", allow_module_level=True)
+POST_MIRROR_PUBLISH = (
+    ROOT
+    / "docs"
+    / "benchmarks"
+    / "runs"
+    / "20260621T-ml-execution-master-handoff-post-mirror-publish.json"
+)
 
 
 def test_validate_ml_execution_master_handoff_accepts_jsonschema_path() -> None:
     mode = validate_contract(CANONICAL, ML_EXECUTION_MASTER_HANDOFF_SCHEMA, validate_ml_execution_master_handoff)
+
+    assert mode == "jsonschema+built-in"
+
+
+def test_validate_ml_execution_master_handoff_accepts_post_mirror_publish_path() -> None:
+    if not POST_MIRROR_PUBLISH.exists():
+        pytest.skip("post mirror publish handoff has not been generated")
+
+    mode = validate_contract(POST_MIRROR_PUBLISH, ML_EXECUTION_MASTER_HANDOFF_SCHEMA, validate_ml_execution_master_handoff)
 
     assert mode == "jsonschema+built-in"
 

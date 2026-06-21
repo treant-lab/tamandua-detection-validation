@@ -2059,7 +2059,10 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         f"{path}.source",
     )
     expected_refs = {
-        "execution_status": ("20260604T-ml-execution-status.json",),
+        "execution_status": (
+            "20260604T-ml-execution-status.json",
+            "20260621T-ml-execution-status-post-mirror-publish.json",
+        ),
         "parallel_work_packages": ("20260604T-ml-parallel-work-packages.json",),
         "platform_readiness_audit": (
             "20260604T-ml-platform-readiness-audit.json",
@@ -2067,7 +2070,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260621T0020Z-ml-platform-readiness-command-packet-blockers.json",
             "20260621T-ml-platform-readiness-post-readiness-refresh.json",
             "20260621T-ml-platform-readiness-post-onnx-runtime.json",
- "20260621T-ml-platform-readiness-post-win-template-gate-threading.json",
+            "20260621T-ml-platform-readiness-post-win-template-gate-threading.json",
         ),
         "wave1_operator_handoff_index": ("20260604T-ml-wave1-operator-handoff-index.json",),
         "wave1_guarded_run_command_packet": ("20260604T-ml-wave1-guarded-run-command-packet.json",),
@@ -2076,6 +2079,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
             "20260621T-ml-benchmark-critical-path-post-onnx-runtime.json",
             "20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.json",
+            "20260621T-ml-benchmark-critical-path-post-mirror-publish.json",
         ),
         "benchmark_actionability_audit": (
             "20260604T-ml-benchmark-actionability-audit.json",
@@ -2459,8 +2463,10 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
     if next_gate_action_type == "launch_package":
         if acquisition_claim_id not in ready_ids:
             raise ContractError(f"{path}.source.source_status_summary.ready_validation_only_claim_ids: missing acquisition claim")
-    elif acquisition_claim_id not in blocked_ids:
-        raise ContractError(f"{path}.source.source_status_summary.blocked_claim_ids: missing acquisition claim for env remediation")
+    elif acquisition_claim_id not in blocked_ids and acquisition_claim_id not in ready_ids:
+        raise ContractError(
+            f"{path}.source.source_status_summary.blocked_claim_ids: missing acquisition claim for env remediation"
+        )
     if len(set(ready_ids)) != len(ready_ids):
         raise ContractError(f"{path}.source.source_status_summary.ready_validation_only_claim_ids: duplicates are not allowed")
     if len(set(blocked_ids)) != len(blocked_ids):
