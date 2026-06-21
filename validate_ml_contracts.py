@@ -16833,11 +16833,16 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
         )
     if str(source_summary["next_operator_publication_decision"]) != str(packet_coverage["next_operator_publication_decision"]):
         raise ContractError(f"{path}.source.source_status_summary.next_operator_publication_decision: must match coverage")
-    if bool(packet_coverage["next_operator_ready_for_guarded_execution"]) is not False:
+    if str(source_summary.get("next_unproven_requirement_id", "")) == "wave1_governed_acquisition":
+        if int(packet_coverage["next_operator_blocker_count"]) < 0:
+            raise ContractError(
+                f"{path}.source.source_status_summary.contract_packet_coverage.next_operator_blocker_count: must be non-negative"
+            )
+    elif bool(packet_coverage["next_operator_ready_for_guarded_execution"]) is not False:
         raise ContractError(
             f"{path}.source.source_status_summary.contract_packet_coverage.next_operator_ready_for_guarded_execution: must be false"
         )
-    if int(packet_coverage["next_operator_blocker_count"]) < 1:
+    elif int(packet_coverage["next_operator_blocker_count"]) < 1:
         raise ContractError(
             f"{path}.source.source_status_summary.contract_packet_coverage.next_operator_blocker_count: must be positive"
         )
@@ -23639,6 +23644,17 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
             "lab_guards_unset",
             "operator_sequence_steps",
             "post_execution_sequence_steps",
+            "source_aware_virusshare_fallback",
+            "source_decision_status",
+            "source_decision_selected_route",
+            "effective_source_route",
+            "effective_source_auth_env",
+            "malwarebazaar_auth_key_required",
+            "malwarebazaar_auth_key_present",
+            "malwarebazaar_auth_key_value_redacted",
+            "virusshare_api_key_required",
+            "virusshare_fallback_readiness_ready",
+            "virusshare_fallback_blockers",
             "manifest_publish_guard_env",
             "vx_archive_download_guard_env",
             "vx_archive_download_guard_present",
@@ -23707,6 +23723,23 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         raise ContractError(f"{path}.authorized_for_guarded_execution: must match check results")
     if bool(summary["authorized_for_guarded_execution"]) != bool(data["authorized_for_guarded_execution"]):
         raise ContractError(f"{path}.source_status_summary.authorized_for_guarded_execution: must match report")
+    expected_effective_route = "virusshare_fallback" if source_aware_virusshare_fallback else "malwarebazaar_governed_acquisition"
+    expected_effective_auth_env = "VIRUSSHARE_API_KEY" if source_aware_virusshare_fallback else "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"
+    if bool(summary["source_aware_virusshare_fallback"]) is not source_aware_virusshare_fallback:
+        raise ContractError(f"{path}.source_status_summary.source_aware_virusshare_fallback: must match package")
+    if str(summary["effective_source_route"]) != expected_effective_route:
+        raise ContractError(f"{path}.source_status_summary.effective_source_route: must match package")
+    if str(summary["effective_source_auth_env"]) != expected_effective_auth_env:
+        raise ContractError(f"{path}.source_status_summary.effective_source_auth_env: must match effective source route")
+    if bool(summary["malwarebazaar_auth_key_required"]) is not (not source_aware_virusshare_fallback):
+        raise ContractError(f"{path}.source_status_summary.malwarebazaar_auth_key_required: must match effective source route")
+    if bool(summary["virusshare_api_key_required"]) is not source_aware_virusshare_fallback:
+        raise ContractError(f"{path}.source_status_summary.virusshare_api_key_required: must match effective source route")
+    if not source_aware_virusshare_fallback and require_array(
+        summary["virusshare_fallback_blockers"],
+        f"{path}.source_status_summary.virusshare_fallback_blockers",
+    ):
+        raise ContractError(f"{path}.source_status_summary.virusshare_fallback_blockers: must be empty for governed acquisition")
     expected_validation_command_no_execute = (
         isinstance(authorization["validation_command"], str) and "-Execute" not in authorization["validation_command"]
     )
@@ -26778,26 +26811,54 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
     if decision["authorized_for_guarded_execution"] != authorization_packet["authorized_for_guarded_execution"]:
         raise ContractError(f"{path}.operator_decision.authorized_for_guarded_execution: must match authorization packet")
     env_remediation_selected = authorization.get("action_type") in {"set_required_env", "fix_required_env"}
-    expected_blockers = [str(item) for item in authorization_summary.get("virusshare_fallback_blockers", [])]
+    expected_selected_route = str(
+        authorization_summary.get("effective_source_route")
+        or authorization_summary.get("source_decision_selected_route")
+        or (
+            "virusshare_fallback"
+            if authorization.get("package_id") == "ml_data_virusshare_fallback"
+            else "malwarebazaar_governed_acquisition"
+        )
+    )
+    uses_virusshare_source = (
+        expected_selected_route == "virusshare_fallback"
+        or authorization.get("package_id") == "ml_data_virusshare_fallback"
+    )
+    expected_blockers = (
+        [str(item) for item in authorization_summary.get("virusshare_fallback_blockers", [])]
+        if uses_virusshare_source
+        else []
+    )
     if env_remediation_selected:
         expected_blockers.extend(["missing_env:TAMANDUA_ML_DATA_ROOT", "missing_env:VIRUSSHARE_API_KEY"])
     if blockers != expected_blockers:
-        raise ContractError(f"{path}.operator_decision.blockers: must match VirusShare fallback blockers")
+        raise ContractError(f"{path}.operator_decision.blockers: must match effective source blockers")
+    expected_source_auth_present = (
+        "virusshare_api_key_present" not in blockers
+        if uses_virusshare_source
+        else bool(authorization_summary.get("malwarebazaar_auth_key_present"))
+    )
     ready = (
         not env_remediation_selected
-        and
-        authorization_packet["authorized_for_guarded_execution"] is True
-        and authorization_summary.get("virusshare_fallback_readiness_ready") is True
+        and authorization_packet["authorized_for_guarded_execution"] is True
+        and (
+            authorization_summary.get("virusshare_fallback_readiness_ready") is True
+            if uses_virusshare_source
+            else expected_source_auth_present
+        )
         and not blockers
         and not failed_authorization_checks
     )
     if bool(decision["ready_for_guarded_execution"]) != ready:
         raise ContractError(f"{path}.operator_decision.ready_for_guarded_execution: must match source readiness")
-    expected_publication_decision = "eligible_after_operator_approval" if ready else "hold_do_not_push"
+    expected_publication_decision = "hold_do_not_push"
     if decision["publication_decision"] != expected_publication_decision:
-        raise ContractError(f"{path}.operator_decision.publication_decision: must match guarded readiness")
-    if decision["publication_decision"] == "hold_do_not_push" and "blocked" not in str(decision["publication_reason"]).lower():
-        raise ContractError(f"{path}.operator_decision.publication_reason: hold decision must explain blocker")
+        raise ContractError(f"{path}.operator_decision.publication_decision: must remain hold")
+    publication_reason = str(decision["publication_reason"]).lower()
+    if decision["publication_decision"] == "hold_do_not_push" and not (
+        "held" in publication_reason or "hold" in publication_reason or "gate" in publication_reason
+    ):
+        raise ContractError(f"{path}.operator_decision.publication_reason: hold decision must explain release gate")
 
     source_auth = require_object(data["source_auth"], f"{path}.source_auth")
     require_keys(
@@ -26805,20 +26866,21 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
         {"selected_route", "env", "required_for_selected_route", "present", "value_redacted", "operator_note"},
         f"{path}.source_auth",
     )
-    expected_selected_route = str(authorization_summary.get("source_decision_selected_route", "virusshare_fallback"))
-    expected_source_auth_present = "virusshare_api_key_present" not in blockers
     if source_auth["selected_route"] != expected_selected_route:
-        raise ContractError(f"{path}.source_auth.selected_route: must match authorization source decision")
-    if source_auth["env"] != "VIRUSSHARE_API_KEY":
-        raise ContractError(f"{path}.source_auth.env: must be VIRUSSHARE_API_KEY")
-    if source_auth["required_for_selected_route"] is not (expected_selected_route == "virusshare_fallback"):
+        raise ContractError(f"{path}.source_auth.selected_route: must match authorization effective source route")
+    expected_source_auth_env = "VIRUSSHARE_API_KEY" if uses_virusshare_source else "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"
+    if source_auth["env"] != expected_source_auth_env:
+        raise ContractError(f"{path}.source_auth.env: must match effective source route")
+    if source_auth["required_for_selected_route"] is not True:
         raise ContractError(f"{path}.source_auth.required_for_selected_route: must match selected route")
     if source_auth["present"] is not expected_source_auth_present:
-        raise ContractError(f"{path}.source_auth.present: must match VirusShare blockers")
+        raise ContractError(f"{path}.source_auth.present: must match effective source auth")
     if source_auth["value_redacted"] != ("present" if expected_source_auth_present else "absent"):
         raise ContractError(f"{path}.source_auth.value_redacted: must expose only redacted presence")
-    if "secret store" not in str(source_auth["operator_note"]):
+    if uses_virusshare_source and "secret store" not in str(source_auth["operator_note"]):
         raise ContractError(f"{path}.source_auth.operator_note: must direct operator to isolated secret store")
+    if not uses_virusshare_source and "malwarebazaar" not in str(source_auth["operator_note"]).lower():
+        raise ContractError(f"{path}.source_auth.operator_note: must describe MalwareBazaar governed acquisition")
 
     transcript_state = require_object(data["pre_run_transcript_state"], f"{path}.pre_run_transcript_state")
     require_keys(
@@ -26953,10 +27015,15 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
             raise ContractError(f"{path}.checks: missing {required_check}")
         if check_by_name[required_check].get("passed") is not True:
             raise ContractError(f"{path}.checks.{required_check}.passed: must be true")
-    if "virusshare_secret_required_but_not_embedded" not in check_by_name:
-        raise ContractError(f"{path}.checks: missing virusshare_secret_required_but_not_embedded")
-    if uses_virusshare_fallback and check_by_name["virusshare_secret_required_but_not_embedded"].get("passed") is not True:
-        raise ContractError(f"{path}.checks.virusshare_secret_required_but_not_embedded.passed: must be true for fallback route")
+    secret_check_name = (
+        "selected_source_secret_required_but_not_embedded"
+        if "selected_source_secret_required_but_not_embedded" in check_by_name
+        else "virusshare_secret_required_but_not_embedded"
+    )
+    if secret_check_name not in check_by_name:
+        raise ContractError(f"{path}.checks: missing selected source secret check")
+    if check_by_name[secret_check_name].get("passed") is not True:
+        raise ContractError(f"{path}.checks.{secret_check_name}.passed: must be true")
 
     summary = require_object(data["source_status_summary"], f"{path}.source_status_summary")
     if summary["ready_for_guarded_execution"] != ready:

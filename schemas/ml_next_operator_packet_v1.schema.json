@@ -71,8 +71,8 @@
         "operator_note"
       ],
       "properties": {
-        "selected_route": {"const": "virusshare_fallback"},
-        "env": {"const": "VIRUSSHARE_API_KEY"},
+        "selected_route": {"enum": ["virusshare_fallback", "malwarebazaar_governed_acquisition"]},
+        "env": {"enum": ["VIRUSSHARE_API_KEY", "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"]},
         "required_for_selected_route": {"const": true},
         "present": {"type": "boolean"},
         "value_redacted": {"enum": ["present", "absent"]},

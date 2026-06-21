@@ -92,8 +92,8 @@
         "contract_packets_validated": {"const": 3},
         "contract_packets_all_validated": {"const": true},
         "next_operator_publication_decision": {"const": "hold_do_not_push"},
-        "next_operator_ready_for_guarded_execution": {"const": false},
-        "next_operator_blocker_count": {"type": "integer", "minimum": 1},
+        "next_operator_ready_for_guarded_execution": {"type": "boolean"},
+        "next_operator_blocker_count": {"type": "integer", "minimum": 0},
         "ml2_ml3_agent_smoke_decision": {"const": "no_go"},
         "ml2_ml3_agent_smoke_unblocks_production": {"const": false},
         "ml2_ml3_agent_smoke_valid": {"const": true}
