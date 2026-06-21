@@ -136,7 +136,10 @@
       "required": ["benchmark_unblock_queue", "benchmark_unblock_validation_status", "benchmark_unblock_handoff_consistency"],
       "properties": {
         "benchmark_unblock_queue": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-queue\\.json$"},
-        "benchmark_unblock_validation_status": {"type": "string", "pattern": "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets\\.json$"},
+        "benchmark_unblock_validation_status": {
+          "type": "string",
+          "pattern": "(20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets|20260621T-ml-benchmark-unblock-validation-status-post-onnx-runtime)\\.json$"
+        },
         "benchmark_unblock_handoff_consistency": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-handoff-consistency\\.json$"}
       }
     },

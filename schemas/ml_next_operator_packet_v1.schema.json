@@ -35,7 +35,7 @@
     },
     "source_authorization_packet": {
       "type": "string",
-      "pattern": "(20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware|20260620T2345Z-ml-next-gate-authorization-secret-readiness)\\.json$"
+      "pattern": "(20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware|20260620T2345Z-ml-next-gate-authorization-secret-readiness|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed)\\.json$"
     },
     "operator_decision": {
       "type": "object",
@@ -140,7 +140,7 @@
           "additionalProperties": false,
           "required": ["command", "required_env", "claim_boundary"],
           "properties": {
-            "command": {"type": "string", "pattern": "wave_1_virusshare_fallback_readiness_launcher\\.ps1$"},
+            "command": {"type": "string", "pattern": "(wave_1_virusshare_fallback_readiness_launcher|wave_1_real_acquisition_launcher)\\.ps1$"},
             "required_env": {"type": "object", "maxProperties": 0},
             "claim_boundary": {"type": "string", "minLength": 10}
           }
@@ -151,18 +151,18 @@
           "required": ["guard_set_command", "command", "required_env", "guard_cleanup_command", "claim_boundary"],
           "properties": {
             "guard_set_command": {"const": "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = '1'"},
-            "command": {"type": "string", "pattern": "wave_1_virusshare_fallback_acquisition_launcher\\.ps1 -Execute$"},
+            "command": {"type": "string", "pattern": "(wave_1_virusshare_fallback_acquisition_launcher|wave_1_real_acquisition_launcher)\\.ps1 -Execute$"},
             "required_env": {
               "type": "object",
               "additionalProperties": {"type": "string"},
-              "required": ["TAMANDUA_ML_DATA_ROOT", "TAMANDUA_ALLOW_ML_REAL_ACQUISITION", "VIRUSSHARE_API_KEY"],
+              "required": ["TAMANDUA_ML_DATA_ROOT", "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"],
               "properties": {
                 "TAMANDUA_ML_DATA_ROOT": {"type": "string", "minLength": 1},
                 "TAMANDUA_ALLOW_ML_REAL_ACQUISITION": {"const": "1"},
                 "VIRUSSHARE_API_KEY": {"const": "<redacted: isolated lab secret store>"}
               }
             },
-            "guard_cleanup_command": {"type": "string", "pattern": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION.*VIRUSSHARE_API_KEY"},
+            "guard_cleanup_command": {"type": "string", "pattern": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
             "claim_boundary": {"type": "string", "minLength": 10}
           }
         },

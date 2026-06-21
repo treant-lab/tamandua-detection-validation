@@ -10892,6 +10892,10 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
         raise ContractError(f"{path}.source.wave2_ml2_ml3_readiness: must reference canonical ML-2/ML-3 readiness")
     if source["wave2_ml2_ml3_readiness_validation"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source.wave2_ml2_ml3_readiness_validation: invalid validation mode")
+    valid_ml3_agent_smoke_suffixes = (
+        "20260620T-ml3-agent-parity-with-win-template.json",
+        "20260621T-ml3-agent-onnx-parity-smoke-post-staging-clean.json",
+    )
     agent_smoke_source_path: Path | None = None
     agent_smoke_report: dict[str, Any] | None = None
     if "ml3_agent_smoke_report" in source:
@@ -10933,7 +10937,7 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
     expected_source_suffixes = {
         "wave1_acceptance_checklist": "20260604T-ml-wave1-acceptance-checklist.json",
         "wave2_ml2_ml3_readiness": valid_readiness_suffixes,
-        "ml3_agent_smoke_report": "20260620T-ml3-agent-parity-with-win-template.json",
+        "ml3_agent_smoke_report": valid_ml3_agent_smoke_suffixes,
     }
     if set(source_hashes) != set(expected_source_hash_paths):
         raise ContractError(f"{path}.source_artifact_hashes: must contain exactly the ML-2/ML-3 source artifacts")
@@ -16428,6 +16432,7 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
     accepted_next_gate_packets = (
         "20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware.json",
         "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json",
+        "20260621T-ml-next-gate-authorization-post-readiness-refresh-governed.json",
     )
     if not str(packet_coverage["next_gate_authorization_packet"]).endswith(accepted_next_gate_packets):
         raise ContractError(
@@ -16436,6 +16441,7 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
     accepted_next_operator_packets = (
         "20260620T1840Z-ml-next-operator-virusshare-packet.json",
         "20260620T2355Z-ml-next-operator-secret-readiness-packet.json",
+        "20260621T-ml-next-operator-post-readiness-refresh-packet.json",
     )
     if not str(packet_coverage["next_operator_packet"]).endswith(accepted_next_operator_packets):
         raise ContractError(
@@ -16444,6 +16450,7 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
     accepted_ml2_ml3_agent_smoke_packets = (
         "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go.json",
         "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go.json",
+        "20260621T-ml-wave2-ml2-ml3-agent-smoke-post-onnx-runtime-go-no-go.json",
     )
     if not str(packet_coverage["ml2_ml3_agent_smoke_go_no_go"]).endswith(accepted_ml2_ml3_agent_smoke_packets):
         raise ContractError(
@@ -16562,9 +16569,11 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
     )
     if not str(configuration["benchmark_unblock_queue"]).endswith("20260604T-ml-benchmark-unblock-queue.json"):
         raise ContractError(f"{path}.configuration.benchmark_unblock_queue: must reference canonical benchmark unblock queue")
-    if not str(configuration["benchmark_unblock_validation_status"]).endswith(
-        "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json"
-    ):
+    accepted_unblock_status_packets = (
+        "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
+        "20260621T-ml-benchmark-unblock-validation-status-post-onnx-runtime.json",
+    )
+    if not str(configuration["benchmark_unblock_validation_status"]).endswith(accepted_unblock_status_packets):
         raise ContractError(f"{path}.configuration.benchmark_unblock_validation_status: must reference canonical benchmark unblock validation status")
     if not str(configuration["benchmark_unblock_handoff_consistency"]).endswith("20260604T-ml-benchmark-unblock-handoff-consistency.json"):
         raise ContractError(f"{path}.configuration.benchmark_unblock_handoff_consistency: must reference canonical benchmark unblock handoff consistency")
@@ -16857,21 +16866,19 @@ def validate_ml_benchmark_lane_rollup(data: dict[str, Any], path: Path) -> None:
     )
     if not str(source["benchmark_execution_matrix"]).endswith("20260604T-ml-benchmark-execution-matrix.json"):
         raise ContractError(f"{path}.source.benchmark_execution_matrix: must reference canonical benchmark execution matrix")
-    if not (
-        str(source["benchmark_unblock_validation_status"]).endswith("20260604T-ml-benchmark-unblock-validation-status.json")
-        or str(source["benchmark_unblock_validation_status"]).endswith(
-            "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json"
-        )
-    ):
+    accepted_unblock_status_packets = (
+        "20260604T-ml-benchmark-unblock-validation-status.json",
+        "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
+        "20260621T-ml-benchmark-unblock-validation-status-post-onnx-runtime.json",
+    )
+    if not str(source["benchmark_unblock_validation_status"]).endswith(accepted_unblock_status_packets):
         raise ContractError(f"{path}.source.benchmark_unblock_validation_status: must reference canonical benchmark unblock validation status")
-    if not (
-        str(source["benchmark_unblock_validation_status_consistency"]).endswith(
-            "20260604T-ml-benchmark-unblock-validation-status-consistency.json"
-        )
-        or str(source["benchmark_unblock_validation_status_consistency"]).endswith(
-            "20260620T1945Z-ml-benchmark-unblock-validation-status-consistency-contract-packets.json"
-        )
-    ):
+    accepted_unblock_status_consistency_packets = (
+        "20260604T-ml-benchmark-unblock-validation-status-consistency.json",
+        "20260620T1945Z-ml-benchmark-unblock-validation-status-consistency-contract-packets.json",
+        "20260621T-ml-benchmark-unblock-validation-status-consistency-post-onnx-runtime.json",
+    )
+    if not str(source["benchmark_unblock_validation_status_consistency"]).endswith(accepted_unblock_status_consistency_packets):
         raise ContractError(f"{path}.source.benchmark_unblock_validation_status_consistency: must reference canonical benchmark unblock validation status consistency")
     source_alignment = require_object(source["source_alignment"], f"{path}.source.source_alignment")
     require_keys(
@@ -26439,6 +26446,7 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.pre_run_transcript_state.operator_note: must require fresh guarded transcript")
 
     commands = require_object(data["commands"], f"{path}.commands")
+    uses_virusshare_fallback = False
     if env_remediation_selected:
         if set(commands) != {"env_remediation"}:
             raise ContractError(f"{path}.commands: env remediation packet must not expose guarded commands")
@@ -26476,12 +26484,13 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
         required_env = require_object(guarded_execute["required_env"], f"{path}.commands.guarded_execute.required_env")
         if required_env.get("TAMANDUA_ALLOW_ML_REAL_ACQUISITION") != "1":
             raise ContractError(f"{path}.commands.guarded_execute.required_env: must require real acquisition guard")
-        if required_env.get("VIRUSSHARE_API_KEY") != "<redacted: isolated lab secret store>":
+        uses_virusshare_fallback = "wave_1_virusshare_fallback_acquisition_launcher.ps1" in str(guarded_execute["command"])
+        if uses_virusshare_fallback and required_env.get("VIRUSSHARE_API_KEY") != "<redacted: isolated lab secret store>":
             raise ContractError(f"{path}.commands.guarded_execute.required_env.VIRUSSHARE_API_KEY: must be redacted")
         serialized = json.dumps(data, sort_keys=True, ensure_ascii=True)
         if "VIRUSSHARE_API_KEY=" in serialized or "VIRUSSHARE_API_KEY = '" in serialized:
             raise ContractError(f"{path}: must not embed a VirusShare secret value")
-        if "VIRUSSHARE_API_KEY" not in str(guarded_execute["guard_cleanup_command"]):
+        if uses_virusshare_fallback and "VIRUSSHARE_API_KEY" not in str(guarded_execute["guard_cleanup_command"]):
             raise ContractError(f"{path}.commands.guarded_execute.guard_cleanup_command: must remove VirusShare secret")
         if post_acquisition["manifest_guard_set_command"] != "$env:TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH = '1'":
             raise ContractError(f"{path}.commands.post_acquisition.manifest_guard_set_command: invalid manifest guard")
@@ -26524,7 +26533,6 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
         "source_authorization_packet_loaded",
         "validation_command_remains_validation_only",
         "execute_command_remains_guarded",
-        "virusshare_secret_required_but_not_embedded",
         "vx_archives_not_authorized",
         "ml_mirror_publication_hold_preserved",
     }:
@@ -26532,6 +26540,10 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
             raise ContractError(f"{path}.checks: missing {required_check}")
         if check_by_name[required_check].get("passed") is not True:
             raise ContractError(f"{path}.checks.{required_check}.passed: must be true")
+    if "virusshare_secret_required_but_not_embedded" not in check_by_name:
+        raise ContractError(f"{path}.checks: missing virusshare_secret_required_but_not_embedded")
+    if uses_virusshare_fallback and check_by_name["virusshare_secret_required_but_not_embedded"].get("passed") is not True:
+        raise ContractError(f"{path}.checks.virusshare_secret_required_but_not_embedded.passed: must be true for fallback route")
 
     summary = require_object(data["source_status_summary"], f"{path}.source_status_summary")
     if summary["ready_for_guarded_execution"] != ready:

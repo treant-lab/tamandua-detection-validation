@@ -73,15 +73,16 @@
         "ml2_ml3_agent_smoke_valid"
       ],
       "properties": {
-        "next_gate_authorization_packet": {"type": "string", "pattern": "(20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware|20260620T2345Z-ml-next-gate-authorization-secret-readiness)\\.json$"},
+        "next_gate_authorization_packet": {"type": "string", "pattern": "(20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware|20260620T2345Z-ml-next-gate-authorization-secret-readiness|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed)\\.json$"},
         "next_gate_authorization_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "next_operator_packet": {"type": "string", "pattern": "(20260620T1840Z-ml-next-operator-virusshare-packet|20260620T2355Z-ml-next-operator-secret-readiness-packet)\\.json$"},
+        "next_operator_packet": {"type": "string", "pattern": "(20260620T1840Z-ml-next-operator-virusshare-packet|20260620T2355Z-ml-next-operator-secret-readiness-packet|20260621T-ml-next-operator-post-readiness-refresh-packet)\\.json$"},
         "next_operator_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "ml2_ml3_agent_smoke_go_no_go": {
           "type": "string",
           "anyOf": [
             {"pattern": "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go\\.json$"},
-            {"pattern": "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go\\.json$"}
+            {"pattern": "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go\\.json$"},
+            {"pattern": "20260621T-ml-wave2-ml2-ml3-agent-smoke-post-onnx-runtime-go-no-go\\.json$"}
           ]
         },
         "ml2_ml3_agent_smoke_go_no_go_validation": {"enum": ["jsonschema+built-in", "built-in"]},

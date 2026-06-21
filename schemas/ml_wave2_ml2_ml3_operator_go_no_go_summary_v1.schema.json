@@ -44,7 +44,7 @@
         "wave1_acceptance_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "wave2_ml2_ml3_readiness": {"type": "string", "pattern": "(20260604T-ml-wave2-ml2-ml3-readiness-probe|20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening|20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets)\\.json$"},
         "wave2_ml2_ml3_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "ml3_agent_smoke_report": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|missing)\\.json$|20260620T-ml3-agent-parity-with-win-template\\.json$"},
+        "ml3_agent_smoke_report": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|20260621T-ml3-agent-onnx-parity-smoke-post-staging-clean|missing)\\.json$"},
         "ml3_agent_smoke_report_validation": {"enum": ["jsonschema+built-in", "built-in", "missing"]}
       }
     },
@@ -79,7 +79,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260620T-ml3-agent-parity-with-win-template\\.json$"},
+            "path": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|20260621T-ml3-agent-onnx-parity-smoke-post-staging-clean)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         }
