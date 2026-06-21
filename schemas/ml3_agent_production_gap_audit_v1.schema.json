@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml3_agent_production_gap_audit_v1.schema.json",
+  "title": "Tamandua ML-3 Agent Production Gap Audit v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "claim_boundary",
+    "summary",
+    "source",
+    "quality_gate",
+    "blockers",
+    "next_actions"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml3-agent-production-gap-audit/v1"},
+    "kind": {"const": "ML3AgentProductionGapAudit"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "created_at", "created_by"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "created_at": {"type": "string", "format": "date-time"},
+        "created_by": {"const": "tamandua-ml3-agent-production-gap-audit"}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 80},
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "smoke_agent_onnx_parity_available",
+        "win_template_context_available",
+        "canonical_ml3_agent_parity_ready",
+        "unblocks_ml5_platform_replay",
+        "blocker_count",
+        "next_required_guard"
+      ],
+      "properties": {
+        "status": {"const": "blocked"},
+        "smoke_agent_onnx_parity_available": {"const": true},
+        "win_template_context_available": {"const": true},
+        "canonical_ml3_agent_parity_ready": {"const": false},
+        "unblocks_ml5_platform_replay": {"const": false},
+        "blocker_count": {"const": 4},
+        "next_required_guard": {"const": "TAMANDUA_ALLOW_ML_PARITY"}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["smoke_report", "smoke_report_sha256", "canonical_report", "model_contract", "onnx_metadata"],
+      "properties": {
+        "smoke_report": {"type": "string", "pattern": "20260621T-ml3-agent-parity-with-win-template-local-inference\\.json$"},
+        "smoke_report_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+        "canonical_report": {"const": "docs/benchmarks/runs/ml-prod-candidate-v1-ml3-agent-parity.json"},
+        "model_contract": {"const": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json"},
+        "onnx_metadata": {"const": "docs/benchmarks/runs/ml-prod-candidate-v1-artifacts/malware_smell.json"}
+      }
+    },
+    "quality_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "checks"],
+      "properties": {
+        "status": {"const": "pass"},
+        "checks": {
+          "type": "array",
+          "minItems": 6,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "status", "details"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "status": {"const": "pass"},
+              "details": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "enum": [
+          "missing_canonical_ml3_agent_parity_report",
+          "missing_candidate_model_contract",
+          "missing_candidate_onnx_metadata",
+          "upstream_ml1_candidate_not_available"
+        ]
+      }
+    },
+    "next_actions": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "description"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "description": {"type": "string", "minLength": 1},
+          "guard": {"type": "string"},
+          "command": {"type": "string"},
+          "required_artifacts": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

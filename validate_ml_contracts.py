@@ -27,6 +27,7 @@ BENCHMARK_SCHEMA = ROOT / "schemas/ml_benchmark_report_v1.schema.json"
 MODEL_CONTRACT_SCHEMA = ROOT / "schemas/ml_model_contract_v1.schema.json"
 AGENT_PARITY_FIXTURE_SCHEMA = ROOT / "schemas/ml_agent_parity_fixture_v1.schema.json"
 ML_WIN_TEMPLATE_PROBE_SCHEMA = ROOT / "schemas/ml_win_template_probe_v1.schema.json"
+ML3_AGENT_PRODUCTION_GAP_AUDIT_SCHEMA = ROOT / "schemas/ml3_agent_production_gap_audit_v1.schema.json"
 EXECUTION_PLAN_SCHEMA = ROOT / "schemas/ml_execution_plan_v1.schema.json"
 EXECUTION_STATUS_SCHEMA = ROOT / "schemas/ml_execution_status_v1.schema.json"
 ML_EXECUTION_MASTER_HANDOFF_SCHEMA = ROOT / "schemas/ml_execution_master_handoff_v1.schema.json"
@@ -122,6 +123,7 @@ BENCHMARK_API_VERSION = "tamandua.io/ml-benchmark-report/v1"
 MODEL_CONTRACT_API_VERSION = "tamandua.io/ml-model-contract/v1"
 AGENT_PARITY_FIXTURE_API_VERSION = "tamandua.io/ml-agent-parity-fixture/v1"
 ML_WIN_TEMPLATE_PROBE_API_VERSION = "tamandua.io/ml-win-template-probe/v1"
+ML3_AGENT_PRODUCTION_GAP_AUDIT_API_VERSION = "tamandua.io/ml3-agent-production-gap-audit/v1"
 EXECUTION_PLAN_API_VERSION = "tamandua.io/ml-execution-plan/v1"
 EXECUTION_STATUS_API_VERSION = "tamandua.io/ml-execution-status/v1"
 ML_EXECUTION_MASTER_HANDOFF_API_VERSION = "tamandua.io/ml-execution-master-handoff/v1"
@@ -1385,6 +1387,133 @@ def validate_ml_win_template_probe(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.next_agent_bound_command: must reference tamandua_detection_validation.py")
     if "--execute" not in command or "--agent-id" not in command or "--server-host" not in command:
         raise ContractError(f"{path}.next_agent_bound_command: must include execute, agent id, and server host")
+
+
+def validate_ml3_agent_production_gap_audit(data: dict[str, Any], path: Path) -> None:
+    require_keys(
+        data,
+        {
+            "api_version",
+            "kind",
+            "metadata",
+            "claim_boundary",
+            "summary",
+            "source",
+            "quality_gate",
+            "blockers",
+            "next_actions",
+        },
+        str(path),
+    )
+    if data["api_version"] != ML3_AGENT_PRODUCTION_GAP_AUDIT_API_VERSION:
+        raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
+    if data["kind"] != "ML3AgentProductionGapAudit":
+        raise ContractError(f"{path}: invalid kind {data['kind']!r}")
+
+    boundary = str(data["claim_boundary"])
+    for term in ("No-execution", "does not run inference", "does not", "unblock ML-5"):
+        if term not in boundary:
+            raise ContractError(f"{path}.claim_boundary: must preserve no-execution non-production boundary")
+
+    metadata = require_object(data["metadata"], f"{path}.metadata")
+    require_keys(metadata, {"report_id", "created_at", "created_by"}, f"{path}.metadata")
+    if metadata["created_by"] != "tamandua-ml3-agent-production-gap-audit":
+        raise ContractError(f"{path}.metadata.created_by: must be tamandua-ml3-agent-production-gap-audit")
+
+    summary = require_object(data["summary"], f"{path}.summary")
+    require_keys(
+        summary,
+        {
+            "status",
+            "smoke_agent_onnx_parity_available",
+            "win_template_context_available",
+            "canonical_ml3_agent_parity_ready",
+            "unblocks_ml5_platform_replay",
+            "blocker_count",
+            "next_required_guard",
+        },
+        f"{path}.summary",
+    )
+    if summary["status"] != "blocked":
+        raise ContractError(f"{path}.summary.status: must remain blocked until canonical production artifacts exist")
+    if summary["smoke_agent_onnx_parity_available"] is not True:
+        raise ContractError(f"{path}.summary.smoke_agent_onnx_parity_available: must be true")
+    if summary["win_template_context_available"] is not True:
+        raise ContractError(f"{path}.summary.win_template_context_available: must be true")
+    if summary["canonical_ml3_agent_parity_ready"] is not False:
+        raise ContractError(f"{path}.summary.canonical_ml3_agent_parity_ready: must be false")
+    if summary["unblocks_ml5_platform_replay"] is not False:
+        raise ContractError(f"{path}.summary.unblocks_ml5_platform_replay: must be false")
+    if summary["next_required_guard"] != "TAMANDUA_ALLOW_ML_PARITY":
+        raise ContractError(f"{path}.summary.next_required_guard: must be TAMANDUA_ALLOW_ML_PARITY")
+
+    blockers = [str(item) for item in require_array(data["blockers"], f"{path}.blockers")]
+    required_blockers = {
+        "missing_canonical_ml3_agent_parity_report",
+        "missing_candidate_model_contract",
+        "missing_candidate_onnx_metadata",
+        "upstream_ml1_candidate_not_available",
+    }
+    if set(blockers) != required_blockers:
+        raise ContractError(f"{path}.blockers: must preserve canonical ML-3 production blockers")
+    if int(summary["blocker_count"]) != len(blockers):
+        raise ContractError(f"{path}.summary.blocker_count: must match blockers")
+
+    source = require_object(data["source"], f"{path}.source")
+    require_keys(source, {"smoke_report", "smoke_report_sha256", "canonical_report", "model_contract", "onnx_metadata"}, f"{path}.source")
+    if not str(source["smoke_report"]).endswith("20260621T-ml3-agent-parity-with-win-template-local-inference.json"):
+        raise ContractError(f"{path}.source.smoke_report: must reference canonical WIN-TEMPLATE smoke report")
+    smoke_report_path = Path(str(source["smoke_report"]))
+    smoke_mode = validate_contract(smoke_report_path, BENCHMARK_SCHEMA, validate_benchmark_report)
+    if smoke_mode not in {"jsonschema+built-in", "built-in"}:
+        raise ContractError(f"{path}.source.smoke_report: invalid validation mode {smoke_mode}")
+    if file_sha256(smoke_report_path).upper() != str(source["smoke_report_sha256"]).upper():
+        raise ContractError(f"{path}.source.smoke_report_sha256: must match smoke report")
+    expected_sources = {
+        "canonical_report": "docs/benchmarks/runs/ml-prod-candidate-v1-ml3-agent-parity.json",
+        "model_contract": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
+        "onnx_metadata": "docs/benchmarks/runs/ml-prod-candidate-v1-artifacts/malware_smell.json",
+    }
+    for field, expected in expected_sources.items():
+        value = str(source[field]).replace("\\", "/")
+        if value != expected:
+            raise ContractError(f"{path}.source.{field}: must be {expected}")
+        if Path(str(source[field])).exists():
+            raise ContractError(f"{path}.source.{field}: production artifact exists; refresh audit instead of keeping gap blocked")
+
+    quality_gate = require_object(data["quality_gate"], f"{path}.quality_gate")
+    if quality_gate.get("status") != "pass":
+        raise ContractError(f"{path}.quality_gate.status: must be pass")
+    checks = [require_object(item, f"{path}.quality_gate.checks.item") for item in require_array(quality_gate.get("checks"), f"{path}.quality_gate.checks")]
+    check_by_name = {str(check["name"]): check for check in checks}
+    required_checks = {
+        "smoke_agent_onnx_parity_present",
+        "win_template_false_positive_context_attached",
+        "smoke_report_does_not_unblock_production",
+        "canonical_ml3_agent_parity_report_missing",
+        "candidate_model_contract_missing",
+        "candidate_onnx_metadata_missing",
+    }
+    if set(check_by_name) != required_checks:
+        raise ContractError(f"{path}.quality_gate.checks: must preserve ML-3 production gap checks")
+    for name, check in check_by_name.items():
+        if check.get("status") != "pass":
+            raise ContractError(f"{path}.quality_gate.checks.{name}.status: must be pass")
+    if "does not satisfy the canonical ml-prod-candidate-v1 ML-3 gate" not in str(
+        check_by_name["smoke_report_does_not_unblock_production"].get("details", "")
+    ):
+        raise ContractError(f"{path}.quality_gate.checks.smoke_report_does_not_unblock_production.details: must preserve production boundary")
+
+    actions = [require_object(item, f"{path}.next_actions.item") for item in require_array(data["next_actions"], f"{path}.next_actions")]
+    action_ids = {str(action.get("id")) for action in actions}
+    for required_action in {"ml3-prod-001", "ml3-prod-002", "ml3-prod-003"}:
+        if required_action not in action_ids:
+            raise ContractError(f"{path}.next_actions: missing {required_action}")
+    guarded_action = next(action for action in actions if action.get("id") == "ml3-prod-002")
+    if guarded_action.get("guard") != "TAMANDUA_ALLOW_ML_PARITY":
+        raise ContractError(f"{path}.next_actions.ml3-prod-002.guard: must be TAMANDUA_ALLOW_ML_PARITY")
+    if "-Execute" not in str(guarded_action.get("command", "")):
+        raise ContractError(f"{path}.next_actions.ml3-prod-002.command: must expose guarded execute command")
 
 
 def validate_execution_plan_launcher_guards(path: Path) -> None:
@@ -27047,6 +27176,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--model-contract", type=Path, default=DEFAULT_MODEL_CONTRACT)
     parser.add_argument("--agent-parity-fixture", type=Path, default=None)
     parser.add_argument("--ml-win-template-probe", type=Path, default=None)
+    parser.add_argument("--ml3-agent-production-gap-audit", type=Path, default=None)
     parser.add_argument("--execution-plan", type=Path, default=None)
     parser.add_argument("--execution-status", type=Path, default=None)
     parser.add_argument("--ml-execution-master-handoff", type=Path, default=None)
@@ -27148,6 +27278,13 @@ def main() -> int:
                 args.ml_win_template_probe,
                 ML_WIN_TEMPLATE_PROBE_SCHEMA,
                 validate_ml_win_template_probe,
+            )
+        ml3_agent_production_gap_audit_mode = None
+        if args.ml3_agent_production_gap_audit is not None:
+            ml3_agent_production_gap_audit_mode = validate_contract(
+                args.ml3_agent_production_gap_audit,
+                ML3_AGENT_PRODUCTION_GAP_AUDIT_SCHEMA,
+                validate_ml3_agent_production_gap_audit,
             )
         execution_plan_mode = None
         if args.execution_plan is not None:
@@ -27710,6 +27847,11 @@ def main() -> int:
         print(f"validated agent parity fixture: {args.agent_parity_fixture} ({fixture_mode})")
     if ml_win_template_probe_mode is not None:
         print(f"validated ML WIN-TEMPLATE probe: {args.ml_win_template_probe} ({ml_win_template_probe_mode})")
+    if ml3_agent_production_gap_audit_mode is not None:
+        print(
+            "validated ML-3 agent production gap audit: "
+            f"{args.ml3_agent_production_gap_audit} ({ml3_agent_production_gap_audit_mode})"
+        )
     if execution_plan_mode is not None:
         print(f"validated execution plan: {args.execution_plan} ({execution_plan_mode})")
     if execution_status_mode is not None:
