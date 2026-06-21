@@ -21,6 +21,7 @@ README = ROOT / "apps" / "tamandua_ml" / "README.md"
 TRAINING_QUICKSTART = ROOT / "docs" / "apps" / "tamandua_ml" / "TRAINING_QUICKSTART.md"
 ML_PLATFORM_EVOLUTION_PLAN = ROOT / "docs" / "apps" / "tamandua_ml" / "ML_PLATFORM_EVOLUTION_PLAN.md"
 ML_BENCHMARK_VALIDATION_PLAN = ROOT / "docs" / "apps" / "tamandua_ml" / "ML_BENCHMARK_VALIDATION_PLAN.md"
+PUBLICATION_BENCHMARK_HANDOFF = ROOT / "docs" / "benchmarks" / "ML_PUBLICATION_AND_BENCHMARK_HANDOFF_20260621.md"
 
 
 def read(path: Path) -> str:
@@ -131,6 +132,17 @@ def test_ml_validation_queue_uses_current_governed_next_step() -> None:
     current_intro = current_intro.split("The current pre-lab sweep also", 1)[0]
     assert "20260604T-ml-prelab-next-action-validation.run.json" not in current_intro
     assert "selected action is now\n`ml_data_virusshare_fallback`" not in current_intro
+
+
+def test_ml_publication_benchmark_handoff_uses_current_hold_and_operator_packet() -> None:
+    text = read(PUBLICATION_BENCHMARK_HANDOFF)
+
+    assert "20260621T-ml-mirror-publication-post-governed-route-publish.json" in text
+    assert "20260621T-ml-next-operator-post-win-template-gate-threading-packet.json" in text
+    assert "ready_for_guarded_execution=true" in text
+    assert "TAMANDUA_MALWAREBAZAAR_AUTH_KEY" in text
+    assert "hold_do_not_push" in text
+    assert "20260621T-ml-mirror-publication-after-roadmap-hash-refresh.json" not in text
 
 
 def test_parallel_execution_board_uses_current_governed_next_step() -> None:
