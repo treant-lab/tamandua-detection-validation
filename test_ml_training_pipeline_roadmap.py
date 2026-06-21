@@ -101,6 +101,8 @@ def test_ml_training_pipeline_roadmap_uses_current_governed_next_step() -> None:
     assert "20260620T2310Z-ml-execution-status-after-secret-sanitization.json" in text
     assert "20260620T2310Z-ml-platform-readiness-after-secret-sanitization.json" in text
     assert "20260620T2310Z-ml-mirror-publication-after-secret-sanitization.json" in text
+    assert "20260621T-ml-mirror-publication-post-governed-route-publish.json" in text
+    assert "tamandua-ml` staging is clean at local snapshot `a37efe2` with 731 tracked" in text
     assert "20260620T2320Z-ml-next-action-secret-readiness.json" in text
     assert "20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json" in text
     assert "launch_package" in text
