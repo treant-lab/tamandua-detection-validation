@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_win_template_probe_v1.schema.json",
+  "title": "Tamandua ML WIN-TEMPLATE Probe v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "win_template_target",
+    "model",
+    "fixtures",
+    "inference",
+    "next_agent_bound_command"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-win-template-probe/v1"},
+    "kind": {"const": "MLWinTemplateProbe"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 20}
+      }
+    },
+    "win_template_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "hostname",
+        "agent_id",
+        "server_host",
+        "transport",
+        "endpoint_contacted",
+        "requires_live_backend_for_agent_bound_run"
+      ],
+      "properties": {
+        "hostname": {"const": "WIN-TEMPLATE"},
+        "agent_id": {"type": "string", "minLength": 1},
+        "server_host": {"type": "string", "minLength": 1},
+        "transport": {"const": "local_fixture_probe"},
+        "endpoint_contacted": {"const": false},
+        "requires_live_backend_for_agent_bound_run": {"const": true}
+      }
+    },
+    "model": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "model_dir",
+        "checkpoint_expected",
+        "checkpoint_present",
+        "reference_embeddings_present"
+      ],
+      "properties": {
+        "model_dir": {"type": "string", "minLength": 1},
+        "checkpoint_expected": {"type": "string", "minLength": 1},
+        "checkpoint_present": {"type": "boolean"},
+        "reference_embeddings_present": {"type": "boolean"}
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sample_id",
+          "label",
+          "fixture_type",
+          "file_type",
+          "source",
+          "size_bytes",
+          "sha256"
+        ],
+        "properties": {
+          "sample_id": {"type": "string", "minLength": 1},
+          "label": {"type": "string", "minLength": 1},
+          "fixture_type": {"type": "string", "minLength": 1},
+          "file_type": {"type": "string", "minLength": 1},
+          "source": {"type": "string", "pattern": "^synthetic://tamandua/win-template/ml-probe/"},
+          "size_bytes": {"type": "integer", "minimum": 1},
+          "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"}
+        }
+      }
+    },
+    "inference": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["status", "reason", "predictions"],
+      "properties": {
+        "status": {"enum": ["not_run", "completed", "failed"]},
+        "reason": {"type": "string", "minLength": 1},
+        "duration_ms": {"type": "number", "minimum": 0},
+        "prediction_summary": {"type": "object"},
+        "predictions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": ["sample_id", "sha256", "prediction", "confidence"],
+            "properties": {
+              "sample_id": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
+              "prediction": {"type": "string", "minLength": 1},
+              "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+            }
+          }
+        }
+      }
+    },
+    "next_agent_bound_command": {"type": "string", "minLength": 20}
+  }
+}

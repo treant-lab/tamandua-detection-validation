@@ -26,6 +26,7 @@ DATASET_SCHEMA = ROOT / "schemas/ml_dataset_manifest_v1.schema.json"
 BENCHMARK_SCHEMA = ROOT / "schemas/ml_benchmark_report_v1.schema.json"
 MODEL_CONTRACT_SCHEMA = ROOT / "schemas/ml_model_contract_v1.schema.json"
 AGENT_PARITY_FIXTURE_SCHEMA = ROOT / "schemas/ml_agent_parity_fixture_v1.schema.json"
+ML_WIN_TEMPLATE_PROBE_SCHEMA = ROOT / "schemas/ml_win_template_probe_v1.schema.json"
 EXECUTION_PLAN_SCHEMA = ROOT / "schemas/ml_execution_plan_v1.schema.json"
 EXECUTION_STATUS_SCHEMA = ROOT / "schemas/ml_execution_status_v1.schema.json"
 ML_EXECUTION_MASTER_HANDOFF_SCHEMA = ROOT / "schemas/ml_execution_master_handoff_v1.schema.json"
@@ -119,6 +120,7 @@ DATASET_API_VERSION = "tamandua.io/ml-dataset-manifest/v1"
 BENCHMARK_API_VERSION = "tamandua.io/ml-benchmark-report/v1"
 MODEL_CONTRACT_API_VERSION = "tamandua.io/ml-model-contract/v1"
 AGENT_PARITY_FIXTURE_API_VERSION = "tamandua.io/ml-agent-parity-fixture/v1"
+ML_WIN_TEMPLATE_PROBE_API_VERSION = "tamandua.io/ml-win-template-probe/v1"
 EXECUTION_PLAN_API_VERSION = "tamandua.io/ml-execution-plan/v1"
 EXECUTION_STATUS_API_VERSION = "tamandua.io/ml-execution-status/v1"
 ML_EXECUTION_MASTER_HANDOFF_API_VERSION = "tamandua.io/ml-execution-master-handoff/v1"
@@ -1230,6 +1232,107 @@ def validate_agent_parity_fixture(data: dict[str, Any], path: Path) -> None:
         probability_sum = sum(float(value) for value in probabilities)
         if abs(probability_sum - 1.0) > 0.01:
             raise ContractError(f"{path}.samples[{index}].expected.probabilities: sum must be close to 1.0")
+
+
+def validate_ml_win_template_probe(data: dict[str, Any], path: Path) -> None:
+    require_keys(
+        data,
+        {
+            "api_version",
+            "kind",
+            "metadata",
+            "win_template_target",
+            "model",
+            "fixtures",
+            "inference",
+            "next_agent_bound_command",
+        },
+        str(path),
+    )
+    if data["api_version"] != ML_WIN_TEMPLATE_PROBE_API_VERSION:
+        raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
+    if data["kind"] != "MLWinTemplateProbe":
+        raise ContractError(f"{path}: invalid kind {data['kind']!r}")
+
+    metadata = require_object(data["metadata"], f"{path}.metadata")
+    boundary = str(metadata.get("claim_boundary") or "")
+    for term in ("non-malware", "not", "production detection benchmark"):
+        if term not in boundary:
+            raise ContractError(f"{path}.metadata.claim_boundary: must preserve WIN-TEMPLATE non-production boundary")
+
+    target = require_object(data["win_template_target"], f"{path}.win_template_target")
+    require_keys(
+        target,
+        {"hostname", "agent_id", "server_host", "transport", "endpoint_contacted", "requires_live_backend_for_agent_bound_run"},
+        f"{path}.win_template_target",
+    )
+    if target["hostname"] != "WIN-TEMPLATE":
+        raise ContractError(f"{path}.win_template_target.hostname: must be WIN-TEMPLATE")
+    if target["transport"] != "local_fixture_probe":
+        raise ContractError(f"{path}.win_template_target.transport: must be local_fixture_probe")
+    if target["endpoint_contacted"] is not False:
+        raise ContractError(f"{path}.win_template_target.endpoint_contacted: must remain false")
+    if target["requires_live_backend_for_agent_bound_run"] is not True:
+        raise ContractError(f"{path}.win_template_target.requires_live_backend_for_agent_bound_run: must be true")
+
+    model = require_object(data["model"], f"{path}.model")
+    require_keys(model, {"model_dir", "checkpoint_expected", "checkpoint_present", "reference_embeddings_present"}, f"{path}.model")
+    if bool(model["checkpoint_present"]) and not str(model["checkpoint_expected"]).endswith("encoder.pt"):
+        raise ContractError(f"{path}.model.checkpoint_expected: must reference encoder.pt when checkpoint is present")
+
+    fixtures = require_array(data["fixtures"], f"{path}.fixtures")
+    if len(fixtures) < 4:
+        raise ContractError(f"{path}.fixtures: expected at least four deterministic safe fixtures")
+    fixture_ids: set[str] = set()
+    fixture_hashes: dict[str, str] = {}
+    for index, fixture_value in enumerate(fixtures):
+        fixture = require_object(fixture_value, f"{path}.fixtures[{index}]")
+        require_keys(fixture, {"sample_id", "label", "fixture_type", "file_type", "source", "size_bytes", "sha256"}, f"{path}.fixtures[{index}]")
+        sample_id = str(fixture["sample_id"])
+        if sample_id in fixture_ids:
+            raise ContractError(f"{path}.fixtures[{index}].sample_id: duplicate {sample_id!r}")
+        fixture_ids.add(sample_id)
+        if not str(fixture["source"]).startswith("synthetic://tamandua/win-template/ml-probe/"):
+            raise ContractError(f"{path}.fixtures[{index}].source: must be synthetic WIN-TEMPLATE fixture")
+        if int(fixture["size_bytes"]) <= 0:
+            raise ContractError(f"{path}.fixtures[{index}].size_bytes: must be positive")
+        if not SHA256_RE.match(str(fixture["sha256"])):
+            raise ContractError(f"{path}.fixtures[{index}].sha256: must be a 64-char hex digest")
+        fixture_hashes[sample_id] = str(fixture["sha256"]).lower()
+
+    inference = require_object(data["inference"], f"{path}.inference")
+    require_keys(inference, {"status", "reason", "predictions"}, f"{path}.inference")
+    status = str(inference["status"])
+    if status not in {"not_run", "completed", "failed"}:
+        raise ContractError(f"{path}.inference.status: invalid status {status!r}")
+    predictions = require_array(inference["predictions"], f"{path}.inference.predictions")
+    if status == "not_run" and predictions:
+        raise ContractError(f"{path}.inference.predictions: must be empty when inference was not run")
+    if status == "failed":
+        raise ContractError(f"{path}.inference.status: failed probes are not valid ML-3 evidence")
+    if status == "completed":
+        summary = require_object(inference.get("prediction_summary"), f"{path}.inference.prediction_summary")
+        if int(summary.get("total", -1)) != len(fixtures):
+            raise ContractError(f"{path}.inference.prediction_summary.total: must match fixture count")
+        if len(predictions) != len(fixtures):
+            raise ContractError(f"{path}.inference.predictions: completed inference must score every fixture")
+    for index, prediction_value in enumerate(predictions):
+        prediction = require_object(prediction_value, f"{path}.inference.predictions[{index}]")
+        require_keys(prediction, {"sample_id", "sha256", "prediction", "confidence"}, f"{path}.inference.predictions[{index}]")
+        sample_id = str(prediction["sample_id"])
+        if sample_id not in fixture_hashes:
+            raise ContractError(f"{path}.inference.predictions[{index}].sample_id: not present in fixtures")
+        if str(prediction["sha256"]).lower() != fixture_hashes[sample_id]:
+            raise ContractError(f"{path}.inference.predictions[{index}].sha256: must match fixture sha256")
+        confidence = prediction["confidence"]
+        if not isinstance(confidence, (int, float)) or confidence < 0 or confidence > 1:
+            raise ContractError(f"{path}.inference.predictions[{index}].confidence: must be between 0 and 1")
+
+    command = str(data["next_agent_bound_command"])
+    if "tamandua_detection_validation.py" not in command:
+        raise ContractError(f"{path}.next_agent_bound_command: must reference tamandua_detection_validation.py")
+    if "--execute" not in command or "--agent-id" not in command or "--server-host" not in command:
+        raise ContractError(f"{path}.next_agent_bound_command: must include execute, agent id, and server host")
 
 
 def validate_execution_plan_launcher_guards(path: Path) -> None:
@@ -26745,6 +26848,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--benchmark-report", type=Path, default=DEFAULT_BENCHMARK_REPORT)
     parser.add_argument("--model-contract", type=Path, default=DEFAULT_MODEL_CONTRACT)
     parser.add_argument("--agent-parity-fixture", type=Path, default=None)
+    parser.add_argument("--ml-win-template-probe", type=Path, default=None)
     parser.add_argument("--execution-plan", type=Path, default=None)
     parser.add_argument("--execution-status", type=Path, default=None)
     parser.add_argument("--ml-execution-master-handoff", type=Path, default=None)
@@ -26839,6 +26943,13 @@ def main() -> int:
                 args.agent_parity_fixture,
                 AGENT_PARITY_FIXTURE_SCHEMA,
                 validate_agent_parity_fixture,
+            )
+        ml_win_template_probe_mode = None
+        if args.ml_win_template_probe is not None:
+            ml_win_template_probe_mode = validate_contract(
+                args.ml_win_template_probe,
+                ML_WIN_TEMPLATE_PROBE_SCHEMA,
+                validate_ml_win_template_probe,
             )
         execution_plan_mode = None
         if args.execution_plan is not None:
@@ -27399,6 +27510,8 @@ def main() -> int:
     print(f"validated model contract: {args.model_contract} ({model_mode})")
     if fixture_mode is not None:
         print(f"validated agent parity fixture: {args.agent_parity_fixture} ({fixture_mode})")
+    if ml_win_template_probe_mode is not None:
+        print(f"validated ML WIN-TEMPLATE probe: {args.ml_win_template_probe} ({ml_win_template_probe_mode})")
     if execution_plan_mode is not None:
         print(f"validated execution plan: {args.execution_plan} ({execution_plan_mode})")
     if execution_status_mode is not None:
