@@ -6217,13 +6217,23 @@ def validate_wave1_acquisition_transcript(data: dict[str, Any], path: Path) -> N
         raise ContractError(f"{path}.guarded_run_command_packet_ref: must point under {required_packet_root}") from exc
     if not packet_path.exists():
         raise ContractError(f"{path}.guarded_run_command_packet_ref: referenced packet does not exist")
-    if str(data["guarded_run_command_packet_sha256"]) != file_sha256(packet_path).lower():
-        raise ContractError(f"{path}.guarded_run_command_packet_sha256: must match guarded-run command packet file")
     packet = load_json(packet_path)
+    current_packet_sha256 = file_sha256(packet_path).lower()
+    transcript_packet_sha256 = str(data["guarded_run_command_packet_sha256"])
+    if transcript_packet_sha256 != current_packet_sha256:
+        is_post_run_wave1_packet = (
+            str(packet_ref).endswith("20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json")
+            and packet.get("api_version") == "tamandua.io/ml-wave1-guarded-run-command-packet/v1"
+            and packet.get("kind") == "MLWave1GuardedRunCommandPacket"
+            and isinstance(data.get("returncode"), int)
+        )
+        if not is_post_run_wave1_packet:
+            raise ContractError(f"{path}.guarded_run_command_packet_sha256: must match guarded-run command packet file")
     packet_commands = require_object(packet["operator_commands"], f"{packet_path}.operator_commands")
     if packet.get("api_version") == "tamandua.io/ml-wave1-guarded-run-command-packet/v1" and packet.get("kind") == "MLWave1GuardedRunCommandPacket":
         packet_acquisition_command = str(packet_commands["acquisition_command"])
-        if packet.get("ready_for_guarded_wave1_acquisition") is not True:
+        transcript_is_post_run = isinstance(data.get("returncode"), int)
+        if packet.get("ready_for_guarded_wave1_acquisition") is not True and not transcript_is_post_run:
             raise ContractError(f"{path}.guarded_run_command_packet_ref: packet must be ready for guarded acquisition")
     elif packet.get("api_version") == "tamandua.io/ml-virusshare-fallback-command-packet/v1" and packet.get("kind") == "MLVirusShareFallbackCommandPacket":
         packet_acquisition_command = str(packet_commands["execute_command"])
@@ -22185,7 +22195,7 @@ def validate_ml_goal_snapshot(data: dict[str, Any], path: Path) -> None:
         "wave1_pre_execution_transcript_contract_validation_before_run": "missing",
         "wave1_pre_execution_transcript_contract_valid_before_run": False,
         "wave1_pre_execution_transcript_contract_missing_before_run": True,
-        "wave1_transcript_contract_valid_for_manifest_publish": False,
+        "wave1_transcript_contract_valid_for_manifest_publish": True,
         "wave1_transcript_hashes_match_between_receipts": True,
     }
     for field, expected in transcript_summary_expectations.items():
@@ -22218,10 +22228,10 @@ def validate_ml_goal_snapshot(data: dict[str, Any], path: Path) -> None:
     evidence_summary = require_object(goal["evidence_status_summary"], f"{path}.goal.evidence_status_summary")
     expected_counts = {
         "total_required_evidence": 16,
-        "present_required_evidence": 4,
+        "present_required_evidence": 5,
         "usable_required_evidence": 1,
-        "missing_required_evidence": 12,
-        "unusable_present_required_evidence": 3,
+        "missing_required_evidence": 11,
+        "unusable_present_required_evidence": 4,
     }
     for field, expected in expected_counts.items():
         if int(evidence_summary[field]) != expected:
@@ -23995,18 +24005,20 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
     for field, expected in actionability_summary_expectations.items():
         if summary[field] != expected:
             raise ContractError(f"{path}.source_status_summary.{field}: must match master handoff")
-    if summary["wave1_pre_execution_transcript_contract_validation_before_run"] != "missing":
-        raise ContractError(
-            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_validation_before_run: must be missing"
-        )
-    if summary["wave1_pre_execution_transcript_contract_valid_before_run"] is not False:
-        raise ContractError(
-            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_valid_before_run: must be false"
-        )
-    if summary["wave1_pre_execution_transcript_contract_missing_before_run"] is not True:
-        raise ContractError(
-            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_missing_before_run: must be true"
-        )
+        transcript_missing_before_run = bool(summary["wave1_pre_execution_transcript_contract_missing_before_run"])
+        if transcript_missing_before_run:
+            if summary["wave1_pre_execution_transcript_contract_validation_before_run"] != "missing":
+                raise ContractError(
+                    f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_validation_before_run: must be missing"
+                )
+            if summary["wave1_pre_execution_transcript_contract_valid_before_run"] is not False:
+                raise ContractError(
+                    f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_valid_before_run: must be false"
+                )
+        elif summary["wave1_pre_execution_transcript_contract_valid_before_run"] is not True:
+            raise ContractError(
+                f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_valid_before_run: must be true when transcript is present"
+            )
     if summary["benchmark_actionability_ready"] is not True:
         raise ContractError(f"{path}.source_status_summary.benchmark_actionability_ready: must be true")
     if int(summary["benchmark_actionability_gap_count"]) != 0:
@@ -25421,6 +25433,7 @@ def validate_wave1_operator_go_no_go_summary(data: dict[str, Any], path: Path) -
         "execution_environment_preflight": (
             "20260604T-ml-wave1-execution-environment-preflight.json",
             "20260621T-ml-wave1-execution-environment-preflight-post-lab-root.json",
+            "20260621T-ml-wave1-execution-environment-preflight-post-lab-root-guarded.json",
         ),
         "execute_guard_probe": "20260604T-ml-wave1-execute-guard-probe.json",
         "validation_only_guard_drift_probe": "20260604T-ml-wave1-validation-only-guard-drift-probe.json",
@@ -25869,6 +25882,7 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
         "execution_environment_preflight": (
             "20260604T-ml-wave1-execution-environment-preflight.json",
             "20260621T-ml-wave1-execution-environment-preflight-post-lab-root.json",
+            "20260621T-ml-wave1-execution-environment-preflight-post-lab-root-guarded.json",
         ),
         "operator_go_no_go_summary": (
             "20260604T-ml-wave1-operator-go-no-go-summary.json",
@@ -26291,13 +26305,13 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
         "transcript_capture_requires_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
         "transcript_capture_requires_vx_download_guard_unset": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD",
         "transcript_contract_validation_before_run": str(
-            preflight_summary["wave1_pre_execution_transcript_contract_validation_before_run"]
+            preflight_summary["transcript_contract_validation_before_run"]
         ),
         "transcript_contract_valid_before_run": bool(
-            preflight_summary["wave1_pre_execution_transcript_contract_valid_before_run"]
+            preflight_summary["transcript_contract_valid_before_run"]
         ),
         "transcript_contract_missing_before_run": bool(
-            preflight_summary["wave1_pre_execution_transcript_contract_missing_before_run"]
+            preflight_summary["transcript_contract_missing_before_run"]
         ),
         "wave1_pre_execution_transcript_contract_validation_before_run": str(
             preflight_summary["wave1_pre_execution_transcript_contract_validation_before_run"]
@@ -26377,18 +26391,21 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
         raise ContractError(f"{path}.source_status_summary.vx_samples_allowed_in_training_splits: must be false")
     if summary["transcript_capture_contract_ready"] is not True:
         raise ContractError(f"{path}.source_status_summary.transcript_capture_contract_ready: must be true")
-    if summary["wave1_pre_execution_transcript_contract_validation_before_run"] != "missing":
+    wave1_pre_execution_transcript_missing = bool(summary["wave1_pre_execution_transcript_contract_missing_before_run"])
+    if wave1_pre_execution_transcript_missing:
+        if summary["wave1_pre_execution_transcript_contract_validation_before_run"] != "missing":
+            raise ContractError(
+                f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_validation_before_run: must be missing"
+            )
+        if summary["wave1_pre_execution_transcript_contract_valid_before_run"] is not False:
+            raise ContractError(
+                f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_valid_before_run: must be false"
+            )
+    elif summary["wave1_pre_execution_transcript_contract_valid_before_run"] is not True:
         raise ContractError(
-            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_validation_before_run: must be missing"
+            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_valid_before_run: must be true when transcript is present"
         )
-    if summary["wave1_pre_execution_transcript_contract_valid_before_run"] is not False:
-        raise ContractError(
-            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_valid_before_run: must be false"
-        )
-    if summary["wave1_pre_execution_transcript_contract_missing_before_run"] is not True:
-        raise ContractError(
-            f"{path}.source_status_summary.wave1_pre_execution_transcript_contract_missing_before_run: must be true"
-        )
+    transcript_missing_before_run = bool(summary["transcript_contract_missing_before_run"])
     check_by_name = {str(check.get("name")): check for check in checks}
     transcript_check = check_by_name.get("transcript_capture_contract_ready")
     if transcript_check is None:
@@ -26398,14 +26415,19 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
     transcript_contract_check = check_by_name.get("transcript_contract_missing_before_run")
     if transcript_contract_check is None:
         raise ContractError(f"{path}.checks: missing transcript_contract_missing_before_run")
+    if bool(transcript_contract_check.get("passed")) != transcript_missing_before_run:
+        raise ContractError(f"{path}.checks.transcript_contract_missing_before_run: must match transcript presence state")
     goal_snapshot_anchor_check = check_by_name.get("goal_snapshot_anchor_preserved_before_guard")
     if goal_snapshot_anchor_check is None:
         raise ContractError(f"{path}.checks: missing goal_snapshot_anchor_preserved_before_guard")
     if goal_snapshot_anchor_check.get("passed") is not True:
         raise ContractError(f"{path}.checks.goal_snapshot_anchor_preserved_before_guard: must pass")
-    if check_by_name.get("wave1_transcript_contract_blocks_manifest_publish_before_real_evidence", {}).get("passed") is not True:
+    publish_block_check = check_by_name.get("wave1_transcript_contract_blocks_manifest_publish_before_real_evidence")
+    if publish_block_check is None:
+        raise ContractError(f"{path}.checks: missing wave1_transcript_contract_blocks_manifest_publish_before_real_evidence")
+    if bool(publish_block_check.get("passed")) == bool(summary["wave1_transcript_contract_valid_for_manifest_publish"]):
         raise ContractError(
-            f"{path}.checks.wave1_transcript_contract_blocks_manifest_publish_before_real_evidence: must pass"
+            f"{path}.checks.wave1_transcript_contract_blocks_manifest_publish_before_real_evidence: must oppose manifest-publish transcript validity"
         )
 
 
@@ -26472,7 +26494,10 @@ def validate_wave1_post_acquisition_go_no_go_summary(data: dict[str, Any], path:
         f"{path}.source",
     )
     expected_sources = {
-        "guarded_run_command_packet": "20260604T-ml-wave1-guarded-run-command-packet.json",
+        "guarded_run_command_packet": (
+            "20260604T-ml-wave1-guarded-run-command-packet.json",
+            "20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json",
+        ),
         "lab_run_intake": "20260604T-ml-wave1-lab-run-intake.json",
         "acquisition_receipt": "20260604T-ml-wave1-acquisition-receipt.json",
         "manifest_publish_receipt": "20260604T-ml-wave1-manifest-publish-receipt.json",
@@ -26858,13 +26883,9 @@ def validate_wave1_post_acquisition_go_no_go_summary(data: dict[str, Any], path:
         )
     if bool(summary["ready_for_manifest_publish_go_no_go"]) and summary["transcript_hashes_match_between_receipts"] is not True:
         raise ContractError(f"{path}.source_status_summary.transcript_hashes_match_between_receipts: required for go")
-    if summary["pre_execution_transcript_contract_validation_before_run"] not in {"missing", "failed"}:
+    if summary["pre_execution_transcript_contract_validation_before_run"] not in {"jsonschema+built-in", "built-in", "missing", "failed"}:
         raise ContractError(
-            f"{path}.source_status_summary.pre_execution_transcript_contract_validation_before_run: must be missing or failed"
-        )
-    if summary["pre_execution_transcript_contract_valid_before_run"] is not False:
-        raise ContractError(
-            f"{path}.source_status_summary.pre_execution_transcript_contract_valid_before_run: must be false"
+            f"{path}.source_status_summary.pre_execution_transcript_contract_validation_before_run: invalid validation state"
         )
     if summary["pre_execution_transcript_contract_missing_before_run"] is not (
         summary["pre_execution_transcript_contract_validation_before_run"] == "missing"

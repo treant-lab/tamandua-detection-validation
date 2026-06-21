@@ -149,12 +149,9 @@ def test_validate_wave1_guarded_run_command_packet_rejects_transcript_capture_co
 
 def test_validate_wave1_guarded_run_command_packet_rejects_transcript_contract_state_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_status_summary"]["transcript_contract_validation_before_run"] = "jsonschema+built-in"
-    data["source_status_summary"]["transcript_contract_valid_before_run"] = True
-    data["source_status_summary"]["transcript_contract_missing_before_run"] = False
-    for check in data["checks"]:
-        if check["name"] == "transcript_contract_missing_before_run":
-            check["passed"] = False
+    data["source_status_summary"]["transcript_contract_validation_before_run"] = "missing"
+    data["source_status_summary"]["transcript_contract_valid_before_run"] = False
+    data["source_status_summary"]["transcript_contract_missing_before_run"] = True
     drifted = tmp_path / "20260604T-ml-wave1-guarded-run-command-packet.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

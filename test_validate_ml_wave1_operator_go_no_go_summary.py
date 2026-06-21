@@ -126,9 +126,9 @@ def test_validate_wave1_operator_go_no_go_summary_rejects_goal_snapshot_anchor_d
 
 def test_validate_wave1_operator_go_no_go_summary_rejects_transcript_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_status_summary"]["transcript_contract_validation_before_run"] = "jsonschema+built-in"
-    data["source_status_summary"]["transcript_contract_valid_before_run"] = True
-    data["source_status_summary"]["transcript_contract_missing_before_run"] = False
+    data["source_status_summary"]["wave1_pre_execution_transcript_contract_validation_before_run"] = "jsonschema+built-in"
+    data["source_status_summary"]["wave1_pre_execution_transcript_contract_valid_before_run"] = True
+    data["source_status_summary"]["wave1_pre_execution_transcript_contract_missing_before_run"] = False
     for check in data["checks"]:
         if check["name"] == "transcript_contract_missing_before_run":
             check["passed"] = False

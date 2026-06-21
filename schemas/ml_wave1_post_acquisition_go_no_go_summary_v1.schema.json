@@ -44,7 +44,7 @@
         "manifest_publish_receipt_validation"
       ],
       "properties": {
-        "guarded_run_command_packet": {"type": "string", "pattern": "20260604T-ml-wave1-guarded-run-command-packet\\.json$"},
+        "guarded_run_command_packet": {"type": "string", "pattern": "(20260604T-ml-wave1-guarded-run-command-packet|20260621T-ml-wave1-guarded-run-command-packet-post-lab-root)\\.json$"},
         "guarded_run_command_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "lab_run_intake": {"type": "string", "pattern": "20260604T-ml-wave1-lab-run-intake\\.json$"},
         "lab_run_intake_validation": {"enum": ["jsonschema+built-in", "built-in"]},
@@ -69,7 +69,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-wave1-guarded-run-command-packet\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-guarded-run-command-packet|20260621T-ml-wave1-guarded-run-command-packet-post-lab-root)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -224,8 +224,8 @@
         "ready_for_post_acquisition_refresh": {"type": "boolean"},
         "transcript_present": {"type": "boolean"},
         "transcript_valid": {"type": "boolean"},
-        "pre_execution_transcript_contract_validation_before_run": {"enum": ["missing", "failed"]},
-        "pre_execution_transcript_contract_valid_before_run": {"const": false},
+        "pre_execution_transcript_contract_validation_before_run": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
+        "pre_execution_transcript_contract_valid_before_run": {"type": "boolean"},
         "pre_execution_transcript_contract_missing_before_run": {"type": "boolean"},
         "intake_transcript_contract_validation": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
         "intake_transcript_contract_valid": {"type": "boolean"},
