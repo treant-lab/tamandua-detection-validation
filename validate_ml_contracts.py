@@ -1772,10 +1772,12 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         "benchmark_critical_path": (
             "20260604T-ml-benchmark-critical-path.json",
             "20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+            "20260621T-ml-benchmark-critical-path-post-onnx-runtime.json",
         ),
         "benchmark_actionability_audit": (
             "20260604T-ml-benchmark-actionability-audit.json",
             "20260620T2035Z-ml-benchmark-actionability-audit-contract-packets.json",
+            "20260621T-ml-benchmark-actionability-audit-post-onnx-runtime.json",
         ),
         "unblock_validation_status": ("20260604T-ml-unblock-validation-status.json",),
         "prelab_contract_coverage": ("20260604T-ml-prelab-contract-coverage.json",),
@@ -13872,6 +13874,7 @@ def validate_ml_parallel_work_packages(data: dict[str, Any], path: Path) -> None
     accepted_next_gate_master_handoffs = (
         "20260604T-ml-execution-master-handoff.json",
         "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+        "20260621T-ml-execution-master-handoff-post-onnx-runtime.json",
     )
     if not str(source["master_handoff"]).endswith(accepted_next_gate_master_handoffs):
         raise ContractError(f"{path}.source.master_handoff: must reference canonical master handoff")
@@ -16433,6 +16436,7 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
         "20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware.json",
         "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json",
         "20260621T-ml-next-gate-authorization-post-readiness-refresh-governed.json",
+        "20260621T-ml-next-gate-authorization-post-onnx-runtime-governed.json",
     )
     if not str(packet_coverage["next_gate_authorization_packet"]).endswith(accepted_next_gate_packets):
         raise ContractError(
@@ -22958,6 +22962,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
     accepted_next_gate_master_handoffs = (
         "20260604T-ml-execution-master-handoff.json",
         "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+        "20260621T-ml-execution-master-handoff-post-onnx-runtime.json",
     )
     if not str(source["master_handoff"]).endswith(accepted_next_gate_master_handoffs):
         raise ContractError(f"{path}.source.master_handoff: must reference canonical master handoff")

@@ -33,7 +33,7 @@
       "additionalProperties": false,
       "required": ["master_handoff", "master_handoff_validation"],
       "properties": {
-        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh)\\.json$"},
+        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh|20260621T-ml-execution-master-handoff-post-onnx-runtime)\\.json$"},
         "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]}
       }
     },

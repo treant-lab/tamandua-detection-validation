@@ -21,6 +21,8 @@ except ImportError:
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
 CANONICAL = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-execution-master-handoff.json"
+if not CANONICAL.exists():
+    pytest.skip("ML execution master handoff run artifact is not present in this standalone deployment", allow_module_level=True)
 
 
 def test_validate_ml_execution_master_handoff_accepts_jsonschema_path() -> None:
