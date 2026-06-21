@@ -164,8 +164,14 @@ def test_validate_wave1_guarded_run_command_packet_rejects_transcript_contract_s
 
 def test_validate_wave1_guarded_run_command_packet_rejects_execution_blocker_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["execution_blockers"] = []
-    data["next_unblock_actions"] = []
+    data["execution_blockers"] = ["unexpected_blocker"]
+    data["next_unblock_actions"] = [
+        {
+            "order": 1,
+            "blocker": "unexpected_blocker",
+            "action": "Unexpected blocker injected by drift test.",
+        }
+    ]
     drifted = tmp_path / "20260604T-ml-wave1-guarded-run-command-packet.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

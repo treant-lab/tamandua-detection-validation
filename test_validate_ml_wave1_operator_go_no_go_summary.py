@@ -136,6 +136,9 @@ def test_validate_wave1_operator_go_no_go_summary_rejects_transcript_contract_dr
     passed_checks = sum(1 for check in data["checks"] if check["passed"])
     data["source_status_summary"]["passed_checks"] = passed_checks
     data["source_status_summary"]["failed_checks"] = len(data["checks"]) - passed_checks
+    data["source_status_summary"]["ready_for_operator_go_no_go"] = False
+    data["operator_decision"]["ready_for_operator_go_no_go"] = False
+    data["operator_decision"]["decision"] = "no_go"
     drifted = tmp_path / "20260604T-ml-wave1-operator-go-no-go-summary.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

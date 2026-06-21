@@ -15322,7 +15322,11 @@ def validate_ml_benchmark_unblock_queue(data: dict[str, Any], path: Path) -> Non
         },
         f"{path}.source",
     )
-    if not str(source["ml_platform_readiness_audit"]).endswith("20260604T-ml-platform-readiness-audit.json"):
+    accepted_platform_readiness_audits = (
+        "20260604T-ml-platform-readiness-audit.json",
+        "20260621T0020Z-ml-platform-readiness-command-packet-blockers.json",
+    )
+    if not str(source["ml_platform_readiness_audit"]).endswith(accepted_platform_readiness_audits):
         raise ContractError(f"{path}.source.ml_platform_readiness_audit: must reference canonical ML platform readiness audit")
     source_status_summary = require_object(source["source_status_summary"], f"{path}.source.source_status_summary")
     require_keys(
@@ -21563,10 +21567,10 @@ def validate_ml_goal_snapshot(data: dict[str, Any], path: Path) -> None:
     evidence_summary = require_object(goal["evidence_status_summary"], f"{path}.goal.evidence_status_summary")
     expected_counts = {
         "total_required_evidence": 16,
-        "present_required_evidence": 5,
+        "present_required_evidence": 4,
         "usable_required_evidence": 1,
-        "missing_required_evidence": 11,
-        "unusable_present_required_evidence": 4,
+        "missing_required_evidence": 12,
+        "unusable_present_required_evidence": 3,
     }
     for field, expected in expected_counts.items():
         if int(evidence_summary[field]) != expected:

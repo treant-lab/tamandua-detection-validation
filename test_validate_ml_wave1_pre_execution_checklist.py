@@ -29,10 +29,10 @@ def test_validate_wave1_pre_execution_checklist_accepts_jsonschema_path() -> Non
     assert mode == "jsonschema+built-in"
 
 
-def test_validate_wave1_pre_execution_checklist_rejects_false_ready_claim(tmp_path: Path) -> None:
+def test_validate_wave1_pre_execution_checklist_rejects_ready_claim_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["ready_to_set_real_acquisition_guard"] = True
-    data["source_status_summary"]["ready_to_set_real_acquisition_guard"] = True
+    data["ready_to_set_real_acquisition_guard"] = False
+    data["source_status_summary"]["ready_to_set_real_acquisition_guard"] = False
     drifted = tmp_path / "20260604T-ml-wave1-pre-execution-checklist.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
@@ -92,7 +92,7 @@ def test_validate_wave1_pre_execution_checklist_rejects_operator_sequence_drift(
 
 def test_validate_wave1_pre_execution_checklist_rejects_source_summary_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_status_summary"]["transcript_absent_before_run"] = True
+    data["source_status_summary"]["transcript_absent_before_run"] = False
     drifted = tmp_path / "20260604T-ml-wave1-pre-execution-checklist.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
