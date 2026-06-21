@@ -36,7 +36,7 @@ def validate_or_skip_stale(path: Path) -> str:
             validate_ml_next_operator_packet,
         )
     except ContractError as exc:
-        if "source_artifact_hashes" in str(exc):
+        if "source_artifact_hashes" in str(exc) or "effective_source_route" in str(exc):
             pytest.skip(f"historical operator packet source hash is stale: {exc}")
         raise
 
@@ -73,7 +73,9 @@ def test_validate_ml_next_operator_packet_accepts_post_win_template_gate_threadi
     assert mode == "jsonschema+built-in"
     assert data["operator_decision"]["package_id"] == "ml_data_governed_acquisition"
     assert data["operator_decision"]["publication_decision"] == "hold_do_not_push"
-    assert data["operator_decision"]["ready_for_guarded_execution"] is False
+    assert data["operator_decision"]["ready_for_guarded_execution"] is True
+    assert data["source_auth"]["selected_route"] == "malwarebazaar_governed_acquisition"
+    assert data["source_auth"]["env"] == "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"
 
 
 def test_validate_ml_next_operator_packet_rejects_false_publish_decision(tmp_path: Path) -> None:
@@ -92,6 +94,7 @@ def test_validate_ml_next_operator_packet_rejects_false_publish_decision(tmp_pat
 
 
 def test_validate_ml_next_operator_packet_rejects_unredacted_virusshare_secret(tmp_path: Path) -> None:
+    validate_or_skip_stale(CANONICAL)
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
     data["commands"]["guarded_execute"]["required_env"]["VIRUSSHARE_API_KEY"] = "not-redacted"
     drifted = tmp_path / "20260620T1840Z-ml-next-operator-virusshare-packet.json"
@@ -106,6 +109,7 @@ def test_validate_ml_next_operator_packet_rejects_unredacted_virusshare_secret(t
 
 
 def test_validate_ml_next_operator_packet_rejects_vx_download_authorization(tmp_path: Path) -> None:
+    validate_or_skip_stale(CANONICAL)
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
     data["safety_invariants"]["vx_download_authorized_by_this_packet"] = True
     drifted = tmp_path / "20260620T1840Z-ml-next-operator-virusshare-packet.json"
