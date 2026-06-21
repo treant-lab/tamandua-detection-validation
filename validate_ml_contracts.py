@@ -1767,6 +1767,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260620T2155Z-ml-platform-readiness-ml6-packets.json",
             "20260621T0020Z-ml-platform-readiness-command-packet-blockers.json",
             "20260621T-ml-platform-readiness-post-readiness-refresh.json",
+            "20260621T-ml-platform-readiness-post-onnx-runtime.json",
         ),
         "wave1_operator_handoff_index": ("20260604T-ml-wave1-operator-handoff-index.json",),
         "wave1_guarded_run_command_packet": ("20260604T-ml-wave1-guarded-run-command-packet.json",),
@@ -13921,6 +13922,7 @@ def validate_ml_parallel_work_packages(data: dict[str, Any], path: Path) -> None
         "20260604T-ml-execution-master-handoff.json",
         "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
         "20260621T-ml-execution-master-handoff-post-onnx-runtime.json",
+        "20260621T-ml-execution-master-handoff-post-platform-onnx-runtime.json",
     )
     if not str(source["master_handoff"]).endswith(accepted_next_gate_master_handoffs):
         raise ContractError(f"{path}.source.master_handoff: must reference canonical master handoff")
@@ -23009,6 +23011,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         "20260604T-ml-execution-master-handoff.json",
         "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
         "20260621T-ml-execution-master-handoff-post-onnx-runtime.json",
+        "20260621T-ml-execution-master-handoff-post-platform-onnx-runtime.json",
     )
     if not str(source["master_handoff"]).endswith(accepted_next_gate_master_handoffs):
         raise ContractError(f"{path}.source.master_handoff: must reference canonical master handoff")
@@ -23028,7 +23031,12 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         raise ContractError(f"{path}.source.next_action_validation_run: must reference canonical next-action validation run")
     if not str(source["transcript_template"]).endswith("20260604T-ml-wave1-real-acquisition-transcript.template.json"):
         raise ContractError(f"{path}.source.transcript_template: must reference canonical transcript template")
-    if not str(source["goal_snapshot"]).endswith("20260604T-ml-goal-snapshot.json"):
+    accepted_next_gate_goal_snapshots = (
+        "20260604T-ml-goal-snapshot.json",
+        "20260621T-ml-goal-snapshot-post-onnx-runtime.json",
+        "20260621T-ml-goal-snapshot-post-platform-onnx-runtime.json",
+    )
+    if not str(source["goal_snapshot"]).endswith(accepted_next_gate_goal_snapshots):
         raise ContractError(f"{path}.source.goal_snapshot: must reference canonical goal snapshot")
     if not str(source["operator_roadmap"]).replace("\\", "/").endswith("docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP.md"):
         raise ContractError(f"{path}.source.operator_roadmap: must reference canonical ML training pipeline roadmap")
@@ -23059,7 +23067,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         "operator_launch_brief": (brief_path, "20260604T-ml-wave1-operator-launch-brief.json"),
         "next_action_validation_run": (next_action_path, Path(str(next_action_path)).name),
         "transcript_template": (transcript_template_path, "20260604T-ml-wave1-real-acquisition-transcript.template.json"),
-        "goal_snapshot": (goal_snapshot_path, "20260604T-ml-goal-snapshot.json"),
+        "goal_snapshot": (goal_snapshot_path, Path(str(goal_snapshot_path)).name),
         "operator_roadmap": (operator_roadmap_path, "docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP.md"),
     }
     if source_decision_path is not None:

@@ -50,7 +50,7 @@
         "execution_status_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "parallel_work_packages": {"type": "string", "pattern": "20260604T-ml-parallel-work-packages\\.json$"},
         "parallel_work_packages_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "platform_readiness_audit": {"type": "string", "pattern": "(20260604T-ml-platform-readiness-audit|20260620T2155Z-ml-platform-readiness-ml6-packets|20260621T0020Z-ml-platform-readiness-command-packet-blockers|20260621T-ml-platform-readiness-post-readiness-refresh)\\.json$"},
+        "platform_readiness_audit": {"type": "string", "pattern": "(20260604T-ml-platform-readiness-audit|20260620T2155Z-ml-platform-readiness-ml6-packets|20260621T0020Z-ml-platform-readiness-command-packet-blockers|20260621T-ml-platform-readiness-post-readiness-refresh|20260621T-ml-platform-readiness-post-onnx-runtime)\\.json$"},
         "platform_readiness_audit_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "wave1_operator_handoff_index": {"type": "string", "pattern": "20260604T-ml-wave1-operator-handoff-index\\.json$"},
         "wave1_operator_handoff_index_validation": {"enum": ["jsonschema+built-in", "built-in"]},

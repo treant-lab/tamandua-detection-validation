@@ -50,7 +50,7 @@
         "operator_roadmap"
       ],
       "properties": {
-        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh|20260621T-ml-execution-master-handoff-post-onnx-runtime)\\.json$"},
+        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh|20260621T-ml-execution-master-handoff-post-onnx-runtime|20260621T-ml-execution-master-handoff-post-platform-onnx-runtime)\\.json$"},
         "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "operator_launch_brief": {"type": "string", "pattern": "20260604T-ml-wave1-operator-launch-brief\\.json$"},
         "operator_launch_brief_validation": {"enum": ["jsonschema+built-in", "built-in"]},
@@ -58,7 +58,7 @@
         "next_action_validation_run_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "transcript_template": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.template\\.json$"},
         "transcript_template_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "goal_snapshot": {"type": "string", "pattern": "20260604T-ml-goal-snapshot\\.json$"},
+        "goal_snapshot": {"type": "string", "pattern": "(20260604T-ml-goal-snapshot|20260621T-ml-goal-snapshot-post-onnx-runtime|20260621T-ml-goal-snapshot-post-platform-onnx-runtime)\\.json$"},
         "goal_snapshot_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "operator_roadmap": {"type": "string", "pattern": "docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP\\.md$|docs\\\\benchmarks\\\\ML_TRAINING_PIPELINE_ROADMAP\\.md$"},
         "source_decision": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"},
@@ -82,7 +82,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh|20260621T-ml-execution-master-handoff-post-onnx-runtime)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh|20260621T-ml-execution-master-handoff-post-onnx-runtime|20260621T-ml-execution-master-handoff-post-platform-onnx-runtime)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -118,7 +118,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-goal-snapshot\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-goal-snapshot|20260621T-ml-goal-snapshot-post-onnx-runtime|20260621T-ml-goal-snapshot-post-platform-onnx-runtime)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
