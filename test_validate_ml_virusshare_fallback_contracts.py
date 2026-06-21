@@ -26,8 +26,10 @@ from validate_ml_contracts import (  # noqa: E402
 
 
 READINESS = RUNS_DIR / "20260620T-ml-virusshare-fallback-readiness-secret-hardened.json"
+POST_403_READINESS = RUNS_DIR / "20260621T-ml-virusshare-fallback-readiness-post-malwarebazaar-403.json"
 PACKET_CHECK = RUNS_DIR / "20260618T-ml-virusshare-fallback-command-packet-check.json"
 TRANSITION = RUNS_DIR / "20260618T-ml-virusshare-fallback-transition-audit.json"
+POST_403_TRANSITION = RUNS_DIR / "20260621T-ml-virusshare-fallback-transition-audit-post-malwarebazaar-403.json"
 
 
 def load(path: Path) -> dict:
@@ -47,6 +49,19 @@ def test_validate_virusshare_fallback_contracts_accept_canonical_artifacts() -> 
     ) in {"jsonschema+built-in", "built-in"}
     assert validate_contract(
         TRANSITION,
+        ML_VIRUSSHARE_FALLBACK_TRANSITION_AUDIT_SCHEMA,
+        validate_ml_virusshare_fallback_transition_audit,
+    ) in {"jsonschema+built-in", "built-in"}
+
+
+def test_validate_virusshare_fallback_contracts_accept_post_malwarebazaar_403_artifacts() -> None:
+    assert validate_contract(
+        POST_403_READINESS,
+        ML_VIRUSSHARE_FALLBACK_READINESS_SCHEMA,
+        validate_ml_virusshare_fallback_readiness,
+    ) in {"jsonschema+built-in", "built-in"}
+    assert validate_contract(
+        POST_403_TRANSITION,
         ML_VIRUSSHARE_FALLBACK_TRANSITION_AUDIT_SCHEMA,
         validate_ml_virusshare_fallback_transition_audit,
     ) in {"jsonschema+built-in", "built-in"}

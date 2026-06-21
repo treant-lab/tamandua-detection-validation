@@ -19128,7 +19128,11 @@ def validate_ml_virusshare_fallback_command_packet_check(data: dict[str, Any], p
     require_keys(source, {"packet", "readiness", "dry_run", "hashlist_probe"}, f"{path}.source")
     if not str(source["packet"]).endswith("20260618T-ml-virusshare-fallback-command-packet.json"):
         raise ContractError(f"{path}.source.packet: must reference canonical fallback packet")
-    if not str(source["readiness"]).endswith("20260620T-ml-virusshare-fallback-readiness-secret-hardened.json"):
+    accepted_virusshare_fallback_readiness = (
+        "20260620T-ml-virusshare-fallback-readiness-secret-hardened.json",
+        "20260621T-ml-virusshare-fallback-readiness-post-malwarebazaar-403.json",
+    )
+    if not str(source["readiness"]).endswith(accepted_virusshare_fallback_readiness):
         raise ContractError(f"{path}.source.readiness: must reference hardened readiness")
     summary = require_object(data["source_status_summary"], f"{path}.source_status_summary")
     require_keys(summary, {"passed", "packet_consistent_for_secret_injection", "check_count", "passed_checks", "failed_checks", "blockers"}, f"{path}.source_status_summary")
@@ -19175,7 +19179,11 @@ def validate_ml_virusshare_fallback_transition_audit(data: dict[str, Any], path:
             raise ContractError(f"{path}.metadata.claim_boundary: missing safety phrase {phrase!r}")
     source = require_object(data["source"], f"{path}.source")
     require_keys(source, {"readiness", "packet_check", "fallback_packet", "canonical_guarded_packet"}, f"{path}.source")
-    if not str(source["readiness"]).endswith("20260620T-ml-virusshare-fallback-readiness-secret-hardened.json"):
+    accepted_virusshare_fallback_readiness = (
+        "20260620T-ml-virusshare-fallback-readiness-secret-hardened.json",
+        "20260621T-ml-virusshare-fallback-readiness-post-malwarebazaar-403.json",
+    )
+    if not str(source["readiness"]).endswith(accepted_virusshare_fallback_readiness):
         raise ContractError(f"{path}.source.readiness: must reference hardened readiness")
     if not str(source["packet_check"]).endswith("20260618T-ml-virusshare-fallback-command-packet-check.json"):
         raise ContractError(f"{path}.source.packet_check: must reference fallback packet check")
