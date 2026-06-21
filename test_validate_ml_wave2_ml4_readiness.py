@@ -61,9 +61,13 @@ def valid_wave2_ml4_readiness() -> dict:
                 "ml1_benchmark_report_present": False,
                 "ml1_model_contract_present": False,
                 "ml1_model_contract_valid": False,
+                "ml1_model_contract_quality_gate_status": "",
+                "ml1_model_contract_quality_gate_passed": False,
                 "ml1_model_card_present": False,
                 "ml1_model_card_nonempty": False,
                 "ml1_model_card_references_contract": False,
+                "ml1_model_card_readiness": "",
+                "ml1_model_card_readiness_production_candidate": False,
                 "api_key_present": False,
                 "base_url": "http://127.0.0.1:8000",
                 "base_url_valid_http": True,
@@ -106,9 +110,11 @@ def valid_wave2_ml4_readiness() -> dict:
             {"name": "ml1_report_has_malware_goodware_samples", "passed": False, "detail": "ml1"},
             {"name": "ml1_model_contract_present", "passed": False, "detail": "contract"},
             {"name": "ml1_model_contract_valid", "passed": False, "detail": "missing"},
+            {"name": "ml1_model_contract_quality_gate_passed", "passed": False, "detail": "contract"},
             {"name": "ml1_model_card_present", "passed": False, "detail": "card"},
             {"name": "ml1_model_card_nonempty", "passed": False, "detail": "card"},
             {"name": "ml1_model_card_references_contract", "passed": False, "detail": "contract"},
+            {"name": "ml1_model_card_readiness_production_candidate", "passed": False, "detail": "card"},
             {"name": "api_key_present", "passed": False, "detail": "missing_or_placeholder"},
             {"name": "base_url_valid_http", "passed": True, "detail": "http://127.0.0.1:8000"},
             {"name": "base_url_no_credentials", "passed": True, "detail": "http://127.0.0.1:8000"},
@@ -150,9 +156,11 @@ def sync_source(payload: dict) -> None:
         "ml1_benchmark_report_present": "ml1_benchmark_report_present",
         "ml1_model_contract_present": "ml1_model_contract_present",
         "ml1_model_contract_valid": "ml1_model_contract_valid",
+        "ml1_model_contract_quality_gate_passed": "ml1_model_contract_quality_gate_passed",
         "ml1_model_card_present": "ml1_model_card_present",
         "ml1_model_card_nonempty": "ml1_model_card_nonempty",
         "ml1_model_card_references_contract": "ml1_model_card_references_contract",
+        "ml1_model_card_readiness_production_candidate": "ml1_model_card_readiness_production_candidate",
         "api_key_present": "api_key_present",
         "base_url_valid_http": "base_url_valid_http",
         "base_url_no_credentials": "base_url_no_credentials",
@@ -341,6 +349,57 @@ def test_validate_wave2_ml4_readiness_rejects_missing_model_contract_blocker() -
         assert "missing ML-1 model contract blocker" in str(exc)
     else:
         raise AssertionError("expected missing model contract blocker to fail")
+
+
+def test_validate_wave2_ml4_readiness_rejects_missing_contract_quality_gate_blocker() -> None:
+    payload = copy.deepcopy(valid_wave2_ml4_readiness())
+    payload["blockers"] = [
+        "wave2_ml1_readiness_blocked",
+        "missing_ml1_benchmark_report",
+        "missing_ml1_model_card",
+        "missing_env:TAMANDUA_ML_API_KEY",
+    ]
+    payload["source"]["ml1_model_contract_validation"] = "jsonschema+built-in"
+    for check in payload["checks"]:
+        if check["name"] in {"ml1_model_contract_present", "ml1_model_contract_valid"}:
+            check["passed"] = True
+        if check["name"] == "ml1_model_contract_quality_gate_passed":
+            check["passed"] = False
+            check["detail"] = "fail"
+    payload["source"]["source_status_summary"]["ml1_model_contract_quality_gate_status"] = "fail"
+    sync_source(payload)
+
+    try:
+        validate_wave2_ml4_readiness(payload, Path("memory://ml-wave2-ml4-readiness.json"))
+    except ContractError as exc:
+        assert "quality gate blocker" in str(exc)
+    else:
+        raise AssertionError("expected missing model contract quality gate blocker to fail")
+
+
+def test_validate_wave2_ml4_readiness_rejects_missing_model_card_readiness_blocker() -> None:
+    payload = copy.deepcopy(valid_wave2_ml4_readiness())
+    payload["blockers"] = [
+        "wave2_ml1_readiness_blocked",
+        "missing_ml1_benchmark_report",
+        "missing_ml1_model_contract",
+        "missing_env:TAMANDUA_ML_API_KEY",
+    ]
+    for check in payload["checks"]:
+        if check["name"] in {"ml1_model_card_present", "ml1_model_card_nonempty", "ml1_model_card_references_contract"}:
+            check["passed"] = True
+        if check["name"] == "ml1_model_card_readiness_production_candidate":
+            check["passed"] = False
+            check["detail"] = "not_production_ready"
+    payload["source"]["source_status_summary"]["ml1_model_card_readiness"] = "not_production_ready"
+    sync_source(payload)
+
+    try:
+        validate_wave2_ml4_readiness(payload, Path("memory://ml-wave2-ml4-readiness.json"))
+    except ContractError as exc:
+        assert "production candidate blocker" in str(exc)
+    else:
+        raise AssertionError("expected missing model card production candidate blocker to fail")
 
 
 def test_validate_wave2_ml4_readiness_rejects_missing_service_guard() -> None:

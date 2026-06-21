@@ -11394,9 +11394,11 @@ def validate_wave2_ml4_readiness(data: dict[str, Any], path: Path) -> None:
         "ml1_report_has_malware_goodware_samples",
         "ml1_model_contract_present",
         "ml1_model_contract_valid",
+        "ml1_model_contract_quality_gate_passed",
         "ml1_model_card_present",
         "ml1_model_card_nonempty",
         "ml1_model_card_references_contract",
+        "ml1_model_card_readiness_production_candidate",
         "api_key_present",
         "base_url_valid_http",
         "base_url_no_credentials",
@@ -11421,9 +11423,13 @@ def validate_wave2_ml4_readiness(data: dict[str, Any], path: Path) -> None:
             "ml1_benchmark_report_present",
             "ml1_model_contract_present",
             "ml1_model_contract_valid",
+            "ml1_model_contract_quality_gate_status",
+            "ml1_model_contract_quality_gate_passed",
             "ml1_model_card_present",
             "ml1_model_card_nonempty",
             "ml1_model_card_references_contract",
+            "ml1_model_card_readiness",
+            "ml1_model_card_readiness_production_candidate",
             "api_key_present",
             "base_url",
             "base_url_valid_http",
@@ -11483,9 +11489,11 @@ def validate_wave2_ml4_readiness(data: dict[str, Any], path: Path) -> None:
         "ml1_benchmark_report_present": "ml1_benchmark_report_present",
         "ml1_model_contract_present": "ml1_model_contract_present",
         "ml1_model_contract_valid": "ml1_model_contract_valid",
+        "ml1_model_contract_quality_gate_passed": "ml1_model_contract_quality_gate_passed",
         "ml1_model_card_present": "ml1_model_card_present",
         "ml1_model_card_nonempty": "ml1_model_card_nonempty",
         "ml1_model_card_references_contract": "ml1_model_card_references_contract",
+        "ml1_model_card_readiness_production_candidate": "ml1_model_card_readiness_production_candidate",
         "api_key_present": "api_key_present",
         "base_url_valid_http": "base_url_valid_http",
         "base_url_no_credentials": "base_url_no_credentials",
@@ -11528,9 +11536,13 @@ def validate_wave2_ml4_readiness(data: dict[str, Any], path: Path) -> None:
     ml1_present = check_by_name["ml1_benchmark_report_present"]["passed"] is True
     model_contract_present = check_by_name["ml1_model_contract_present"]["passed"] is True
     model_contract_valid = check_by_name["ml1_model_contract_valid"]["passed"] is True
+    model_contract_quality_passed = check_by_name["ml1_model_contract_quality_gate_passed"]["passed"] is True
     model_card_present = check_by_name["ml1_model_card_present"]["passed"] is True
     model_card_nonempty = check_by_name["ml1_model_card_nonempty"]["passed"] is True
     model_card_references_contract = check_by_name["ml1_model_card_references_contract"]["passed"] is True
+    model_card_readiness_production_candidate = (
+        check_by_name["ml1_model_card_readiness_production_candidate"]["passed"] is True
+    )
     ml1_ready = check_by_name["wave2_ml1_ready_for_candidate"]["passed"] is True
     ml1_guard_proof_clean = check_by_name["wave2_ml1_lab_guard_proof_clean"]["passed"] is True
     ml1_lab_guards_unset = check_by_name["wave2_ml1_ml_lab_standby_guards_unset"]["passed"] is True
@@ -11569,9 +11581,11 @@ def validate_wave2_ml4_readiness(data: dict[str, Any], path: Path) -> None:
         and ml1_content_ready
         and model_contract_present
         and model_contract_valid
+        and model_contract_quality_passed
         and model_card_present
         and model_card_nonempty
         and model_card_references_contract
+        and model_card_readiness_production_candidate
         and api_key_present
         and base_url_ready
     ):
@@ -11592,12 +11606,31 @@ def validate_wave2_ml4_readiness(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.blockers: missing ML-1 model contract blocker is required")
     if model_contract_present and not model_contract_valid and "ml1_model_contract_invalid" not in blockers:
         raise ContractError(f"{path}.blockers: invalid ML-1 model contract blocker is required")
+    if (
+        model_contract_present
+        and model_contract_valid
+        and not model_contract_quality_passed
+        and "ml1_model_contract_quality_gate_not_pass" not in blockers
+    ):
+        raise ContractError(f"{path}.blockers: ML-1 model contract quality gate blocker is required")
+    if model_contract_quality_passed and str(source_summary["ml1_model_contract_quality_gate_status"]) != "pass":
+        raise ContractError(f"{path}.source.source_status_summary.ml1_model_contract_quality_gate_status: must be pass")
     if not model_card_present and "missing_ml1_model_card" not in blockers:
         raise ContractError(f"{path}.blockers: missing ML-1 model card blocker is required")
     if model_card_present and not model_card_nonempty and "ml1_model_card_empty" not in blockers:
         raise ContractError(f"{path}.blockers: empty ML-1 model card blocker is required")
     if model_card_present and model_card_nonempty and not model_card_references_contract and "ml1_model_card_missing_contract_reference" not in blockers:
         raise ContractError(f"{path}.blockers: ML-1 model card contract reference blocker is required")
+    if (
+        model_card_present
+        and model_card_nonempty
+        and model_card_references_contract
+        and not model_card_readiness_production_candidate
+        and "ml1_model_card_not_production_candidate" not in blockers
+    ):
+        raise ContractError(f"{path}.blockers: ML-1 model card production candidate blocker is required")
+    if model_card_readiness_production_candidate and str(source_summary["ml1_model_card_readiness"]) != "production_candidate":
+        raise ContractError(f"{path}.source.source_status_summary.ml1_model_card_readiness: must be production_candidate")
     if not api_key_present and "missing_env:TAMANDUA_ML_API_KEY" not in blockers:
         raise ContractError(f"{path}.blockers: missing API key blocker is required")
     if check_by_name["base_url_valid_http"]["passed"] is not True and "invalid_base_url" not in blockers:
