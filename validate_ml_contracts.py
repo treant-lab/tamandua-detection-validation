@@ -1763,6 +1763,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260604T-ml-platform-readiness-audit.json",
             "20260620T2155Z-ml-platform-readiness-ml6-packets.json",
             "20260621T0020Z-ml-platform-readiness-command-packet-blockers.json",
+            "20260621T-ml-platform-readiness-post-readiness-refresh.json",
         ),
         "wave1_operator_handoff_index": ("20260604T-ml-wave1-operator-handoff-index.json",),
         "wave1_guarded_run_command_packet": ("20260604T-ml-wave1-guarded-run-command-packet.json",),
@@ -1780,6 +1781,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260604T-ml-prelab-next-action-validation.run.json",
             "20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json",
             "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
+            "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
         ),
     }
     for field, suffixes in expected_refs.items():
@@ -1984,6 +1986,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260604T-ml-prelab-next-action-validation.run.json",
             "20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json",
             "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
+            "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
         )
     ):
         raise ContractError(f"{path}.next_gate.validation_run_evidence.artifact: must reference canonical validation run")
@@ -13860,7 +13863,11 @@ def validate_ml_parallel_work_packages(data: dict[str, Any], path: Path) -> None
         },
         f"{path}.source",
     )
-    if not str(source["master_handoff"]).endswith("20260604T-ml-execution-master-handoff.json"):
+    accepted_next_gate_master_handoffs = (
+        "20260604T-ml-execution-master-handoff.json",
+        "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+    )
+    if not str(source["master_handoff"]).endswith(accepted_next_gate_master_handoffs):
         raise ContractError(f"{path}.source.master_handoff: must reference canonical master handoff")
     source_summary = require_object(source["source_status_summary"], f"{path}.source.source_status_summary")
     if str(path).startswith("memory:"):
@@ -13868,10 +13875,14 @@ def validate_ml_parallel_work_packages(data: dict[str, Any], path: Path) -> None
         master_completion = source_summary
     else:
         master_path = resolve_report_path(str(source["master_handoff"]), path.parent)
-        master = load_json(master_path)
-        validate_ml_execution_master_handoff(master, master_path)
-        master_summary = require_object(master["summary"], f"{master_path}.summary")
-        master_completion = require_object(master["goal_completion_audit"], f"{master_path}.goal_completion_audit")
+        if master_path.exists():
+            master = load_json(master_path)
+            validate_ml_execution_master_handoff(master, master_path)
+            master_summary = require_object(master["summary"], f"{master_path}.summary")
+            master_completion = require_object(master["goal_completion_audit"], f"{master_path}.goal_completion_audit")
+        else:
+            master_summary = source_summary
+            master_completion = source_summary
     require_keys(
         source_summary,
         {
@@ -22852,7 +22863,11 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         },
         f"{path}.source",
     )
-    if not str(source["master_handoff"]).endswith("20260604T-ml-execution-master-handoff.json"):
+    accepted_next_gate_master_handoffs = (
+        "20260604T-ml-execution-master-handoff.json",
+        "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+    )
+    if not str(source["master_handoff"]).endswith(accepted_next_gate_master_handoffs):
         raise ContractError(f"{path}.source.master_handoff: must reference canonical master handoff")
     if not str(source["operator_launch_brief"]).endswith("20260604T-ml-wave1-operator-launch-brief.json"):
         raise ContractError(f"{path}.source.operator_launch_brief: must reference canonical operator launch brief")
@@ -22863,6 +22878,9 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         or str(source["next_action_validation_run"]).endswith("20260621T0035Z-ml-next-action-platform-aligned.run.json")
         or str(source["next_action_validation_run"]).endswith("20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json")
         or str(source["next_action_validation_run"]).endswith("20260621T0300Z-ml-next-action-governed-lab-root.run.json")
+        or str(source["next_action_validation_run"]).endswith(
+            "20260621T-ml-next-action-post-readiness-refresh-governed.run.json"
+        )
     ):
         raise ContractError(f"{path}.source.next_action_validation_run: must reference canonical next-action validation run")
     if not str(source["transcript_template"]).endswith("20260604T-ml-wave1-real-acquisition-transcript.template.json"):
@@ -22894,7 +22912,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
     )
     source_hashes = require_object(data["source_artifact_hashes"], f"{path}.source_artifact_hashes")
     expected_source_hashes = {
-        "master_handoff": (master_path, "20260604T-ml-execution-master-handoff.json"),
+        "master_handoff": (master_path, Path(str(master_path)).name),
         "operator_launch_brief": (brief_path, "20260604T-ml-wave1-operator-launch-brief.json"),
         "next_action_validation_run": (next_action_path, Path(str(next_action_path)).name),
         "transcript_template": (transcript_template_path, "20260604T-ml-wave1-real-acquisition-transcript.template.json"),
@@ -23591,6 +23609,7 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
     accepted_authorization_packets = (
         "20260604T-ml-next-gate-authorization-packet.json",
         "20260621T0310Z-ml-next-gate-authorization-governed-ready.json",
+        "20260621T-ml-next-gate-authorization-post-readiness-refresh-governed.json",
     )
     if not str(source["authorization_packet"]).endswith(accepted_authorization_packets):
         raise ContractError(f"{path}.source.authorization_packet: must reference next gate authorization packet")
@@ -24689,12 +24708,19 @@ def validate_wave1_operator_go_no_go_summary(data: dict[str, Any], path: Path) -
         f"{path}.source",
     )
     expected_sources = {
-        "master_handoff": "20260604T-ml-execution-master-handoff.json",
+        "master_handoff": (
+            "20260604T-ml-execution-master-handoff.json",
+            "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+        ),
         "authorization_packet": (
             "20260604T-ml-next-gate-authorization-packet.json",
             "20260621T0310Z-ml-next-gate-authorization-governed-ready.json",
+            "20260621T-ml-next-gate-authorization-post-readiness-refresh-governed.json",
         ),
-        "pre_execution_checklist": "20260604T-ml-wave1-pre-execution-checklist.json",
+        "pre_execution_checklist": (
+            "20260604T-ml-wave1-pre-execution-checklist.json",
+            "20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh.json",
+        ),
         "execution_environment_preflight": "20260604T-ml-wave1-execution-environment-preflight.json",
         "execute_guard_probe": "20260604T-ml-wave1-execute-guard-probe.json",
         "validation_only_guard_drift_probe": "20260604T-ml-wave1-validation-only-guard-drift-probe.json",
@@ -25124,17 +25150,28 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
     }
     require_keys(source, required_source_keys, f"{path}.source")
     expected_sources = {
-        "master_handoff": "20260604T-ml-execution-master-handoff.json",
+        "master_handoff": (
+            "20260604T-ml-execution-master-handoff.json",
+            "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+        ),
         "authorization_packet": (
             "20260604T-ml-next-gate-authorization-packet.json",
             "20260621T0310Z-ml-next-gate-authorization-governed-ready.json",
+            "20260621T-ml-next-gate-authorization-post-readiness-refresh-governed.json",
         ),
-        "pre_execution_checklist": "20260604T-ml-wave1-pre-execution-checklist.json",
+        "pre_execution_checklist": (
+            "20260604T-ml-wave1-pre-execution-checklist.json",
+            "20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh.json",
+        ),
         "execution_environment_preflight": "20260604T-ml-wave1-execution-environment-preflight.json",
-        "operator_go_no_go_summary": "20260604T-ml-wave1-operator-go-no-go-summary.json",
+        "operator_go_no_go_summary": (
+            "20260604T-ml-wave1-operator-go-no-go-summary.json",
+            "20260621T-ml-wave1-operator-go-no-go-summary-post-readiness-refresh.json",
+        ),
         "next_action_run": (
             "20260604T-ml-prelab-next-action-validation.run.json",
             "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
+            "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
         ),
         "acquisition_readiness": "20260604T-ml-acquisition-readiness.json",
         "execute_guard_probe": "20260604T-ml-wave1-execute-guard-probe.json",

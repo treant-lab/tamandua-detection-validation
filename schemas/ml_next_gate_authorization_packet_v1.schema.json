@@ -50,11 +50,11 @@
         "operator_roadmap"
       ],
       "properties": {
-        "master_handoff": {"type": "string", "pattern": "20260604T-ml-execution-master-handoff\\.json$"},
+        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh)\\.json$"},
         "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "operator_launch_brief": {"type": "string", "pattern": "20260604T-ml-wave1-operator-launch-brief\\.json$"},
         "operator_launch_brief_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "next_action_validation_run": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware|20260620T2320Z-ml-next-action-secret-readiness|20260621T0035Z-ml-next-action-platform-aligned\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run|20260621T0300Z-ml-next-action-governed-lab-root\\.run)\\.json$"},
+        "next_action_validation_run": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware|20260620T2320Z-ml-next-action-secret-readiness|20260621T0035Z-ml-next-action-platform-aligned\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run|20260621T0300Z-ml-next-action-governed-lab-root\\.run|20260621T-ml-next-action-post-readiness-refresh-governed\\.run)\\.json$"},
         "next_action_validation_run_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "transcript_template": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.template\\.json$"},
         "transcript_template_validation": {"enum": ["jsonschema+built-in", "built-in"]},
@@ -82,7 +82,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-execution-master-handoff\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -100,7 +100,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware|20260620T2320Z-ml-next-action-secret-readiness|20260621T0035Z-ml-next-action-platform-aligned\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run|20260621T0300Z-ml-next-action-governed-lab-root\\.run)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware|20260620T2320Z-ml-next-action-secret-readiness|20260621T0035Z-ml-next-action-platform-aligned\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run|20260621T0300Z-ml-next-action-governed-lab-root\\.run|20260621T-ml-next-action-post-readiness-refresh-governed\\.run)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },

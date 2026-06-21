@@ -285,6 +285,15 @@ def test_validate_ml_goal_snapshot_accepts_incomplete_goal() -> None:
     validate_ml_goal_snapshot(valid_goal_snapshot(), Path("memory://ml-goal-snapshot.json"))
 
 
+def test_validate_ml_goal_snapshot_accepts_post_refresh_master_handoff() -> None:
+    payload = valid_goal_snapshot()
+    payload["source"]["master_handoff"] = (
+        "docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-readiness-refresh.json"
+    )
+
+    validate_ml_goal_snapshot(payload, Path("memory://ml-goal-snapshot.json"))
+
+
 def test_validate_ml_goal_snapshot_rejects_completion_claim() -> None:
     payload = copy.deepcopy(valid_goal_snapshot())
     payload["ready_for_completion_claim"] = True

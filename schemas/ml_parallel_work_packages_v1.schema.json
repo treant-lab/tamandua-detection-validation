@@ -49,7 +49,7 @@
         "execution_plan_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "execution_status": {"type": "string", "minLength": 1},
         "execution_status_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "master_handoff": {"type": "string", "pattern": "20260604T-ml-execution-master-handoff\\.json$"},
+        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh)\\.json$"},
         "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "source_status_summary": {
           "type": "object",

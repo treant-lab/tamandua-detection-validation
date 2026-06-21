@@ -223,6 +223,15 @@ def test_validate_ml_parallel_work_packages_accepts_contract() -> None:
     validate_ml_parallel_work_packages(valid_dispatch(), Path("memory://ml-parallel-work-packages.json"))
 
 
+def test_validate_ml_parallel_work_packages_accepts_post_refresh_master_handoff() -> None:
+    payload = valid_dispatch()
+    payload["source"]["master_handoff"] = (
+        "docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-readiness-refresh.json"
+    )
+
+    validate_ml_parallel_work_packages(payload, Path("memory://ml-parallel-work-packages.json"))
+
+
 def test_validate_ml_parallel_work_packages_accepts_jsonschema_path(tmp_path: Path) -> None:
     report_path = tmp_path / "ml-parallel-work-packages.json"
     report_path.write_text(json.dumps(valid_dispatch()), encoding="utf-8")
