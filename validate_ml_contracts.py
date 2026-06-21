@@ -12157,9 +12157,11 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         "ml1_benchmark_report_candidate_passed_candidate_dataset",
         "ml1_model_contract_present",
         "ml1_model_contract_valid",
+        "ml1_model_contract_quality_gate_passed",
         "ml1_model_card_present",
         "ml1_model_card_nonempty",
         "ml1_model_card_references_contract",
+        "ml1_model_card_readiness_production_candidate",
         "ml3_agent_parity_report_present",
         "ml3_agent_parity_report_passed",
         "ml3_agent_parity_report_passed_sample_coverage",
@@ -12198,9 +12200,13 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
             "ml1_benchmark_report_present",
             "ml1_model_contract_present",
             "ml1_model_contract_valid",
+            "ml1_model_contract_quality_gate_status",
+            "ml1_model_contract_quality_gate_passed",
             "ml1_model_card_present",
             "ml1_model_card_nonempty",
             "ml1_model_card_references_contract",
+            "ml1_model_card_readiness",
+            "ml1_model_card_readiness_production_candidate",
             "ml3_agent_parity_report_present",
             "ml3_agent_side_evidence_present",
             "ml3_agent_side_evidence_valid",
@@ -12287,9 +12293,11 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         "ml1_benchmark_report_present": "ml1_benchmark_report_present",
         "ml1_model_contract_present": "ml1_model_contract_present",
         "ml1_model_contract_valid": "ml1_model_contract_valid",
+        "ml1_model_contract_quality_gate_passed": "ml1_model_contract_quality_gate_passed",
         "ml1_model_card_present": "ml1_model_card_present",
         "ml1_model_card_nonempty": "ml1_model_card_nonempty",
         "ml1_model_card_references_contract": "ml1_model_card_references_contract",
+        "ml1_model_card_readiness_production_candidate": "ml1_model_card_readiness_production_candidate",
         "ml3_agent_parity_report_present": "ml3_agent_parity_report_present",
         "ml3_agent_side_evidence_present": "ml3_agent_side_evidence_present",
         "ml3_agent_side_evidence_valid": "ml3_agent_side_evidence_valid",
@@ -12369,8 +12377,10 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
 
     ml1_model_artifact_blockers = {
         "ml1_model_contract_valid": "ml1_model_contract_invalid",
+        "ml1_model_contract_quality_gate_passed": "ml1_model_contract_quality_gate_not_pass",
         "ml1_model_card_nonempty": "ml1_model_card_empty",
         "ml1_model_card_references_contract": "ml1_model_card_missing_contract_ref",
+        "ml1_model_card_readiness_production_candidate": "ml1_model_card_not_production_candidate",
     }
     for check_name, blocker in ml1_model_artifact_blockers.items():
         passed = check_by_name[check_name]["passed"] is True
@@ -12378,6 +12388,13 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
             raise ContractError(f"{path}.ready_for_ml5_pipeline_replay: cannot be ready with weak ML-1 model artifact {check_name}")
         if not passed and check_by_name["ml1_model_contract_present" if "contract" in check_name else "ml1_model_card_present"]["passed"] is True and blocker not in blockers:
             raise ContractError(f"{path}.blockers: {blocker} is required")
+    if check_by_name["ml1_model_contract_quality_gate_passed"]["passed"] is True and str(source_summary["ml1_model_contract_quality_gate_status"]) != "pass":
+        raise ContractError(f"{path}.source.source_status_summary.ml1_model_contract_quality_gate_status: must be pass")
+    if (
+        check_by_name["ml1_model_card_readiness_production_candidate"]["passed"] is True
+        and str(source_summary["ml1_model_card_readiness"]) != "production_candidate"
+    ):
+        raise ContractError(f"{path}.source.source_status_summary.ml1_model_card_readiness: must be production_candidate")
 
     replay_quality_blockers = {
         "ml5_replay_outcomes_nonempty": "ml5_replay_outcomes_empty",
@@ -13264,9 +13281,11 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
         "ml1_report_has_malware_goodware_samples",
         "ml1_model_contract_present",
         "ml1_model_contract_valid",
+        "ml1_model_contract_quality_gate_passed",
         "ml1_model_card_present",
         "ml1_model_card_nonempty",
         "ml1_model_card_references_contract",
+        "ml1_model_card_readiness_production_candidate",
         "training_cutoff_present",
         "training_cutoff_iso8601",
         "vx_inventory_present",
@@ -13296,9 +13315,13 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
             "ml1_benchmark_report_present",
             "ml1_model_contract_present",
             "ml1_model_contract_valid",
+            "ml1_model_contract_quality_gate_status",
+            "ml1_model_contract_quality_gate_passed",
             "ml1_model_card_present",
             "ml1_model_card_nonempty",
             "ml1_model_card_references_contract",
+            "ml1_model_card_readiness",
+            "ml1_model_card_readiness_production_candidate",
             "training_cutoff_present",
             "training_cutoff_iso8601",
             "vx_inventory_present",
@@ -13360,9 +13383,11 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
         "ml1_benchmark_report_present": "ml1_benchmark_report_present",
         "ml1_model_contract_present": "ml1_model_contract_present",
         "ml1_model_contract_valid": "ml1_model_contract_valid",
+        "ml1_model_contract_quality_gate_passed": "ml1_model_contract_quality_gate_passed",
         "ml1_model_card_present": "ml1_model_card_present",
         "ml1_model_card_nonempty": "ml1_model_card_nonempty",
         "ml1_model_card_references_contract": "ml1_model_card_references_contract",
+        "ml1_model_card_readiness_production_candidate": "ml1_model_card_readiness_production_candidate",
         "training_cutoff_present": "training_cutoff_present",
         "training_cutoff_iso8601": "training_cutoff_iso8601",
         "vx_inventory_present": "vx_inventory_present",
@@ -13429,8 +13454,10 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
 
     ml1_model_artifact_blockers = {
         "ml1_model_contract_valid": "ml1_model_contract_invalid",
+        "ml1_model_contract_quality_gate_passed": "ml1_model_contract_quality_gate_not_pass",
         "ml1_model_card_nonempty": "ml1_model_card_empty",
         "ml1_model_card_references_contract": "ml1_model_card_missing_contract_ref",
+        "ml1_model_card_readiness_production_candidate": "ml1_model_card_not_production_candidate",
     }
     for check_name, blocker in ml1_model_artifact_blockers.items():
         passed = check_by_name[check_name]["passed"] is True
@@ -13439,6 +13466,13 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
             raise ContractError(f"{path}.ready_for_ml6_holdout: cannot be ready with weak ML-1 model artifact {check_name}")
         if not passed and check_by_name[present_check]["passed"] is True and blocker not in blockers:
             raise ContractError(f"{path}.blockers: {blocker} is required")
+    if check_by_name["ml1_model_contract_quality_gate_passed"]["passed"] is True and str(source_summary["ml1_model_contract_quality_gate_status"]) != "pass":
+        raise ContractError(f"{path}.source.source_status_summary.ml1_model_contract_quality_gate_status: must be pass")
+    if (
+        check_by_name["ml1_model_card_readiness_production_candidate"]["passed"] is True
+        and str(source_summary["ml1_model_card_readiness"]) != "production_candidate"
+    ):
+        raise ContractError(f"{path}.source.source_status_summary.ml1_model_card_readiness: must be production_candidate")
 
     ml1_content_ready = all(
         check_by_name[name]["passed"] is True

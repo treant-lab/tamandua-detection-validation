@@ -69,9 +69,13 @@ def valid_wave3_ml6_readiness() -> dict:
                 "ml1_benchmark_report_present": False,
                 "ml1_model_contract_present": False,
                 "ml1_model_contract_valid": False,
+                "ml1_model_contract_quality_gate_status": "",
+                "ml1_model_contract_quality_gate_passed": False,
                 "ml1_model_card_present": False,
                 "ml1_model_card_nonempty": False,
                 "ml1_model_card_references_contract": False,
+                "ml1_model_card_readiness": "",
+                "ml1_model_card_readiness_production_candidate": False,
                 "training_cutoff_present": False,
                 "training_cutoff_iso8601": False,
                 "vx_inventory_present": True,
@@ -121,9 +125,11 @@ def valid_wave3_ml6_readiness() -> dict:
             {"name": "ml1_report_has_malware_goodware_samples", "passed": False, "detail": "ml1"},
             {"name": "ml1_model_contract_present", "passed": False, "detail": "contract"},
             {"name": "ml1_model_contract_valid", "passed": False, "detail": "contract"},
+            {"name": "ml1_model_contract_quality_gate_passed", "passed": False, "detail": "contract"},
             {"name": "ml1_model_card_present", "passed": False, "detail": "card"},
             {"name": "ml1_model_card_nonempty", "passed": False, "detail": "card"},
             {"name": "ml1_model_card_references_contract", "passed": False, "detail": "card"},
+            {"name": "ml1_model_card_readiness_production_candidate", "passed": False, "detail": "card"},
             {"name": "training_cutoff_present", "passed": False, "detail": "missing_or_placeholder"},
             {"name": "training_cutoff_iso8601", "passed": False, "detail": "missing_or_placeholder"},
             {"name": "vx_inventory_present", "passed": True, "detail": "vx"},
@@ -171,9 +177,11 @@ def sync_source(payload: dict) -> None:
         "ml1_benchmark_report_present": "ml1_benchmark_report_present",
         "ml1_model_contract_present": "ml1_model_contract_present",
         "ml1_model_contract_valid": "ml1_model_contract_valid",
+        "ml1_model_contract_quality_gate_passed": "ml1_model_contract_quality_gate_passed",
         "ml1_model_card_present": "ml1_model_card_present",
         "ml1_model_card_nonempty": "ml1_model_card_nonempty",
         "ml1_model_card_references_contract": "ml1_model_card_references_contract",
+        "ml1_model_card_readiness_production_candidate": "ml1_model_card_readiness_production_candidate",
         "training_cutoff_present": "training_cutoff_present",
         "training_cutoff_iso8601": "training_cutoff_iso8601",
         "vx_inventory_present": "vx_inventory_present",
@@ -327,6 +335,61 @@ def test_validate_wave3_ml6_readiness_rejects_missing_invalid_ml1_report_blocker
         assert "invalid candidate ML-1 report blocker" in str(exc)
     else:
         raise AssertionError("expected missing invalid ML-1 report blocker to fail")
+
+
+def test_validate_wave3_ml6_readiness_rejects_missing_contract_quality_gate_blocker() -> None:
+    payload = copy.deepcopy(valid_wave3_ml6_readiness())
+    payload["blockers"] = [
+        "wave3_ml5_readiness_blocked",
+        "wave2_ml1_readiness_blocked",
+        "missing_ml1_benchmark_report",
+        "missing_ml1_model_card",
+        "missing_env:TAMANDUA_ML_TRAINING_CUTOFF",
+        "missing_ml6_holdout_prediction_outcomes",
+    ]
+    payload["source"]["ml1_model_contract_validation"] = "jsonschema+built-in"
+    for check in payload["checks"]:
+        if check["name"] in {"ml1_model_contract_present", "ml1_model_contract_valid"}:
+            check["passed"] = True
+        if check["name"] == "ml1_model_contract_quality_gate_passed":
+            check["passed"] = False
+            check["detail"] = "fail"
+    payload["source"]["source_status_summary"]["ml1_model_contract_quality_gate_status"] = "fail"
+    sync_source(payload)
+
+    try:
+        validate_wave3_ml6_readiness(payload, Path("memory://ml-wave3-ml6-readiness.json"))
+    except ContractError as exc:
+        assert "ml1_model_contract_quality_gate_not_pass" in str(exc)
+    else:
+        raise AssertionError("expected missing contract quality gate blocker to fail")
+
+
+def test_validate_wave3_ml6_readiness_rejects_missing_model_card_readiness_blocker() -> None:
+    payload = copy.deepcopy(valid_wave3_ml6_readiness())
+    payload["blockers"] = [
+        "wave3_ml5_readiness_blocked",
+        "wave2_ml1_readiness_blocked",
+        "missing_ml1_benchmark_report",
+        "missing_ml1_model_contract",
+        "missing_env:TAMANDUA_ML_TRAINING_CUTOFF",
+        "missing_ml6_holdout_prediction_outcomes",
+    ]
+    for check in payload["checks"]:
+        if check["name"] in {"ml1_model_card_present", "ml1_model_card_nonempty", "ml1_model_card_references_contract"}:
+            check["passed"] = True
+        if check["name"] == "ml1_model_card_readiness_production_candidate":
+            check["passed"] = False
+            check["detail"] = "not_production_ready"
+    payload["source"]["source_status_summary"]["ml1_model_card_readiness"] = "not_production_ready"
+    sync_source(payload)
+
+    try:
+        validate_wave3_ml6_readiness(payload, Path("memory://ml-wave3-ml6-readiness.json"))
+    except ContractError as exc:
+        assert "ml1_model_card_not_production_candidate" in str(exc)
+    else:
+        raise AssertionError("expected missing model card readiness blocker to fail")
 
 
 def test_validate_wave3_ml6_readiness_rejects_missing_ml1_readiness_blocker() -> None:
