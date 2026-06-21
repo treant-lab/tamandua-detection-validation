@@ -24,7 +24,9 @@ except ImportError:
 CANONICAL = RUNS_DIR / "20260620T1840Z-ml-next-operator-virusshare-packet.json"
 SECRET_READINESS = RUNS_DIR / "20260620T2355Z-ml-next-operator-secret-readiness-packet.json"
 POST_WIN_TEMPLATE_GATE_THREADING = RUNS_DIR / "20260621T-ml-next-operator-post-win-template-gate-threading-packet.json"
-POST_LAB_ROOT = RUNS_DIR / "20260621T-ml-next-operator-post-lab-root-packet.json"
+POST_403_VIRUSSHARE_LAB_ROOT = (
+    RUNS_DIR / "20260621T-ml-next-operator-post-malwarebazaar-403-virusshare-lab-root-packet.json"
+)
 if not CANONICAL.exists():
     pytest.skip("ML next operator packet run artifact is not present in this standalone deployment", allow_module_level=True)
 
@@ -79,22 +81,27 @@ def test_validate_ml_next_operator_packet_accepts_post_win_template_gate_threadi
     assert data["source_auth"]["env"] == "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"
 
 
-def test_validate_ml_next_operator_packet_accepts_post_lab_root_path() -> None:
-    if not POST_LAB_ROOT.exists():
-        pytest.skip("post lab-root operator packet is not present")
+def test_validate_ml_next_operator_packet_accepts_post_403_virusshare_lab_root_path() -> None:
+    if not POST_403_VIRUSSHARE_LAB_ROOT.exists():
+        pytest.skip("post-403 VirusShare lab-root operator packet is not present")
 
     mode = validate_contract(
-        POST_LAB_ROOT,
+        POST_403_VIRUSSHARE_LAB_ROOT,
         ML_NEXT_OPERATOR_PACKET_SCHEMA,
         validate_ml_next_operator_packet,
     )
 
-    data = json.loads(POST_LAB_ROOT.read_text(encoding="utf-8"))
+    data = json.loads(POST_403_VIRUSSHARE_LAB_ROOT.read_text(encoding="utf-8"))
 
     assert mode == "jsonschema+built-in"
-    assert data["operator_decision"]["package_id"] == "ml_data_governed_acquisition"
+    assert data["operator_decision"]["package_id"] == "ml_data_virusshare_fallback"
     assert data["operator_decision"]["ready_for_guarded_execution"] is False
-    assert data["source_auth"]["selected_route"] == "malwarebazaar_governed_acquisition"
+    assert data["operator_decision"]["publication_decision"] == "hold_do_not_push"
+    assert data["source_auth"]["selected_route"] == "virusshare_fallback"
+    assert data["source_auth"]["env"] == "VIRUSSHARE_API_KEY"
+    assert data["commands"]["env_remediation"]["required_env"]["VIRUSSHARE_API_KEY"] == (
+        "<redacted: isolated lab secret store>"
+    )
 
 
 def test_validate_ml_next_operator_packet_rejects_false_publish_decision(tmp_path: Path) -> None:
