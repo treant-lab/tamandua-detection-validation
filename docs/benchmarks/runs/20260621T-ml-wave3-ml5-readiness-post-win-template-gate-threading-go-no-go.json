@@ -2,15 +2,15 @@
   "api_version": "tamandua.io/ml-wave3-ml5-operator-go-no-go-summary/v1",
   "kind": "MLWave3ML5OperatorGoNoGoSummary",
   "metadata": {
-    "report_id": "20260621T_ml_wave3_ml5_readiness_post_onnx_runtime_go_no_go",
-    "generated_at": "2026-06-21T05:00:27.664462+00:00",
+    "report_id": "20260621T_ml_wave3_ml5_readiness_post_win_template_gate_threading_go_no_go",
+    "generated_at": "2026-06-21T06:07:58.417804+00:00",
     "created_by": "tamandua-ml-wave3-ml5-operator-go-no-go-summary",
     "claim_boundary": "No-execution ML-5 operator go/no-go summary only. It consolidates existing pipeline replay readiness evidence and does not set guards, build fixtures, run replay benchmarks, run inference, train models, or contact live services."
   },
   "source": {
     "wave1_acceptance_checklist": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json",
     "wave1_acceptance_checklist_validation": "jsonschema+built-in",
-    "wave3_ml5_readiness": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json",
+    "wave3_ml5_readiness": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading.json",
     "wave3_ml5_readiness_validation": "jsonschema+built-in"
   },
   "source_artifact_hashes": {
@@ -19,8 +19,8 @@
       "sha256": "cb62a73acdcc4e04c219828e221b58c2ef570f2df116e3f7eeb3cac3f5c3c63f"
     },
     "wave3_ml5_readiness": {
-      "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json",
-      "sha256": "fc71c1235c6b67551c4aba3f4a3e8cc34567b23314fcd13b2f29ff40a976e8b8"
+      "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading.json",
+      "sha256": "ea281799873590d1aaa2802d0e8b7edebbd87f0bbae5c2685a00194fddcfc1b6"
     }
   },
   "operator_decision": {
@@ -30,7 +30,7 @@
     "execute_command": "& 'D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml5_pipeline_launcher.ps1' -Execute",
     "execute_guard_env": "TAMANDUA_ALLOW_ML_PIPELINE_REPLAY",
     "replay_outcomes": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml5-replay-outcomes.json",
-    "authorization_inputs_sha256": "2699f113dd3537ed7122515dbcb64e3cdc730f33bc4d7f7d94b6999c515280c5",
+    "authorization_inputs_sha256": "e584e4a7926e2478956c959a066ff60df43ea3c3cd51262a8f019c6b1233e026",
     "no_execution_claim_boundary": "This summary is not ML-5 execution evidence. Pipeline replay starts only after the lab sets TAMANDUA_ALLOW_ML_PIPELINE_REPLAY=1 and runs the guarded ML-5 launcher with -Execute."
   },
   "source_status_summary": {
@@ -147,7 +147,7 @@
     {
       "name": "wave3_ml5_readiness_valid",
       "passed": true,
-      "detail": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json (jsonschema+built-in)"
+      "detail": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading.json (jsonschema+built-in)"
     },
     {
       "name": "ml5_readiness_green",

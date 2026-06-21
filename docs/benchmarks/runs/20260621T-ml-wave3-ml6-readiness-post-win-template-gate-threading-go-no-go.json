@@ -2,15 +2,15 @@
   "api_version": "tamandua.io/ml-wave3-ml6-operator-go-no-go-summary/v1",
   "kind": "MLWave3ML6OperatorGoNoGoSummary",
   "metadata": {
-    "report_id": "20260621T_ml_wave3_ml6_readiness_post_onnx_runtime_go_no_go",
-    "generated_at": "2026-06-21T05:00:28.376243+00:00",
+    "report_id": "20260621T_ml_wave3_ml6_readiness_post_win_template_gate_threading_go_no_go",
+    "generated_at": "2026-06-21T06:08:06.733414+00:00",
     "created_by": "tamandua-ml-wave3-ml6-operator-go-no-go-summary",
     "claim_boundary": "No-execution ML-6 operator go/no-go summary only. It consolidates existing holdout readiness evidence and does not set guards, build fixtures, run holdout benchmarks, run inference, train models, or contact live services."
   },
   "source": {
     "wave1_acceptance_checklist": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json",
     "wave1_acceptance_checklist_validation": "jsonschema+built-in",
-    "wave3_ml6_readiness": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json",
+    "wave3_ml6_readiness": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-win-template-gate-threading.json",
     "wave3_ml6_readiness_validation": "jsonschema+built-in"
   },
   "source_artifact_hashes": {
@@ -19,8 +19,8 @@
       "sha256": "cb62a73acdcc4e04c219828e221b58c2ef570f2df116e3f7eeb3cac3f5c3c63f"
     },
     "wave3_ml6_readiness": {
-      "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json",
-      "sha256": "3afc2074ee82c3d5bf9dca45899d2fab638fcdd94c7b35eae665fc35a347a01b"
+      "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-win-template-gate-threading.json",
+      "sha256": "7a91e418380e33479087c139136c3e65e144aef331d8e4be2ee0c2038a502e25"
     }
   },
   "operator_decision": {
@@ -31,7 +31,7 @@
     "execute_guard_env": "TAMANDUA_ALLOW_ML_HOLDOUT",
     "required_cutoff_env": "TAMANDUA_ML_TRAINING_CUTOFF",
     "holdout_outcomes": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml6-holdout-prediction-outcomes.json",
-    "authorization_inputs_sha256": "0a31df4bb34e2f6abf38328ece5bf582b2a4d4de764f31b319c9dab7ee35644d",
+    "authorization_inputs_sha256": "ee7523138fa732b5d48cbab359bf0e23b92ea3ad846b9578b1073d9374f4d7c8",
     "no_execution_claim_boundary": "This summary is not ML-6 holdout execution evidence. Holdout evaluation starts only after the lab sets TAMANDUA_ML_TRAINING_CUTOFF, TAMANDUA_ALLOW_ML_HOLDOUT=1, and runs the guarded ML-6 launcher with -Execute."
   },
   "source_status_summary": {
@@ -149,7 +149,7 @@
     {
       "name": "wave3_ml6_readiness_valid",
       "passed": true,
-      "detail": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json (jsonschema+built-in)"
+      "detail": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-win-template-gate-threading.json (jsonschema+built-in)"
     },
     {
       "name": "ml6_readiness_green",
