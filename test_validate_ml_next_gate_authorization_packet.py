@@ -55,7 +55,14 @@ GOVERNED_READY = (
     / "runs"
     / "20260621T0310Z-ml-next-gate-authorization-governed-ready.json"
 )
-CANONICAL = GOVERNED_READY
+POST_WIN_TEMPLATE_GATE_THREADING = (
+    ROOT
+    / "docs"
+    / "benchmarks"
+    / "runs"
+    / "20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json"
+)
+CANONICAL = POST_WIN_TEMPLATE_GATE_THREADING
 if not CANONICAL.exists():
     pytest.skip("ML next gate authorization packet run artifact is not present in this standalone deployment", allow_module_level=True)
 
