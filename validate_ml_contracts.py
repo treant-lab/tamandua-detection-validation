@@ -1651,7 +1651,6 @@ def validate_execution_plan(data: dict[str, Any], path: Path) -> None:
                 "docs/benchmarks/runs/20260604T-ml-wave1-operator-handoff-index.json",
                 "docs/benchmarks/runs/20260604T-ml-wave1-guarded-run-command-packet.json",
                 "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_real_acquisition_launcher.ps1",
-                "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_virusshare_fallback_readiness_launcher.ps1",
                 "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_post_acquisition_refresh_launcher.ps1",
                 "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_manifest_publish_launcher.ps1",
             ]:
@@ -1666,7 +1665,6 @@ def validate_execution_plan(data: dict[str, Any], path: Path) -> None:
                 "--vx-inventory docs/benchmarks/runs/ml-vx-inthewild-inventory.json",
                 "--resume",
                 "wave_1_real_acquisition_launcher.ps1",
-                "wave_1_virusshare_fallback_readiness_launcher.ps1",
             ]:
                 if required_fragment not in command_text:
                     raise ContractError(
