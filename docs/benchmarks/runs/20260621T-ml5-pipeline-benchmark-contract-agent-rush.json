@@ -1,0 +1,85 @@
+{
+  "api_version": "tamandua.io/ml-benchmark-report/v1",
+  "kind": "MLBenchmarkReport",
+  "metadata": {
+    "report_id": "20260621t_ml5_pipeline_benchmark_contract_agent_rush",
+    "created_at": "2026-06-21T18:01:11.216717+00:00",
+    "created_by": "tamandua-ml-ml5-pipeline-benchmark",
+    "git_commit": "workspace",
+    "command": "apps\\tamandua_ml\\scripts\\ml5_pipeline_benchmark.py --output docs\\benchmarks\\runs\\20260621T-ml5-pipeline-benchmark-contract-agent-rush.json --markdown-output docs\\benchmarks\\runs\\20260621T-ml5-pipeline-benchmark-contract-agent-rush.md --report-id 20260621t_ml5_pipeline_benchmark_contract_agent_rush --git-commit workspace --dry-run-contract"
+  },
+  "lane": "ML-5",
+  "subject": {
+    "type": "tamandua_pipeline",
+    "name": "tamandua-full-detection-pipeline",
+    "version": "workspace",
+    "artifact_hashes": {},
+    "input_contract": {
+      "name": "tamandua-pipeline-replay-v1",
+      "input_name": "pipeline_replay_events",
+      "shape": [
+        "replay-fixture"
+      ],
+      "preprocessing": "Fixture records deterministic and ML verdicts after safe replay/lab execution.",
+      "threshold": null
+    }
+  },
+  "dataset": {
+    "dataset_id": "ml5-pipeline-contract-smoke",
+    "manifest_ref": "synthetic://tamandua/ml5-pipeline-contract",
+    "sample_counts": {
+      "total": 0,
+      "malware": 0,
+      "goodware": 0,
+      "unknown": 0
+    }
+  },
+  "environment": {
+    "os": "nt",
+    "python_version": "3.10.6",
+    "rust_version": null,
+    "onnxruntime_version": null,
+    "agent_features": [],
+    "fixture_id": "ml5-pipeline-contract-dry-run"
+  },
+  "metrics": {
+    "accuracy": null,
+    "precision": null,
+    "recall": null,
+    "f1": null,
+    "false_positive_rate": null,
+    "false_negative_rate": null,
+    "roc_auc": null,
+    "verdict_agreement": null,
+    "confidence_delta_p95": null,
+    "latency_ms_p50": null,
+    "latency_ms_p95": null,
+    "latency_ms_p99": null,
+    "throughput_per_second": null,
+    "memory_mb_peak": null,
+    "ml_contribution": {
+      "ml_only": 0,
+      "ml_assisted": 0,
+      "deterministic_only": 0,
+      "missed": 0
+    }
+  },
+  "quality_gate": {
+    "status": "not_run",
+    "checks": [
+      {
+        "name": "pipeline_replay",
+        "status": "not_run",
+        "details": "Dry-run contract mode does not replay Tamandua events."
+      }
+    ]
+  },
+  "claim_boundary": "ML-5 contract dry run only. Does not benchmark platform detection impact.",
+  "artifacts": [
+    {
+      "name": "pipeline_replay_fixture",
+      "path": "synthetic://tamandua/ml5-pipeline-contract",
+      "sha256": null
+    }
+  ]
+}

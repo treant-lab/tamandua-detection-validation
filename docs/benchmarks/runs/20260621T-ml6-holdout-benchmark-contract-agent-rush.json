@@ -1,0 +1,92 @@
+{
+  "api_version": "tamandua.io/ml-benchmark-report/v1",
+  "kind": "MLBenchmarkReport",
+  "metadata": {
+    "report_id": "20260621t_ml6_holdout_benchmark_contract_agent_rush",
+    "created_at": "2026-06-21T18:01:11.117183+00:00",
+    "created_by": "tamandua-ml-ml6-holdout-robustness-benchmark",
+    "git_commit": "workspace",
+    "command": "apps\\tamandua_ml\\scripts\\ml6_holdout_robustness_benchmark.py --output docs\\benchmarks\\runs\\20260621T-ml6-holdout-benchmark-contract-agent-rush.json --markdown-output docs\\benchmarks\\runs\\20260621T-ml6-holdout-benchmark-contract-agent-rush.md --details-output docs\\benchmarks\\runs\\20260621T-ml6-holdout-benchmark-contract-agent-rush.details.json --report-id 20260621t_ml6_holdout_benchmark_contract_agent_rush --git-commit workspace --dry-run-contract"
+  },
+  "lane": "ML-6",
+  "subject": {
+    "type": "holdout_robustness",
+    "name": "tamandua-ml-holdout-robustness",
+    "version": "workspace",
+    "artifact_hashes": {},
+    "input_contract": {
+      "name": "tamandua-holdout-predictions-v1",
+      "input_name": "holdout_prediction_fixture",
+      "shape": [
+        "prediction-fixture"
+      ],
+      "preprocessing": "Fixture contains model/platform predictions over governed cross-time/source holdout samples.",
+      "threshold": null
+    }
+  },
+  "dataset": {
+    "dataset_id": "ml6-holdout-contract-smoke",
+    "manifest_ref": "synthetic://tamandua/ml6-holdout-contract",
+    "sample_counts": {
+      "total": 0,
+      "malware": 0,
+      "goodware": 0,
+      "unknown": 0
+    }
+  },
+  "environment": {
+    "os": "nt",
+    "python_version": "3.10.6",
+    "rust_version": null,
+    "onnxruntime_version": null,
+    "agent_features": [],
+    "fixture_id": "ml6-holdout-contract-dry-run",
+    "training_cutoff": null,
+    "recall_degradation_earliest_to_latest": null
+  },
+  "metrics": {
+    "accuracy": null,
+    "precision": null,
+    "recall": null,
+    "f1": null,
+    "false_positive_rate": null,
+    "false_negative_rate": null,
+    "roc_auc": null,
+    "verdict_agreement": null,
+    "confidence_delta_p95": null,
+    "latency_ms_p50": null,
+    "latency_ms_p95": null,
+    "latency_ms_p99": null,
+    "throughput_per_second": null,
+    "memory_mb_peak": null,
+    "ml_contribution": {
+      "ml_only": 0,
+      "ml_assisted": 0,
+      "deterministic_only": 0,
+      "missed": 0
+    }
+  },
+  "quality_gate": {
+    "status": "not_run",
+    "checks": [
+      {
+        "name": "holdout_predictions",
+        "status": "not_run",
+        "details": "Dry-run contract mode does not evaluate holdout predictions."
+      }
+    ]
+  },
+  "claim_boundary": "ML-6 contract dry run only. Does not benchmark robustness, drift, or cross-time detection.",
+  "artifacts": [
+    {
+      "name": "holdout_prediction_fixture",
+      "path": "synthetic://tamandua/ml6-holdout-contract",
+      "sha256": null
+    },
+    {
+      "name": "holdout_robustness_details",
+      "path": "docs\\benchmarks\\runs\\20260621T-ml6-holdout-benchmark-contract-agent-rush.details.json",
+      "sha256": null
+    }
+  ]
+}

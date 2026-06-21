@@ -1,0 +1,86 @@
+{
+  "api_version": "tamandua.io/ml-benchmark-report/v1",
+  "kind": "MLBenchmarkReport",
+  "metadata": {
+    "report_id": "20260621t_ml4_api_benchmark_contract_agent_rush",
+    "created_at": "2026-06-21T18:01:11.532564+00:00",
+    "created_by": "tamandua-ml-ml4-api-benchmark",
+    "git_commit": "workspace",
+    "command": "apps\\tamandua_ml\\scripts\\ml4_api_benchmark.py --base-url http://127.0.0.1:8000 --sample-count 32 --output docs\\benchmarks\\runs\\20260621T-ml4-api-benchmark-contract-agent-rush.json --markdown-output docs\\benchmarks\\runs\\20260621T-ml4-api-benchmark-contract-agent-rush.md --report-id 20260621t_ml4_api_benchmark_contract_agent_rush --git-commit workspace --dry-run-contract"
+  },
+  "lane": "ML-4",
+  "subject": {
+    "type": "ml_service",
+    "name": "tamandua-ml-fastapi",
+    "version": "workspace",
+    "artifact_hashes": {},
+    "input_contract": {
+      "name": "tamandua-ml-fastapi-v1",
+      "input_name": "binary_content",
+      "shape": [
+        "base64-bytes"
+      ],
+      "preprocessing": "POST /predict accepts base64 binary bytes plus SHA256 metadata.",
+      "threshold": null
+    }
+  },
+  "dataset": {
+    "dataset_id": "ml4-api-synthetic-smoke",
+    "manifest_ref": "synthetic://tamandua/ml4-api-benchmark",
+    "sample_counts": {
+      "total": 32,
+      "malware": 16,
+      "goodware": 16,
+      "unknown": 0
+    }
+  },
+  "environment": {
+    "os": "nt",
+    "python_version": "3.10.6",
+    "rust_version": null,
+    "onnxruntime_version": null,
+    "agent_features": [],
+    "base_url": "http://127.0.0.1:8000",
+    "endpoint_success_rate": 0.0
+  },
+  "metrics": {
+    "accuracy": null,
+    "precision": null,
+    "recall": null,
+    "f1": null,
+    "false_positive_rate": null,
+    "false_negative_rate": null,
+    "roc_auc": null,
+    "verdict_agreement": null,
+    "confidence_delta_p95": null,
+    "latency_ms_p50": null,
+    "latency_ms_p95": null,
+    "latency_ms_p99": null,
+    "throughput_per_second": null,
+    "memory_mb_peak": null,
+    "ml_contribution": {
+      "ml_only": 0,
+      "ml_assisted": 0,
+      "deterministic_only": 0,
+      "missed": 0
+    }
+  },
+  "quality_gate": {
+    "status": "not_run",
+    "checks": [
+      {
+        "name": "api_execution",
+        "status": "not_run",
+        "details": "Dry-run contract mode does not contact the FastAPI service."
+      }
+    ]
+  },
+  "claim_boundary": "ML-4 contract dry run only. Does not benchmark service behavior or model quality.",
+  "artifacts": [
+    {
+      "name": "endpoint_results",
+      "path": "inline:endpoint_results",
+      "sha256": null
+    }
+  ]
+}

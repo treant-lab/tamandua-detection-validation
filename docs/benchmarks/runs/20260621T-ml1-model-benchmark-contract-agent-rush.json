@@ -1,0 +1,105 @@
+{
+  "api_version": "tamandua.io/ml-benchmark-report/v1",
+  "kind": "MLBenchmarkReport",
+  "metadata": {
+    "report_id": "20260621t_ml1_model_benchmark_contract_agent_rush",
+    "created_at": "2026-06-21T18:01:31.590599+00:00",
+    "created_by": "tamandua-ml-ml1-benchmark",
+    "git_commit": "workspace",
+    "command": "apps\\tamandua_ml\\scripts\\ml1_model_benchmark.py --model-dir apps\\tamandua_ml\\models --dataset-manifest docs\\apps\\tamandua_ml\\examples\\ml_dataset_manifest_smoke_v1.json --output docs\\benchmarks\\runs\\20260621T-ml1-model-benchmark-contract-agent-rush.json --markdown-output docs\\benchmarks\\runs\\20260621T-ml1-model-benchmark-contract-agent-rush.md --report-id 20260621t_ml1_model_benchmark_contract_agent_rush --model-version agent-rush-contract-v1 --git-commit workspace --dry-run-contract --allow-synthetic --max-samples 2"
+  },
+  "lane": "ML-1",
+  "subject": {
+    "type": "pytorch_model",
+    "name": "malware-smell-standalone",
+    "version": "agent-rush-contract-v1",
+    "artifact_hashes": {
+      "encoder": "F6984CB4AA36CA40A90DCC819DC5EDF550926BE17DC38703337A5B965B1ECEB9",
+      "markers": "7946CE2951AE566D18BC2B106184E0BECC803BA5E580F47388912EBEA9035A06"
+    },
+    "input_contract": {
+      "name": "malware-smell-pytorch-v1",
+      "input_name": "binary_bytes",
+      "shape": [
+        1,
+        3,
+        64,
+        64
+      ],
+      "preprocessing": "Binary bytes rendered to 64x64 grayscale and repeated to 3 channels.",
+      "threshold": 0.5
+    }
+  },
+  "dataset": {
+    "dataset_id": "tamandua_ml_smoke_contract",
+    "manifest_ref": "docs\\apps\\tamandua_ml\\examples\\ml_dataset_manifest_smoke_v1.json",
+    "sample_counts": {
+      "total": 2,
+      "malware": 1,
+      "goodware": 1,
+      "unknown": 0
+    }
+  },
+  "environment": {
+    "os": "nt",
+    "python_version": "3.10.6",
+    "rust_version": null,
+    "onnxruntime_version": null,
+    "agent_features": []
+  },
+  "metrics": {
+    "accuracy": null,
+    "precision": null,
+    "recall": null,
+    "f1": null,
+    "false_positive_rate": null,
+    "false_negative_rate": null,
+    "roc_auc": null,
+    "verdict_agreement": null,
+    "confidence_delta_p95": null,
+    "latency_ms_p50": null,
+    "latency_ms_p95": null,
+    "latency_ms_p99": null,
+    "throughput_per_second": null,
+    "memory_mb_peak": null,
+    "ml_contribution": {
+      "ml_only": 0,
+      "ml_assisted": 0,
+      "deterministic_only": 0,
+      "missed": 0
+    }
+  },
+  "quality_gate": {
+    "status": "not_run",
+    "checks": [
+      {
+        "name": "manifest_samples_selected",
+        "status": "pass",
+        "details": "Selected 2 sample(s) for splits ['holdout', 'smoke', 'test']."
+      },
+      {
+        "name": "model_execution",
+        "status": "not_run",
+        "details": "Dry-run contract mode does not load PyTorch or read raw samples."
+      }
+    ]
+  },
+  "claim_boundary": "ML-1 contract dry run only. Does not evaluate model quality or production detection.",
+  "artifacts": [
+    {
+      "name": "dataset_manifest",
+      "path": "docs\\apps\\tamandua_ml\\examples\\ml_dataset_manifest_smoke_v1.json",
+      "sha256": "B3DBED81DD135AEEA758255728B4A04E819A34328E75747FCBED6266715B13EF"
+    },
+    {
+      "name": "encoder",
+      "path": "apps\\tamandua_ml\\models\\encoder.pt",
+      "sha256": "F6984CB4AA36CA40A90DCC819DC5EDF550926BE17DC38703337A5B965B1ECEB9"
+    },
+    {
+      "name": "markers",
+      "path": "apps\\tamandua_ml\\models\\markers.pkl",
+      "sha256": "7946CE2951AE566D18BC2B106184E0BECC803BA5E580F47388912EBEA9035A06"
+    }
+  ]
+}

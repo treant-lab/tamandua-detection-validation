@@ -1,0 +1,135 @@
+{
+  "api_version": "tamandua.io/ml-agent-rush-benchmark-execution-packet/v1",
+  "kind": "MLAgentRushBenchmarkExecutionPacket",
+  "metadata": {
+    "packet_id": "20260621t_ml_agent_rush_benchmark_execution_packet",
+    "created_at": "2026-06-21T15:08:00-03:00",
+    "created_by": "tamandua-ml-agent-rush",
+    "git_commit": "workspace",
+    "claim_boundary": "Coordination and benchmark contract packet only. Does not acquire samples, train, export ONNX, contact services, replay telemetry, or prove detection."
+  },
+  "current_detection_evidence": {
+    "win_template_probe": "docs/benchmarks/runs/20260621T-win-template-ml-probe-local-inference-rerun.json",
+    "agent_smoke_report": "docs/benchmarks/runs/20260621T-ml3-agent-onnx-parity-smoke-with-win-template-rerun.json",
+    "summary": {
+      "win_template_inference_status": "completed",
+      "fixtures_declared_non_malware": true,
+      "prediction_summary": {
+        "total": 4,
+        "benign": 3,
+        "malicious": 1
+      },
+      "false_positive_candidate_sample_ids": [
+        "win_template_seeded_high_entropy_control"
+      ],
+      "production_gate_impact": "no_go_for_detection_claims"
+    }
+  },
+  "agent_rush_contracts": [
+    {
+      "lane": "ML-1",
+      "purpose": "standalone model quality contract shape",
+      "status": "not_run",
+      "artifact": "docs/benchmarks/runs/20260621T-ml1-model-benchmark-contract-agent-rush.json",
+      "canonical_successor": "docs/benchmarks/runs/ml-prod-candidate-v1-ml1.json",
+      "blocked_by": [
+        "missing:docs/benchmarks/runs/ml-prod-candidate-v1-dataset-manifest.json",
+        "missing:Wave 1 governed acquisition receipt",
+        "missing:ML-1 model contract and model card generated from production candidate"
+      ]
+    },
+    {
+      "lane": "ML-2",
+      "purpose": "PyTorch versus ONNX candidate parity",
+      "status": "blocked",
+      "artifact": "docs/benchmarks/runs/20260621T-ml-inference-benchmark-contract-post-win-template-rerun.json",
+      "canonical_successor": "docs/benchmarks/runs/ml-prod-candidate-v1-ml2-parity.json",
+      "blocked_by": [
+        "missing:docs/benchmarks/runs/ml-prod-candidate-v1-artifacts/malware_smell.onnx",
+        "missing:docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
+        "missing:docs/benchmarks/runs/ml-prod-candidate-v1-ml1.json"
+      ]
+    },
+    {
+      "lane": "ML-3",
+      "purpose": "agent ONNX parity and local inference",
+      "status": "smoke_pass_production_blocked",
+      "artifact": "docs/benchmarks/runs/20260621T-ml3-agent-onnx-parity-smoke-with-win-template-rerun.json",
+      "canonical_successor": "docs/benchmarks/runs/ml-prod-candidate-v1-ml3-agent-parity.json",
+      "blocked_by": [
+        "missing:production candidate ONNX artifact",
+        "missing:production candidate parity fixture",
+        "current WIN-TEMPLATE local probe contains false-positive candidate on non-malware fixture"
+      ]
+    },
+    {
+      "lane": "ML-4",
+      "purpose": "FastAPI service benchmark contract shape",
+      "status": "not_run",
+      "artifact": "docs/benchmarks/runs/20260621T-ml4-api-benchmark-contract-agent-rush.json",
+      "canonical_successor": "docs/benchmarks/runs/ml-prod-candidate-v1-ml4-api.json",
+      "blocked_by": [
+        "missing:TAMANDUA_ML_API_KEY",
+        "missing:live ML service loaded with production candidate",
+        "missing:ML-1 benchmark report and model card"
+      ]
+    },
+    {
+      "lane": "ML-5",
+      "purpose": "full Tamandua replay benchmark contract shape",
+      "status": "not_run",
+      "artifact": "docs/benchmarks/runs/20260621T-ml5-pipeline-benchmark-contract-agent-rush.json",
+      "canonical_successor": "docs/benchmarks/runs/ml-prod-candidate-v1-ml5-pipeline.json",
+      "blocked_by": [
+        "missing:ML-3 production agent parity report",
+        "missing:ML-4 service benchmark report",
+        "missing:ML-5 replay outcomes fixture"
+      ]
+    },
+    {
+      "lane": "ML-6",
+      "purpose": "cross-time holdout robustness benchmark contract shape",
+      "status": "not_run",
+      "artifact": "docs/benchmarks/runs/20260621T-ml6-holdout-benchmark-contract-agent-rush.json",
+      "canonical_successor": "docs/benchmarks/runs/ml-prod-candidate-v1-ml6-holdout.json",
+      "blocked_by": [
+        "missing:TAMANDUA_ML_TRAINING_CUTOFF",
+        "missing:governed holdout prediction fixture",
+        "missing:ML-1 production model report and model card"
+      ]
+    }
+  ],
+  "next_parallel_work": [
+    {
+      "track": "agent_runtime",
+      "action": "Keep ONNX smoke parity green while production candidate artifacts are pending.",
+      "safe_now": true
+    },
+    {
+      "track": "dataset_governance",
+      "action": "Resolve VirusShare secret/lab env and execute Wave 1 governed acquisition in isolated storage.",
+      "safe_now": false,
+      "requires": [
+        "VIRUSSHARE_API_KEY",
+        "TAMANDUA_ALLOW_ML_REAL_ACQUISITION=1",
+        "isolated TAMANDUA_ML_DATA_ROOT"
+      ]
+    },
+    {
+      "track": "benchmark_contracts",
+      "action": "Validate and publish dry-run contracts as planning evidence only.",
+      "safe_now": true
+    },
+    {
+      "track": "mirror_publication",
+      "action": "Publish detection-validation evidence; keep tamandua-ml source mirror on HOLD until experimental gate clears.",
+      "safe_now": true
+    }
+  ],
+  "go_no_go": {
+    "agent_smoke": "go",
+    "production_detection_claim": "no_go",
+    "tamandua_ml_public_mirror_push": "no_go",
+    "next_unblock": "wave1_governed_acquisition"
+  }
+}
