@@ -74,7 +74,7 @@
         "operator_go_no_go_summary_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "next_action_run": {
           "type": "string",
-          "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root|20260621T-ml-next-action-post-readiness-refresh-governed)\\.run\\.json$"
+          "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root|20260621T-ml-next-action-post-readiness-refresh-governed|20260621T-ml-next-action-post-platform-onnx-runtime-governed)\\.run\\.json$"
         },
         "next_action_run_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "acquisition_readiness": {"type": "string", "pattern": "20260604T-ml-acquisition-readiness\\.json$"},
@@ -294,7 +294,7 @@
           "properties": {
             "path": {
               "type": "string",
-              "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root|20260621T-ml-next-action-post-readiness-refresh-governed)\\.run\\.json$"
+              "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root|20260621T-ml-next-action-post-readiness-refresh-governed|20260621T-ml-next-action-post-platform-onnx-runtime-governed)\\.run\\.json$"
             },
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }

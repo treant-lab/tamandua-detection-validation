@@ -1788,6 +1788,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json",
             "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
             "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
+            "20260621T-ml-next-action-post-platform-onnx-runtime-governed.run.json",
         ),
     }
     for field, suffixes in expected_refs.items():
@@ -1993,6 +1994,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json",
             "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
             "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
+            "20260621T-ml-next-action-post-platform-onnx-runtime-governed.run.json",
         )
     ):
         raise ContractError(f"{path}.next_gate.validation_run_evidence.artifact: must reference canonical validation run")
@@ -23027,6 +23029,9 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         or str(source["next_action_validation_run"]).endswith(
             "20260621T-ml-next-action-post-readiness-refresh-governed.run.json"
         )
+        or str(source["next_action_validation_run"]).endswith(
+            "20260621T-ml-next-action-post-platform-onnx-runtime-governed.run.json"
+        )
     ):
         raise ContractError(f"{path}.source.next_action_validation_run: must reference canonical next-action validation run")
     if not str(source["transcript_template"]).endswith("20260604T-ml-wave1-real-acquisition-transcript.template.json"):
@@ -25323,6 +25328,7 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
             "20260604T-ml-prelab-next-action-validation.run.json",
             "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
             "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
+            "20260621T-ml-next-action-post-platform-onnx-runtime-governed.run.json",
         ),
         "acquisition_readiness": "20260604T-ml-acquisition-readiness.json",
         "execute_guard_probe": "20260604T-ml-wave1-execute-guard-probe.json",
