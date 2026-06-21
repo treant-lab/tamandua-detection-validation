@@ -308,6 +308,23 @@ EXECUTION_PLAN_STATUSES = {
     "blocked_dependency",
 }
 EXECUTION_PLAN_LAUNCHER_GUARDS = {
+    "wave_1_preflight.ps1": [
+        "env:TAMANDUA_ML_DATA_ROOT_outside_repo",
+        "env:TAMANDUA_ML_DATA_ROOT_exists",
+        "env:TAMANDUA_ML_DATA_ROOT_writable",
+        "env:TAMANDUA_ML_DATA_ROOT_free_space_gb",
+        "env:TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD_unset",
+        "env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION_ready_for_execute",
+        "vx_inventory_only",
+        "$dataRootFreeSpaceGb -ge 50",
+    ],
+    "wave_2_preflight.ps1": [
+        "env:TAMANDUA_ML_DATA_ROOT_outside_repo",
+        "env:TAMANDUA_ML_DATA_ROOT_exists",
+        "env:TAMANDUA_ML_DATA_ROOT_writable",
+        "env:TAMANDUA_ML_DATA_ROOT_free_space_gb",
+        "$dataRootFreeSpaceGb -ge 50",
+    ],
     "wave_1_real_acquisition_launcher.ps1": [
         "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
         "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = ''1''",
