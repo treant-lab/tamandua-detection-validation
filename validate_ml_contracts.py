@@ -339,7 +339,7 @@ EXECUTION_PLAN_LAUNCHER_GUARDS = {
         "--yes",
         "--wave1-execute-guard docs\\benchmarks\\runs\\20260604T-ml-wave1-execute-guard-probe.json",
         "--wave1-pre-execution-checklist docs\\benchmarks\\runs\\20260621T-ml-wave1-pre-execution-checklist-post-lab-root.json",
-        "--wave1-guarded-run-command-packet docs\\benchmarks\\runs\\20260604T-ml-wave1-guarded-run-command-packet.json",
+        "--wave1-guarded-run-command-packet docs\\benchmarks\\runs\\20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json",
         "--next-action-run docs\\benchmarks\\runs\\20260621T-ml-next-action-post-lab-root-governed.run.json",
         "Wave 1 guarded-run command packet is not ready; refusing real acquisition.",
         "Wave 1 guarded-run command packet execute command does not match operator go/no-go summary.",
@@ -585,7 +585,7 @@ EXECUTION_PLAN_LAUNCHER_GUARDS = {
         "--wave1-execute-guard docs\\benchmarks\\runs\\20260604T-ml-wave1-execute-guard-probe.json",
         "--wave1-operator-launch-brief docs\\benchmarks\\runs\\20260604T-ml-wave1-operator-launch-brief.json",
         "--wave1-execution-packet-consistency docs\\benchmarks\\runs\\20260604T-ml-wave1-execution-packet-consistency.json",
-        "--wave1-guarded-run-command-packet docs\\benchmarks\\runs\\20260604T-ml-wave1-guarded-run-command-packet.json",
+        "--wave1-guarded-run-command-packet docs\\benchmarks\\runs\\20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json",
         "--wave1-lab-transcript-template docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.template.json",
         "--wave1-operator-handoff-index docs\\benchmarks\\runs\\20260604T-ml-wave1-operator-handoff-index.json",
         "--ml-parallel-work-packages docs\\benchmarks\\runs\\20260604T-ml-parallel-work-packages.json",
@@ -1649,7 +1649,7 @@ def validate_execution_plan(data: dict[str, Any], path: Path) -> None:
             for required_artifact in [
                 "docs/benchmarks/runs/20260604T-ml-wave1-real-acquisition-transcript.template.json",
                 "docs/benchmarks/runs/20260604T-ml-wave1-operator-handoff-index.json",
-                "docs/benchmarks/runs/20260604T-ml-wave1-guarded-run-command-packet.json",
+                "docs/benchmarks/runs/20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json",
                 "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_real_acquisition_launcher.ps1",
                 "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_post_acquisition_refresh_launcher.ps1",
                 "docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_manifest_publish_launcher.ps1",
@@ -6205,6 +6205,7 @@ def validate_wave1_acquisition_transcript(data: dict[str, Any], path: Path) -> N
     packet_path = resolve_report_path(packet_ref, path.parent)
     allowed_packet_names = (
         "20260604T-ml-wave1-guarded-run-command-packet.json",
+        "20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json",
         "20260618T-ml-virusshare-fallback-command-packet.json",
     )
     if not str(packet_path).endswith(allowed_packet_names):
@@ -23716,6 +23717,12 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         },
         f"{path}.transcript_capture_contract",
     )
+    if source_aware_virusshare_fallback and virusshare_fallback_packet_path is not None:
+        expected_guarded_packet_ref = str(virusshare_fallback_packet_path)
+    elif str(source["master_handoff"]).endswith("20260621T-ml-execution-master-handoff-post-lab-root.json"):
+        expected_guarded_packet_ref = str(ROOT / "docs/benchmarks/runs/20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json")
+    else:
+        expected_guarded_packet_ref = str(template_body["guarded_run_command_packet_ref"])
     expected_transcript_capture = {
         "template_ref": str(transcript_template_path),
         "template_validation": str(source["transcript_template_validation"]),
@@ -23728,11 +23735,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         "capture_helper_requires_vx_download_guard_unset": str(template_capture_helper["requires_vx_download_guard_unset"]),
         "published_stdout_ref": str(template_capture_helper["published_stdout_ref"]),
         "published_stderr_ref": str(template_capture_helper["published_stderr_ref"]),
-        "guarded_run_command_packet_ref": (
-            str(virusshare_fallback_packet_path)
-            if source_aware_virusshare_fallback and virusshare_fallback_packet_path is not None
-            else str(template_body["guarded_run_command_packet_ref"])
-        ),
+        "guarded_run_command_packet_ref": expected_guarded_packet_ref,
     }
     if transcript_capture != expected_transcript_capture:
         raise ContractError(f"{path}.transcript_capture_contract: must match canonical transcript template")
@@ -25402,17 +25405,23 @@ def validate_wave1_operator_go_no_go_summary(data: dict[str, Any], path: Path) -
         "master_handoff": (
             "20260604T-ml-execution-master-handoff.json",
             "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+            "20260621T-ml-execution-master-handoff-post-lab-root.json",
         ),
         "authorization_packet": (
             "20260604T-ml-next-gate-authorization-packet.json",
             "20260621T0310Z-ml-next-gate-authorization-governed-ready.json",
             "20260621T-ml-next-gate-authorization-post-readiness-refresh-governed.json",
+            "20260621T-ml-next-gate-authorization-post-lab-root-governed.json",
         ),
         "pre_execution_checklist": (
             "20260604T-ml-wave1-pre-execution-checklist.json",
             "20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh.json",
+            "20260621T-ml-wave1-pre-execution-checklist-post-lab-root.json",
         ),
-        "execution_environment_preflight": "20260604T-ml-wave1-execution-environment-preflight.json",
+        "execution_environment_preflight": (
+            "20260604T-ml-wave1-execution-environment-preflight.json",
+            "20260621T-ml-wave1-execution-environment-preflight-post-lab-root.json",
+        ),
         "execute_guard_probe": "20260604T-ml-wave1-execute-guard-probe.json",
         "validation_only_guard_drift_probe": "20260604T-ml-wave1-validation-only-guard-drift-probe.json",
         "guarded_extra_guard_drift_probe": "20260604T-ml-wave1-guarded-extra-guard-drift-probe.json",
@@ -25844,20 +25853,27 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
         "master_handoff": (
             "20260604T-ml-execution-master-handoff.json",
             "20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+            "20260621T-ml-execution-master-handoff-post-lab-root.json",
         ),
         "authorization_packet": (
             "20260604T-ml-next-gate-authorization-packet.json",
             "20260621T0310Z-ml-next-gate-authorization-governed-ready.json",
             "20260621T-ml-next-gate-authorization-post-readiness-refresh-governed.json",
+            "20260621T-ml-next-gate-authorization-post-lab-root-governed.json",
         ),
         "pre_execution_checklist": (
             "20260604T-ml-wave1-pre-execution-checklist.json",
             "20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh.json",
+            "20260621T-ml-wave1-pre-execution-checklist-post-lab-root.json",
         ),
-        "execution_environment_preflight": "20260604T-ml-wave1-execution-environment-preflight.json",
+        "execution_environment_preflight": (
+            "20260604T-ml-wave1-execution-environment-preflight.json",
+            "20260621T-ml-wave1-execution-environment-preflight-post-lab-root.json",
+        ),
         "operator_go_no_go_summary": (
             "20260604T-ml-wave1-operator-go-no-go-summary.json",
             "20260621T-ml-wave1-operator-go-no-go-summary-post-readiness-refresh.json",
+            "20260621T-ml-wave1-operator-go-no-go-summary-post-lab-root.json",
         ),
         "next_action_run": (
             "20260604T-ml-prelab-next-action-validation.run.json",
@@ -25865,6 +25881,7 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
             "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
             "20260621T-ml-next-action-post-platform-onnx-runtime-governed.run.json",
             "20260621T-ml-next-action-post-win-template-gate-threading-governed.run.json",
+            "20260621T-ml-next-action-post-lab-root-governed.run.json",
         ),
         "acquisition_readiness": "20260604T-ml-acquisition-readiness.json",
         "execute_guard_probe": "20260604T-ml-wave1-execute-guard-probe.json",

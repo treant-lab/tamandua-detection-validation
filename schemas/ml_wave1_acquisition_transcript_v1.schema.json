@@ -23,7 +23,7 @@
     "launcher_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "acquisition_command": {"type": "string", "minLength": 1},
     "acquisition_command_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
-    "guarded_run_command_packet_ref": {"type": "string", "pattern": "(20260604T-ml-wave1-guarded-run-command-packet|20260618T-ml-virusshare-fallback-command-packet)\\.json$"},
+    "guarded_run_command_packet_ref": {"type": "string", "pattern": "(20260604T-ml-wave1-guarded-run-command-packet|20260621T-ml-wave1-guarded-run-command-packet-post-lab-root|20260618T-ml-virusshare-fallback-command-packet)\\.json$"},
     "guarded_run_command_packet_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "started_at": {"type": "string", "format": "date-time"},
     "finished_at": {"type": "string", "format": "date-time"},

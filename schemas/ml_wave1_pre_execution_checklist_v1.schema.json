@@ -137,7 +137,7 @@
         "capture_helper_requires_vx_download_guard_unset": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
         "published_stdout_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stdout\\.txt$"},
         "published_stderr_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stderr\\.txt$"},
-        "guarded_run_command_packet_ref": {"type": "string", "pattern": "20260604T-ml-wave1-guarded-run-command-packet\\.json$"}
+        "guarded_run_command_packet_ref": {"type": "string", "pattern": "(20260604T-ml-wave1-guarded-run-command-packet|20260621T-ml-wave1-guarded-run-command-packet-post-lab-root)\\.json$"}
       }
     },
     "transcript_pre_run_state": {

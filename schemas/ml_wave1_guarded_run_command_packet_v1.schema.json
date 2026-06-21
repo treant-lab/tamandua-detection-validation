@@ -59,22 +59,22 @@
         "launcher"
       ],
       "properties": {
-        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh)\\.json$"},
+        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh|20260621T-ml-execution-master-handoff-post-lab-root)\\.json$"},
         "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "authorization_packet": {
           "type": "string",
-          "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed)\\.json$"
+          "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed|20260621T-ml-next-gate-authorization-post-lab-root-governed)\\.json$"
         },
         "authorization_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "pre_execution_checklist": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh)\\.json$"},
+        "pre_execution_checklist": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh|20260621T-ml-wave1-pre-execution-checklist-post-lab-root)\\.json$"},
         "pre_execution_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "execution_environment_preflight": {"type": "string", "pattern": "20260604T-ml-wave1-execution-environment-preflight\\.json$"},
+        "execution_environment_preflight": {"type": "string", "pattern": "(20260604T-ml-wave1-execution-environment-preflight|20260621T-ml-wave1-execution-environment-preflight-post-lab-root)\\.json$"},
         "execution_environment_preflight_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "operator_go_no_go_summary": {"type": "string", "pattern": "(20260604T-ml-wave1-operator-go-no-go-summary|20260621T-ml-wave1-operator-go-no-go-summary-post-readiness-refresh)\\.json$"},
+        "operator_go_no_go_summary": {"type": "string", "pattern": "(20260604T-ml-wave1-operator-go-no-go-summary|20260621T-ml-wave1-operator-go-no-go-summary-post-readiness-refresh|20260621T-ml-wave1-operator-go-no-go-summary-post-lab-root)\\.json$"},
         "operator_go_no_go_summary_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "next_action_run": {
           "type": "string",
-          "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root|20260621T-ml-next-action-post-readiness-refresh-governed|20260621T-ml-next-action-post-platform-onnx-runtime-governed)\\.run\\.json$"
+          "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root|20260621T-ml-next-action-post-readiness-refresh-governed|20260621T-ml-next-action-post-platform-onnx-runtime-governed|20260621T-ml-next-action-post-win-template-gate-threading-governed|20260621T-ml-next-action-post-lab-root-governed)\\.run\\.json$"
         },
         "next_action_run_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "acquisition_readiness": {"type": "string", "pattern": "20260604T-ml-acquisition-readiness\\.json$"},
@@ -221,7 +221,7 @@
         "capture_helper_requires_vx_download_guard_unset": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
         "published_stdout_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stdout\\.txt$"},
         "published_stderr_ref": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition\\.stderr\\.txt$"},
-        "guarded_run_command_packet_ref": {"type": "string", "pattern": "20260604T-ml-wave1-guarded-run-command-packet\\.json$"}
+        "guarded_run_command_packet_ref": {"type": "string", "pattern": "(20260604T-ml-wave1-guarded-run-command-packet|20260621T-ml-wave1-guarded-run-command-packet-post-lab-root)\\.json$"}
       }
     },
     "source_artifact_hashes": {
@@ -244,7 +244,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh|20260621T-ml-execution-master-handoff-post-lab-root)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -255,7 +255,7 @@
           "properties": {
             "path": {
               "type": "string",
-              "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed)\\.json$"
+              "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed|20260621T-ml-next-gate-authorization-post-lab-root-governed)\\.json$"
             },
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
@@ -265,7 +265,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh|20260621T-ml-wave1-pre-execution-checklist-post-lab-root)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -274,7 +274,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-wave1-execution-environment-preflight\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-execution-environment-preflight|20260621T-ml-wave1-execution-environment-preflight-post-lab-root)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -283,7 +283,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-operator-go-no-go-summary|20260621T-ml-wave1-operator-go-no-go-summary-post-readiness-refresh)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-operator-go-no-go-summary|20260621T-ml-wave1-operator-go-no-go-summary-post-readiness-refresh|20260621T-ml-wave1-operator-go-no-go-summary-post-lab-root)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -294,7 +294,7 @@
           "properties": {
             "path": {
               "type": "string",
-              "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root|20260621T-ml-next-action-post-readiness-refresh-governed|20260621T-ml-next-action-post-platform-onnx-runtime-governed)\\.run\\.json$"
+              "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root|20260621T-ml-next-action-post-readiness-refresh-governed|20260621T-ml-next-action-post-platform-onnx-runtime-governed|20260621T-ml-next-action-post-win-template-gate-threading-governed|20260621T-ml-next-action-post-lab-root-governed)\\.run\\.json$"
             },
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }

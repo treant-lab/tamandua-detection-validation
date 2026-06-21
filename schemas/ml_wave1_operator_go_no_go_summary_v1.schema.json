@@ -50,16 +50,16 @@
         "guarded_extra_guard_drift_probe_validation"
       ],
       "properties": {
-        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh)\\.json$"},
+        "master_handoff": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh|20260621T-ml-execution-master-handoff-post-lab-root)\\.json$"},
         "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "authorization_packet": {
           "type": "string",
-          "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed)\\.json$"
+          "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed|20260621T-ml-next-gate-authorization-post-lab-root-governed)\\.json$"
         },
         "authorization_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "pre_execution_checklist": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh)\\.json$"},
+        "pre_execution_checklist": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh|20260621T-ml-wave1-pre-execution-checklist-post-lab-root)\\.json$"},
         "pre_execution_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "execution_environment_preflight": {"type": "string", "pattern": "20260604T-ml-wave1-execution-environment-preflight\\.json$"},
+        "execution_environment_preflight": {"type": "string", "pattern": "(20260604T-ml-wave1-execution-environment-preflight|20260621T-ml-wave1-execution-environment-preflight-post-lab-root)\\.json$"},
         "execution_environment_preflight_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "execute_guard_probe": {"type": "string", "pattern": "20260604T-ml-wave1-execute-guard-probe\\.json$"},
         "execute_guard_probe_validation": {"enum": ["jsonschema+built-in", "built-in"]},
@@ -87,7 +87,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-execution-master-handoff|20260621T-ml-execution-master-handoff-post-readiness-refresh|20260621T-ml-execution-master-handoff-post-lab-root)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -98,7 +98,7 @@
           "properties": {
             "path": {
               "type": "string",
-              "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed)\\.json$"
+              "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed|20260621T-ml-next-gate-authorization-post-lab-root-governed)\\.json$"
             },
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
@@ -108,7 +108,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-readiness-refresh|20260621T-ml-wave1-pre-execution-checklist-post-lab-root)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -117,7 +117,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-wave1-execution-environment-preflight\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-execution-environment-preflight|20260621T-ml-wave1-execution-environment-preflight-post-lab-root)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
