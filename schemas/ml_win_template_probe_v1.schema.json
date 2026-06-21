@@ -12,6 +12,7 @@
     "model",
     "fixtures",
     "inference",
+    "safe_fixture_behavior_summary",
     "next_agent_bound_command"
   ],
   "properties": {
@@ -112,6 +113,36 @@
             }
           }
         }
+      }
+    },
+    "safe_fixture_behavior_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope",
+        "all_fixtures_declared_non_malware",
+        "fixture_count",
+        "local_inference_completed",
+        "malicious_prediction_count",
+        "suspicious_prediction_count",
+        "false_positive_candidate_sample_ids",
+        "suspicious_candidate_sample_ids",
+        "safe_fixture_ids",
+        "claim_boundary",
+        "production_gate_impact"
+      ],
+      "properties": {
+        "scope": {"const": "safe_synthetic_win_template_fixtures"},
+        "all_fixtures_declared_non_malware": {"const": true},
+        "fixture_count": {"type": "integer", "minimum": 4},
+        "local_inference_completed": {"type": "boolean"},
+        "malicious_prediction_count": {"type": "integer", "minimum": 0},
+        "suspicious_prediction_count": {"type": "integer", "minimum": 0},
+        "false_positive_candidate_sample_ids": {"type": "array", "items": {"type": "string"}},
+        "suspicious_candidate_sample_ids": {"type": "array", "items": {"type": "string"}},
+        "safe_fixture_ids": {"type": "array", "minItems": 4, "items": {"type": "string"}},
+        "claim_boundary": {"type": "string", "minLength": 20},
+        "production_gate_impact": {"const": "no_go_for_detection_claims"}
       }
     },
     "next_agent_bound_command": {"type": "string", "minLength": 20}

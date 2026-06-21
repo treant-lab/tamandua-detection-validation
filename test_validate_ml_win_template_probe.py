@@ -84,6 +84,22 @@ def win_template_probe() -> dict:
             "reason": "metadata-only contract fixture",
             "predictions": [],
         },
+        "safe_fixture_behavior_summary": {
+            "scope": "safe_synthetic_win_template_fixtures",
+            "all_fixtures_declared_non_malware": True,
+            "fixture_count": 4,
+            "local_inference_completed": False,
+            "malicious_prediction_count": 0,
+            "suspicious_prediction_count": 0,
+            "false_positive_candidate_sample_ids": [],
+            "suspicious_candidate_sample_ids": [],
+            "safe_fixture_ids": [fixture["sample_id"] for fixture in fixtures],
+            "claim_boundary": (
+                "A malicious or suspicious verdict here is model behavior on non-malware synthetic fixtures. "
+                "It is a false-positive candidate for investigation, not malware detection evidence."
+            ),
+            "production_gate_impact": "no_go_for_detection_claims",
+        },
         "next_agent_bound_command": (
             "python tools\\detection_validation\\tamandua_detection_validation.py --execute "
             "--profile tools\\detection_validation\\profiles\\windows_roadmap_p0_existing_sensor_contract.json "
@@ -175,4 +191,30 @@ def test_validate_ml_win_template_probe_rejects_prediction_hash_drift(tmp_path: 
     write_probe(path, payload)
 
     with pytest.raises(ContractError, match="must match fixture sha256"):
+        validate_contract(path, ML_WIN_TEMPLATE_PROBE_SCHEMA, validate_ml_win_template_probe)
+
+
+def test_validate_ml_win_template_probe_rejects_false_positive_summary_drift(tmp_path: Path) -> None:
+    payload = copy.deepcopy(win_template_probe())
+    payload["inference"] = {
+        "status": "completed",
+        "reason": "test",
+        "prediction_summary": {"total": 4, "malicious": 1, "benign": 3, "other": 0},
+        "predictions": [
+            {
+                "sample_id": fixture["sample_id"],
+                "sha256": fixture["sha256"],
+                "prediction": "malicious" if index == 0 else "benign",
+                "confidence": 0.9,
+            }
+            for index, fixture in enumerate(payload["fixtures"])
+        ],
+    }
+    payload["safe_fixture_behavior_summary"]["local_inference_completed"] = True
+    payload["safe_fixture_behavior_summary"]["malicious_prediction_count"] = 0
+    payload["safe_fixture_behavior_summary"]["false_positive_candidate_sample_ids"] = []
+    path = tmp_path / "win-template-probe.json"
+    write_probe(path, payload)
+
+    with pytest.raises(ContractError, match="false_positive_candidate_sample_ids|malicious_prediction_count"):
         validate_contract(path, ML_WIN_TEMPLATE_PROBE_SCHEMA, validate_ml_win_template_probe)

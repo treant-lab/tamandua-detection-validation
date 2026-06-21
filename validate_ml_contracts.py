@@ -1245,6 +1245,7 @@ def validate_ml_win_template_probe(data: dict[str, Any], path: Path) -> None:
             "model",
             "fixtures",
             "inference",
+            "safe_fixture_behavior_summary",
             "next_agent_bound_command",
         },
         str(path),
@@ -1316,6 +1317,8 @@ def validate_ml_win_template_probe(data: dict[str, Any], path: Path) -> None:
             raise ContractError(f"{path}.inference.prediction_summary.total: must match fixture count")
         if len(predictions) != len(fixtures):
             raise ContractError(f"{path}.inference.predictions: completed inference must score every fixture")
+    malicious_prediction_ids: list[str] = []
+    suspicious_prediction_ids: list[str] = []
     for index, prediction_value in enumerate(predictions):
         prediction = require_object(prediction_value, f"{path}.inference.predictions[{index}]")
         require_keys(prediction, {"sample_id", "sha256", "prediction", "confidence"}, f"{path}.inference.predictions[{index}]")
@@ -1327,6 +1330,54 @@ def validate_ml_win_template_probe(data: dict[str, Any], path: Path) -> None:
         confidence = prediction["confidence"]
         if not isinstance(confidence, (int, float)) or confidence < 0 or confidence > 1:
             raise ContractError(f"{path}.inference.predictions[{index}].confidence: must be between 0 and 1")
+        if str(prediction["prediction"]) == "malicious":
+            malicious_prediction_ids.append(sample_id)
+        if str(prediction["prediction"]) == "suspicious":
+            suspicious_prediction_ids.append(sample_id)
+
+    behavior = require_object(data["safe_fixture_behavior_summary"], f"{path}.safe_fixture_behavior_summary")
+    require_keys(
+        behavior,
+        {
+            "scope",
+            "all_fixtures_declared_non_malware",
+            "fixture_count",
+            "local_inference_completed",
+            "malicious_prediction_count",
+            "suspicious_prediction_count",
+            "false_positive_candidate_sample_ids",
+            "suspicious_candidate_sample_ids",
+            "safe_fixture_ids",
+            "claim_boundary",
+            "production_gate_impact",
+        },
+        f"{path}.safe_fixture_behavior_summary",
+    )
+    if behavior["scope"] != "safe_synthetic_win_template_fixtures":
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.scope: must be safe_synthetic_win_template_fixtures")
+    if behavior["all_fixtures_declared_non_malware"] is not True:
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.all_fixtures_declared_non_malware: must be true")
+    if int(behavior["fixture_count"]) != len(fixtures):
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.fixture_count: must match fixtures")
+    if bool(behavior["local_inference_completed"]) != (status == "completed"):
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.local_inference_completed: must match inference status")
+    false_positive_ids = [str(item) for item in require_array(behavior["false_positive_candidate_sample_ids"], f"{path}.safe_fixture_behavior_summary.false_positive_candidate_sample_ids")]
+    suspicious_ids = [str(item) for item in require_array(behavior["suspicious_candidate_sample_ids"], f"{path}.safe_fixture_behavior_summary.suspicious_candidate_sample_ids")]
+    if false_positive_ids != malicious_prediction_ids:
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.false_positive_candidate_sample_ids: must match malicious predictions")
+    if suspicious_ids != suspicious_prediction_ids:
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.suspicious_candidate_sample_ids: must match suspicious predictions")
+    if int(behavior["malicious_prediction_count"]) != len(malicious_prediction_ids):
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.malicious_prediction_count: must match malicious predictions")
+    if int(behavior["suspicious_prediction_count"]) != len(suspicious_prediction_ids):
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.suspicious_prediction_count: must match suspicious predictions")
+    safe_fixture_ids = [str(item) for item in require_array(behavior["safe_fixture_ids"], f"{path}.safe_fixture_behavior_summary.safe_fixture_ids")]
+    if safe_fixture_ids != list(fixture_hashes.keys()):
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.safe_fixture_ids: must match fixture order")
+    if "false-positive candidate" not in str(behavior["claim_boundary"]):
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.claim_boundary: must document false-positive candidate boundary")
+    if behavior["production_gate_impact"] != "no_go_for_detection_claims":
+        raise ContractError(f"{path}.safe_fixture_behavior_summary.production_gate_impact: must keep detection claims gated")
 
     command = str(data["next_agent_bound_command"])
     if "tamandua_detection_validation.py" not in command:
