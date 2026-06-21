@@ -16406,9 +16406,19 @@ def validate_ml_benchmark_unblock_handoff_consistency(data: dict[str, Any], path
 
     configuration = require_object(data["configuration"], f"{path}.configuration")
     require_keys(configuration, {"benchmark_unblock_queue", "benchmark_unblock_handoff_bundle"}, f"{path}.configuration")
-    if not str(configuration["benchmark_unblock_queue"]).endswith("20260604T-ml-benchmark-unblock-queue.json"):
+    accepted_benchmark_unblock_queues = (
+        "20260604T-ml-benchmark-unblock-queue.json",
+        "20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading.json",
+    )
+    accepted_benchmark_unblock_handoff_bundles = (
+        "20260604T-ml-benchmark-unblock-handoff-bundle.json",
+        "20260621T-ml-benchmark-unblock-handoff-bundle-post-win-template-gate-threading.json",
+    )
+    if not str(configuration["benchmark_unblock_queue"]).endswith(accepted_benchmark_unblock_queues):
         raise ContractError(f"{path}.configuration.benchmark_unblock_queue: must reference canonical benchmark unblock queue")
-    if not str(configuration["benchmark_unblock_handoff_bundle"]).endswith("20260604T-ml-benchmark-unblock-handoff-bundle.json"):
+    if not str(configuration["benchmark_unblock_handoff_bundle"]).endswith(
+        accepted_benchmark_unblock_handoff_bundles
+    ):
         raise ContractError(f"{path}.configuration.benchmark_unblock_handoff_bundle: must reference canonical benchmark unblock handoff bundle")
 
     summary = require_object(data["summary"], f"{path}.summary")
@@ -16650,9 +16660,19 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
     )
     if not str(source["benchmark_unblock_queue"]).endswith(accepted_benchmark_unblock_queues):
         raise ContractError(f"{path}.source.benchmark_unblock_queue: must reference canonical benchmark unblock queue")
-    if not str(source["benchmark_unblock_handoff_bundle"]).endswith("20260604T-ml-benchmark-unblock-handoff-bundle.json"):
+    accepted_benchmark_unblock_handoff_bundles = (
+        "20260604T-ml-benchmark-unblock-handoff-bundle.json",
+        "20260621T-ml-benchmark-unblock-handoff-bundle-post-win-template-gate-threading.json",
+    )
+    if not str(source["benchmark_unblock_handoff_bundle"]).endswith(accepted_benchmark_unblock_handoff_bundles):
         raise ContractError(f"{path}.source.benchmark_unblock_handoff_bundle: must reference canonical benchmark unblock handoff bundle")
-    if not str(source["benchmark_unblock_handoff_consistency"]).endswith("20260604T-ml-benchmark-unblock-handoff-consistency.json"):
+    accepted_benchmark_unblock_handoff_consistencies = (
+        "20260604T-ml-benchmark-unblock-handoff-consistency.json",
+        "20260621T-ml-benchmark-unblock-handoff-consistency-post-win-template-gate-threading.json",
+    )
+    if not str(source["benchmark_unblock_handoff_consistency"]).endswith(
+        accepted_benchmark_unblock_handoff_consistencies
+    ):
         raise ContractError(f"{path}.source.benchmark_unblock_handoff_consistency: must reference canonical benchmark unblock handoff consistency")
     source_summary = require_object(source["source_status_summary"], f"{path}.source.source_status_summary")
     require_keys(
@@ -17122,7 +17142,13 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
     )
     if not str(configuration["benchmark_unblock_validation_status"]).endswith(accepted_unblock_status_packets):
         raise ContractError(f"{path}.configuration.benchmark_unblock_validation_status: must reference canonical benchmark unblock validation status")
-    if not str(configuration["benchmark_unblock_handoff_consistency"]).endswith("20260604T-ml-benchmark-unblock-handoff-consistency.json"):
+    accepted_benchmark_unblock_handoff_consistencies = (
+        "20260604T-ml-benchmark-unblock-handoff-consistency.json",
+        "20260621T-ml-benchmark-unblock-handoff-consistency-post-win-template-gate-threading.json",
+    )
+    if not str(configuration["benchmark_unblock_handoff_consistency"]).endswith(
+        accepted_benchmark_unblock_handoff_consistencies
+    ):
         raise ContractError(f"{path}.configuration.benchmark_unblock_handoff_consistency: must reference canonical benchmark unblock handoff consistency")
 
     summary = require_object(data["summary"], f"{path}.summary")

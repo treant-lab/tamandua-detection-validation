@@ -121,8 +121,14 @@
       "additionalProperties": false,
       "required": ["benchmark_unblock_queue", "benchmark_unblock_handoff_bundle"],
       "properties": {
-        "benchmark_unblock_queue": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-queue\\.json$"},
-        "benchmark_unblock_handoff_bundle": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-handoff-bundle\\.json$"}
+        "benchmark_unblock_queue": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-unblock-queue|20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading)\\.json$"
+        },
+        "benchmark_unblock_handoff_bundle": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-unblock-handoff-bundle|20260621T-ml-benchmark-unblock-handoff-bundle-post-win-template-gate-threading)\\.json$"
+        }
       }
     },
     "summary": {

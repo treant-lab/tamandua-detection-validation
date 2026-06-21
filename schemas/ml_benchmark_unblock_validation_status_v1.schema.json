@@ -174,9 +174,15 @@
           "pattern": "(20260604T-ml-benchmark-unblock-queue|20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading)\\.json$"
         },
         "benchmark_unblock_queue_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "benchmark_unblock_handoff_bundle": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-handoff-bundle\\.json$"},
+        "benchmark_unblock_handoff_bundle": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-unblock-handoff-bundle|20260621T-ml-benchmark-unblock-handoff-bundle-post-win-template-gate-threading)\\.json$"
+        },
         "benchmark_unblock_handoff_bundle_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "benchmark_unblock_handoff_consistency": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-handoff-consistency\\.json$"},
+        "benchmark_unblock_handoff_consistency": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-unblock-handoff-consistency|20260621T-ml-benchmark-unblock-handoff-consistency-post-win-template-gate-threading)\\.json$"
+        },
         "benchmark_unblock_handoff_consistency_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "source_status_summary": {
           "type": "object",

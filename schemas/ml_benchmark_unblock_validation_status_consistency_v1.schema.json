@@ -143,7 +143,10 @@
           "type": "string",
           "pattern": "(20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets|20260621T-ml-benchmark-unblock-validation-status-post-onnx-runtime|20260621T-ml-benchmark-unblock-validation-status-post-win-template-gate-threading)\\.json$"
         },
-        "benchmark_unblock_handoff_consistency": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-handoff-consistency\\.json$"}
+        "benchmark_unblock_handoff_consistency": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-unblock-handoff-consistency|20260621T-ml-benchmark-unblock-handoff-consistency-post-win-template-gate-threading)\\.json$"
+        }
       }
     },
     "summary": {

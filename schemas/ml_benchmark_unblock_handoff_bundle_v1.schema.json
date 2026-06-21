@@ -24,7 +24,7 @@
       "additionalProperties": false,
       "required": ["benchmark_unblock_queue", "benchmark_unblock_queue_validation", "source_queue_summary", "source_status_summary"],
       "properties": {
-        "benchmark_unblock_queue": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-queue\\.json$"},
+        "benchmark_unblock_queue": {"type": "string", "pattern": "(20260604T-ml-benchmark-unblock-queue|20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading)\\.json$"},
         "benchmark_unblock_queue_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "source_queue_summary": {
           "type": "object",
@@ -113,8 +113,8 @@
         }
       }
     },
-    "output_dir": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-queue\\.handoff$"},
-    "readme": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-queue\\.handoff/README\\.md$"},
+    "output_dir": {"type": "string", "pattern": "(20260604T-ml-benchmark-unblock-queue|20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading)\\.handoff$"},
+    "readme": {"type": "string", "pattern": "(20260604T-ml-benchmark-unblock-queue|20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading)\\.handoff/README\\.md$"},
     "summary": {
       "type": "object",
       "additionalProperties": false,
@@ -174,7 +174,7 @@
           "category": {"enum": ["dependency", "artifact", "env", "other"]},
           "target": {"type": "string", "minLength": 1},
           "priority": {"type": "integer", "minimum": 1},
-          "path": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-queue\\.handoff/.+\\.md$"},
+          "path": {"type": "string", "pattern": "(20260604T-ml-benchmark-unblock-queue|20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading)\\.handoff/.+\\.md$"},
           "expected_evidence": {"type": "string", "minLength": 10},
           "validation_command": {"type": "string", "minLength": 10},
           "validation_command_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
