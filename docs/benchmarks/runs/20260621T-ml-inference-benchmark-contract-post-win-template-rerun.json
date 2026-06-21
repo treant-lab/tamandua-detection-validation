@@ -1,0 +1,61 @@
+{
+  "api_version": "tamandua.io/inference-benchmark-contract/v1",
+  "kind": "InferenceBenchmarkContract",
+  "subject": {
+    "pytorch_model": "apps\\tamandua_ml\\models",
+    "onnx_model": "docs\\benchmarks\\runs\\ml-prod-candidate-v1-artifacts\\malware_smell.onnx",
+    "image_size": 64
+  },
+  "execution": {
+    "status": "not_run",
+    "reason": "Dry-run contract mode does not import PyTorch, load ONNX Runtime, or read raw samples.",
+    "batch_sizes": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "iterations": 10,
+    "accuracy_check": true
+  },
+  "planned_backends": [
+    "pytorch_cpu",
+    "pytorch_cuda_if_available",
+    "onnx_cpu",
+    "onnx_cuda_if_available",
+    "onnx_tensorrt_if_available"
+  ],
+  "parity_fixture_inputs": [
+    {
+      "sample_id": "empty",
+      "size_bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "source": "synthetic://tamandua/benchmark-inference-parity"
+    },
+    {
+      "sample_id": "pe_like_header",
+      "size_bytes": 70,
+      "sha256": "a8d4c394c8b4074b286fa91a754513a1b7dd2cb30c5a7cbe7c938bb38a54104f",
+      "source": "synthetic://tamandua/benchmark-inference-parity"
+    },
+    {
+      "sample_id": "high_entropy_seeded",
+      "size_bytes": 4096,
+      "sha256": "04d56c9d6712975193595d657ba34a040c3e8c0b0830f1afe7ee60b43dc8f73d",
+      "source": "synthetic://tamandua/benchmark-inference-parity"
+    },
+    {
+      "sample_id": "alternating_pattern",
+      "size_bytes": 2048,
+      "sha256": "6e5ecfcb43acf3830de59e83892f84b4baa0d0f5544073b137e7cae04cbe29ef",
+      "source": "synthetic://tamandua/benchmark-inference-parity"
+    },
+    {
+      "sample_id": "script_like_text",
+      "size_bytes": 52,
+      "sha256": "2e8a34e8e8996dd7d2e68ad1a0136f17af51e8fd6653c0c831facbbb9202b247",
+      "source": "synthetic://tamandua/benchmark-inference-parity"
+    }
+  ],
+  "claim_boundary": "Contract dry run only. Validates benchmark parameters and synthetic parity fixture metadata; does not execute inference or support performance, accuracy, or parity claims."
+}

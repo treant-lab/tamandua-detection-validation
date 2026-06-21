@@ -1,0 +1,139 @@
+{
+  "api_version": "tamandua.io/ml-win-template-probe/v1",
+  "kind": "MLWinTemplateProbe",
+  "metadata": {
+    "generated_at": "2026-06-21T16:34:32.681539+00:00",
+    "created_by": "apps/tamandua_ml/scripts/win_template_ml_probe.py",
+    "claim_boundary": "Safe Windows-template ML probe. Fixtures are deterministic and non-malware. Completed local inference may show model behavior on fixtures only; it is not a production detection benchmark, malware benchmark, or endpoint telemetry claim."
+  },
+  "win_template_target": {
+    "hostname": "WIN-TEMPLATE",
+    "agent_id": "5a2c7e97-cd1c-449f-b85b-8fb1711798b9",
+    "server_host": "192.168.12.146",
+    "transport": "local_fixture_probe",
+    "endpoint_contacted": false,
+    "requires_live_backend_for_agent_bound_run": true
+  },
+  "model": {
+    "model_dir": "D:\\treant\\tamandua\\apps\\tamandua_ml\\models",
+    "checkpoint_expected": "D:\\treant\\tamandua\\apps\\tamandua_ml\\models\\encoder.pt",
+    "checkpoint_present": true,
+    "reference_embeddings_present": true
+  },
+  "fixtures": [
+    {
+      "sample_id": "win_template_pe_minimal_benign",
+      "label": "goodware_fixture",
+      "fixture_type": "minimal_pe_like",
+      "file_type": "pe",
+      "source": "synthetic://tamandua/win-template/ml-probe/minimal-pe",
+      "size_bytes": 211,
+      "sha256": "d5750082068d720a14e2ff0985df6b2156a80dda851371e0565d1b8ca03a021c"
+    },
+    {
+      "sample_id": "win_template_agent_service_config",
+      "label": "goodware_fixture",
+      "fixture_type": "service_config_text",
+      "file_type": "text",
+      "source": "synthetic://tamandua/win-template/ml-probe/service-config",
+      "size_bytes": 83,
+      "sha256": "af124751dcf727aaa4c60f2ba6b34e6d0fdeac0f1364b795c88cb28b65ba638f"
+    },
+    {
+      "sample_id": "win_template_powershell_inventory",
+      "label": "admin_script_fixture",
+      "fixture_type": "powershell_inventory_script",
+      "file_type": "script",
+      "source": "synthetic://tamandua/win-template/ml-probe/powershell-inventory",
+      "size_bytes": 82,
+      "sha256": "7b378e00872bf1d0e12061c3ceb938c3d8409823fa1bd49a28c4f5213a85f2cf"
+    },
+    {
+      "sample_id": "win_template_seeded_high_entropy_control",
+      "label": "control_fixture",
+      "fixture_type": "seeded_high_entropy",
+      "file_type": "unknown",
+      "source": "synthetic://tamandua/win-template/ml-probe/high-entropy-control",
+      "size_bytes": 4096,
+      "sha256": "3e881b1e5bc04b8629f316c7e55346c43f3cf6e8b20a38a257a6f088ee6af2cf"
+    }
+  ],
+  "inference": {
+    "status": "completed",
+    "reason": "local_checkpoint_inference_completed",
+    "duration_ms": 92029.297,
+    "prediction_summary": {
+      "total": 4,
+      "malicious": 1,
+      "benign": 3,
+      "other": 0
+    },
+    "predictions": [
+      {
+        "sample_id": "win_template_pe_minimal_benign",
+        "sha256": "d5750082068d720a14e2ff0985df6b2156a80dda851371e0565d1b8ca03a021c",
+        "prediction": "benign",
+        "confidence": 0.8434103820685779,
+        "s_space_distance": -0.37364152827431174,
+        "similarity_score": 0.6868207641371559,
+        "dissimilarity_score": 0.31317923586284413,
+        "malware_family": null,
+        "processing_time_ms": 905.6949615478516
+      },
+      {
+        "sample_id": "win_template_agent_service_config",
+        "sha256": "af124751dcf727aaa4c60f2ba6b34e6d0fdeac0f1364b795c88cb28b65ba638f",
+        "prediction": "benign",
+        "confidence": 0.8440443177198074,
+        "s_space_distance": -0.3761772708792296,
+        "similarity_score": 0.6880886354396147,
+        "dissimilarity_score": 0.31191136456038515,
+        "malware_family": null,
+        "processing_time_ms": 162.9776954650879
+      },
+      {
+        "sample_id": "win_template_powershell_inventory",
+        "sha256": "7b378e00872bf1d0e12061c3ceb938c3d8409823fa1bd49a28c4f5213a85f2cf",
+        "prediction": "benign",
+        "confidence": 0.8440909160332494,
+        "s_space_distance": -0.3763636641329976,
+        "similarity_score": 0.6881818320664987,
+        "dissimilarity_score": 0.31181816793350114,
+        "malware_family": null,
+        "processing_time_ms": 141.04747772216797
+      },
+      {
+        "sample_id": "win_template_seeded_high_entropy_control",
+        "sha256": "3e881b1e5bc04b8629f316c7e55346c43f3cf6e8b20a38a257a6f088ee6af2cf",
+        "prediction": "malicious",
+        "confidence": 0.8,
+        "s_space_distance": -0.40730231306483555,
+        "similarity_score": 0.7036511565324178,
+        "dissimilarity_score": 0.2963488434675823,
+        "malware_family": "trojan",
+        "processing_time_ms": 139.0519142150879
+      }
+    ]
+  },
+  "safe_fixture_behavior_summary": {
+    "scope": "safe_synthetic_win_template_fixtures",
+    "all_fixtures_declared_non_malware": true,
+    "fixture_count": 4,
+    "local_inference_completed": true,
+    "malicious_prediction_count": 1,
+    "suspicious_prediction_count": 0,
+    "false_positive_candidate_sample_ids": [
+      "win_template_seeded_high_entropy_control"
+    ],
+    "suspicious_candidate_sample_ids": [],
+    "safe_fixture_ids": [
+      "win_template_pe_minimal_benign",
+      "win_template_agent_service_config",
+      "win_template_powershell_inventory",
+      "win_template_seeded_high_entropy_control"
+    ],
+    "claim_boundary": "A malicious or suspicious verdict here is model behavior on non-malware synthetic fixtures. It is a false-positive candidate for investigation, not malware detection evidence.",
+    "production_gate_impact": "no_go_for_detection_claims"
+  },
+  "next_agent_bound_command": "python tools\\detection_validation\\tamandua_detection_validation.py --execute --profile tools\\detection_validation\\profiles\\windows_roadmap_p0_existing_sensor_contract.json --run-id exec-windows-ml-probe-win-template --agent-id 5a2c7e97-cd1c-449f-b85b-8fb1711798b9 --execution-transport tamandua-ctl --server-host 192.168.12.146 --benchmark-lane enterprise-eval --fail-on-gate"
+}
