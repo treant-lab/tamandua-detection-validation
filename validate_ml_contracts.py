@@ -23584,7 +23584,11 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
 
     source = require_object(data["source"], f"{path}.source")
     require_keys(source, {"authorization_packet", "authorization_packet_validation", "lab_run_intake", "lab_run_intake_validation"}, f"{path}.source")
-    if not str(source["authorization_packet"]).endswith("20260604T-ml-next-gate-authorization-packet.json"):
+    accepted_authorization_packets = (
+        "20260604T-ml-next-gate-authorization-packet.json",
+        "20260621T0310Z-ml-next-gate-authorization-governed-ready.json",
+    )
+    if not str(source["authorization_packet"]).endswith(accepted_authorization_packets):
         raise ContractError(f"{path}.source.authorization_packet: must reference next gate authorization packet")
     if not str(source["lab_run_intake"]).endswith("20260604T-ml-wave1-lab-run-intake.json"):
         raise ContractError(f"{path}.source.lab_run_intake: must reference Wave 1 lab run intake")
@@ -23595,7 +23599,7 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
     lab_run_intake_path = resolve_report_path(str(source["lab_run_intake"]), path.parent)
     source_hashes = require_object(data["source_artifact_hashes"], f"{path}.source_artifact_hashes")
     expected_source_hashes = {
-        "authorization_packet": (authorization_packet_path, "20260604T-ml-next-gate-authorization-packet.json"),
+        "authorization_packet": (authorization_packet_path, accepted_authorization_packets),
         "lab_run_intake": (lab_run_intake_path, "20260604T-ml-wave1-lab-run-intake.json"),
     }
     for name, (expected_path, expected_suffix) in expected_source_hashes.items():
@@ -24035,7 +24039,13 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
     source = require_object(data["source"], f"{path}.source")
     require_keys(
         source,
-        {"pre_execution_checklist", "pre_execution_checklist_validation", "source_decision"},
+        {
+            "pre_execution_checklist",
+            "pre_execution_checklist_validation",
+            "source_decision",
+            "selected_route_input",
+            "selected_route_effective",
+        },
         f"{path}.source",
     )
     if not str(source["pre_execution_checklist"]).endswith("20260604T-ml-wave1-pre-execution-checklist.json"):
@@ -24073,7 +24083,15 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
     source_decision = load_json(source_decision_path)
     validate_wave1_pre_execution_checklist(checklist, checklist_path)
     source_decision_summary = require_object(source_decision.get("source_status_summary"), f"{source_decision_path}.source_status_summary")
-    selected_route = str(source_decision_summary.get("selected_route"))
+    source_decision_selected_route = str(source_decision_summary.get("selected_route"))
+    selected_route_input = str(source["selected_route_input"])
+    if selected_route_input not in {"source_decision", "malwarebazaar_primary", "virusshare_fallback"}:
+        raise ContractError(f"{path}.source.selected_route_input: invalid route input")
+    selected_route = source_decision_selected_route if selected_route_input == "source_decision" else selected_route_input
+    if source["selected_route_effective"] != selected_route:
+        raise ContractError(f"{path}.source.selected_route_effective: must match effective selected route")
+    if selected_route not in {"malwarebazaar_primary", "virusshare_fallback", "vx_underground_inthewild"}:
+        raise ContractError(f"{path}.source.selected_route_effective: invalid effective route")
     expected_source_auth_env = "VIRUSSHARE_API_KEY" if selected_route == "virusshare_fallback" else "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"
     expected_source_auth_required = selected_route in {"malwarebazaar_primary", "virusshare_fallback"}
     checklist_guard = require_object(checklist["guard_preconditions"], f"{checklist_path}.guard_preconditions")
@@ -24668,7 +24686,10 @@ def validate_wave1_operator_go_no_go_summary(data: dict[str, Any], path: Path) -
     )
     expected_sources = {
         "master_handoff": "20260604T-ml-execution-master-handoff.json",
-        "authorization_packet": "20260604T-ml-next-gate-authorization-packet.json",
+        "authorization_packet": (
+            "20260604T-ml-next-gate-authorization-packet.json",
+            "20260621T0310Z-ml-next-gate-authorization-governed-ready.json",
+        ),
         "pre_execution_checklist": "20260604T-ml-wave1-pre-execution-checklist.json",
         "execution_environment_preflight": "20260604T-ml-wave1-execution-environment-preflight.json",
         "execute_guard_probe": "20260604T-ml-wave1-execute-guard-probe.json",
@@ -25100,11 +25121,17 @@ def validate_wave1_guarded_run_command_packet(data: dict[str, Any], path: Path) 
     require_keys(source, required_source_keys, f"{path}.source")
     expected_sources = {
         "master_handoff": "20260604T-ml-execution-master-handoff.json",
-        "authorization_packet": "20260604T-ml-next-gate-authorization-packet.json",
+        "authorization_packet": (
+            "20260604T-ml-next-gate-authorization-packet.json",
+            "20260621T0310Z-ml-next-gate-authorization-governed-ready.json",
+        ),
         "pre_execution_checklist": "20260604T-ml-wave1-pre-execution-checklist.json",
         "execution_environment_preflight": "20260604T-ml-wave1-execution-environment-preflight.json",
         "operator_go_no_go_summary": "20260604T-ml-wave1-operator-go-no-go-summary.json",
-        "next_action_run": "20260604T-ml-prelab-next-action-validation.run.json",
+        "next_action_run": (
+            "20260604T-ml-prelab-next-action-validation.run.json",
+            "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
+        ),
         "acquisition_readiness": "20260604T-ml-acquisition-readiness.json",
         "execute_guard_probe": "20260604T-ml-wave1-execute-guard-probe.json",
         "launcher": "wave_1_real_acquisition_launcher.ps1",

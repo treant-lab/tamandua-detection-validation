@@ -39,11 +39,19 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["pre_execution_checklist", "pre_execution_checklist_validation", "source_decision"],
+      "required": [
+        "pre_execution_checklist",
+        "pre_execution_checklist_validation",
+        "source_decision",
+        "selected_route_input",
+        "selected_route_effective"
+      ],
       "properties": {
         "pre_execution_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
         "pre_execution_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "source_decision": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"}
+        "source_decision": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"},
+        "selected_route_input": {"enum": ["source_decision", "malwarebazaar_primary", "virusshare_fallback"]},
+        "selected_route_effective": {"enum": ["malwarebazaar_primary", "virusshare_fallback", "vx_underground_inthewild"]}
       }
     },
     "source_artifact_hashes": {

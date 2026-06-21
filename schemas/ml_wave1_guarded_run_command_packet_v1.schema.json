@@ -61,7 +61,10 @@
       "properties": {
         "master_handoff": {"type": "string", "pattern": "20260604T-ml-execution-master-handoff\\.json$"},
         "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "authorization_packet": {"type": "string", "pattern": "20260604T-ml-next-gate-authorization-packet\\.json$"},
+        "authorization_packet": {
+          "type": "string",
+          "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready)\\.json$"
+        },
         "authorization_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "pre_execution_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
         "pre_execution_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
@@ -69,7 +72,10 @@
         "execution_environment_preflight_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "operator_go_no_go_summary": {"type": "string", "pattern": "20260604T-ml-wave1-operator-go-no-go-summary\\.json$"},
         "operator_go_no_go_summary_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "next_action_run": {"type": "string", "pattern": "20260604T-ml-prelab-next-action-validation\\.run\\.json$"},
+        "next_action_run": {
+          "type": "string",
+          "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root)\\.run\\.json$"
+        },
         "next_action_run_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "acquisition_readiness": {"type": "string", "pattern": "20260604T-ml-acquisition-readiness\\.json$"},
         "acquisition_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]},
@@ -247,7 +253,10 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-next-gate-authorization-packet\\.json$"},
+            "path": {
+              "type": "string",
+              "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready)\\.json$"
+            },
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -283,7 +292,10 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-prelab-next-action-validation\\.run\\.json$"},
+            "path": {
+              "type": "string",
+              "pattern": "(20260604T-ml-prelab-next-action-validation|20260621T0300Z-ml-next-action-governed-lab-root)\\.run\\.json$"
+            },
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
