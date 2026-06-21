@@ -80,8 +80,12 @@ def valid_wave2_ml2_ml3_readiness() -> dict:
                 "candidate_onnx_metadata_sha256": "1" * 64,
                 "candidate_onnx_metadata_contract_ref": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
                 "candidate_onnx_metadata_model_contract_type": "malware_smell_onnx",
+                "candidate_onnx_metadata_input_shape": [1, 3, 64, 64],
+                "candidate_onnx_metadata_num_classes": 8,
+                "candidate_onnx_metadata_opset_version": 17,
                 "candidate_onnx_metadata_io_names_valid": True,
                 "candidate_onnx_metadata_preprocessing_valid": True,
+                "candidate_onnx_metadata_interface_valid": True,
                 "rustc_version": "rustc 1.88.0 (fixture)",
                 "rustc_minimum_version": "1.88.0",
                 "rustc_present_for_agent_onnx_parity": True,
@@ -143,6 +147,11 @@ def valid_wave2_ml2_ml3_readiness() -> dict:
             {"name": "candidate_onnx_metadata_contract_type_valid", "passed": True, "detail": "malware_smell_onnx"},
             {"name": "candidate_onnx_metadata_io_names_valid", "passed": True, "detail": "input->output"},
             {"name": "candidate_onnx_metadata_preprocessing_valid", "passed": True, "detail": "image_size=64"},
+            {
+                "name": "candidate_onnx_metadata_interface_valid",
+                "passed": True,
+                "detail": "input_shape=[1, 3, 64, 64]; num_classes=8; opset_version=17",
+            },
             {"name": "rustc_present_for_agent_onnx_parity", "passed": True, "detail": "rustc 1.88.0 (fixture)"},
             {"name": "rustc_meets_minimum_for_agent_onnx_parity", "passed": True, "detail": "required>=1.88.0; observed=rustc 1.88.0 (fixture)"},
             {"name": "ort_dylib_path_configured_for_agent_onnx_parity", "passed": True, "detail": "D:/tamandua_ml_lab/tools/onnxruntime.dll"},
@@ -614,6 +623,27 @@ def test_validate_wave2_ml2_ml3_readiness_rejects_not_ready_when_all_checks_pass
         assert "cannot be false when all checks pass" in str(exc)
     else:
         raise AssertionError("expected stale parity readiness report to fail")
+
+
+def test_validate_wave2_ml2_ml3_readiness_rejects_onnx_metadata_interface_drift() -> None:
+    payload = copy.deepcopy(valid_wave2_ml2_ml3_readiness())
+    payload["source"]["source_status_summary"]["candidate_onnx_metadata_input_shape"] = [1, 1, 64, 64]
+    payload["source"]["source_status_summary"]["candidate_onnx_metadata_interface_valid"] = False
+    payload["blockers"].append("candidate_onnx_metadata_wrong_interface")
+    payload["source"]["source_status_summary"]["blockers"] = payload["blockers"]
+    payload["source"]["source_status_summary"]["blocker_count"] = len(payload["blockers"])
+    for check in payload["checks"]:
+        if check["name"] == "candidate_onnx_metadata_interface_valid":
+            check["passed"] = False
+            check["detail"] = "input_shape=[1, 1, 64, 64]; num_classes=8; opset_version=17"
+            break
+
+    try:
+        validate_wave2_ml2_ml3_readiness(payload, Path("memory://ml-wave2-ml2-ml3-readiness.json"))
+    except ContractError as exc:
+        assert "candidate_onnx_metadata_input_shape" in str(exc)
+    else:
+        raise AssertionError("expected ONNX metadata interface drift to fail")
 
 
 def test_validate_wave2_ml2_ml3_readiness_rejects_source_status_summary_drift() -> None:

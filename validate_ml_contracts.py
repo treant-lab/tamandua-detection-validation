@@ -10482,6 +10482,7 @@ def validate_wave2_ml2_ml3_readiness(data: dict[str, Any], path: Path) -> None:
         "candidate_onnx_metadata_contract_type_valid",
         "candidate_onnx_metadata_io_names_valid",
         "candidate_onnx_metadata_preprocessing_valid",
+        "candidate_onnx_metadata_interface_valid",
         "rustc_present_for_agent_onnx_parity",
         "rustc_meets_minimum_for_agent_onnx_parity",
         "ort_dylib_path_configured_for_agent_onnx_parity",
@@ -10525,8 +10526,12 @@ def validate_wave2_ml2_ml3_readiness(data: dict[str, Any], path: Path) -> None:
             "candidate_onnx_metadata_sha256",
             "candidate_onnx_metadata_contract_ref",
             "candidate_onnx_metadata_model_contract_type",
+            "candidate_onnx_metadata_input_shape",
+            "candidate_onnx_metadata_num_classes",
+            "candidate_onnx_metadata_opset_version",
             "candidate_onnx_metadata_io_names_valid",
             "candidate_onnx_metadata_preprocessing_valid",
+            "candidate_onnx_metadata_interface_valid",
             "rustc_version",
             "rustc_minimum_version",
             "rustc_present_for_agent_onnx_parity",
@@ -10602,6 +10607,7 @@ def validate_wave2_ml2_ml3_readiness(data: dict[str, Any], path: Path) -> None:
         "candidate_onnx_metadata_present": "candidate_onnx_metadata_present",
         "candidate_onnx_metadata_io_names_valid": "candidate_onnx_metadata_io_names_valid",
         "candidate_onnx_metadata_preprocessing_valid": "candidate_onnx_metadata_preprocessing_valid",
+        "candidate_onnx_metadata_interface_valid": "candidate_onnx_metadata_interface_valid",
         "rustc_present_for_agent_onnx_parity": "rustc_present_for_agent_onnx_parity",
         "rustc_meets_minimum_for_agent_onnx_parity": "rustc_meets_minimum_for_agent_onnx_parity",
         "ort_dylib_path_configured_for_agent_onnx_parity": "ort_dylib_path_configured_for_agent_onnx_parity",
@@ -10659,6 +10665,7 @@ def validate_wave2_ml2_ml3_readiness(data: dict[str, Any], path: Path) -> None:
     onnx_metadata_contract_type = check_by_name["candidate_onnx_metadata_contract_type_valid"]["passed"] is True
     onnx_metadata_io_names = check_by_name["candidate_onnx_metadata_io_names_valid"]["passed"] is True
     onnx_metadata_preprocessing = check_by_name["candidate_onnx_metadata_preprocessing_valid"]["passed"] is True
+    onnx_metadata_interface = check_by_name["candidate_onnx_metadata_interface_valid"]["passed"] is True
     rustc_present = check_by_name["rustc_present_for_agent_onnx_parity"]["passed"] is True
     rustc_meets_minimum = check_by_name["rustc_meets_minimum_for_agent_onnx_parity"]["passed"] is True
     ort_configured = check_by_name["ort_dylib_path_configured_for_agent_onnx_parity"]["passed"] is True
@@ -10698,6 +10705,7 @@ def validate_wave2_ml2_ml3_readiness(data: dict[str, Any], path: Path) -> None:
         and onnx_metadata_contract_type
         and onnx_metadata_io_names
         and onnx_metadata_preprocessing
+        and onnx_metadata_interface
         and rustc_present
         and rustc_meets_minimum
         and ort_configured
@@ -10748,6 +10756,12 @@ def validate_wave2_ml2_ml3_readiness(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.source.source_status_summary.candidate_onnx_metadata_contract_ref: must reference generated candidate model contract")
     if onnx_metadata_present and str(source_summary["candidate_onnx_metadata_model_contract_type"]) != "malware_smell_onnx":
         raise ContractError(f"{path}.source.source_status_summary.candidate_onnx_metadata_model_contract_type: must be malware_smell_onnx")
+    if onnx_metadata_present and source_summary["candidate_onnx_metadata_input_shape"] != [1, 3, 64, 64]:
+        raise ContractError(f"{path}.source.source_status_summary.candidate_onnx_metadata_input_shape: must be [1, 3, 64, 64]")
+    if onnx_metadata_present and int(source_summary["candidate_onnx_metadata_num_classes"]) != 8:
+        raise ContractError(f"{path}.source.source_status_summary.candidate_onnx_metadata_num_classes: must be 8")
+    if onnx_metadata_present and int(source_summary["candidate_onnx_metadata_opset_version"]) != 17:
+        raise ContractError(f"{path}.source.source_status_summary.candidate_onnx_metadata_opset_version: must be 17")
     if onnx_metadata_present and model_contract_present and model_contract_valid:
         if contract_metadata_sha != onnx_metadata_sha or not model_contract_metadata_sha_matches:
             raise ContractError(f"{path}.source.source_status_summary.ml1_model_contract_metadata_sha256: must match candidate ONNX metadata SHA-256")
@@ -10804,6 +10818,8 @@ def validate_wave2_ml2_ml3_readiness(data: dict[str, Any], path: Path) -> None:
         raise ContractError(f"{path}.blockers: ONNX metadata IO names blocker is required")
     if onnx_metadata_present and not onnx_metadata_preprocessing and not has_metadata_blocker:
         raise ContractError(f"{path}.blockers: ONNX metadata preprocessing blocker is required")
+    if onnx_metadata_present and not onnx_metadata_interface and not has_metadata_blocker:
+        raise ContractError(f"{path}.blockers: ONNX metadata interface blocker is required")
     if not rustc_present and "rustc_missing_for_agent_onnx_parity" not in blockers:
         raise ContractError(f"{path}.blockers: missing rustc blocker is required")
     if rustc_present and not rustc_meets_minimum and "rustc_below_minimum_for_agent_onnx_parity" not in blockers:
