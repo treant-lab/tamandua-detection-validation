@@ -65,6 +65,18 @@ def test_validate_ml_prelab_contract_coverage_tracks_canonical_next_action_recei
     assert data["summary"]["next_action_receipt_audit_passed"] is True
 
 
+def test_validate_ml_prelab_contract_coverage_requires_preflight_storage_invariants() -> None:
+    data = json.loads(CANONICAL.read_text(encoding="utf-8"))
+    invariant_names = data["source"]["source_validator_invariant_summary"]["required_invariant_term_names"]
+
+    assert "env:TAMANDUA_ML_DATA_ROOT_exists" in invariant_names
+    assert "env:TAMANDUA_ML_DATA_ROOT_writable" in invariant_names
+    assert "env:TAMANDUA_ML_DATA_ROOT_free_space_gb" in invariant_names
+    assert "$dataRootFreeSpaceGb -ge 50" in invariant_names
+    assert "env:TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD_unset" in invariant_names
+    assert "env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION_ready_for_execute" in invariant_names
+
+
 def test_validate_ml_prelab_contract_coverage_rejects_complete_with_missing(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
     data["complete"] = True
