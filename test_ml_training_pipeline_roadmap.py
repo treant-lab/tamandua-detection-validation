@@ -22,6 +22,7 @@ TRAINING_QUICKSTART = ROOT / "docs" / "apps" / "tamandua_ml" / "TRAINING_QUICKST
 ML_PLATFORM_EVOLUTION_PLAN = ROOT / "docs" / "apps" / "tamandua_ml" / "ML_PLATFORM_EVOLUTION_PLAN.md"
 ML_BENCHMARK_VALIDATION_PLAN = ROOT / "docs" / "apps" / "tamandua_ml" / "ML_BENCHMARK_VALIDATION_PLAN.md"
 PUBLICATION_BENCHMARK_HANDOFF = ROOT / "docs" / "benchmarks" / "ML_PUBLICATION_AND_BENCHMARK_HANDOFF_20260621.md"
+POST_ACQUISITION_DRY_RUN = ROOT / "docs" / "benchmarks" / "ML_WAVE1_POST_ACQUISITION_REFRESH_DRY_RUN_20260621.md"
 
 
 def read(path: Path) -> str:
@@ -143,6 +144,16 @@ def test_ml_publication_benchmark_handoff_uses_current_hold_and_operator_packet(
     assert "TAMANDUA_MALWAREBAZAAR_AUTH_KEY" in text
     assert "hold_do_not_push" in text
     assert "20260621T-ml-mirror-publication-after-roadmap-hash-refresh.json" not in text
+
+
+def test_ml_post_acquisition_dry_run_uses_current_lab_root() -> None:
+    text = read(POST_ACQUISITION_DRY_RUN)
+
+    assert "D:\\treant\\tamandua_ml_lab" in text
+    assert "D:\\tamandua_ml_lab" not in text
+    assert "wave_1_post_acquisition_refresh_launcher.ps1" in text
+    assert "missing_external_production_manifest" in text
+    assert "missing_operator_transcript" in text
 
 
 def test_parallel_execution_board_uses_current_governed_next_step() -> None:
