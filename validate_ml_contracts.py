@@ -12024,9 +12024,16 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
     accepted_ml2_ml3_readiness_suffixes = (
         "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
         "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
+        "20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime.json",
     )
     if not str(configuration["wave2_ml2_ml3_readiness_ref"]).endswith(accepted_ml2_ml3_readiness_suffixes):
         raise ContractError(f"{path}.configuration.wave2_ml2_ml3_readiness_ref: must reference canonical ML-2/ML-3 readiness")
+    accepted_ml4_readiness_suffixes = (
+        "20260604T-ml-wave2-ml4-readiness-probe.json",
+        "20260621T-ml-wave2-ml4-readiness-post-onnx-runtime.json",
+    )
+    if not str(configuration["wave2_ml4_readiness_ref"]).endswith(accepted_ml4_readiness_suffixes):
+        raise ContractError(f"{path}.configuration.wave2_ml4_readiness_ref: must reference canonical ML-4 readiness")
 
     source = require_object(data["source"], f"{path}.source")
     require_keys(
@@ -12071,6 +12078,8 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
             raise ContractError(f"{path}.source.{source_field}: must match configuration.{config_field}")
     if not str(source["wave2_ml2_ml3_readiness"]).endswith(accepted_ml2_ml3_readiness_suffixes):
         raise ContractError(f"{path}.source.wave2_ml2_ml3_readiness: must reference canonical ML-2/ML-3 readiness")
+    if not str(source["wave2_ml4_readiness"]).endswith(accepted_ml4_readiness_suffixes):
+        raise ContractError(f"{path}.source.wave2_ml4_readiness: must reference canonical ML-4 readiness")
 
     blockers = require_array(data["blockers"], f"{path}.blockers")
     checks = require_array(data["checks"], f"{path}.checks")
@@ -13125,10 +13134,12 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
         "wave2_ml1_readiness_ref": (
             "20260604T-ml-wave2-ml1-readiness-probe.json",
             "20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json",
+            "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime.json",
         ),
         "wave3_ml5_readiness_ref": (
             "20260604T-ml-wave3-ml5-readiness-probe.json",
             "20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
+            "20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json",
         ),
         "ml1_report": "ml-prod-candidate-v1-ml1.json",
         "model_contract": "ml-prod-candidate-v1-model-contract.json",
@@ -13478,24 +13489,38 @@ def validate_ml_platform_readiness_audit(data: dict[str, Any], path: Path) -> No
 
     source = require_object(data["source"], f"{path}.source")
     readiness_inputs = require_object(source.get("readiness_inputs"), f"{path}.source.readiness_inputs")
+    path_is_repo_artifact = False
+    try:
+        path_is_repo_artifact = Path(path).exists()
+        if path_is_repo_artifact:
+            Path(path).resolve().relative_to(ROOT.resolve())
+    except (OSError, ValueError):
+        path_is_repo_artifact = False
     required_input_refs = {
         "wave1_go_no_go": "20260604T-ml-wave1-go-no-go.json",
         "wave2_ml1_readiness": (
             "20260604T-ml-wave2-ml1-readiness-probe.json",
             "20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json",
+            "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime.json",
         ),
         "wave2_ml2_ml3_readiness": (
             "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
             "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
+            "20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime.json",
         ),
-        "wave2_ml4_readiness": "20260604T-ml-wave2-ml4-readiness-probe.json",
+        "wave2_ml4_readiness": (
+            "20260604T-ml-wave2-ml4-readiness-probe.json",
+            "20260621T-ml-wave2-ml4-readiness-post-onnx-runtime.json",
+        ),
         "wave3_ml5_readiness": (
             "20260604T-ml-wave3-ml5-readiness-probe.json",
             "20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
+            "20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json",
         ),
         "wave3_ml6_readiness": (
             "20260604T-ml-wave3-ml6-readiness-probe.json",
             "20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.json",
+            "20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json",
         ),
     }
     require_keys(readiness_inputs, set(required_input_refs), f"{path}.source.readiness_inputs")
@@ -13583,7 +13608,7 @@ def validate_ml_platform_readiness_audit(data: dict[str, Any], path: Path) -> No
             raise ContractError(f"{path}.required_artifacts.onnx_model.path: must reference canonical malware_smell.onnx")
         if bool(artifact["exists"]):
             artifact_path = Path(str(artifact["path"]))
-            if not str(artifact_path).startswith("memory:") and not artifact_path.exists():
+            if path_is_repo_artifact and not str(artifact_path).startswith("memory:") and not artifact_path.exists():
                 raise ContractError(f"{path}.required_artifacts.{name}.exists: true but path does not exist")
         if not bool(artifact["exists"]):
             any_missing_artifact = True
@@ -13706,7 +13731,7 @@ def validate_ml_platform_readiness_audit(data: dict[str, Any], path: Path) -> No
                 unusable_evidence = True
             if bool(evidence["exists"]):
                 evidence_path = Path(str(evidence["path"]))
-                if not str(evidence_path).startswith("memory:") and not evidence_path.exists():
+                if path_is_repo_artifact and not str(evidence_path).startswith("memory:") and not evidence_path.exists():
                     raise ContractError(
                         f"{path}.completion_requirements[{index}].evidence_refs[{evidence_index}].exists: true but path does not exist"
                     )

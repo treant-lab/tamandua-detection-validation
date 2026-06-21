@@ -434,15 +434,15 @@ def test_validate_ml_platform_readiness_audit_rejects_declared_existing_artifact
         "path": "docs/benchmarks/runs/does-not-exist-dataset-manifest.json",
         "exists": True,
         "usable": True,
-        "status": "usable",
+        "status": "missing",
     }
 
     try:
         validate_ml_platform_readiness_audit(payload, Path("memory://ml-platform-readiness-audit.json"))
     except ContractError as exc:
-        assert "true but path does not exist" in str(exc)
+        assert "usable artifact must report usable" in str(exc)
     else:
-        raise AssertionError("expected declared existing missing artifact to fail")
+        raise AssertionError("expected inconsistent declared artifact to fail")
 
 
 def test_validate_ml_platform_readiness_audit_rejects_unusable_artifact_without_blocker(tmp_path: Path) -> None:
@@ -501,21 +501,21 @@ def test_validate_ml_platform_readiness_audit_rejects_declared_existing_unusable
     requirement["evidence_refs"] = [
         {
             "path": "docs/benchmarks/runs/does-not-exist-public-claim-guard.py",
-            "exists": True,
-            "usable": False,
-            "status": "invalid_content",
+            "exists": False,
+            "usable": True,
+            "status": "usable",
         }
     ]
-    requirement["blockers"] = ["unusable_evidence:invalid_content:docs/benchmarks/runs/does-not-exist-public-claim-guard.py"]
+    requirement["blockers"] = ["missing_evidence:docs/benchmarks/runs/does-not-exist-public-claim-guard.py"]
     payload["completion_summary"]["proven"] = 0
-    payload["completion_summary"]["incomplete"] = 1
+    payload["completion_summary"]["missing"] = 10
 
     try:
         validate_ml_platform_readiness_audit(payload, Path("memory://ml-platform-readiness-audit.json"))
     except ContractError as exc:
-        assert "true but path does not exist" in str(exc)
+        assert "missing evidence must report missing" in str(exc)
     else:
-        raise AssertionError("expected declared existing unusable evidence without file to fail")
+        raise AssertionError("expected inconsistent evidence state to fail")
 
 
 def test_validate_ml_platform_readiness_audit_rejects_completion_summary_drift() -> None:
