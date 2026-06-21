@@ -111,7 +111,8 @@
           "anyOf": [
             {"pattern": "20260604T-ml-benchmark-critical-path\\.json$"},
             {"pattern": "20260620T2005Z-ml-benchmark-critical-path-contract-packets\\.json$"},
-            {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.json$"}
+            {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.json$"},
+            {"pattern": "20260621T-ml-benchmark-critical-path-post-win-template-gate-threading\\.json$"}
           ]
         },
         "benchmark_critical_path_validation": {"enum": ["jsonschema+built-in", "built-in"]},
@@ -218,7 +219,8 @@
       "anyOf": [
         {"pattern": "20260604T-ml-benchmark-critical-path\\.handoff$"},
         {"pattern": "20260620T2015Z-ml-benchmark-critical-path-contract-packets\\.handoff$"},
-        {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.handoff$"}
+        {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.handoff$"},
+        {"pattern": "20260621T-ml-benchmark-critical-path-post-win-template-gate-threading\\.handoff$"}
       ]
     },
     "readme": {
@@ -226,7 +228,8 @@
       "anyOf": [
         {"pattern": "20260604T-ml-benchmark-critical-path\\.handoff/README\\.md$"},
         {"pattern": "20260620T2015Z-ml-benchmark-critical-path-contract-packets\\.handoff/README\\.md$"},
-        {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.handoff/README\\.md$"}
+        {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.handoff/README\\.md$"},
+        {"pattern": "20260621T-ml-benchmark-critical-path-post-win-template-gate-threading\\.handoff/README\\.md$"}
       ]
     },
     "summary": {
@@ -274,7 +277,8 @@
             "anyOf": [
               {"pattern": "20260604T-ml-benchmark-critical-path\\.handoff/.+\\.md$"},
               {"pattern": "20260620T2015Z-ml-benchmark-critical-path-contract-packets\\.handoff/.+\\.md$"},
-              {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.handoff/.+\\.md$"}
+              {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.handoff/.+\\.md$"},
+              {"pattern": "20260621T-ml-benchmark-critical-path-post-win-template-gate-threading\\.handoff/.+\\.md$"}
             ]
           },
           "expected_evidence": {"type": "string", "minLength": 10},

@@ -148,7 +148,8 @@
           "anyOf": [
             {"pattern": "20260604T-ml-benchmark-critical-path\\.json$"},
             {"pattern": "20260620T2005Z-ml-benchmark-critical-path-contract-packets\\.json$"},
-            {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.json$"}
+            {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime\\.json$"},
+            {"pattern": "20260621T-ml-benchmark-critical-path-post-win-template-gate-threading\\.json$"}
           ]
         },
         "benchmark_critical_path_handoff_bundle": {
@@ -156,7 +157,8 @@
           "anyOf": [
             {"pattern": "20260604T-ml-benchmark-critical-path-handoff-bundle\\.json$"},
             {"pattern": "20260620T2015Z-ml-benchmark-critical-path-handoff-bundle-contract-packets\\.json$"},
-            {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime-handoff-bundle\\.json$"}
+            {"pattern": "20260621T-ml-benchmark-critical-path-post-onnx-runtime-handoff-bundle\\.json$"},
+            {"pattern": "20260621T-ml-benchmark-critical-path-post-win-template-gate-threading-handoff-bundle\\.json$"}
           ]
         }
       }
