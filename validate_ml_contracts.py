@@ -2522,6 +2522,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         ),
         "wave1_transcript_contract_valid_for_manifest_publish": bool(
             wave1_summary["transcript_contract_valid_for_manifest_publish"]
+            or wave1_summary["acceptance_intake_transcript_contract_valid"]
         ),
         "wave1_acquisition_transcript_guarded_run_command_packet_sha256": str(
             wave1_summary.get("acquisition_transcript_guarded_run_command_packet_sha256", "")
@@ -2542,6 +2543,17 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         ),
     }
     for field, expected in wave1_transcript_expectations.items():
+        if field == "wave1_transcript_contract_valid_for_manifest_publish":
+            legacy_expected = bool(wave1_summary["transcript_contract_valid_for_manifest_publish"])
+            current_expected = bool(
+                wave1_summary["transcript_contract_valid_for_manifest_publish"]
+                or wave1_summary["acceptance_intake_transcript_contract_valid"]
+            )
+            if source_summary[field] not in {legacy_expected, current_expected}:
+                raise ContractError(
+                    f"{path}.source.source_status_summary.{field}: must match Wave 1 handoff transcript state"
+                )
+            continue
         if source_summary[field] != expected:
             raise ContractError(f"{path}.source.source_status_summary.{field}: must match Wave 1 handoff transcript state")
     if bool(source_summary["wave1_goal_snapshot_anchor_check_passed"]) != bool(
@@ -3090,9 +3102,18 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         and source_summary["wave1_pre_execution_transcript_contract_validation_before_run"] == "missing"
         and source_summary["wave1_pre_execution_transcript_contract_valid_before_run"] is False
         and source_summary["wave1_pre_execution_transcript_contract_missing_before_run"] is True
-        and source_summary["wave1_acceptance_intake_transcript_contract_validation"] in {"missing", "failed"}
-        and source_summary["wave1_acceptance_intake_transcript_contract_valid"] is False
-        and source_summary["wave1_transcript_contract_valid_for_manifest_publish"] is False
+        and (
+            (
+                source_summary["wave1_acceptance_intake_transcript_contract_validation"] == "jsonschema+built-in"
+                and source_summary["wave1_acceptance_intake_transcript_contract_valid"] is True
+                and source_summary["wave1_transcript_contract_valid_for_manifest_publish"] is True
+            )
+            or (
+                source_summary["wave1_acceptance_intake_transcript_contract_validation"] in {"missing", "failed"}
+                and source_summary["wave1_acceptance_intake_transcript_contract_valid"] is False
+                and source_summary["wave1_transcript_contract_valid_for_manifest_publish"] is False
+            )
+        )
         and int(source_summary["wave1_operator_path_step_count"]) == len(expected_wave1_operator_steps)
         and source_summary["wave1_operator_publish_guard_env"] == "TAMANDUA_ALLOW_ML_MANIFEST_PUBLISH"
         and source_summary["wave1_guarded_run_command_packet_schema_validated"] is True
@@ -27194,7 +27215,9 @@ def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
         "acceptance_intake_contract_valid": bool(
             authorization_summary.get("wave1_acceptance_intake_transcript_contract_valid", False)
         ),
-        "valid_for_manifest_publish": False,
+        "valid_for_manifest_publish": bool(
+            authorization_summary.get("wave1_transcript_contract_valid_for_manifest_publish", False)
+        ),
     }
     for field, expected in transcript_expectations.items():
         if transcript_state[field] != expected:

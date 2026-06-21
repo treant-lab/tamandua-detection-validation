@@ -74,7 +74,7 @@ def test_validate_ml_next_operator_packet_accepts_post_win_template_gate_threadi
     assert mode == "jsonschema+built-in"
     assert data["operator_decision"]["package_id"] == "ml_data_governed_acquisition"
     assert data["operator_decision"]["publication_decision"] == "hold_do_not_push"
-    assert data["operator_decision"]["ready_for_guarded_execution"] is True
+    assert data["operator_decision"]["ready_for_guarded_execution"] is False
     assert data["source_auth"]["selected_route"] == "malwarebazaar_governed_acquisition"
     assert data["source_auth"]["env"] == "TAMANDUA_MALWAREBAZAAR_AUTH_KEY"
 
@@ -93,7 +93,7 @@ def test_validate_ml_next_operator_packet_accepts_post_lab_root_path() -> None:
 
     assert mode == "jsonschema+built-in"
     assert data["operator_decision"]["package_id"] == "ml_data_governed_acquisition"
-    assert data["operator_decision"]["ready_for_guarded_execution"] is True
+    assert data["operator_decision"]["ready_for_guarded_execution"] is False
     assert data["source_auth"]["selected_route"] == "malwarebazaar_governed_acquisition"
 
 

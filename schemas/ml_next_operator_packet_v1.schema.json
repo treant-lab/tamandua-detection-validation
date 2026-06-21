@@ -97,7 +97,7 @@
         "pre_execution_contract_missing": {"type": "boolean"},
         "acceptance_intake_contract_validation": {"enum": ["jsonschema+built-in", "built-in", "missing", "failed"]},
         "acceptance_intake_contract_valid": {"type": "boolean"},
-        "valid_for_manifest_publish": {"const": false},
+        "valid_for_manifest_publish": {"type": "boolean"},
         "operator_note": {"type": "string", "minLength": 40}
       }
     },

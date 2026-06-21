@@ -185,8 +185,8 @@ def test_validate_ml_execution_master_handoff_rejects_wave1_publish_guard_drift(
 
 def test_validate_ml_execution_master_handoff_rejects_wave1_transcript_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source"]["source_status_summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = True
-    data["summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = True
+    data["source"]["source_status_summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = False
+    data["summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = False
     drifted = tmp_path / "20260604T-ml-execution-master-handoff.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
