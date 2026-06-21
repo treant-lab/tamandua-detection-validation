@@ -41,7 +41,13 @@
       "properties": {
         "wave1_acceptance_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-acceptance-checklist\\.json$"},
         "wave1_acceptance_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "wave2_ml1_readiness": {"type": "string", "pattern": "20260604T-ml-wave2-ml1-readiness-probe\\.json$"},
+        "wave2_ml1_readiness": {
+          "type": "string",
+          "anyOf": [
+            {"pattern": "20260604T-ml-wave2-ml1-readiness-probe\\.json$"},
+            {"pattern": "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime\\.json$"}
+          ]
+        },
         "wave2_ml1_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]}
       }
     },
@@ -67,7 +73,13 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-wave2-ml1-readiness-probe\\.json$"},
+            "path": {
+              "type": "string",
+              "anyOf": [
+                {"pattern": "20260604T-ml-wave2-ml1-readiness-probe\\.json$"},
+                {"pattern": "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime\\.json$"}
+              ]
+            },
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         }

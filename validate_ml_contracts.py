@@ -9615,6 +9615,7 @@ def validate_wave2_ml1_readiness(data: dict[str, Any], path: Path) -> None:
     accepted_master_handoffs = (
         "20260604T-ml-execution-master-handoff.json",
         "20260620T2045Z-ml-execution-master-handoff-actionability-packets.json",
+        "20260621T-ml-execution-master-handoff-post-onnx-runtime.json",
     )
     if not str(configuration["ml_execution_master_handoff_ref"]).endswith(accepted_master_handoffs):
         raise ContractError(f"{path}.configuration.ml_execution_master_handoff_ref: must reference canonical master handoff")
@@ -10007,7 +10008,11 @@ def validate_wave2_ml1_operator_go_no_go_summary(data: dict[str, Any], path: Pat
     )
     if not str(source["wave1_acceptance_checklist"]).endswith("20260604T-ml-wave1-acceptance-checklist.json"):
         raise ContractError(f"{path}.source.wave1_acceptance_checklist: must reference canonical Wave 1 acceptance checklist")
-    if not str(source["wave2_ml1_readiness"]).endswith("20260604T-ml-wave2-ml1-readiness-probe.json"):
+    accepted_wave2_ml1_readiness = (
+        "20260604T-ml-wave2-ml1-readiness-probe.json",
+        "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime.json",
+    )
+    if not str(source["wave2_ml1_readiness"]).endswith(accepted_wave2_ml1_readiness):
         raise ContractError(f"{path}.source.wave2_ml1_readiness: must reference canonical Wave 2 ML-1 readiness")
     for field in ["wave1_acceptance_checklist_validation", "wave2_ml1_readiness_validation"]:
         if source[field] not in {"jsonschema+built-in", "built-in"}:
@@ -10036,7 +10041,7 @@ def validate_wave2_ml1_operator_go_no_go_summary(data: dict[str, Any], path: Pat
     }
     expected_source_suffixes = {
         "wave1_acceptance_checklist": "20260604T-ml-wave1-acceptance-checklist.json",
-        "wave2_ml1_readiness": "20260604T-ml-wave2-ml1-readiness-probe.json",
+        "wave2_ml1_readiness": accepted_wave2_ml1_readiness,
     }
     if set(source_hashes) != set(expected_source_hash_paths):
         raise ContractError(f"{path}.source_artifact_hashes: must contain exactly the ML-1 source artifacts")
