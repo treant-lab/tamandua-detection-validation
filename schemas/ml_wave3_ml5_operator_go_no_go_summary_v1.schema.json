@@ -41,7 +41,7 @@
       "properties": {
         "wave1_acceptance_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-acceptance-checklist\\.json$"},
         "wave1_acceptance_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "wave3_ml5_readiness": {"type": "string", "pattern": "(20260604T-ml-wave3-ml5-readiness-probe|20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets|20260621T-ml-wave3-ml5-readiness-post-onnx-runtime)\\.json$"},
+        "wave3_ml5_readiness": {"type": "string", "pattern": "(20260604T-ml-wave3-ml5-readiness-probe|20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets|(20260621T-ml-wave3-ml5-readiness-post-onnx-runtime|20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading))\\.json$"},
         "wave3_ml5_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]}
       }
     },
@@ -67,7 +67,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-wave3-ml5-readiness-probe|20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets|20260621T-ml-wave3-ml5-readiness-post-onnx-runtime)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave3-ml5-readiness-probe|20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets|(20260621T-ml-wave3-ml5-readiness-post-onnx-runtime|20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading))\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         }

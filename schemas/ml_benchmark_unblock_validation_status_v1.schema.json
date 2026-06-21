@@ -83,7 +83,8 @@
             {"pattern": "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go\\.json$"},
             {"pattern": "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go\\.json$"},
             {"pattern": "20260621T-ml-wave2-ml2-ml3-agent-smoke-post-onnx-runtime-go-no-go\\.json$"},
-            {"pattern": "20260621T-ml-wave2-ml2-ml3-agent-smoke-local-inference-go-no-go\\.json$"}
+            {"pattern": "20260621T-ml-wave2-ml2-ml3-agent-smoke-local-inference-go-no-go\\.json$"},
+            {"pattern": "20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading-go-no-go\\.json$"}
           ]
         },
         "ml2_ml3_agent_smoke_go_no_go_validation": {"enum": ["jsonschema+built-in", "built-in"]},

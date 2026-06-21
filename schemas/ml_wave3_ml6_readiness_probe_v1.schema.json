@@ -25,8 +25,8 @@
       "required": ["status_ref", "wave2_ml1_readiness_ref", "wave3_ml5_readiness_ref", "ml1_report", "model_contract", "model_card", "vx_inventory", "holdout_outcomes", "launcher"],
       "properties": {
         "status_ref": {"type": "string", "minLength": 1},
-        "wave2_ml1_readiness_ref": {"type": "string", "pattern": "(20260604T-ml-wave2-ml1-readiness-probe|20260620T2055Z-ml-wave2-ml1-readiness-master-packets|20260621T-ml-wave2-ml1-readiness-post-onnx-runtime)\\.json$"},
-        "wave3_ml5_readiness_ref": {"type": "string", "pattern": "(20260604T-ml-wave3-ml5-readiness-probe|20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets|20260621T-ml-wave3-ml5-readiness-post-onnx-runtime)\\.json$"},
+        "wave2_ml1_readiness_ref": {"type": "string", "pattern": "(20260604T-ml-wave2-ml1-readiness-probe|20260620T2055Z-ml-wave2-ml1-readiness-master-packets|(20260621T-ml-wave2-ml1-readiness-post-onnx-runtime|20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading))\\.json$"},
+        "wave3_ml5_readiness_ref": {"type": "string", "pattern": "(20260604T-ml-wave3-ml5-readiness-probe|20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets|(20260621T-ml-wave3-ml5-readiness-post-onnx-runtime|20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading))\\.json$"},
         "ml1_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml1\\.json$"},
         "model_contract": {"type": "string", "pattern": "ml-prod-candidate-v1-model-contract\\.json$"},
         "model_card": {"type": "string", "pattern": "ml-prod-candidate-v1-model-card\\.md$"},
@@ -59,9 +59,9 @@
       "properties": {
         "execution_status": {"type": "string", "pattern": "20260604T-ml-execution-status\\.json$"},
         "execution_status_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
-        "wave2_ml1_readiness": {"type": "string", "pattern": "(20260604T-ml-wave2-ml1-readiness-probe|20260620T2055Z-ml-wave2-ml1-readiness-master-packets|20260621T-ml-wave2-ml1-readiness-post-onnx-runtime)\\.json$"},
+        "wave2_ml1_readiness": {"type": "string", "pattern": "(20260604T-ml-wave2-ml1-readiness-probe|20260620T2055Z-ml-wave2-ml1-readiness-master-packets|(20260621T-ml-wave2-ml1-readiness-post-onnx-runtime|20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading))\\.json$"},
         "wave2_ml1_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
-        "wave3_ml5_readiness": {"type": "string", "pattern": "(20260604T-ml-wave3-ml5-readiness-probe|20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets|20260621T-ml-wave3-ml5-readiness-post-onnx-runtime)\\.json$"},
+        "wave3_ml5_readiness": {"type": "string", "pattern": "(20260604T-ml-wave3-ml5-readiness-probe|20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets|(20260621T-ml-wave3-ml5-readiness-post-onnx-runtime|20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading))\\.json$"},
         "wave3_ml5_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
         "ml1_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml1\\.json$"},
         "ml1_report_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed", "missing"]},

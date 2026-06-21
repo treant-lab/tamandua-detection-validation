@@ -97,6 +97,7 @@ CANONICAL_WAVE2_ML1_READINESS_SUFFIXES = (
     "20260604T-ml-wave2-ml1-readiness-probe.json",
     "20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json",
     "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading.json",
 )
 ML_UNBLOCK_QUEUE_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_unblock_queue_consistency_v1.schema.json"
 ML_UNBLOCK_HANDOFF_BUNDLE_SCHEMA = ROOT / "schemas/ml_unblock_handoff_bundle_v1.schema.json"
@@ -1922,6 +1923,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260621T0020Z-ml-platform-readiness-command-packet-blockers.json",
             "20260621T-ml-platform-readiness-post-readiness-refresh.json",
             "20260621T-ml-platform-readiness-post-onnx-runtime.json",
+ "20260621T-ml-platform-readiness-post-win-template-gate-threading.json",
         ),
         "wave1_operator_handoff_index": ("20260604T-ml-wave1-operator-handoff-index.json",),
         "wave1_guarded_run_command_packet": ("20260604T-ml-wave1-guarded-run-command-packet.json",),
@@ -9778,6 +9780,7 @@ def validate_wave2_ml1_readiness(data: dict[str, Any], path: Path) -> None:
         "20260604T-ml-execution-master-handoff.json",
         "20260620T2045Z-ml-execution-master-handoff-actionability-packets.json",
         "20260621T-ml-execution-master-handoff-post-onnx-runtime.json",
+        "20260621T-ml-execution-master-handoff-post-win-template-gate-threading.json",
     )
     if not str(configuration["ml_execution_master_handoff_ref"]).endswith(accepted_master_handoffs):
         raise ContractError(f"{path}.configuration.ml_execution_master_handoff_ref: must reference canonical master handoff")
@@ -10173,6 +10176,7 @@ def validate_wave2_ml1_operator_go_no_go_summary(data: dict[str, Any], path: Pat
     accepted_wave2_ml1_readiness = (
         "20260604T-ml-wave2-ml1-readiness-probe.json",
         "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading.json",
     )
     if not str(source["wave2_ml1_readiness"]).endswith(accepted_wave2_ml1_readiness):
         raise ContractError(f"{path}.source.wave2_ml1_readiness: must reference canonical Wave 2 ML-1 readiness")
@@ -11073,6 +11077,7 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
         "20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening.json",
         "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
         "20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading.json",
     )
     if not str(source["wave2_ml2_ml3_readiness"]).endswith(valid_readiness_suffixes):
         raise ContractError(f"{path}.source.wave2_ml2_ml3_readiness: must reference canonical ML-2/ML-3 readiness")
@@ -11899,7 +11904,11 @@ def validate_wave2_ml4_operator_go_no_go_summary(data: dict[str, Any], path: Pat
         raise ContractError(f"{path}.source.wave1_acceptance_checklist: must reference canonical Wave 1 acceptance checklist")
     if source["wave1_acceptance_checklist_validation"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source.wave1_acceptance_checklist_validation: invalid validation mode")
-    if not str(source["wave2_ml4_readiness"]).endswith("20260604T-ml-wave2-ml4-readiness-probe.json"):
+    accepted_wave2_ml4_readiness = (
+        "20260604T-ml-wave2-ml4-readiness-probe.json",
+        "20260621T-ml-wave2-ml4-readiness-post-win-template-gate-threading.json",
+    )
+    if not str(source["wave2_ml4_readiness"]).endswith(accepted_wave2_ml4_readiness):
         raise ContractError(f"{path}.source.wave2_ml4_readiness: must reference canonical ML-4 readiness")
     if source["wave2_ml4_readiness_validation"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source.wave2_ml4_readiness_validation: invalid validation mode")
@@ -11926,7 +11935,7 @@ def validate_wave2_ml4_operator_go_no_go_summary(data: dict[str, Any], path: Pat
     }
     expected_source_suffixes = {
         "wave1_acceptance_checklist": "20260604T-ml-wave1-acceptance-checklist.json",
-        "wave2_ml4_readiness": "20260604T-ml-wave2-ml4-readiness-probe.json",
+        "wave2_ml4_readiness": accepted_wave2_ml4_readiness,
     }
     if set(source_hashes) != set(expected_source_hash_paths):
         raise ContractError(f"{path}.source_artifact_hashes: must contain exactly the ML-4 source artifacts")
@@ -12251,12 +12260,14 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
         "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
         "20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading.json",
     )
     if not str(configuration["wave2_ml2_ml3_readiness_ref"]).endswith(accepted_ml2_ml3_readiness_suffixes):
         raise ContractError(f"{path}.configuration.wave2_ml2_ml3_readiness_ref: must reference canonical ML-2/ML-3 readiness")
     accepted_ml4_readiness_suffixes = (
         "20260604T-ml-wave2-ml4-readiness-probe.json",
         "20260621T-ml-wave2-ml4-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave2-ml4-readiness-post-win-template-gate-threading.json",
     )
     if not str(configuration["wave2_ml4_readiness_ref"]).endswith(accepted_ml4_readiness_suffixes):
         raise ContractError(f"{path}.configuration.wave2_ml4_readiness_ref: must reference canonical ML-4 readiness")
@@ -12680,6 +12691,7 @@ def validate_wave3_ml5_operator_go_no_go_summary(data: dict[str, Any], path: Pat
         "20260604T-ml-wave3-ml5-readiness-probe.json",
         "20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
         "20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading.json",
     )
     if not any(str(source["wave3_ml5_readiness"]).endswith(suffix) for suffix in allowed_ml5_readiness_suffixes):
         raise ContractError(f"{path}.source.wave3_ml5_readiness: must reference canonical ML-5 readiness")
@@ -13036,6 +13048,7 @@ def validate_wave3_ml6_operator_go_no_go_summary(data: dict[str, Any], path: Pat
         "20260604T-ml-wave3-ml6-readiness-probe.json",
         "20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.json",
         "20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave3-ml6-readiness-post-win-template-gate-threading.json",
     )
     if not any(str(source["wave3_ml6_readiness"]).endswith(suffix) for suffix in allowed_ml6_readiness_suffixes):
         raise ContractError(f"{path}.source.wave3_ml6_readiness: must reference canonical ML-6 readiness")
@@ -13400,11 +13413,13 @@ def validate_wave3_ml6_readiness(data: dict[str, Any], path: Path) -> None:
             "20260604T-ml-wave2-ml1-readiness-probe.json",
             "20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json",
             "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading.json",
         ),
         "wave3_ml5_readiness_ref": (
             "20260604T-ml-wave3-ml5-readiness-probe.json",
             "20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
             "20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading.json",
         ),
         "ml1_report": "ml-prod-candidate-v1-ml1.json",
         "model_contract": "ml-prod-candidate-v1-model-contract.json",
@@ -13784,25 +13799,30 @@ def validate_ml_platform_readiness_audit(data: dict[str, Any], path: Path) -> No
             "20260604T-ml-wave2-ml1-readiness-probe.json",
             "20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json",
             "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading.json",
         ),
         "wave2_ml2_ml3_readiness": (
             "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
             "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
             "20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading.json",
         ),
         "wave2_ml4_readiness": (
             "20260604T-ml-wave2-ml4-readiness-probe.json",
             "20260621T-ml-wave2-ml4-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave2-ml4-readiness-post-win-template-gate-threading.json",
         ),
         "wave3_ml5_readiness": (
             "20260604T-ml-wave3-ml5-readiness-probe.json",
             "20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
             "20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading.json",
         ),
         "wave3_ml6_readiness": (
             "20260604T-ml-wave3-ml6-readiness-probe.json",
             "20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.json",
             "20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json",
+ "20260621T-ml-wave3-ml6-readiness-post-win-template-gate-threading.json",
         ),
     }
     require_keys(readiness_inputs, set(required_input_refs), f"{path}.source.readiness_inputs")
@@ -15676,6 +15696,7 @@ def validate_ml_benchmark_unblock_queue(data: dict[str, Any], path: Path) -> Non
         "20260604T-ml-platform-readiness-audit.json",
         "20260621T0020Z-ml-platform-readiness-command-packet-blockers.json",
         "20260621T-ml-platform-readiness-post-onnx-runtime.json",
+ "20260621T-ml-platform-readiness-post-win-template-gate-threading.json",
     )
     if not str(source["ml_platform_readiness_audit"]).endswith(accepted_platform_readiness_audits):
         raise ContractError(f"{path}.source.ml_platform_readiness_audit: must reference canonical ML platform readiness audit")
@@ -16800,6 +16821,7 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
         "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go.json",
         "20260621T-ml-wave2-ml2-ml3-agent-smoke-post-onnx-runtime-go-no-go.json",
         "20260621T-ml-wave2-ml2-ml3-agent-smoke-local-inference-go-no-go.json",
+        "20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading-go-no-go.json",
     )
     if not str(packet_coverage["ml2_ml3_agent_smoke_go_no_go"]).endswith(accepted_ml2_ml3_agent_smoke_packets):
         raise ContractError(

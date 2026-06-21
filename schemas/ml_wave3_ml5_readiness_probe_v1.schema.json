@@ -30,14 +30,14 @@
           "anyOf": [
             {"pattern": "20260604T-ml-wave2-ml2-ml3-readiness-probe\\.json$"},
             {"pattern": "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets\\.json$"},
-            {"pattern": "20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime\\.json$"}
+            {"pattern": "(20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime|20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading)\\.json$"}
           ]
         },
         "wave2_ml4_readiness_ref": {
           "type": "string",
           "anyOf": [
             {"pattern": "20260604T-ml-wave2-ml4-readiness-probe\\.json$"},
-            {"pattern": "20260621T-ml-wave2-ml4-readiness-post-onnx-runtime\\.json$"}
+            {"pattern": "(20260621T-ml-wave2-ml4-readiness-post-onnx-runtime|20260621T-ml-wave2-ml4-readiness-post-win-template-gate-threading)\\.json$"}
           ]
         },
         "ml1_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml1\\.json$"},
@@ -83,7 +83,7 @@
           "anyOf": [
             {"pattern": "20260604T-ml-wave2-ml2-ml3-readiness-probe\\.json$"},
             {"pattern": "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets\\.json$"},
-            {"pattern": "20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime\\.json$"}
+            {"pattern": "(20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime|20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading)\\.json$"}
           ]
         },
         "wave2_ml2_ml3_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
@@ -91,7 +91,7 @@
           "type": "string",
           "anyOf": [
             {"pattern": "20260604T-ml-wave2-ml4-readiness-probe\\.json$"},
-            {"pattern": "20260621T-ml-wave2-ml4-readiness-post-onnx-runtime\\.json$"}
+            {"pattern": "(20260621T-ml-wave2-ml4-readiness-post-onnx-runtime|20260621T-ml-wave2-ml4-readiness-post-win-template-gate-threading)\\.json$"}
           ]
         },
         "wave2_ml4_readiness_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed"]},
