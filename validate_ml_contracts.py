@@ -11068,6 +11068,7 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
         "20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
         "20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening.json",
         "20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets.json",
+        "20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime.json",
     )
     if not str(source["wave2_ml2_ml3_readiness"]).endswith(valid_readiness_suffixes):
         raise ContractError(f"{path}.source.wave2_ml2_ml3_readiness: must reference canonical ML-2/ML-3 readiness")
@@ -11076,6 +11077,7 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
     valid_ml3_agent_smoke_suffixes = (
         "20260620T-ml3-agent-parity-with-win-template.json",
         "20260621T-ml3-agent-onnx-parity-smoke-post-staging-clean.json",
+        "20260621T-ml3-agent-parity-with-win-template-local-inference.json",
     )
     agent_smoke_source_path: Path | None = None
     agent_smoke_report: dict[str, Any] | None = None
@@ -11242,6 +11244,17 @@ def validate_wave2_ml2_ml3_operator_go_no_go_summary(data: dict[str, Any], path:
             raise ContractError(f"{path}.agent_smoke_context.smoke_agent_side_evidence_win_template_attached: must be true")
         if "cannot satisfy" not in str(agent_smoke_context.get("production_boundary_reason", "")):
             raise ContractError(f"{path}.agent_smoke_context.production_boundary_reason: must reject production unblock")
+        if str(agent_smoke_context["path"]).endswith("20260621T-ml3-agent-parity-with-win-template-local-inference.json"):
+            if str(agent_smoke_context.get("win_template_local_inference_status", "")) != "completed":
+                raise ContractError(f"{path}.agent_smoke_context.win_template_local_inference_status: must record completed local inference")
+            if str(agent_smoke_context.get("win_template_production_gate_impact", "")) != "no_go_for_detection_claims":
+                raise ContractError(f"{path}.agent_smoke_context.win_template_production_gate_impact: must keep detection claims gated")
+            fp_ids = require_array(
+                agent_smoke_context.get("win_template_false_positive_candidate_sample_ids", []),
+                f"{path}.agent_smoke_context.win_template_false_positive_candidate_sample_ids",
+            )
+            if int(agent_smoke_context.get("win_template_false_positive_candidate_count", 0)) != len(fp_ids):
+                raise ContractError(f"{path}.agent_smoke_context.win_template_false_positive_candidate_count: must match sample ids")
     else:
         if agent_smoke_context["validation"] != "missing":
             raise ContractError(f"{path}.agent_smoke_context.validation: absent smoke report must be missing")
@@ -12219,7 +12232,10 @@ def validate_wave3_ml5_readiness(data: dict[str, Any], path: Path) -> None:
         "model_contract": "ml-prod-candidate-v1-model-contract.json",
         "model_card": "ml-prod-candidate-v1-model-card.md",
         "ml3_report": "ml-prod-candidate-v1-ml3-agent-parity.json",
-        "ml3_agent_side_evidence": "20260620T-ml3-agent-parity-with-win-template.json",
+        "ml3_agent_side_evidence": (
+            "20260620T-ml3-agent-parity-with-win-template.json",
+            "20260621T-ml3-agent-parity-with-win-template-local-inference.json",
+        ),
         "ml4_report": "ml-prod-candidate-v1-ml4-api.json",
         "replay_outcomes": "ml-prod-candidate-v1-ml5-replay-outcomes.json",
         "launcher": "wave_3_ml5_pipeline_launcher.ps1",

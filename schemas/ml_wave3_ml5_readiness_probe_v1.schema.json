@@ -44,7 +44,7 @@
         "model_contract": {"type": "string", "pattern": "ml-prod-candidate-v1-model-contract\\.json$"},
         "model_card": {"type": "string", "pattern": "ml-prod-candidate-v1-model-card\\.md$"},
         "ml3_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml3-agent-parity\\.json$"},
-        "ml3_agent_side_evidence": {"type": "string", "pattern": "20260620T-ml3-agent-parity-with-win-template\\.json$"},
+        "ml3_agent_side_evidence": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|20260621T-ml3-agent-parity-with-win-template-local-inference)\\.json$"},
         "ml4_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml4-api\\.json$"},
         "replay_outcomes": {"type": "string", "pattern": "ml-prod-candidate-v1-ml5-replay-outcomes\\.json$"},
         "launcher": {"type": "string", "pattern": "wave_3_ml5_pipeline_launcher\\.ps1$"}
@@ -102,7 +102,7 @@
         "ml1_model_card": {"type": "string", "pattern": "ml-prod-candidate-v1-model-card\\.md$"},
         "ml3_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml3-agent-parity\\.json$"},
         "ml3_report_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed", "missing"]},
-        "ml3_agent_side_evidence": {"type": "string", "pattern": "20260620T-ml3-agent-parity-with-win-template\\.json$"},
+        "ml3_agent_side_evidence": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|20260621T-ml3-agent-parity-with-win-template-local-inference)\\.json$"},
         "ml3_agent_side_evidence_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed", "missing"]},
         "ml4_report": {"type": "string", "pattern": "ml-prod-candidate-v1-ml4-api\\.json$"},
         "ml4_report_validation": {"type": "string", "enum": ["jsonschema+built-in", "failed", "missing"]},

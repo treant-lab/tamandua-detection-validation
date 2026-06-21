@@ -42,9 +42,9 @@
       "properties": {
         "wave1_acceptance_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-acceptance-checklist\\.json$"},
         "wave1_acceptance_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "wave2_ml2_ml3_readiness": {"type": "string", "pattern": "(20260604T-ml-wave2-ml2-ml3-readiness-probe|20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening|20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets)\\.json$"},
+        "wave2_ml2_ml3_readiness": {"type": "string", "pattern": "(20260604T-ml-wave2-ml2-ml3-readiness-probe|20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening|20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets|20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime)\\.json$"},
         "wave2_ml2_ml3_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "ml3_agent_smoke_report": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|20260621T-ml3-agent-onnx-parity-smoke-post-staging-clean|missing)\\.json$"},
+        "ml3_agent_smoke_report": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|20260621T-ml3-agent-onnx-parity-smoke-post-staging-clean|20260621T-ml3-agent-parity-with-win-template-local-inference|missing)\\.json$"},
         "ml3_agent_smoke_report_validation": {"enum": ["jsonschema+built-in", "built-in", "missing"]}
       }
     },
@@ -70,7 +70,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-wave2-ml2-ml3-readiness-probe|20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening|20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave2-ml2-ml3-readiness-probe|20260620T-ml-wave2-ml2-ml3-readiness-post-secret-hardening|20260620T2105Z-ml-wave2-ml2-ml3-readiness-ml1-packets|20260621T-ml-wave2-ml2-ml3-readiness-post-onnx-runtime)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -79,7 +79,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|20260621T-ml3-agent-onnx-parity-smoke-post-staging-clean)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260620T-ml3-agent-parity-with-win-template|20260621T-ml3-agent-onnx-parity-smoke-post-staging-clean|20260621T-ml3-agent-parity-with-win-template-local-inference)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         }
@@ -143,6 +143,10 @@
         "smoke_agent_side_evidence_quality_gate_passed": {"type": "boolean"},
         "smoke_agent_side_evidence_win_template_attached": {"type": "boolean"},
         "smoke_agent_side_evidence_unblocks_production": {"const": false},
+        "win_template_local_inference_status": {"type": "string"},
+        "win_template_false_positive_candidate_count": {"type": "integer", "minimum": 0},
+        "win_template_false_positive_candidate_sample_ids": {"type": "array", "items": {"type": "string"}},
+        "win_template_production_gate_impact": {"type": "string"},
         "claim_boundary": {"type": "string", "minLength": 10},
         "production_boundary_reason": {"type": "string", "minLength": 10}
       }

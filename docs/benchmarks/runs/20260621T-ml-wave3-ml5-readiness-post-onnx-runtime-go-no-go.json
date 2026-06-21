@@ -3,7 +3,7 @@
   "kind": "MLWave3ML5OperatorGoNoGoSummary",
   "metadata": {
     "report_id": "20260621T_ml_wave3_ml5_readiness_post_onnx_runtime_go_no_go",
-    "generated_at": "2026-06-21T04:30:25.997059+00:00",
+    "generated_at": "2026-06-21T05:00:27.664462+00:00",
     "created_by": "tamandua-ml-wave3-ml5-operator-go-no-go-summary",
     "claim_boundary": "No-execution ML-5 operator go/no-go summary only. It consolidates existing pipeline replay readiness evidence and does not set guards, build fixtures, run replay benchmarks, run inference, train models, or contact live services."
   },
@@ -20,7 +20,7 @@
     },
     "wave3_ml5_readiness": {
       "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json",
-      "sha256": "573536fccbde71014fb5b13c1014ab4ec3f1a268261e51463f9abdbc41b00d20"
+      "sha256": "fc71c1235c6b67551c4aba3f4a3e8cc34567b23314fcd13b2f29ff40a976e8b8"
     }
   },
   "operator_decision": {

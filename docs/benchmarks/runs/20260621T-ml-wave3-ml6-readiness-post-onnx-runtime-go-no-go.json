@@ -3,7 +3,7 @@
   "kind": "MLWave3ML6OperatorGoNoGoSummary",
   "metadata": {
     "report_id": "20260621T_ml_wave3_ml6_readiness_post_onnx_runtime_go_no_go",
-    "generated_at": "2026-06-21T04:30:26.163416+00:00",
+    "generated_at": "2026-06-21T05:00:28.376243+00:00",
     "created_by": "tamandua-ml-wave3-ml6-operator-go-no-go-summary",
     "claim_boundary": "No-execution ML-6 operator go/no-go summary only. It consolidates existing holdout readiness evidence and does not set guards, build fixtures, run holdout benchmarks, run inference, train models, or contact live services."
   },
@@ -20,7 +20,7 @@
     },
     "wave3_ml6_readiness": {
       "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json",
-      "sha256": "965a14da03e5e65ab4dfd7d7d3f9ddf149f0a189751b1c49e28edf97cfd7c6d5"
+      "sha256": "3afc2074ee82c3d5bf9dca45899d2fab638fcdd94c7b35eae665fc35a347a01b"
     }
   },
   "operator_decision": {
