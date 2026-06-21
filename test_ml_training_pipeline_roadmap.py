@@ -121,32 +121,35 @@ def test_ml_training_pipeline_roadmap_uses_current_post_403_virusshare_next_step
     assert "download_production_dataset.py" in next_step
 
 
-def test_ml_validation_queue_uses_current_governed_next_step() -> None:
+def test_ml_validation_queue_uses_current_post_403_virusshare_next_step() -> None:
     text = read(NEXT_VALIDATION_QUEUE)
 
-    assert "20260621T-ml-next-action-post-win-template-gate-threading-governed.run.json" in text
-    assert "20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json" in text
+    assert "20260621T-ml-wave1-source-decision-post-malwarebazaar-403.json" in text
+    assert "20260621T-ml-next-action-post-malwarebazaar-403-virusshare-lab-root.run.json" in text
+    assert "20260621T-ml-next-gate-authorization-post-malwarebazaar-403-virusshare-lab-root.json" in text
+    assert "20260621T-ml-next-operator-post-malwarebazaar-403-virusshare-lab-root-packet.json" in text
     assert "shell execution: none" not in text
-    assert "wave_1_real_acquisition_launcher.ps1 -Execute" in text
-    assert "TAMANDUA_MALWAREBAZAAR_AUTH_KEY" in text
-    assert "authorized_for_guarded_execution=true" in text
-    assert "malwarebazaar_governed_acquisition" in text
+    assert "blocked:set_required_env:VIRUSSHARE_API_KEY" in text
+    assert "wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute" in text
+    assert "VIRUSSHARE_API_KEY" in text
+    assert "authorized_for_guarded_execution=false" in text
+    assert "VirusShare fallback" in text
     assert "Direct `download_production_dataset.py`" in text
     assert "invocation is not valid production evidence for this Wave 1 route" in text
 
     current_intro = text.split("For the ML platform execution queue", 1)[1]
     current_intro = current_intro.split("The current pre-lab sweep also", 1)[0]
     assert "20260604T-ml-prelab-next-action-validation.run.json" not in current_intro
-    assert "selected action is now\n`ml_data_virusshare_fallback`" not in current_intro
+    assert "post-WIN-TEMPLATE MalwareBazaar-governed packet\nare historical or superseded evidence" in current_intro
 
 
 def test_ml_publication_benchmark_handoff_uses_current_hold_and_operator_packet() -> None:
     text = read(PUBLICATION_BENCHMARK_HANDOFF)
 
     assert "20260621T-ml-mirror-publication-post-lab-root-sync.json" in text
-    assert "20260621T-ml-next-operator-post-win-template-gate-threading-packet.json" in text
-    assert "ready_for_guarded_execution=true" in text
-    assert "TAMANDUA_MALWAREBAZAAR_AUTH_KEY" in text
+    assert "20260621T-ml-next-operator-post-malwarebazaar-403-virusshare-lab-root-packet.json" in text
+    assert "ready_for_guarded_execution=false" in text
+    assert "VIRUSSHARE_API_KEY" in text
     assert "hold_do_not_push" in text
     assert "20260621T-ml-mirror-publication-after-roadmap-hash-refresh.json" not in text
 
@@ -161,16 +164,16 @@ def test_ml_post_acquisition_dry_run_uses_current_lab_root() -> None:
     assert "missing_operator_transcript" in text
 
 
-def test_parallel_execution_board_uses_current_governed_next_step() -> None:
+def test_parallel_execution_board_uses_current_post_403_virusshare_next_step() -> None:
     text = read(PARALLEL_EXECUTION_BOARD)
     active_work = text.split("## Current Active Work", 1)[1]
     active_work = active_work.split("The synthetic validation-only transition probe", 1)[0]
 
-    assert "20260621T-ml-next-action-post-win-template-gate-threading-governed.run.json" in active_work
-    assert "wave_1_real_acquisition_launcher.ps1 -Execute" in active_work
-    assert "TAMANDUA_MALWAREBAZAAR_AUTH_KEY" in active_work
-    assert "malwarebazaar_governed_acquisition" in active_work
-    assert "not the current execute path" in active_work
+    assert "20260621T-ml-next-action-post-malwarebazaar-403-virusshare-lab-root.run.json" in active_work
+    assert "blocked:set_required_env:VIRUSSHARE_API_KEY" in active_work
+    assert "wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute" in active_work
+    assert "VIRUSSHARE_API_KEY" in active_work
+    assert "superseded route evidence, not the current execute path" in active_work
     assert "20260604T-ml-prelab-next-action-validation.run.json` are historical" in active_work
     assert "Only `20260604T-ml-prelab-next-action-validation.run.json` is the current" not in active_work
 
@@ -183,9 +186,9 @@ def test_ml_training_pipeline_roadmap_is_linked_from_operator_docs() -> None:
 
 def test_operator_docs_route_real_acquisition_through_guarded_launcher() -> None:
     guarded_fragments = [
-        "wave_1_real_acquisition_launcher.ps1",
+        "wave_1_virusshare_fallback_acquisition_launcher.ps1",
         "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
-        "TAMANDUA_MALWAREBAZAAR_AUTH_KEY",
+        "VIRUSSHARE_API_KEY",
     ]
     for path in [RUNBOOK, DATASET_GUIDE, DATASET_QUICKSTART, SCRIPTS_README, TRAINING_QUICKSTART]:
         text = read(path)
@@ -195,8 +198,8 @@ def test_operator_docs_route_real_acquisition_through_guarded_launcher() -> None
     runbook = read(RUNBOOK)
     normalized_runbook = re.sub(r"\s+", " ", runbook)
     assert "safe_commands" in runbook
-    assert "20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json" in runbook
-    assert "authorized_for_guarded_execution=true" in runbook
+    assert "20260621T-ml-next-gate-authorization-post-malwarebazaar-403-virusshare-lab-root.json" in runbook
+    assert "authorized_for_guarded_execution=false" in runbook
     assert "direct `download_production_dataset.py` invocation" in runbook
     assert "dry-run command" in normalized_runbook
     assert "validation-only launchers" in normalized_runbook
@@ -234,15 +237,15 @@ def test_ml_operator_docs_do_not_present_malwarebazaar_launcher_as_current() -> 
     training_quickstart = read(TRAINING_QUICKSTART)
 
     assert "20260620T2320Z-ml-next-action-secret-readiness.json" in benchmark_plan
-    assert "20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json" in benchmark_plan
-    assert "authorized_for_guarded_execution=true" in benchmark_plan
-    assert "VirusShare evidence is fallback-only" in benchmark_plan
+    assert "20260621T-ml-next-gate-authorization-post-malwarebazaar-403-virusshare-lab-root.json" in benchmark_plan
+    assert "authorized_for_guarded_execution=false" in benchmark_plan
+    assert "set_required_env` for `VIRUSSHARE_API_KEY" in benchmark_plan
     assert "20260620T-ml-next-action-virusshare-source-aware.json" in benchmark_plan
 
-    assert "20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json" in platform_plan
-    assert "authorized_for_guarded_execution=true" in platform_plan
-    assert "effective_source_route=malwarebazaar_governed_acquisition" in platform_plan
-    assert "It must stay\n  `authorized_for_guarded_execution=false`" not in platform_plan
+    assert "20260621T-ml-next-gate-authorization-post-malwarebazaar-403-virusshare-lab-root.json" in platform_plan
+    assert "authorized_for_guarded_execution=false" in platform_plan
+    assert "effective_source_route=virusshare_fallback" in platform_plan
+    assert "post-WIN-TEMPLATE MalwareBazaar-governed packet as historical route evidence" in platform_plan
 
     assert "no-execution env remediation" in training_quickstart
     assert "does not invoke PowerShell or a guarded launcher" in training_quickstart
