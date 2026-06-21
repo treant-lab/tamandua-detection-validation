@@ -95,7 +95,7 @@ def test_ml_training_pipeline_roadmap_lists_all_completion_requirements() -> Non
         assert requirement_id in text
 
 
-def test_ml_training_pipeline_roadmap_uses_current_governed_next_step() -> None:
+def test_ml_training_pipeline_roadmap_uses_current_post_403_virusshare_next_step() -> None:
     text = read(ROADMAP)
     next_step = text.split("## Next Operator Step", 1)[1]
 
@@ -106,13 +106,18 @@ def test_ml_training_pipeline_roadmap_uses_current_governed_next_step() -> None:
     assert "20260621T-ml-mirror-publication-post-lab-root-sync.json" in text
     assert "tamandua-ml` staging is clean at local snapshot `c294885` with 731 tracked" in text
     assert "20260620T2320Z-ml-next-action-secret-readiness.json" in text
-    assert "20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json" in text
-    assert "launch_package" in text
-    assert "authorized_for_guarded_execution=true" in text
-    assert "effective_source_route=malwarebazaar_governed_acquisition" in text
+    assert "20260621T-ml-wave1-source-decision-post-malwarebazaar-403.json" in text
+    assert "20260621T-ml-next-action-post-malwarebazaar-403-virusshare-lab-root.run.json" in text
+    assert "20260621T-ml-next-gate-authorization-post-malwarebazaar-403-virusshare-lab-root.json" in text
+    assert "20260621T-ml-next-operator-post-malwarebazaar-403-virusshare-lab-root-packet.json" in text
+    assert "set_required_env" in text
+    assert "authorized_for_guarded_execution=false" in text
+    assert "effective_source_route=virusshare_fallback" in text
+    assert "source_auth.env=VIRUSSHARE_API_KEY" in text
     assert "hold_do_not_push" in text
-    assert "older secret-readiness and source-aware\n  VirusShare packets remain historical or conditional fallback evidence" in text
-    assert "wave_1_real_acquisition_launcher.ps1" in next_step
+    assert "post-win-template-gate-threading-governed` MalwareBazaar packet is retained\n  as historical evidence" in text
+    assert "wave_1_virusshare_fallback_readiness_launcher.ps1" in next_step
+    assert "wave_1_virusshare_fallback_acquisition_launcher.ps1 -Execute" in next_step
     assert "download_production_dataset.py" in next_step
 
 
