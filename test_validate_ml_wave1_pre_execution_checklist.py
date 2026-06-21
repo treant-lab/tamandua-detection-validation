@@ -20,7 +20,7 @@ except ImportError:
     ROOT = Path(__file__).resolve().parents[2]
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
-CANONICAL = ROOT / "docs" / "benchmarks" / "runs" / "20260604T-ml-wave1-pre-execution-checklist.json"
+CANONICAL = ROOT / "docs" / "benchmarks" / "runs" / "20260621T-ml-wave1-pre-execution-checklist-post-lab-root.json"
 
 
 def test_validate_wave1_pre_execution_checklist_accepts_jsonschema_path() -> None:

@@ -47,7 +47,7 @@
         "selected_route_effective"
       ],
       "properties": {
-        "pre_execution_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
+        "pre_execution_checklist": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-lab-root)\\.json$"},
         "pre_execution_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "source_decision": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"},
         "selected_route_input": {"enum": ["source_decision", "malwarebazaar_primary", "virusshare_fallback"]},
@@ -64,7 +64,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260604T-ml-wave1-pre-execution-checklist\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave1-pre-execution-checklist|20260621T-ml-wave1-pre-execution-checklist-post-lab-root)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },

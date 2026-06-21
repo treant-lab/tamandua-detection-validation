@@ -338,9 +338,9 @@ EXECUTION_PLAN_LAUNCHER_GUARDS = {
         "--resume",
         "--yes",
         "--wave1-execute-guard docs\\benchmarks\\runs\\20260604T-ml-wave1-execute-guard-probe.json",
-        "--wave1-pre-execution-checklist docs\\benchmarks\\runs\\20260604T-ml-wave1-pre-execution-checklist.json",
+        "--wave1-pre-execution-checklist docs\\benchmarks\\runs\\20260621T-ml-wave1-pre-execution-checklist-post-lab-root.json",
         "--wave1-guarded-run-command-packet docs\\benchmarks\\runs\\20260604T-ml-wave1-guarded-run-command-packet.json",
-        "--next-action-run docs\\benchmarks\\runs\\20260604T-ml-prelab-next-action-validation.run.json",
+        "--next-action-run docs\\benchmarks\\runs\\20260621T-ml-next-action-post-lab-root-governed.run.json",
         "Wave 1 guarded-run command packet is not ready; refusing real acquisition.",
         "Wave 1 guarded-run command packet execute command does not match operator go/no-go summary.",
         "Wave 1 guarded-run command packet acquisition command does not match launcher command.",
@@ -24296,6 +24296,7 @@ def validate_wave1_pre_execution_checklist(data: dict[str, Any], path: Path) -> 
         "20260604T-ml-next-gate-authorization-packet.json",
         "20260621T0310Z-ml-next-gate-authorization-governed-ready.json",
         "20260621T-ml-next-gate-authorization-post-readiness-refresh-governed.json",
+        "20260621T-ml-next-gate-authorization-post-lab-root-governed.json",
     )
     if not str(source["authorization_packet"]).endswith(accepted_authorization_packets):
         raise ContractError(f"{path}.source.authorization_packet: must reference next gate authorization packet")
@@ -24757,7 +24758,11 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
         },
         f"{path}.source",
     )
-    if not str(source["pre_execution_checklist"]).endswith("20260604T-ml-wave1-pre-execution-checklist.json"):
+    accepted_pre_execution_checklists = (
+        "20260604T-ml-wave1-pre-execution-checklist.json",
+        "20260621T-ml-wave1-pre-execution-checklist-post-lab-root.json",
+    )
+    if not str(source["pre_execution_checklist"]).endswith(accepted_pre_execution_checklists):
         raise ContractError(f"{path}.source.pre_execution_checklist: must reference canonical Wave 1 pre-execution checklist")
     if source["pre_execution_checklist_validation"] not in {"jsonschema+built-in", "built-in"}:
         raise ContractError(f"{path}.source.pre_execution_checklist_validation: invalid validation mode")
@@ -24775,7 +24780,7 @@ def validate_wave1_execution_environment_preflight(data: dict[str, Any], path: P
         {"path", "sha256"},
         f"{path}.source_artifact_hashes.pre_execution_checklist",
     )
-    if not str(checklist_hash["path"]).endswith("20260604T-ml-wave1-pre-execution-checklist.json"):
+    if not str(checklist_hash["path"]).endswith(accepted_pre_execution_checklists):
         raise ContractError(f"{path}.source_artifact_hashes.pre_execution_checklist.path: must match source artifact")
     if str(checklist_hash["sha256"]) != hashlib.sha256(checklist_path.read_bytes()).hexdigest():
         raise ContractError(f"{path}.source_artifact_hashes.pre_execution_checklist.sha256: must match current artifact")

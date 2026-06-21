@@ -41,7 +41,7 @@
       "properties": {
         "authorization_packet": {
           "type": "string",
-          "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed)\\.json$"
+          "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed|20260621T-ml-next-gate-authorization-post-lab-root-governed)\\.json$"
         },
         "authorization_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "lab_run_intake": {"type": "string", "pattern": "20260604T-ml-wave1-lab-run-intake\\.json$"},
@@ -60,7 +60,7 @@
           "properties": {
             "path": {
               "type": "string",
-              "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed)\\.json$"
+              "pattern": "(20260604T-ml-next-gate-authorization-packet|20260621T0310Z-ml-next-gate-authorization-governed-ready|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed|20260621T-ml-next-gate-authorization-post-lab-root-governed)\\.json$"
             },
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
