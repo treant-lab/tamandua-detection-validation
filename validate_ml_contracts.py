@@ -3944,6 +3944,39 @@ def validate_next_action_run_status_freshness(
     if action.get("package_id") == "ml_data_virusshare_fallback":
         if mode != "validation_only":
             raise ContractError(f"{path}.mode: VirusShare fallback next-action evidence must be validation_only")
+        if action.get("action_type") in {"set_required_env", "fix_required_env"}:
+            env_name = str(action.get("env", ""))
+            if env_name != "VIRUSSHARE_API_KEY":
+                raise ContractError(f"{path}.action.env: VirusShare fallback env remediation must target VIRUSSHARE_API_KEY")
+            expected_command = f"blocked:{action['action_type']}:{env_name}"
+            if command != expected_command:
+                raise ContractError(f"{path}.command: VirusShare fallback env remediation must use {expected_command}")
+            env_by_name = {
+                str(item["name"]): require_object(item, f"{path}.env_snapshot.status_required_env[{index}]")
+                for index, item in enumerate(
+                    require_array(
+                        require_object(data["env_snapshot"], f"{path}.env_snapshot")["status_required_env"],
+                        f"{path}.env_snapshot.status_required_env",
+                    )
+                )
+            }
+            if "VIRUSSHARE_API_KEY" not in env_by_name or env_by_name["VIRUSSHARE_API_KEY"].get("present") is not False:
+                raise ContractError(f"{path}.env_snapshot.status_required_env: VirusShare fallback env remediation must record missing API key")
+            status_path = resolve_report_path(str(data["status_ref"]), path.parent)
+            status = load_json(status_path)
+            validate_execution_status(status, status_path)
+            matching_actions = [
+                require_object(action_value, f"{status_path}.next_actions[{index}]")
+                for index, action_value in enumerate(require_array(status.get("next_actions"), f"{status_path}.next_actions"))
+                if isinstance(action_value, dict) and action_value.get("priority") == action["priority"]
+            ]
+            if not matching_actions:
+                raise ContractError(f"{path}.action.priority: not present in status_ref next_actions")
+            status_action = matching_actions[0]
+            for field in ("action_type", "package_id", "wave", "execute_guard_env", "env"):
+                if status_action.get(field) != action.get(field):
+                    raise ContractError(f"{path}.action.{field}: must match status_ref next_actions priority {action['priority']}")
+            return
         if "wave_1_virusshare_fallback_readiness_launcher.ps1" not in command:
             raise ContractError(f"{path}.command: VirusShare fallback validation must select readiness launcher")
         if action.get("execute_guard_env") != "TAMANDUA_ALLOW_ML_REAL_ACQUISITION":
@@ -23578,6 +23611,9 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         or str(source["next_action_validation_run"]).endswith(
             "20260621T-ml-next-action-post-lab-root-governed.run.json"
         )
+        or str(source["next_action_validation_run"]).endswith(
+            "20260621T-ml-next-action-post-malwarebazaar-403-virusshare-lab-root.run.json"
+        )
     ):
         raise ContractError(f"{path}.source.next_action_validation_run: must reference canonical next-action validation run")
     if not str(source["transcript_template"]).endswith("20260604T-ml-wave1-real-acquisition-transcript.template.json"):
@@ -23623,7 +23659,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         "operator_roadmap": (operator_roadmap_path, "docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP.md"),
     }
     if source_decision_path is not None:
-        expected_source_hashes["source_decision"] = (source_decision_path, "20260620T-ml-wave1-source-decision-secret-hardened.json")
+        expected_source_hashes["source_decision"] = (source_decision_path, Path(str(source_decision_path)).name)
     if virusshare_fallback_packet_path is not None:
         expected_source_hashes["virusshare_fallback_packet"] = (
             virusshare_fallback_packet_path,
@@ -23958,7 +23994,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         raise ContractError(f"{path}.source_status_summary.execute_command_has_execute: must match authorization")
     if summary["execute_guard_env"] != authorization["execute_guard_env"]:
         raise ContractError(f"{path}.source_status_summary.execute_guard_env: must match authorization")
-    if summary["operator_launch_brief_guard_commands_preserved"] is not True:
+    if authorization["action_type"] == "launch_package" and summary["operator_launch_brief_guard_commands_preserved"] is not True:
         raise ContractError(f"{path}.source_status_summary.operator_launch_brief_guard_commands_preserved: must be true")
     if bool(summary["goal_complete"]) is not False or summary["completion_state"] not in {"not_executed", "partial_evidence"}:
         raise ContractError(f"{path}.source_status_summary: authorization packet must not claim goal completion")
@@ -24100,13 +24136,15 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
     ]
     if has_platform_alignment:
         expected_next_action_safety_fields.append("data_root_outside_repo")
-    expected_next_action_safety_passed = all(
-        next_action_safety.get(field) is True
-        for field in expected_next_action_safety_fields
-    )
+    expected_next_action_safety_passed = all(next_action_safety.get(field) is True for field in expected_next_action_safety_fields)
+    if authorization["action_type"] in {"set_required_env", "fix_required_env"}:
+        expected_next_action_ready = False
+        expected_next_action_safety_passed = False
     validation_summary_expectations = {
         "next_action_validation_run_ready": expected_next_action_ready,
-        "next_action_validation_run_returncode": 0,
+        "next_action_validation_run_returncode": (
+            None if authorization["action_type"] in {"set_required_env", "fix_required_env"} else 0
+        ),
         "next_action_validation_run_guard_absent": (
             not isinstance(next_action_guard_snapshot, dict)
             or next_action_guard_snapshot.get("present") is False
@@ -24167,13 +24205,17 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         raise ContractError(f"{path}.operator_sequence[1].command: must match authorization execute command")
     if "TAMANDUA_ALLOW_ML_REAL_ACQUISITION=1" in str(execute_step["command"]):
         raise ContractError(f"{path}.operator_sequence[1].command: execute command must not inline guard assignment")
-    if str(execute_step["guard_set_command"]) != "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = '1'":
+    if authorization["action_type"] == "launch_package" and str(execute_step["guard_set_command"]) != "$env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION = '1'":
         raise ContractError(f"{path}.operator_sequence[1].guard_set_command: must set real acquisition guard separately")
-    if not source_aware_virusshare_fallback and str(execute_step["guard_set_command"]) != str(brief_execute_step.get("guard_set_command", "")):
+    if (
+        authorization["action_type"] == "launch_package"
+        and not source_aware_virusshare_fallback
+        and str(execute_step["guard_set_command"]) != str(brief_execute_step.get("guard_set_command", ""))
+    ):
         raise ContractError(f"{path}.operator_sequence[1].guard_set_command: must match operator launch brief execute guard")
     execute_required_env = require_object(execute_step["required_env"], f"{path}.operator_sequence[1].required_env")
     brief_execute_required_env = require_object(brief_execute_step.get("required_env"), f"{brief_path}.operator_sequence.execute.required_env")
-    if execute_required_env.get("TAMANDUA_ALLOW_ML_REAL_ACQUISITION") != "1":
+    if authorization["action_type"] == "launch_package" and execute_required_env.get("TAMANDUA_ALLOW_ML_REAL_ACQUISITION") != "1":
         raise ContractError(f"{path}.operator_sequence[1].required_env: must require real acquisition guard")
     expected_execute_data_root = str(brief_config_paths["data_root"])
     if source_aware_virusshare_fallback and virusshare_fallback_packet_path is not None:
@@ -24187,19 +24229,23 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         prefix = "$env:TAMANDUA_ML_DATA_ROOT = '"
         if fallback_data_root_command.startswith(prefix) and fallback_data_root_command.endswith("'"):
             expected_execute_data_root = fallback_data_root_command[len(prefix) : -1]
-    if str(execute_required_env.get("TAMANDUA_ML_DATA_ROOT")) != expected_execute_data_root:
+    if authorization["action_type"] == "launch_package" and str(execute_required_env.get("TAMANDUA_ML_DATA_ROOT")) != expected_execute_data_root:
         raise ContractError(f"{path}.operator_sequence[1].required_env: must require operator launch brief data root")
-    if source_aware_virusshare_fallback:
+    if authorization["action_type"] == "launch_package" and source_aware_virusshare_fallback:
         if execute_required_env.get("VIRUSSHARE_API_KEY") != "<from isolated lab secret store>":
             raise ContractError(f"{path}.operator_sequence[1].required_env: must require VirusShare API key placeholder")
-    elif execute_required_env != brief_execute_required_env:
+    elif authorization["action_type"] == "launch_package" and execute_required_env != brief_execute_required_env:
         raise ContractError(f"{path}.operator_sequence[1].required_env: must match operator launch brief execute required_env")
-    if "Remove-Item Env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION -ErrorAction SilentlyContinue" not in str(execute_step["guard_cleanup_command"]):
+    if (
+        authorization["action_type"] == "launch_package"
+        and "Remove-Item Env:TAMANDUA_ALLOW_ML_REAL_ACQUISITION -ErrorAction SilentlyContinue"
+        not in str(execute_step["guard_cleanup_command"])
+    ):
         raise ContractError(f"{path}.operator_sequence[1].guard_cleanup_command: must remove real acquisition guard")
-    if source_aware_virusshare_fallback:
+    if authorization["action_type"] == "launch_package" and source_aware_virusshare_fallback:
         if "Remove-Item Env:VIRUSSHARE_API_KEY -ErrorAction SilentlyContinue" not in str(execute_step["guard_cleanup_command"]):
             raise ContractError(f"{path}.operator_sequence[1].guard_cleanup_command: must remove VirusShare API key")
-    elif str(execute_step["guard_cleanup_command"]) != str(brief_execute_step.get("guard_cleanup_command", "")):
+    elif authorization["action_type"] == "launch_package" and str(execute_step["guard_cleanup_command"]) != str(brief_execute_step.get("guard_cleanup_command", "")):
         raise ContractError(f"{path}.operator_sequence[1].guard_cleanup_command: must match operator launch brief execute cleanup")
 
     post_sequence = [

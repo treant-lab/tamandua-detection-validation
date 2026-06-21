@@ -54,14 +54,14 @@
         "master_handoff_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "operator_launch_brief": {"type": "string", "pattern": "20260604T-ml-wave1-operator-launch-brief\\.json$"},
         "operator_launch_brief_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "next_action_validation_run": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware|20260620T2320Z-ml-next-action-secret-readiness|20260621T0035Z-ml-next-action-platform-aligned\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run|20260621T0300Z-ml-next-action-governed-lab-root\\.run|20260621T-ml-next-action-post-readiness-refresh-governed\\.run|20260621T-ml-next-action-post-platform-onnx-runtime-governed\\.run|20260621T-ml-next-action-post-win-template-gate-threading-governed\\.run|20260621T-ml-next-action-post-lab-root-governed\\.run)\\.json$"},
+        "next_action_validation_run": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware|20260620T2320Z-ml-next-action-secret-readiness|20260621T0035Z-ml-next-action-platform-aligned\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run|20260621T0300Z-ml-next-action-governed-lab-root\\.run|20260621T-ml-next-action-post-readiness-refresh-governed\\.run|20260621T-ml-next-action-post-platform-onnx-runtime-governed\\.run|20260621T-ml-next-action-post-win-template-gate-threading-governed\\.run|20260621T-ml-next-action-post-lab-root-governed\\.run|20260621T-ml-next-action-post-malwarebazaar-403-virusshare-lab-root\\.run)\\.json$"},
         "next_action_validation_run_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "transcript_template": {"type": "string", "pattern": "20260604T-ml-wave1-real-acquisition-transcript\\.template\\.json$"},
         "transcript_template_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "goal_snapshot": {"type": "string", "pattern": "(20260604T-ml-goal-snapshot|20260621T-ml-goal-snapshot-post-onnx-runtime|20260621T-ml-goal-snapshot-post-platform-onnx-runtime|20260621T-ml-goal-snapshot-post-win-template-gate-threading)\\.json$"},
         "goal_snapshot_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "operator_roadmap": {"type": "string", "pattern": "docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP\\.md$|docs\\\\benchmarks\\\\ML_TRAINING_PIPELINE_ROADMAP\\.md$"},
-        "source_decision": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"},
+        "source_decision": {"type": "string", "pattern": "(20260620T-ml-wave1-source-decision-secret-hardened|20260621T-ml-wave1-source-decision-post-malwarebazaar-403)\\.json$"},
         "virusshare_fallback_packet": {"type": "string", "pattern": "20260618T-ml-virusshare-fallback-command-packet\\.json$"}
       }
     },
@@ -100,7 +100,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware|20260620T2320Z-ml-next-action-secret-readiness|20260621T0035Z-ml-next-action-platform-aligned\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run|20260621T0300Z-ml-next-action-governed-lab-root\\.run|20260621T-ml-next-action-post-readiness-refresh-governed\\.run|20260621T-ml-next-action-post-platform-onnx-runtime-governed\\.run|20260621T-ml-next-action-post-win-template-gate-threading-governed\\.run|20260621T-ml-next-action-post-lab-root-governed\\.run)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-prelab-next-action-validation\\.run|20260620T-ml-next-action-virusshare-source-aware|20260620T2320Z-ml-next-action-secret-readiness|20260621T0035Z-ml-next-action-platform-aligned\\.run|20260621T0110Z-ml-next-action-platform-aligned-lab-root\\.run|20260621T0300Z-ml-next-action-governed-lab-root\\.run|20260621T-ml-next-action-post-readiness-refresh-governed\\.run|20260621T-ml-next-action-post-platform-onnx-runtime-governed\\.run|20260621T-ml-next-action-post-win-template-gate-threading-governed\\.run|20260621T-ml-next-action-post-lab-root-governed\\.run|20260621T-ml-next-action-post-malwarebazaar-403-virusshare-lab-root\\.run)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -136,7 +136,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "20260620T-ml-wave1-source-decision-secret-hardened\\.json$"},
+            "path": {"type": "string", "pattern": "(20260620T-ml-wave1-source-decision-secret-hardened|20260621T-ml-wave1-source-decision-post-malwarebazaar-403)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         },
@@ -338,7 +338,7 @@
         "transcript_capture_helper_command_count": {"type": "integer", "minimum": 16},
         "transcript_capture_requires_guard_env": {"const": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"},
         "transcript_capture_requires_vx_download_guard_unset": {"const": "TAMANDUA_ALLOW_VX_UNDERGROUND_DOWNLOAD"},
-        "operator_launch_brief_guard_commands_preserved": {"const": true},
+        "operator_launch_brief_guard_commands_preserved": {"type": "boolean"},
         "goal_complete": {"type": "boolean"},
         "completion_state": {"enum": ["not_executed", "partial_evidence", "complete"]},
         "goal_missing_requirements": {"type": "integer", "minimum": 0, "maximum": 10},
@@ -426,13 +426,13 @@
         "properties": {
           "step": {"type": "integer", "minimum": 1, "maximum": 2},
           "mode": {"enum": ["validation_only", "guarded_execute"]},
-          "guard_set_command": {"type": "string", "minLength": 1},
+          "guard_set_command": {"type": "string"},
           "command": {"type": "string", "minLength": 1},
           "required_env": {
             "type": "object",
             "additionalProperties": {"type": "string"}
           },
-          "guard_cleanup_command": {"type": "string", "minLength": 1},
+          "guard_cleanup_command": {"type": "string"},
           "claim_boundary": {"type": "string", "minLength": 10}
         }
       }

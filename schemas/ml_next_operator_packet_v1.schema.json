@@ -35,7 +35,7 @@
     },
     "source_authorization_packet": {
       "type": "string",
-      "pattern": "(20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware|20260620T2345Z-ml-next-gate-authorization-secret-readiness|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed|20260621T-ml-next-gate-authorization-post-onnx-runtime-governed|20260621T-ml-next-gate-authorization-post-platform-onnx-runtime-governed|20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed|20260621T-ml-next-gate-authorization-post-lab-root-governed)\\.json$"
+      "pattern": "(20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware|20260620T2345Z-ml-next-gate-authorization-secret-readiness|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed|20260621T-ml-next-gate-authorization-post-onnx-runtime-governed|20260621T-ml-next-gate-authorization-post-platform-onnx-runtime-governed|20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed|20260621T-ml-next-gate-authorization-post-lab-root-governed|20260621T-ml-next-gate-authorization-post-malwarebazaar-403-virusshare-lab-root)\\.json$"
     },
     "operator_decision": {
       "type": "object",

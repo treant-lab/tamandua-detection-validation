@@ -43,6 +43,7 @@
         "package_id": {"type": "string", "pattern": "^ml[a-z0-9_]+$"},
         "wave": {"type": "integer", "minimum": 0},
         "execute_guard_env": {"type": ["string", "null"], "pattern": "^TAMANDUA_ALLOW_[A-Z0-9_]+$"},
+        "env": {"type": "string", "pattern": "^(TAMANDUA_[A-Z0-9_]+|VIRUSSHARE_API_KEY)$"},
         "source_decision_status": {"type": "string", "minLength": 1},
         "source_decision_ref": {"type": "string", "minLength": 1},
         "required_env": {
