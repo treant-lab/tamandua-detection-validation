@@ -30,6 +30,7 @@ POST_MIRROR_PUBLISH = (
     / "runs"
     / "20260621T-ml-execution-master-handoff-post-mirror-publish.json"
 )
+POST_LAB_ROOT = ROOT / "docs" / "benchmarks" / "runs" / "20260621T-ml-execution-master-handoff-post-lab-root.json"
 
 
 def test_validate_ml_execution_master_handoff_accepts_jsonschema_path() -> None:
@@ -43,6 +44,15 @@ def test_validate_ml_execution_master_handoff_accepts_post_mirror_publish_path()
         pytest.skip("post mirror publish handoff has not been generated")
 
     mode = validate_contract(POST_MIRROR_PUBLISH, ML_EXECUTION_MASTER_HANDOFF_SCHEMA, validate_ml_execution_master_handoff)
+
+    assert mode == "jsonschema+built-in"
+
+
+def test_validate_ml_execution_master_handoff_accepts_post_lab_root_path() -> None:
+    if not POST_LAB_ROOT.exists():
+        pytest.skip("post lab root handoff has not been generated")
+
+    mode = validate_contract(POST_LAB_ROOT, ML_EXECUTION_MASTER_HANDOFF_SCHEMA, validate_ml_execution_master_handoff)
 
     assert mode == "jsonschema+built-in"
 

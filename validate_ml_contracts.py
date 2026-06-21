@@ -2062,6 +2062,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
         "execution_status": (
             "20260604T-ml-execution-status.json",
             "20260621T-ml-execution-status-post-mirror-publish.json",
+            "20260621T-ml-execution-status-post-lab-root.json",
         ),
         "parallel_work_packages": ("20260604T-ml-parallel-work-packages.json",),
         "platform_readiness_audit": (
@@ -2080,6 +2081,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260621T-ml-benchmark-critical-path-post-onnx-runtime.json",
             "20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.json",
             "20260621T-ml-benchmark-critical-path-post-mirror-publish.json",
+            "20260621T-ml-benchmark-critical-path-post-lab-root.json",
         ),
         "benchmark_actionability_audit": (
             "20260604T-ml-benchmark-actionability-audit.json",
@@ -2096,6 +2098,7 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
             "20260621T-ml-next-action-post-platform-onnx-runtime-governed.run.json",
             "20260621T-ml-next-action-post-win-template-gate-threading-governed.run.json",
+            "20260621T-ml-next-action-post-lab-root-governed.run.json",
         ),
     }
     for field, suffixes in expected_refs.items():
@@ -2300,11 +2303,12 @@ def validate_ml_execution_master_handoff(data: dict[str, Any], path: Path) -> No
             "20260604T-ml-prelab-next-action-validation.run.json",
             "20260621T0110Z-ml-next-action-platform-aligned-lab-root.run.json",
             "20260621T0300Z-ml-next-action-governed-lab-root.run.json",
-            "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
-            "20260621T-ml-next-action-post-platform-onnx-runtime-governed.run.json",
-            "20260621T-ml-next-action-post-win-template-gate-threading-governed.run.json",
-        )
-    ):
+                "20260621T-ml-next-action-post-readiness-refresh-governed.run.json",
+                "20260621T-ml-next-action-post-platform-onnx-runtime-governed.run.json",
+                "20260621T-ml-next-action-post-win-template-gate-threading-governed.run.json",
+                "20260621T-ml-next-action-post-lab-root-governed.run.json",
+            )
+        ):
         raise ContractError(f"{path}.next_gate.validation_run_evidence.artifact: must reference canonical validation run")
     if str(validation_evidence["artifact"]) != str(source["next_action_validation_run"]):
         raise ContractError(f"{path}.next_gate.validation_run_evidence.artifact: must match source")
@@ -14375,6 +14379,7 @@ def validate_ml_parallel_work_packages(data: dict[str, Any], path: Path) -> None
         "20260621T-ml-execution-master-handoff-post-onnx-runtime.json",
         "20260621T-ml-execution-master-handoff-post-platform-onnx-runtime.json",
         "20260621T-ml-execution-master-handoff-post-win-template-gate-threading.json",
+        "20260621T-ml-execution-master-handoff-post-lab-root.json",
     )
     if not str(source["master_handoff"]).endswith(accepted_next_gate_master_handoffs):
         raise ContractError(f"{path}.source.master_handoff: must reference canonical master handoff")
@@ -23503,6 +23508,7 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         "20260621T-ml-execution-master-handoff-post-onnx-runtime.json",
         "20260621T-ml-execution-master-handoff-post-platform-onnx-runtime.json",
         "20260621T-ml-execution-master-handoff-post-win-template-gate-threading.json",
+        "20260621T-ml-execution-master-handoff-post-lab-root.json",
     )
     if not str(source["master_handoff"]).endswith(accepted_next_gate_master_handoffs):
         raise ContractError(f"{path}.source.master_handoff: must reference canonical master handoff")
@@ -23523,6 +23529,9 @@ def validate_ml_next_gate_authorization_packet(data: dict[str, Any], path: Path)
         )
         or str(source["next_action_validation_run"]).endswith(
             "20260621T-ml-next-action-post-win-template-gate-threading-governed.run.json"
+        )
+        or str(source["next_action_validation_run"]).endswith(
+            "20260621T-ml-next-action-post-lab-root-governed.run.json"
         )
     ):
         raise ContractError(f"{path}.source.next_action_validation_run: must reference canonical next-action validation run")
