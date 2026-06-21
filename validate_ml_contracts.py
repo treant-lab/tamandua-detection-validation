@@ -95,6 +95,7 @@ ML_UNBLOCK_QUEUE_SCHEMA = ROOT / "schemas/ml_unblock_queue_v1.schema.json"
 CANONICAL_WAVE2_ML1_READINESS_SUFFIXES = (
     "20260604T-ml-wave2-ml1-readiness-probe.json",
     "20260620T2055Z-ml-wave2-ml1-readiness-master-packets.json",
+    "20260621T-ml-wave2-ml1-readiness-post-onnx-runtime.json",
 )
 ML_UNBLOCK_QUEUE_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_unblock_queue_consistency_v1.schema.json"
 ML_UNBLOCK_HANDOFF_BUNDLE_SCHEMA = ROOT / "schemas/ml_unblock_handoff_bundle_v1.schema.json"
