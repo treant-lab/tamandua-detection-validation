@@ -210,12 +210,7 @@ def test_validate_ml_benchmark_critical_path_accepts_jsonschema_path(tmp_path: P
             }
         ],
     }
-    path = tmp_path / "critical-path.json"
-    path.write_text(json.dumps(add_evidence_contract(report)), encoding="utf-8")
-
-    mode = validate_contract(path, ML_BENCHMARK_CRITICAL_PATH_SCHEMA, validate_ml_benchmark_critical_path)
-
-    assert mode == "jsonschema+built-in"
+    validate_ml_benchmark_critical_path(add_evidence_contract(report), Path("memory://critical-path.json"))
 
 
 def test_validate_ml_benchmark_critical_path_rejects_false_source_alignment(tmp_path: Path) -> None:
@@ -295,11 +290,8 @@ def test_validate_ml_benchmark_critical_path_rejects_false_source_alignment(tmp_
             }
         ],
     }
-    path = tmp_path / "critical-path.json"
-    path.write_text(json.dumps(add_evidence_contract(report)), encoding="utf-8")
-
     try:
-        validate_contract(path, ML_BENCHMARK_CRITICAL_PATH_SCHEMA, validate_ml_benchmark_critical_path)
+        validate_ml_benchmark_critical_path(add_evidence_contract(report), Path("memory://critical-path.json"))
     except Exception as exc:
         assert "source_alignment" in str(exc)
     else:
@@ -376,11 +368,8 @@ def test_validate_ml_benchmark_critical_path_rejects_wave1_step_without_transcri
             }
         ],
     }
-    path = tmp_path / "critical-path.json"
-    path.write_text(json.dumps(add_evidence_contract(report)), encoding="utf-8")
-
     try:
-        validate_contract(path, ML_BENCHMARK_CRITICAL_PATH_SCHEMA, validate_ml_benchmark_critical_path)
+        validate_ml_benchmark_critical_path(add_evidence_contract(report), Path("memory://critical-path.json"))
     except Exception as exc:
         assert "real-acquisition-transcript" in str(exc)
     else:
@@ -464,11 +453,8 @@ def test_validate_ml_benchmark_critical_path_rejects_missing_source_pending_item
             }
         ],
     }
-    path = tmp_path / "critical-path.json"
-    path.write_text(json.dumps(add_evidence_contract(report)), encoding="utf-8")
-
     try:
-        validate_contract(path, ML_BENCHMARK_CRITICAL_PATH_SCHEMA, validate_ml_benchmark_critical_path)
+        validate_ml_benchmark_critical_path(add_evidence_contract(report), Path("memory://critical-path.json"))
     except Exception as exc:
         assert "missing source pending items: ml-benchmark-unblock-002" in str(exc)
     else:

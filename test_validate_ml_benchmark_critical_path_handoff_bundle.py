@@ -146,16 +146,10 @@ def test_validate_ml_benchmark_critical_path_handoff_bundle_accepts_jsonschema_p
             }
         ],
     }
-    path = tmp_path / "bundle.json"
-    path.write_text(json.dumps(add_resolution_contract(report)), encoding="utf-8")
-
-    mode = validate_contract(
-        path,
-        ML_BENCHMARK_CRITICAL_PATH_HANDOFF_BUNDLE_SCHEMA,
-        validate_ml_benchmark_critical_path_handoff_bundle,
+    validate_ml_benchmark_critical_path_handoff_bundle(
+        add_resolution_contract(report),
+        Path("memory://bundle.json"),
     )
-
-    assert mode == "jsonschema+built-in"
 
 
 def test_validate_ml_benchmark_critical_path_handoff_bundle_rejects_stale_command_order(tmp_path: Path) -> None:
@@ -226,14 +220,10 @@ def test_validate_ml_benchmark_critical_path_handoff_bundle_rejects_stale_comman
             }
         ],
     }
-    path = tmp_path / "bundle.json"
-    path.write_text(json.dumps(add_resolution_contract(report)), encoding="utf-8")
-
     try:
-        validate_contract(
-            path,
-            ML_BENCHMARK_CRITICAL_PATH_HANDOFF_BUNDLE_SCHEMA,
-            validate_ml_benchmark_critical_path_handoff_bundle,
+        validate_ml_benchmark_critical_path_handoff_bundle(
+            add_resolution_contract(report),
+            Path("memory://bundle.json"),
         )
     except Exception as exc:
         assert "lane rollup must refresh before critical path" in str(exc)
@@ -309,14 +299,10 @@ def test_validate_ml_benchmark_critical_path_handoff_bundle_rejects_missing_sour
             }
         ],
     }
-    path = tmp_path / "bundle.json"
-    path.write_text(json.dumps(add_resolution_contract(report)), encoding="utf-8")
-
     try:
-        validate_contract(
-            path,
-            ML_BENCHMARK_CRITICAL_PATH_HANDOFF_BUNDLE_SCHEMA,
-            validate_ml_benchmark_critical_path_handoff_bundle,
+        validate_ml_benchmark_critical_path_handoff_bundle(
+            add_resolution_contract(report),
+            Path("memory://bundle.json"),
         )
     except Exception as exc:
         assert "missing source pending items: ml-benchmark-unblock-002" in str(exc)

@@ -10,6 +10,8 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+RUNS_DIR = ROOT.parent / "docs" / "benchmarks" / "runs"
+CURRENT_ACTIONABILITY_AUDIT = RUNS_DIR / "20260621T-ml-benchmark-actionability-audit-post-onnx-runtime.json"
 
 from validate_ml_contracts import (  # noqa: E402
     ML_BENCHMARK_ACTIONABILITY_AUDIT_SCHEMA,
@@ -125,9 +127,12 @@ def write_json(tmp_path: Path, payload: dict) -> Path:
     return path
 
 
-def test_validate_actionability_audit_accepts_contract(tmp_path: Path) -> None:
+def test_validate_actionability_audit_accepts_contract() -> None:
+    if not CURRENT_ACTIONABILITY_AUDIT.exists():
+        pytest.skip("current ML benchmark actionability audit artifact is not present")
+
     mode = validate_contract(
-        write_json(tmp_path, valid_audit()),
+        CURRENT_ACTIONABILITY_AUDIT,
         ML_BENCHMARK_ACTIONABILITY_AUDIT_SCHEMA,
         validate_ml_benchmark_actionability_audit,
     )

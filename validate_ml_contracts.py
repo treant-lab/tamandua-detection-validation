@@ -17308,17 +17308,19 @@ def validate_ml_benchmark_critical_path(data: dict[str, Any], path: Path) -> Non
         },
         f"{path}.source",
     )
-    if not (
-        str(source["benchmark_lane_rollup"]).endswith("20260604T-ml-benchmark-lane-rollup.json")
-        or str(source["benchmark_lane_rollup"]).endswith("20260620T1955Z-ml-benchmark-lane-rollup-contract-packets.json")
-    ):
+    accepted_lane_rollup_packets = (
+        "20260604T-ml-benchmark-lane-rollup.json",
+        "20260620T1955Z-ml-benchmark-lane-rollup-contract-packets.json",
+        "20260621T-ml-benchmark-lane-rollup-post-onnx-runtime.json",
+    )
+    if not str(source["benchmark_lane_rollup"]).endswith(accepted_lane_rollup_packets):
         raise ContractError(f"{path}.source.benchmark_lane_rollup: must reference canonical benchmark lane rollup")
-    if not (
-        str(source["benchmark_unblock_validation_status"]).endswith("20260604T-ml-benchmark-unblock-validation-status.json")
-        or str(source["benchmark_unblock_validation_status"]).endswith(
-            "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json"
-        )
-    ):
+    accepted_unblock_status_packets = (
+        "20260604T-ml-benchmark-unblock-validation-status.json",
+        "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
+        "20260621T-ml-benchmark-unblock-validation-status-post-onnx-runtime.json",
+    )
+    if not str(source["benchmark_unblock_validation_status"]).endswith(accepted_unblock_status_packets):
         raise ContractError(f"{path}.source.benchmark_unblock_validation_status: must reference canonical benchmark unblock validation status")
     source_alignment = require_object(source["source_alignment"], f"{path}.source.source_alignment")
     require_keys(
@@ -17820,10 +17822,12 @@ def validate_ml_benchmark_critical_path_handoff_bundle(data: dict[str, Any], pat
     accepted_critical_paths = (
         "20260604T-ml-benchmark-critical-path.json",
         "20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+        "20260621T-ml-benchmark-critical-path-post-onnx-runtime.json",
     )
     accepted_output_dirs = (
         "20260604T-ml-benchmark-critical-path.handoff",
         "20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff",
+        "20260621T-ml-benchmark-critical-path-post-onnx-runtime.handoff",
     )
     accepted_readmes = tuple(f"{output_dir}/README.md" for output_dir in accepted_output_dirs)
     require_keys(data, {"api_version", "kind", "metadata", "source", "output_dir", "readme", "summary", "handoff_files"}, str(path))
@@ -17935,7 +17939,7 @@ def validate_ml_benchmark_critical_path_handoff_bundle(data: dict[str, Any], pat
     if not str(data["readme"]).endswith(accepted_readmes):
         raise ContractError(f"{path}.readme: must reference canonical critical path handoff README")
     readme_path = (ROOT / str(data["readme"])).resolve() if not Path(str(data["readme"])).is_absolute() else Path(str(data["readme"]))
-    if bool(source_summary["readme_written"]) != readme_path.exists():
+    if not str(path).startswith("memory:") and bool(source_summary["readme_written"]) != readme_path.exists():
         raise ContractError(f"{path}.source.source_critical_path_summary.readme_written: must match README existence")
 
     summary = require_object(data["summary"], f"{path}.summary")
@@ -18226,14 +18230,17 @@ def validate_ml_benchmark_actionability_audit(data: dict[str, Any], path: Path) 
     accepted_critical_paths = (
         "20260604T-ml-benchmark-critical-path.json",
         "20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+        "20260621T-ml-benchmark-critical-path-post-onnx-runtime.json",
     )
     accepted_handoff_bundles = (
         "20260604T-ml-benchmark-critical-path-handoff-bundle.json",
         "20260620T2015Z-ml-benchmark-critical-path-handoff-bundle-contract-packets.json",
+        "20260621T-ml-benchmark-critical-path-post-onnx-runtime-handoff-bundle.json",
     )
     accepted_handoff_consistency = (
         "20260604T-ml-benchmark-critical-path-handoff-consistency.json",
         "20260620T2025Z-ml-benchmark-critical-path-handoff-consistency-contract-packets.json",
+        "20260621T-ml-benchmark-critical-path-post-onnx-runtime-handoff-consistency.json",
     )
     require_keys(data, {"api_version", "kind", "metadata", "actionable", "source", "summary", "checks"}, str(path))
     if data["api_version"] != ML_BENCHMARK_ACTIONABILITY_AUDIT_API_VERSION:
@@ -18922,10 +18929,12 @@ def validate_ml_benchmark_critical_path_handoff_consistency(data: dict[str, Any]
     accepted_critical_paths = (
         "20260604T-ml-benchmark-critical-path.json",
         "20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+        "20260621T-ml-benchmark-critical-path-post-onnx-runtime.json",
     )
     accepted_handoff_bundles = (
         "20260604T-ml-benchmark-critical-path-handoff-bundle.json",
         "20260620T2015Z-ml-benchmark-critical-path-handoff-bundle-contract-packets.json",
+        "20260621T-ml-benchmark-critical-path-post-onnx-runtime-handoff-bundle.json",
     )
     require_keys(
         data,

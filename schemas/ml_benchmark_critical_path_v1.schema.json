@@ -108,12 +108,12 @@
       "properties": {
         "benchmark_lane_rollup": {
           "type": "string",
-          "pattern": "(20260604T-ml-benchmark-lane-rollup|20260620T1955Z-ml-benchmark-lane-rollup-contract-packets)\\.json$"
+          "pattern": "(20260604T-ml-benchmark-lane-rollup|20260620T1955Z-ml-benchmark-lane-rollup-contract-packets|20260621T-ml-benchmark-lane-rollup-post-onnx-runtime)\\.json$"
         },
         "benchmark_lane_rollup_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "benchmark_unblock_validation_status": {
           "type": "string",
-          "pattern": "(20260604T-ml-benchmark-unblock-validation-status|20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets)\\.json$"
+          "pattern": "(20260604T-ml-benchmark-unblock-validation-status|20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets|20260621T-ml-benchmark-unblock-validation-status-post-onnx-runtime)\\.json$"
         },
         "benchmark_unblock_validation_status_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "source_alignment": {
