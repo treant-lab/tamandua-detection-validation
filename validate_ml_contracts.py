@@ -87,6 +87,7 @@ ML_VIRUSSHARE_FALLBACK_READINESS_SCHEMA = ROOT / "schemas/ml_virusshare_fallback
 ML_VIRUSSHARE_FALLBACK_COMMAND_PACKET_CHECK_SCHEMA = ROOT / "schemas/ml_virusshare_fallback_command_packet_check_v1.schema.json"
 ML_VIRUSSHARE_FALLBACK_TRANSITION_AUDIT_SCHEMA = ROOT / "schemas/ml_virusshare_fallback_transition_audit_v1.schema.json"
 SERVER_FRONTEND_PUBLICATION_AUDIT_SCHEMA = ROOT / "schemas/server_frontend_publication_audit_v1.schema.json"
+SERVER_FRONTEND_DEPLOY_READINESS_SCHEMA = ROOT / "schemas/server_frontend_deploy_readiness_v1.schema.json"
 ML_PARALLEL_WORK_PACKAGES_SCHEMA = ROOT / "schemas/ml_parallel_work_packages_v1.schema.json"
 ML_PARALLEL_HANDOFF_BUNDLE_SCHEMA = ROOT / "schemas/ml_parallel_handoff_bundle_v1.schema.json"
 ML_PARALLEL_HANDOFF_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_parallel_handoff_consistency_v1.schema.json"
@@ -185,6 +186,7 @@ ML_VIRUSSHARE_FALLBACK_READINESS_API_VERSION = "tamandua.io/ml-virusshare-fallba
 ML_VIRUSSHARE_FALLBACK_COMMAND_PACKET_CHECK_API_VERSION = "tamandua.io/ml-virusshare-fallback-command-packet-check/v1"
 ML_VIRUSSHARE_FALLBACK_TRANSITION_AUDIT_API_VERSION = "tamandua.io/ml-virusshare-fallback-transition-audit/v1"
 SERVER_FRONTEND_PUBLICATION_AUDIT_API_VERSION = "tamandua.io/server-frontend-publication-audit/v1"
+SERVER_FRONTEND_DEPLOY_READINESS_API_VERSION = "tamandua.io/server-frontend-deploy-readiness/v1"
 ML_PARALLEL_WORK_PACKAGES_API_VERSION = "tamandua.io/ml-parallel-work-packages/v1"
 ML_PARALLEL_HANDOFF_BUNDLE_API_VERSION = "tamandua.io/ml-parallel-handoff-bundle/v1"
 ML_PARALLEL_HANDOFF_CONSISTENCY_API_VERSION = "tamandua.io/ml-parallel-handoff-consistency/v1"
@@ -18835,6 +18837,80 @@ def validate_server_frontend_publication_audit(data: dict[str, Any], path: Path)
         raise ContractError(f"{path}.summary.local_main: must be a Vite main bundle")
 
 
+def validate_server_frontend_deploy_readiness(data: dict[str, Any], path: Path) -> None:
+    require_keys(data, {"api_version", "kind", "metadata", "source", "summary", "checks"}, str(path))
+    if data["api_version"] != SERVER_FRONTEND_DEPLOY_READINESS_API_VERSION:
+        raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
+    if data["kind"] != "ServerFrontendDeployReadiness":
+        raise ContractError(f"{path}: invalid kind {data['kind']!r}")
+
+    metadata = require_object(data["metadata"], f"{path}.metadata")
+    require_keys(metadata, {"report_id", "generated_at", "created_by", "claim_boundary"}, f"{path}.metadata")
+    if metadata["created_by"] != "server-frontend-deploy-readiness":
+        raise ContractError(f"{path}.metadata.created_by: must identify deploy readiness")
+    boundary = str(metadata["claim_boundary"])
+    for required_phrase in ("No-deploy", "does not copy assets", "restart containers", "SSH/SCP"):
+        if required_phrase not in boundary:
+            raise ContractError(f"{path}.metadata.claim_boundary: missing no-deploy boundary phrase {required_phrase!r}")
+
+    source = require_object(data["source"], f"{path}.source")
+    require_keys(source, {"endpoint", "local_manifest", "deploy_script", "publication_audit"}, f"{path}.source")
+    if not str(source["endpoint"]).startswith(("http://", "https://")):
+        raise ContractError(f"{path}.source.endpoint: must be an HTTP endpoint")
+    if not str(source["local_manifest"]).replace("\\", "/").endswith(
+        "apps/tamandua_server/priv/static/assets/manifest.json"
+    ):
+        raise ContractError(f"{path}.source.local_manifest: must reference server Vite manifest")
+    if not str(source["deploy_script"]).endswith("deploy-tamandua-front-assets-light.ps1"):
+        raise ContractError(f"{path}.source.deploy_script: must reference front-assets deploy script")
+
+    summary = require_object(data["summary"], f"{path}.summary")
+    require_keys(
+        summary,
+        {
+            "ready_for_front_assets_publish",
+            "publish_command",
+            "required_secret_env",
+            "required_secret_present",
+            "local_main",
+            "local_css",
+            "publication_state",
+            "published_matches_local_build",
+            "blockers",
+        },
+        f"{path}.summary",
+    )
+    if summary["required_secret_env"] != "TAMANDUA_LAB_VM_PASSWORD":
+        raise ContractError(f"{path}.summary.required_secret_env: must use lab VM password env")
+    if "deploy-tamandua-front-assets-light.ps1 -NoBuild" not in str(summary["publish_command"]):
+        raise ContractError(f"{path}.summary.publish_command: must use front-assets -NoBuild path")
+    blockers = [str(item) for item in require_array(summary["blockers"], f"{path}.summary.blockers")]
+    ready = bool(summary["ready_for_front_assets_publish"])
+    if ready != (len(blockers) == 0):
+        raise ContractError(f"{path}.summary.ready_for_front_assets_publish: must be false when blockers exist")
+    if not bool(summary["required_secret_present"]) and "lab_password_present" not in blockers:
+        raise ContractError(f"{path}.summary.blockers: missing lab password must block publish")
+    if bool(summary["published_matches_local_build"]) and "runtime_already_matches_local_build" not in blockers:
+        raise ContractError(f"{path}.summary.blockers: already-current runtime must block publish")
+    if not str(summary["local_main"]).startswith("js/main-"):
+        raise ContractError(f"{path}.summary.local_main: must be a Vite main bundle")
+
+    checks = [require_object(item, f"{path}.checks[]") for item in require_array(data["checks"], f"{path}.checks")]
+    check_names = {str(check.get("name")) for check in checks}
+    for required_check in {
+        "deploy_script_present",
+        "local_manifest_present",
+        "local_assets_present",
+        "pscp_present",
+        "plink_present",
+        "tar_present",
+        "lab_password_present",
+        "publication_audit_present",
+    }:
+        if required_check not in check_names:
+            raise ContractError(f"{path}.checks: missing required check {required_check}")
+
+
 def validate_ml_benchmark_critical_path_handoff_consistency(data: dict[str, Any], path: Path) -> None:
     accepted_critical_paths = (
         "20260604T-ml-benchmark-critical-path.json",
@@ -26538,6 +26614,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ml-virusshare-fallback-command-packet-check", type=Path, default=None)
     parser.add_argument("--ml-virusshare-fallback-transition-audit", type=Path, default=None)
     parser.add_argument("--server-frontend-publication-audit", type=Path, default=None)
+    parser.add_argument("--server-frontend-deploy-readiness", type=Path, default=None)
     parser.add_argument("--ml-parallel-work-packages", type=Path, default=None)
     parser.add_argument("--ml-parallel-handoff-bundle", type=Path, default=None)
     parser.add_argument("--ml-parallel-handoff-consistency", type=Path, default=None)
@@ -26992,6 +27069,13 @@ def main() -> int:
                 SERVER_FRONTEND_PUBLICATION_AUDIT_SCHEMA,
                 validate_server_frontend_publication_audit,
             )
+        server_frontend_deploy_readiness_mode = None
+        if args.server_frontend_deploy_readiness is not None:
+            server_frontend_deploy_readiness_mode = validate_contract(
+                args.server_frontend_deploy_readiness,
+                SERVER_FRONTEND_DEPLOY_READINESS_SCHEMA,
+                validate_server_frontend_deploy_readiness,
+            )
         ml_parallel_work_packages_mode = None
         if args.ml_parallel_work_packages is not None:
             ml_parallel_work_packages_mode = validate_contract(
@@ -27315,6 +27399,11 @@ def main() -> int:
         print(
             "validated server frontend publication audit: "
             f"{args.server_frontend_publication_audit} ({server_frontend_publication_audit_mode})"
+        )
+    if server_frontend_deploy_readiness_mode is not None:
+        print(
+            "validated server frontend deploy readiness: "
+            f"{args.server_frontend_deploy_readiness} ({server_frontend_deploy_readiness_mode})"
         )
     if ml_parallel_work_packages_mode is not None:
         print(f"validated ML parallel work packages: {args.ml_parallel_work_packages} ({ml_parallel_work_packages_mode})")

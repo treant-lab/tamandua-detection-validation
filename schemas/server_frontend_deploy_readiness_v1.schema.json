@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/server_frontend_deploy_readiness_v1.schema.json",
+  "title": "Tamandua Server Frontend Deploy Readiness v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "metadata", "source", "summary", "checks"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/server-frontend-deploy-readiness/v1"},
+    "kind": {"const": "ServerFrontendDeployReadiness"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["report_id", "generated_at", "created_by", "claim_boundary"],
+      "properties": {
+        "report_id": {"type": "string", "minLength": 1},
+        "generated_at": {"type": "string", "format": "date-time"},
+        "created_by": {"const": "server-frontend-deploy-readiness"},
+        "claim_boundary": {"type": "string", "minLength": 20}
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["endpoint", "local_manifest", "deploy_script", "publication_audit"],
+      "properties": {
+        "endpoint": {"type": "string", "pattern": "^https?://"},
+        "local_manifest": {"type": "string", "pattern": "apps[\\\\/]tamandua_server[\\\\/]priv[\\\\/]static[\\\\/]assets[\\\\/]manifest\\.json$"},
+        "deploy_script": {"type": "string", "pattern": "deploy-tamandua-front-assets-light\\.ps1$"},
+        "publication_audit": {"type": "string", "pattern": "server-frontend-publication-audit.*\\.json$"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ready_for_front_assets_publish",
+        "publish_command",
+        "required_secret_env",
+        "required_secret_present",
+        "local_main",
+        "local_css",
+        "publication_state",
+        "published_matches_local_build",
+        "blockers"
+      ],
+      "properties": {
+        "ready_for_front_assets_publish": {"type": "boolean"},
+        "publish_command": {"type": "string", "pattern": "deploy-tamandua-front-assets-light\\.ps1 -NoBuild$"},
+        "required_secret_env": {"const": "TAMANDUA_LAB_VM_PASSWORD"},
+        "required_secret_present": {"type": "boolean"},
+        "local_main": {"type": "string", "pattern": "^js/main-.*\\.js$"},
+        "local_css": {"type": "string"},
+        "publication_state": {
+          "enum": ["published_matches_local_build", "published_bundle_differs_from_local_build", "missing_publication_audit"]
+        },
+        "published_matches_local_build": {"type": "boolean"},
+        "blockers": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "passed", "detail"],
+        "properties": {
+          "name": {"type": "string", "minLength": 1},
+          "passed": {"type": "boolean"},
+          "detail": {"type": "string"}
+        }
+      }
+    }
+  }
+}
