@@ -20,7 +20,7 @@ except ImportError:
     ROOT = Path(__file__).resolve().parents[2]
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
-CANONICAL = ROOT / "docs" / "benchmarks" / "runs" / "20260620T2145Z-ml-wave3-ml6-readiness-ml5-packets-go-no-go.json"
+CANONICAL = ROOT / "docs" / "benchmarks" / "runs" / "20260621T-ml-wave3-ml6-readiness-post-onnx-runtime-go-no-go.json"
 
 
 def test_validate_wave3_ml6_operator_go_no_go_summary_accepts_jsonschema_path() -> None:

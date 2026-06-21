@@ -41,7 +41,7 @@
       "properties": {
         "wave1_acceptance_checklist": {"type": "string", "pattern": "20260604T-ml-wave1-acceptance-checklist\\.json$"},
         "wave1_acceptance_checklist_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "wave3_ml6_readiness": {"type": "string", "pattern": "(20260604T-ml-wave3-ml6-readiness-probe|20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets)\\.json$"},
+        "wave3_ml6_readiness": {"type": "string", "pattern": "(20260604T-ml-wave3-ml6-readiness-probe|20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets|20260621T-ml-wave3-ml6-readiness-post-onnx-runtime)\\.json$"},
         "wave3_ml6_readiness_validation": {"enum": ["jsonschema+built-in", "built-in"]}
       }
     },
@@ -64,7 +64,7 @@
           "additionalProperties": false,
           "required": ["path", "sha256"],
           "properties": {
-            "path": {"type": "string", "pattern": "(20260604T-ml-wave3-ml6-readiness-probe|20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets)\\.json$"},
+            "path": {"type": "string", "pattern": "(20260604T-ml-wave3-ml6-readiness-probe|20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets|20260621T-ml-wave3-ml6-readiness-post-onnx-runtime)\\.json$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
           }
         }
@@ -109,9 +109,13 @@
         "ml1_benchmark_report_present",
         "ml1_model_contract_present",
         "ml1_model_contract_valid",
+        "ml1_model_contract_quality_gate_status",
+        "ml1_model_contract_quality_gate_passed",
         "ml1_model_card_present",
         "ml1_model_card_nonempty",
         "ml1_model_card_references_contract",
+        "ml1_model_card_readiness",
+        "ml1_model_card_readiness_production_candidate",
         "training_cutoff_present",
         "training_cutoff_iso8601",
         "vx_inventory_present",
@@ -153,9 +157,13 @@
         "ml1_benchmark_report_present": {"type": "boolean"},
         "ml1_model_contract_present": {"type": "boolean"},
         "ml1_model_contract_valid": {"type": "boolean"},
+        "ml1_model_contract_quality_gate_status": {"type": "string"},
+        "ml1_model_contract_quality_gate_passed": {"type": "boolean"},
         "ml1_model_card_present": {"type": "boolean"},
         "ml1_model_card_nonempty": {"type": "boolean"},
         "ml1_model_card_references_contract": {"type": "boolean"},
+        "ml1_model_card_readiness": {"type": "string"},
+        "ml1_model_card_readiness_production_candidate": {"type": "boolean"},
         "training_cutoff_present": {"type": "boolean"},
         "training_cutoff_iso8601": {"type": "boolean"},
         "vx_inventory_present": {"type": "boolean"},

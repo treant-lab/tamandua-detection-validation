@@ -12505,6 +12505,7 @@ def validate_wave3_ml5_operator_go_no_go_summary(data: dict[str, Any], path: Pat
     allowed_ml5_readiness_suffixes = (
         "20260604T-ml-wave3-ml5-readiness-probe.json",
         "20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
+        "20260621T-ml-wave3-ml5-readiness-post-onnx-runtime.json",
     )
     if not any(str(source["wave3_ml5_readiness"]).endswith(suffix) for suffix in allowed_ml5_readiness_suffixes):
         raise ContractError(f"{path}.source.wave3_ml5_readiness: must reference canonical ML-5 readiness")
@@ -12664,9 +12665,11 @@ def validate_wave3_ml5_operator_go_no_go_summary(data: dict[str, Any], path: Pat
             and readiness_summary["ml5_replay_outcomes_present"] is True
             and readiness_summary["ml1_model_contract_present"] is True
             and readiness_summary["ml1_model_contract_valid"] is True
+            and readiness_summary["ml1_model_contract_quality_gate_passed"] is True
             and readiness_summary["ml1_model_card_present"] is True
             and readiness_summary["ml1_model_card_nonempty"] is True
             and readiness_summary["ml1_model_card_references_contract"] is True
+            and readiness_summary["ml1_model_card_readiness_production_candidate"] is True
         ),
         "pipeline_lab_environment_ready": (
             readiness_summary["wave2_ml2_ml3_ml_lab_standby_guards_unset"] is True
@@ -12709,9 +12712,13 @@ def validate_wave3_ml5_operator_go_no_go_summary(data: dict[str, Any], path: Pat
             "ml1_benchmark_report_present",
             "ml1_model_contract_present",
             "ml1_model_contract_valid",
+            "ml1_model_contract_quality_gate_status",
+            "ml1_model_contract_quality_gate_passed",
             "ml1_model_card_present",
             "ml1_model_card_nonempty",
             "ml1_model_card_references_contract",
+            "ml1_model_card_readiness",
+            "ml1_model_card_readiness_production_candidate",
             "ml3_agent_parity_report_present",
             "ml4_service_report_present",
             "ml5_replay_outcomes_present",
@@ -12751,9 +12758,13 @@ def validate_wave3_ml5_operator_go_no_go_summary(data: dict[str, Any], path: Pat
         "ml1_benchmark_report_present": bool(readiness_summary["ml1_benchmark_report_present"]),
         "ml1_model_contract_present": bool(readiness_summary["ml1_model_contract_present"]),
         "ml1_model_contract_valid": bool(readiness_summary["ml1_model_contract_valid"]),
+        "ml1_model_contract_quality_gate_status": str(readiness_summary["ml1_model_contract_quality_gate_status"]),
+        "ml1_model_contract_quality_gate_passed": bool(readiness_summary["ml1_model_contract_quality_gate_passed"]),
         "ml1_model_card_present": bool(readiness_summary["ml1_model_card_present"]),
         "ml1_model_card_nonempty": bool(readiness_summary["ml1_model_card_nonempty"]),
         "ml1_model_card_references_contract": bool(readiness_summary["ml1_model_card_references_contract"]),
+        "ml1_model_card_readiness": str(readiness_summary["ml1_model_card_readiness"]),
+        "ml1_model_card_readiness_production_candidate": bool(readiness_summary["ml1_model_card_readiness_production_candidate"]),
         "ml3_agent_parity_report_present": bool(readiness_summary["ml3_agent_parity_report_present"]),
         "ml4_service_report_present": bool(readiness_summary["ml4_service_report_present"]),
         "ml5_replay_outcomes_present": bool(readiness_summary["ml5_replay_outcomes_present"]),
@@ -12850,6 +12861,7 @@ def validate_wave3_ml6_operator_go_no_go_summary(data: dict[str, Any], path: Pat
     allowed_ml6_readiness_suffixes = (
         "20260604T-ml-wave3-ml6-readiness-probe.json",
         "20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.json",
+        "20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json",
     )
     if not any(str(source["wave3_ml6_readiness"]).endswith(suffix) for suffix in allowed_ml6_readiness_suffixes):
         raise ContractError(f"{path}.source.wave3_ml6_readiness: must reference canonical ML-6 readiness")
@@ -13009,9 +13021,11 @@ def validate_wave3_ml6_operator_go_no_go_summary(data: dict[str, Any], path: Pat
             and readiness_summary["ml1_benchmark_report_present"] is True
             and readiness_summary["ml1_model_contract_present"] is True
             and readiness_summary["ml1_model_contract_valid"] is True
+            and readiness_summary["ml1_model_contract_quality_gate_passed"] is True
             and readiness_summary["ml1_model_card_present"] is True
             and readiness_summary["ml1_model_card_nonempty"] is True
             and readiness_summary["ml1_model_card_references_contract"] is True
+            and readiness_summary["ml1_model_card_readiness_production_candidate"] is True
         ),
         "holdout_cutoff_ready": (
             readiness_summary["training_cutoff_present"] is True
@@ -13066,9 +13080,13 @@ def validate_wave3_ml6_operator_go_no_go_summary(data: dict[str, Any], path: Pat
             "ml1_benchmark_report_present",
             "ml1_model_contract_present",
             "ml1_model_contract_valid",
+            "ml1_model_contract_quality_gate_status",
+            "ml1_model_contract_quality_gate_passed",
             "ml1_model_card_present",
             "ml1_model_card_nonempty",
             "ml1_model_card_references_contract",
+            "ml1_model_card_readiness",
+            "ml1_model_card_readiness_production_candidate",
             "training_cutoff_present",
             "training_cutoff_iso8601",
             "vx_inventory_present",
@@ -13109,9 +13127,13 @@ def validate_wave3_ml6_operator_go_no_go_summary(data: dict[str, Any], path: Pat
         "ml1_benchmark_report_present": bool(readiness_summary["ml1_benchmark_report_present"]),
         "ml1_model_contract_present": bool(readiness_summary["ml1_model_contract_present"]),
         "ml1_model_contract_valid": bool(readiness_summary["ml1_model_contract_valid"]),
+        "ml1_model_contract_quality_gate_status": str(readiness_summary["ml1_model_contract_quality_gate_status"]),
+        "ml1_model_contract_quality_gate_passed": bool(readiness_summary["ml1_model_contract_quality_gate_passed"]),
         "ml1_model_card_present": bool(readiness_summary["ml1_model_card_present"]),
         "ml1_model_card_nonempty": bool(readiness_summary["ml1_model_card_nonempty"]),
         "ml1_model_card_references_contract": bool(readiness_summary["ml1_model_card_references_contract"]),
+        "ml1_model_card_readiness": str(readiness_summary["ml1_model_card_readiness"]),
+        "ml1_model_card_readiness_production_candidate": bool(readiness_summary["ml1_model_card_readiness_production_candidate"]),
         "training_cutoff_present": bool(readiness_summary["training_cutoff_present"]),
         "training_cutoff_iso8601": bool(readiness_summary["training_cutoff_iso8601"]),
         "vx_inventory_present": bool(readiness_summary["vx_inventory_present"]),

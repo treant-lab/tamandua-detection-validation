@@ -1,0 +1,200 @@
+{
+  "api_version": "tamandua.io/ml-wave3-ml6-operator-go-no-go-summary/v1",
+  "kind": "MLWave3ML6OperatorGoNoGoSummary",
+  "metadata": {
+    "report_id": "20260621T_ml_wave3_ml6_readiness_post_onnx_runtime_go_no_go",
+    "generated_at": "2026-06-21T04:30:26.163416+00:00",
+    "created_by": "tamandua-ml-wave3-ml6-operator-go-no-go-summary",
+    "claim_boundary": "No-execution ML-6 operator go/no-go summary only. It consolidates existing holdout readiness evidence and does not set guards, build fixtures, run holdout benchmarks, run inference, train models, or contact live services."
+  },
+  "source": {
+    "wave1_acceptance_checklist": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json",
+    "wave1_acceptance_checklist_validation": "jsonschema+built-in",
+    "wave3_ml6_readiness": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json",
+    "wave3_ml6_readiness_validation": "jsonschema+built-in"
+  },
+  "source_artifact_hashes": {
+    "wave1_acceptance_checklist": {
+      "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json",
+      "sha256": "cb62a73acdcc4e04c219828e221b58c2ef570f2df116e3f7eeb3cac3f5c3c63f"
+    },
+    "wave3_ml6_readiness": {
+      "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json",
+      "sha256": "965a14da03e5e65ab4dfd7d7d3f9ddf149f0a189751b1c49e28edf97cfd7c6d5"
+    }
+  },
+  "operator_decision": {
+    "ready_for_ml6_holdout_go_no_go": false,
+    "decision": "no_go",
+    "validation_command": "& 'D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml6_holdout_launcher.ps1'",
+    "execute_command": "& 'D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml6_holdout_launcher.ps1' -Execute",
+    "execute_guard_env": "TAMANDUA_ALLOW_ML_HOLDOUT",
+    "required_cutoff_env": "TAMANDUA_ML_TRAINING_CUTOFF",
+    "holdout_outcomes": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml6-holdout-prediction-outcomes.json",
+    "authorization_inputs_sha256": "0a31df4bb34e2f6abf38328ece5bf582b2a4d4de764f31b319c9dab7ee35644d",
+    "no_execution_claim_boundary": "This summary is not ML-6 holdout execution evidence. Holdout evaluation starts only after the lab sets TAMANDUA_ML_TRAINING_CUTOFF, TAMANDUA_ALLOW_ML_HOLDOUT=1, and runs the guarded ML-6 launcher with -Execute."
+  },
+  "source_status_summary": {
+    "ready_for_ml6_holdout_go_no_go": false,
+    "check_count": 11,
+    "passed_checks": 7,
+    "failed_checks": 4,
+    "ready_for_ml6_holdout": false,
+    "wave2_ml1_ready_for_candidate": false,
+    "ml1_benchmark_report_present": false,
+    "ml1_model_contract_present": false,
+    "ml1_model_contract_valid": false,
+    "ml1_model_contract_quality_gate_status": "",
+    "ml1_model_contract_quality_gate_passed": false,
+    "ml1_model_card_present": false,
+    "ml1_model_card_nonempty": false,
+    "ml1_model_card_references_contract": false,
+    "ml1_model_card_readiness": "",
+    "ml1_model_card_readiness_production_candidate": false,
+    "training_cutoff_present": false,
+    "training_cutoff_iso8601": false,
+    "vx_inventory_present": true,
+    "ml6_holdout_prediction_outcomes_present": false,
+    "ml6_launcher_exists": true,
+    "required_inputs_present": 3,
+    "required_input_count": 3,
+    "validation_command_no_execute": true,
+    "execute_command_has_execute": true,
+    "execute_guard_env": "TAMANDUA_ALLOW_ML_HOLDOUT",
+    "required_cutoff_env": "TAMANDUA_ML_TRAINING_CUTOFF",
+    "guard_set_command": "$env:TAMANDUA_ALLOW_ML_HOLDOUT = '1'",
+    "guard_cleanup_command": "Remove-Item Env:TAMANDUA_ALLOW_ML_HOLDOUT -ErrorAction SilentlyContinue",
+    "operator_guard_commands_preserved": true,
+    "operator_sequence_steps": 2,
+    "blocker_count": 7,
+    "blockers": [
+      "wave3_ml5_readiness_blocked",
+      "wave2_ml1_readiness_blocked",
+      "missing_ml1_benchmark_report",
+      "missing_ml1_model_contract",
+      "missing_ml1_model_card",
+      "missing_env:TAMANDUA_ML_TRAINING_CUTOFF",
+      "missing_ml6_holdout_prediction_outcomes"
+    ],
+    "goal_complete": false,
+    "completion_state": "partial_evidence",
+    "goal_missing_requirements": 9,
+    "goal_required_evidence_total": 16,
+    "goal_present_required_evidence": 5,
+    "goal_usable_required_evidence": 1,
+    "goal_missing_required_evidence": 11,
+    "goal_unusable_present_required_evidence": 4,
+    "next_unproven_requirement_id": "wave1_governed_acquisition",
+    "next_unproven_requirement_phase": "01-wave1-manifest-publication",
+    "next_unproven_execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+    "evidence_status_summary": {
+      "total_required_evidence": 16,
+      "present_required_evidence": 5,
+      "usable_required_evidence": 1,
+      "missing_required_evidence": 11,
+      "unusable_present_required_evidence": 4,
+      "by_status": {
+        "blocked_artifact": 3,
+        "invalid_content": 1,
+        "missing": 11,
+        "usable": 1
+      }
+    },
+    "next_unproven_requirement": {
+      "id": "wave1_governed_acquisition",
+      "phase": "01-wave1-manifest-publication",
+      "phase_state": "ready_validation_only",
+      "execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+      "pending_targets": [
+        "manifest_publish_receipt_incomplete",
+        "missing_canonical_dataset_manifest"
+      ],
+      "required_evidence": [
+        "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+        "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+      ],
+      "missing_or_unusable_evidence": [
+        "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+        "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+      ]
+    }
+  },
+  "operator_sequence": [
+    {
+      "step": 1,
+      "mode": "validation_only",
+      "command": "& 'D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml6_holdout_launcher.ps1'",
+      "required_env": {},
+      "claim_boundary": "Validation-only; does not set guards, run holdout, or run inference."
+    },
+    {
+      "step": 2,
+      "mode": "guarded_execute",
+      "guard_set_command": "$env:TAMANDUA_ALLOW_ML_HOLDOUT = '1'",
+      "command": "& 'D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml6_holdout_launcher.ps1' -Execute",
+      "required_env": {
+        "TAMANDUA_ML_TRAINING_CUTOFF": "<candidate-training-cutoff-iso8601>",
+        "TAMANDUA_ALLOW_ML_HOLDOUT": "1"
+      },
+      "guard_cleanup_command": "Remove-Item Env:TAMANDUA_ALLOW_ML_HOLDOUT -ErrorAction SilentlyContinue",
+      "claim_boundary": "Guarded ML-6 cross-time holdout evaluation in the isolated lab only."
+    }
+  ],
+  "checks": [
+    {
+      "name": "wave1_acceptance_checklist_valid",
+      "passed": true,
+      "detail": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json (jsonschema+built-in)"
+    },
+    {
+      "name": "wave3_ml6_readiness_valid",
+      "passed": true,
+      "detail": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml6-readiness-post-onnx-runtime.json (jsonschema+built-in)"
+    },
+    {
+      "name": "ml6_readiness_green",
+      "passed": false,
+      "detail": "{\"blockers\": [\"wave3_ml5_readiness_blocked\", \"wave2_ml1_readiness_blocked\", \"missing_ml1_benchmark_report\", \"missing_ml1_model_contract\", \"missing_ml1_model_card\", \"missing_env:TAMANDUA_ML_TRAINING_CUTOFF\", \"missing_ml6_holdout_prediction_outcomes\"], \"ready_for_ml6_holdout\": false}"
+    },
+    {
+      "name": "ml1_candidate_ready_for_holdout",
+      "passed": false,
+      "detail": "{\"ml1_benchmark_report_present\": false, \"ml1_model_card_nonempty\": false, \"ml1_model_card_present\": false, \"ml1_model_card_readiness_production_candidate\": false, \"ml1_model_card_references_contract\": false, \"ml1_model_contract_present\": false, \"ml1_model_contract_quality_gate_passed\": false, \"ml1_model_contract_valid\": false, \"wave2_ml1_ready_for_candidate\": false}"
+    },
+    {
+      "name": "holdout_cutoff_ready",
+      "passed": false,
+      "detail": "{\"training_cutoff_iso8601\": false, \"training_cutoff_present\": false}"
+    },
+    {
+      "name": "holdout_inputs_ready",
+      "passed": false,
+      "detail": "{\"ml6_holdout_prediction_outcomes_present\": false, \"ml6_launcher_exists\": true, \"required_input_count\": 3, \"required_inputs_present\": 3, \"vx_inventory_present\": true}"
+    },
+    {
+      "name": "holdout_lab_environment_ready",
+      "passed": true,
+      "detail": "{\"wave2_ml1_lab_guard_proof_mismatch_count\": 0, \"wave2_ml1_ml_lab_standby_guards_unset\": true}"
+    },
+    {
+      "name": "execute_command_guarded",
+      "passed": true,
+      "detail": "{\"command\": \"& 'D:\\\\treant\\\\tamandua\\\\docs\\\\benchmarks\\\\runs\\\\20260604T-ml-execution-plan.handoff\\\\wave_3_ml6_holdout_launcher.ps1' -Execute\", \"required_env\": {\"TAMANDUA_ALLOW_ML_HOLDOUT\": \"1\", \"TAMANDUA_ML_TRAINING_CUTOFF\": \"<candidate-training-cutoff-iso8601>\"}}"
+    },
+    {
+      "name": "validation_command_no_execute",
+      "passed": true,
+      "detail": "& 'D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml6_holdout_launcher.ps1'"
+    },
+    {
+      "name": "operator_sequence_ready",
+      "passed": true,
+      "detail": "[{\"claim_boundary\": \"Validation-only; does not set guards, run holdout, or run inference.\", \"command\": \"& 'D:\\\\treant\\\\tamandua\\\\docs\\\\benchmarks\\\\runs\\\\20260604T-ml-execution-plan.handoff\\\\wave_3_ml6_holdout_launcher.ps1'\", \"mode\": \"validation_only\", \"required_env\": {}, \"step\": 1}, {\"claim_boundary\": \"Guarded ML-6 cross-time holdout evaluation in the isolated lab only.\", \"command\": \"& 'D:\\\\treant\\\\tamandua\\\\docs\\\\benchmarks\\\\runs\\\\20260604T-ml-execution-plan.handoff\\\\wave_3_ml6_holdout_launcher.ps1' -Execute\", \"guard_cleanup_command\": \"Remove-Item Env:TAMANDUA_ALLOW_ML_HOLDOUT -ErrorAction SilentlyContinue\", \"guard_set_command\": \"$env:TAMANDUA_ALLOW_ML_HOLDOUT = '1'\", \"mode\": \"guarded_execute\", \"required_env\": {\"TAMANDUA_ALLOW_ML_HOLDOUT\": \"1\", \"TAMANDUA_ML_TRAINING_CUTOFF\": \"<candidate-training-cutoff-iso8601>\"}, \"step\": 2}]"
+    },
+    {
+      "name": "operator_guard_commands_preserved",
+      "passed": true,
+      "detail": "{\"operator_guard_cleanup_command\": \"Remove-Item Env:TAMANDUA_ALLOW_ML_HOLDOUT -ErrorAction SilentlyContinue\", \"operator_guard_set_command\": \"$env:TAMANDUA_ALLOW_ML_HOLDOUT = '1'\", \"operator_required_env\": {\"TAMANDUA_ALLOW_ML_HOLDOUT\": \"1\", \"TAMANDUA_ML_TRAINING_CUTOFF\": \"<candidate-training-cutoff-iso8601>\"}, \"readiness_execute_guard_cleanup_command\": \"Remove-Item Env:TAMANDUA_ALLOW_ML_HOLDOUT -ErrorAction SilentlyContinue\", \"readiness_execute_guard_set_command\": \"$env:TAMANDUA_ALLOW_ML_HOLDOUT = '1'\", \"readiness_execute_required_env\": {\"TAMANDUA_ALLOW_ML_HOLDOUT\": \"1\", \"TAMANDUA_ML_TRAINING_CUTOFF\": \"<candidate-training-cutoff-iso8601>\"}}"
+    }
+  ]
+}
