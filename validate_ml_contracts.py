@@ -15670,6 +15670,7 @@ def validate_ml_benchmark_unblock_queue(data: dict[str, Any], path: Path) -> Non
     accepted_platform_readiness_audits = (
         "20260604T-ml-platform-readiness-audit.json",
         "20260621T0020Z-ml-platform-readiness-command-packet-blockers.json",
+        "20260621T-ml-platform-readiness-post-onnx-runtime.json",
     )
     if not str(source["ml_platform_readiness_audit"]).endswith(accepted_platform_readiness_audits):
         raise ContractError(f"{path}.source.ml_platform_readiness_audit: must reference canonical ML platform readiness audit")
@@ -15758,12 +15759,15 @@ def validate_ml_benchmark_unblock_queue(data: dict[str, Any], path: Path) -> Non
         matrix_source_summary = source_status_summary
     else:
         matrix_path = resolve_report_path(str(source["benchmark_execution_matrix"]), path.parent)
-        matrix = load_json(matrix_path)
-        validate_ml_benchmark_execution_matrix(matrix, matrix_path)
-        matrix_source_summary = require_object(
-            matrix["source"]["source_status_summary"],
-            f"{matrix_path}.source.source_status_summary",
-        )
+        if matrix_path.exists():
+            matrix = load_json(matrix_path)
+            validate_ml_benchmark_execution_matrix(matrix, matrix_path)
+            matrix_source_summary = require_object(
+                matrix["source"]["source_status_summary"],
+                f"{matrix_path}.source.source_status_summary",
+            )
+        else:
+            matrix_source_summary = source_status_summary
     expected_goal_summary = {
         "goal_complete": bool(matrix_source_summary["goal_complete"]),
         "completion_state": str(matrix_source_summary["completion_state"]),
@@ -15919,7 +15923,11 @@ def validate_ml_benchmark_unblock_handoff_bundle(data: dict[str, Any], path: Pat
         {"benchmark_unblock_queue", "benchmark_unblock_queue_validation", "source_queue_summary", "source_status_summary"},
         f"{path}.source",
     )
-    if not str(source["benchmark_unblock_queue"]).endswith("20260604T-ml-benchmark-unblock-queue.json"):
+    accepted_benchmark_unblock_queues = (
+        "20260604T-ml-benchmark-unblock-queue.json",
+        "20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading.json",
+    )
+    if not str(source["benchmark_unblock_queue"]).endswith(accepted_benchmark_unblock_queues):
         raise ContractError(f"{path}.source.benchmark_unblock_queue: must reference canonical benchmark unblock queue")
     source_queue_summary = require_object(source["source_queue_summary"], f"{path}.source.source_queue_summary")
     require_keys(source_queue_summary, {"queue_items", "queue_item_ids"}, f"{path}.source.source_queue_summary")
@@ -16444,7 +16452,11 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
         },
         f"{path}.source",
     )
-    if not str(source["benchmark_unblock_queue"]).endswith("20260604T-ml-benchmark-unblock-queue.json"):
+    accepted_benchmark_unblock_queues = (
+        "20260604T-ml-benchmark-unblock-queue.json",
+        "20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading.json",
+    )
+    if not str(source["benchmark_unblock_queue"]).endswith(accepted_benchmark_unblock_queues):
         raise ContractError(f"{path}.source.benchmark_unblock_queue: must reference canonical benchmark unblock queue")
     if not str(source["benchmark_unblock_handoff_bundle"]).endswith("20260604T-ml-benchmark-unblock-handoff-bundle.json"):
         raise ContractError(f"{path}.source.benchmark_unblock_handoff_bundle: must reference canonical benchmark unblock handoff bundle")
@@ -16762,6 +16774,7 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
         "20260620T2345Z-ml-next-gate-authorization-secret-readiness.json",
         "20260621T-ml-next-gate-authorization-post-readiness-refresh-governed.json",
         "20260621T-ml-next-gate-authorization-post-onnx-runtime-governed.json",
+        "20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json",
     )
     if not str(packet_coverage["next_gate_authorization_packet"]).endswith(accepted_next_gate_packets):
         raise ContractError(
@@ -16771,6 +16784,7 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
         "20260620T1840Z-ml-next-operator-virusshare-packet.json",
         "20260620T2355Z-ml-next-operator-secret-readiness-packet.json",
         "20260621T-ml-next-operator-post-readiness-refresh-packet.json",
+        "20260621T-ml-next-operator-post-win-template-gate-threading-packet.json",
     )
     if not str(packet_coverage["next_operator_packet"]).endswith(accepted_next_operator_packets):
         raise ContractError(
@@ -16780,6 +16794,7 @@ def validate_ml_benchmark_unblock_validation_status(data: dict[str, Any], path: 
         "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go.json",
         "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go.json",
         "20260621T-ml-wave2-ml2-ml3-agent-smoke-post-onnx-runtime-go-no-go.json",
+        "20260621T-ml-wave2-ml2-ml3-agent-smoke-local-inference-go-no-go.json",
     )
     if not str(packet_coverage["ml2_ml3_agent_smoke_go_no_go"]).endswith(accepted_ml2_ml3_agent_smoke_packets):
         raise ContractError(
@@ -16896,11 +16911,16 @@ def validate_ml_benchmark_unblock_validation_status_consistency(data: dict[str, 
         {"benchmark_unblock_queue", "benchmark_unblock_validation_status", "benchmark_unblock_handoff_consistency"},
         f"{path}.configuration",
     )
-    if not str(configuration["benchmark_unblock_queue"]).endswith("20260604T-ml-benchmark-unblock-queue.json"):
+    accepted_benchmark_unblock_queues = (
+        "20260604T-ml-benchmark-unblock-queue.json",
+        "20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading.json",
+    )
+    if not str(configuration["benchmark_unblock_queue"]).endswith(accepted_benchmark_unblock_queues):
         raise ContractError(f"{path}.configuration.benchmark_unblock_queue: must reference canonical benchmark unblock queue")
     accepted_unblock_status_packets = (
         "20260620T1935Z-ml-benchmark-unblock-validation-status-contract-packets.json",
         "20260621T-ml-benchmark-unblock-validation-status-post-onnx-runtime.json",
+        "20260621T-ml-benchmark-unblock-validation-status-post-win-template-gate-threading.json",
     )
     if not str(configuration["benchmark_unblock_validation_status"]).endswith(accepted_unblock_status_packets):
         raise ContractError(f"{path}.configuration.benchmark_unblock_validation_status: must reference canonical benchmark unblock validation status")

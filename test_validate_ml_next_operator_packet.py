@@ -23,7 +23,7 @@ except ImportError:
 
 CANONICAL = RUNS_DIR / "20260620T1840Z-ml-next-operator-virusshare-packet.json"
 SECRET_READINESS = RUNS_DIR / "20260620T2355Z-ml-next-operator-secret-readiness-packet.json"
-POST_READINESS_REFRESH = RUNS_DIR / "20260621T-ml-next-operator-post-readiness-refresh-packet.json"
+POST_WIN_TEMPLATE_GATE_THREADING = RUNS_DIR / "20260621T-ml-next-operator-post-win-template-gate-threading-packet.json"
 if not CANONICAL.exists():
     pytest.skip("ML next operator packet run artifact is not present in this standalone deployment", allow_module_level=True)
 
@@ -61,14 +61,14 @@ def test_validate_ml_next_operator_packet_accepts_secret_readiness_path() -> Non
     assert "-Execute" not in markdown
 
 
-def test_validate_ml_next_operator_packet_accepts_post_readiness_refresh_path() -> None:
+def test_validate_ml_next_operator_packet_accepts_post_win_template_gate_threading_path() -> None:
     mode = validate_contract(
-        POST_READINESS_REFRESH,
+        POST_WIN_TEMPLATE_GATE_THREADING,
         ML_NEXT_OPERATOR_PACKET_SCHEMA,
         validate_ml_next_operator_packet,
     )
 
-    data = json.loads(POST_READINESS_REFRESH.read_text(encoding="utf-8"))
+    data = json.loads(POST_WIN_TEMPLATE_GATE_THREADING.read_text(encoding="utf-8"))
 
     assert mode == "jsonschema+built-in"
     assert data["operator_decision"]["package_id"] == "ml_data_governed_acquisition"
@@ -77,10 +77,10 @@ def test_validate_ml_next_operator_packet_accepts_post_readiness_refresh_path() 
 
 
 def test_validate_ml_next_operator_packet_rejects_false_publish_decision(tmp_path: Path) -> None:
-    data = copy.deepcopy(json.loads(POST_READINESS_REFRESH.read_text(encoding="utf-8")))
+    data = copy.deepcopy(json.loads(POST_WIN_TEMPLATE_GATE_THREADING.read_text(encoding="utf-8")))
     data["operator_decision"]["publication_decision"] = "eligible_after_operator_approval"
     data["source_status_summary"]["publication_decision"] = "eligible_after_operator_approval"
-    drifted = tmp_path / "20260621T-ml-next-operator-post-readiness-refresh-packet.json"
+    drifted = tmp_path / "20260621T-ml-next-operator-post-win-template-gate-threading-packet.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 
     with pytest.raises(ContractError, match="publication_decision"):

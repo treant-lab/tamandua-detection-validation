@@ -73,16 +73,17 @@
         "ml2_ml3_agent_smoke_valid"
       ],
       "properties": {
-        "next_gate_authorization_packet": {"type": "string", "pattern": "(20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware|20260620T2345Z-ml-next-gate-authorization-secret-readiness|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed)\\.json$"},
+        "next_gate_authorization_packet": {"type": "string", "pattern": "(20260620T1615Z-ml-next-gate-authorization-virusshare-source-aware|20260620T2345Z-ml-next-gate-authorization-secret-readiness|20260621T-ml-next-gate-authorization-post-readiness-refresh-governed|20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed)\\.json$"},
         "next_gate_authorization_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
-        "next_operator_packet": {"type": "string", "pattern": "(20260620T1840Z-ml-next-operator-virusshare-packet|20260620T2355Z-ml-next-operator-secret-readiness-packet|20260621T-ml-next-operator-post-readiness-refresh-packet)\\.json$"},
+        "next_operator_packet": {"type": "string", "pattern": "(20260620T1840Z-ml-next-operator-virusshare-packet|20260620T2355Z-ml-next-operator-secret-readiness-packet|20260621T-ml-next-operator-post-readiness-refresh-packet|20260621T-ml-next-operator-post-win-template-gate-threading-packet)\\.json$"},
         "next_operator_packet_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "ml2_ml3_agent_smoke_go_no_go": {
           "type": "string",
           "anyOf": [
             {"pattern": "20260620T1905Z-ml-wave2-ml2-ml3-agent-smoke-context-go-no-go\\.json$"},
             {"pattern": "20260620T2115Z-ml-wave2-ml2-ml3-agent-smoke-ml1-packets-go-no-go\\.json$"},
-            {"pattern": "20260621T-ml-wave2-ml2-ml3-agent-smoke-post-onnx-runtime-go-no-go\\.json$"}
+            {"pattern": "20260621T-ml-wave2-ml2-ml3-agent-smoke-post-onnx-runtime-go-no-go\\.json$"},
+            {"pattern": "20260621T-ml-wave2-ml2-ml3-agent-smoke-local-inference-go-no-go\\.json$"}
           ]
         },
         "ml2_ml3_agent_smoke_go_no_go_validation": {"enum": ["jsonschema+built-in", "built-in"]},
@@ -167,7 +168,10 @@
       "additionalProperties": false,
       "required": ["benchmark_unblock_queue", "benchmark_unblock_queue_validation", "benchmark_unblock_handoff_bundle", "benchmark_unblock_handoff_bundle_validation", "benchmark_unblock_handoff_consistency", "benchmark_unblock_handoff_consistency_validation", "source_status_summary"],
       "properties": {
-        "benchmark_unblock_queue": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-queue\\.json$"},
+        "benchmark_unblock_queue": {
+          "type": "string",
+          "pattern": "(20260604T-ml-benchmark-unblock-queue|20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading)\\.json$"
+        },
         "benchmark_unblock_queue_validation": {"enum": ["jsonschema+built-in", "built-in"]},
         "benchmark_unblock_handoff_bundle": {"type": "string", "pattern": "20260604T-ml-benchmark-unblock-handoff-bundle\\.json$"},
         "benchmark_unblock_handoff_bundle_validation": {"enum": ["jsonschema+built-in", "built-in"]},
