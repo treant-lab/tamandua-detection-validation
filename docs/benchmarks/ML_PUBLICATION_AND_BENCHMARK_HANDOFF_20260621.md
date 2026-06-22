@@ -36,6 +36,12 @@ Use these artifacts as the current authority for ML state:
 - Platform readiness: `docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.json`
 - Guarded Wave 1 command packet: `docs/benchmarks/runs/20260621T-ml-wave1-guarded-run-command-packet-post-readiness-refresh.json`
 - Mirror publication audit: `docs/benchmarks/runs/20260621T-ml-mirror-publication-post-lab-root-sync.json`
+- Post-organization mirror publication audit:
+  `docs/benchmarks/runs/20260622T-ml-mirror-publication-audit-post-detection-validation-organization.json`
+- Post-organization goal snapshot:
+  `docs/benchmarks/runs/20260622T-ml-goal-snapshot-post-detection-validation-organization.json`
+- Post-organization execution status:
+  `docs/benchmarks/runs/20260622T-ml-execution-status-post-detection-validation-organization.json`
 - Agent ONNX parity smoke: `docs/benchmarks/runs/20260621T-ml3-agent-parity-with-win-template-local-inference.json`
 - Agent rush benchmark execution packet:
   `docs/benchmarks/runs/20260621T-ml-agent-rush-benchmark-execution-packet.json`
@@ -140,6 +146,13 @@ operator packet is not ready for guarded Wave 1 acquisition:
 `blocked:set_required_env:VIRUSSHARE_API_KEY`. This keeps the ML mirror hold in
 place. The older post-WIN-TEMPLATE MalwareBazaar-governed packet remains
 historical route evidence only.
+
+The post-organization execution status keeps Wave 1 blocked on
+`TAMANDUA_ML_DATA_ROOT` and `VIRUSSHARE_API_KEY`. It also records that
+`TAMANDUA_ML_DATA_ROOT` must point outside the Git checkout before any guarded
+acquisition run is allowed. The post-organization mirror audit keeps
+`tamandua-ml` at `hold_do_not_push`; detection-validation remains publishable
+as validation evidence only.
 
 ## Parallelization
 

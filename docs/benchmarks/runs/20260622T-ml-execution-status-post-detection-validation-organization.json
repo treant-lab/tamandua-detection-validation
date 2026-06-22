@@ -1,0 +1,453 @@
+{
+  "api_version": "tamandua.io/ml-execution-status/v1",
+  "kind": "MLExecutionStatus",
+  "metadata": {
+    "report_id": "20260622t_ml_execution_status_post_detection_validation_organization",
+    "generated_at": "2026-06-22T12:22:25.530777+00:00",
+    "created_by": "tamandua-ml-execution-status",
+    "claim_boundary": "No-execution readiness status only. Does not download malware, train models, run inference, contact live services, or prove production readiness."
+  },
+  "source_plan": {
+    "status_counts": {
+      "evidence_exists": 2,
+      "ready": 0,
+      "blocked_missing_artifact": 0,
+      "blocked_missing_env": 1,
+      "blocked_dependency": 5
+    },
+    "handoff_dir": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff",
+    "source_decision_ref": "docs\\benchmarks\\runs\\20260621T-ml-wave1-source-decision-post-malwarebazaar-403.json",
+    "source_decision_route": "virusshare_fallback"
+  },
+  "required_env": [
+    {
+      "name": "TAMANDUA_ML_API_KEY",
+      "present": false,
+      "placeholder": false,
+      "value_redacted": "missing_or_placeholder"
+    },
+    {
+      "name": "TAMANDUA_ML_DATA_ROOT",
+      "present": false,
+      "placeholder": false,
+      "value_redacted": "missing_or_placeholder",
+      "outside_repo": false
+    },
+    {
+      "name": "TAMANDUA_ML_TRAINING_CUTOFF",
+      "present": false,
+      "placeholder": false,
+      "value_redacted": "missing_or_placeholder"
+    },
+    {
+      "name": "VIRUSSHARE_API_KEY",
+      "present": false,
+      "placeholder": false,
+      "value_redacted": "missing_or_placeholder"
+    }
+  ],
+  "global_launchers": [
+    {
+      "name": "ml_readiness_refresh_launcher.ps1",
+      "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\ml_readiness_refresh_launcher.ps1",
+      "exists": true,
+      "claim_boundary": "No-execution refresh only. Does not acquire samples, train models, run inference, benchmarks, or live services."
+    },
+    {
+      "name": "ml_benchmark_refresh_launcher.ps1",
+      "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\ml_benchmark_refresh_launcher.ps1",
+      "exists": true,
+      "claim_boundary": "No-execution benchmark refresh only. Does not acquire samples, publish manifests, train models, run inference, benchmarks, or live services."
+    },
+    {
+      "name": "ml_prelab_validation_launcher.ps1",
+      "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\ml_prelab_validation_launcher.ps1",
+      "exists": true,
+      "claim_boundary": "No-execution pre-lab validation only. Does not acquire samples, publish manifests, train models, run inference, benchmarks, or live services."
+    }
+  ],
+  "next_actions": [
+    {
+      "action_type": "set_required_env",
+      "package_id": "ml_data_virusshare_fallback",
+      "wave": 1,
+      "priority": 1,
+      "env": "TAMANDUA_ML_DATA_ROOT",
+      "placeholder": "<external-isolated-malware-lab-data-root>",
+      "description": "Set non-placeholder `TAMANDUA_ML_DATA_ROOT` before launching dependent ML work."
+    },
+    {
+      "action_type": "fix_required_env",
+      "package_id": "ml_data_virusshare_fallback",
+      "wave": 1,
+      "priority": 2,
+      "env": "TAMANDUA_ML_DATA_ROOT",
+      "description": "Point TAMANDUA_ML_DATA_ROOT outside the Git checkout and rerun status."
+    },
+    {
+      "action_type": "set_required_env",
+      "package_id": "ml_data_virusshare_fallback",
+      "wave": 1,
+      "priority": 3,
+      "env": "VIRUSSHARE_API_KEY",
+      "placeholder": "<virusshare-api-key>",
+      "description": "Set non-placeholder `VIRUSSHARE_API_KEY` before launching dependent ML work."
+    },
+    {
+      "action_type": "wait_for_dependency_evidence",
+      "package_id": "ml1_train_candidate_and_model_card",
+      "wave": 2,
+      "priority": 4,
+      "dependency_id": "ml_data_governed_acquisition",
+      "dependency_status": "blocked_missing_env",
+      "dependency_evidence_state": "blocked_missing_env",
+      "description": "Complete `ml_data_governed_acquisition` evidence before launching `ml1_train_candidate_and_model_card` (current evidence_state=`blocked_missing_env`)."
+    },
+    {
+      "action_type": "fix_required_env",
+      "package_id": "ml1_train_candidate_and_model_card",
+      "wave": 2,
+      "priority": 5,
+      "env": "TAMANDUA_ML_DATA_ROOT",
+      "description": "Point TAMANDUA_ML_DATA_ROOT outside the Git checkout and rerun status."
+    },
+    {
+      "action_type": "produce_required_artifact",
+      "package_id": "ml1_train_candidate_and_model_card",
+      "wave": 2,
+      "priority": 6,
+      "artifact": "docs/benchmarks/runs/ml-prod-candidate-v1-dataset-manifest.json",
+      "description": "Train candidate, run ML-1 with explicit thresholds, then generate the model contract and model card."
+    },
+    {
+      "action_type": "wait_for_dependency_evidence",
+      "package_id": "ml2_ml3_onnx_agent_parity",
+      "wave": 2,
+      "priority": 7,
+      "dependency_id": "ml1_train_candidate_and_model_card",
+      "dependency_status": "blocked_dependency",
+      "dependency_evidence_state": "blocked_dependency",
+      "description": "Complete `ml1_train_candidate_and_model_card` evidence before launching `ml2_ml3_onnx_agent_parity` (current evidence_state=`blocked_dependency`)."
+    },
+    {
+      "action_type": "fix_required_env",
+      "package_id": "ml2_ml3_onnx_agent_parity",
+      "wave": 2,
+      "priority": 8,
+      "env": "TAMANDUA_ML_DATA_ROOT",
+      "description": "Point TAMANDUA_ML_DATA_ROOT outside the Git checkout and rerun status."
+    },
+    {
+      "action_type": "produce_required_artifact",
+      "package_id": "ml2_ml3_onnx_agent_parity",
+      "wave": 2,
+      "priority": 9,
+      "artifact": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
+      "description": "Upgrade Rust toolchain for ONNX parity if `ort` build still requires rustc 1.88 or newer."
+    },
+    {
+      "action_type": "produce_required_artifact",
+      "package_id": "ml2_ml3_onnx_agent_parity",
+      "wave": 2,
+      "priority": 10,
+      "artifact": "docs/benchmarks/runs/ml-prod-candidate-v1-artifacts/malware_smell.json",
+      "description": "Upgrade Rust toolchain for ONNX parity if `ort` build still requires rustc 1.88 or newer."
+    },
+    {
+      "action_type": "wait_for_dependency_evidence",
+      "package_id": "ml4_live_service_benchmark",
+      "wave": 2,
+      "priority": 11,
+      "dependency_id": "ml1_train_candidate_and_model_card",
+      "dependency_status": "blocked_dependency",
+      "dependency_evidence_state": "blocked_dependency",
+      "description": "Complete `ml1_train_candidate_and_model_card` evidence before launching `ml4_live_service_benchmark` (current evidence_state=`blocked_dependency`)."
+    },
+    {
+      "action_type": "set_required_env",
+      "package_id": "ml4_live_service_benchmark",
+      "wave": 2,
+      "priority": 12,
+      "env": "TAMANDUA_ML_API_KEY",
+      "placeholder": "<ml-service-api-key>",
+      "description": "Set non-placeholder `TAMANDUA_ML_API_KEY` before launching dependent ML work."
+    },
+    {
+      "action_type": "wait_for_dependency_evidence",
+      "package_id": "ml5_full_pipeline_replay",
+      "wave": 3,
+      "priority": 13,
+      "dependency_id": "ml2_ml3_onnx_agent_parity",
+      "dependency_status": "blocked_dependency",
+      "dependency_evidence_state": "blocked_dependency",
+      "description": "Complete `ml2_ml3_onnx_agent_parity` evidence before launching `ml5_full_pipeline_replay` (current evidence_state=`blocked_dependency`)."
+    },
+    {
+      "action_type": "wait_for_dependency_evidence",
+      "package_id": "ml5_full_pipeline_replay",
+      "wave": 3,
+      "priority": 14,
+      "dependency_id": "ml4_live_service_benchmark",
+      "dependency_status": "blocked_dependency",
+      "dependency_evidence_state": "blocked_dependency",
+      "description": "Complete `ml4_live_service_benchmark` evidence before launching `ml5_full_pipeline_replay` (current evidence_state=`blocked_dependency`)."
+    },
+    {
+      "action_type": "produce_required_artifact",
+      "package_id": "ml5_full_pipeline_replay",
+      "wave": 3,
+      "priority": 15,
+      "artifact": "docs/benchmarks/runs/ml-prod-candidate-v1-ml5-replay-outcomes.json",
+      "description": "Generate replay fixture from agent/server traces after ML-3 and ML-4 are green."
+    },
+    {
+      "action_type": "wait_for_dependency_evidence",
+      "package_id": "ml6_cross_time_holdout",
+      "wave": 3,
+      "priority": 16,
+      "dependency_id": "ml1_train_candidate_and_model_card",
+      "dependency_status": "blocked_dependency",
+      "dependency_evidence_state": "blocked_dependency",
+      "description": "Complete `ml1_train_candidate_and_model_card` evidence before launching `ml6_cross_time_holdout` (current evidence_state=`blocked_dependency`)."
+    },
+    {
+      "action_type": "set_required_env",
+      "package_id": "ml6_cross_time_holdout",
+      "wave": 3,
+      "priority": 17,
+      "env": "TAMANDUA_ML_TRAINING_CUTOFF",
+      "placeholder": "<candidate-training-cutoff-iso8601>",
+      "description": "Set non-placeholder `TAMANDUA_ML_TRAINING_CUTOFF` before launching dependent ML work."
+    },
+    {
+      "action_type": "produce_required_artifact",
+      "package_id": "ml6_cross_time_holdout",
+      "wave": 3,
+      "priority": 18,
+      "artifact": "docs/benchmarks/runs/ml-prod-candidate-v1-ml6-holdout-prediction-outcomes.json",
+      "description": "Build prediction fixture from post-cutoff MalwareBazaar/VX/VirusShare/goodware holdouts."
+    }
+  ],
+  "waves": [
+    {
+      "wave": 0,
+      "purpose": "Refresh contracts and smoke evidence",
+      "parallel": false,
+      "launch_ready": true,
+      "blockers": [],
+      "handoff": {
+        "wave": 0,
+        "handoff_path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_0_handoff.md",
+        "handoff_exists": true,
+        "preflight_path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_0_preflight.ps1",
+        "preflight_exists": true,
+        "required_launchers": []
+      }
+    },
+    {
+      "wave": 1,
+      "purpose": "Acquire governed dataset and holdout metadata",
+      "parallel": true,
+      "launch_ready": false,
+      "blockers": [
+        "package_blocked:ml_data_governed_acquisition:missing_env:TAMANDUA_ML_DATA_ROOT,unsafe_env:TAMANDUA_ML_DATA_ROOT_not_outside_repo,missing_env:VIRUSSHARE_API_KEY"
+      ],
+      "handoff": {
+        "wave": 1,
+        "handoff_path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_handoff.md",
+        "handoff_exists": true,
+        "preflight_path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_preflight.ps1",
+        "preflight_exists": true,
+        "required_launchers": [
+          {
+            "name": "wave_1_real_acquisition_launcher.ps1",
+            "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_real_acquisition_launcher.ps1",
+            "exists": true
+          },
+          {
+            "name": "wave_1_virusshare_fallback_acquisition_launcher.ps1",
+            "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_virusshare_fallback_acquisition_launcher.ps1",
+            "exists": true
+          },
+          {
+            "name": "wave_1_virusshare_fallback_readiness_launcher.ps1",
+            "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_virusshare_fallback_readiness_launcher.ps1",
+            "exists": true
+          }
+        ]
+      }
+    },
+    {
+      "wave": 2,
+      "purpose": "Train/evaluate candidate, parity, and service benchmark",
+      "parallel": true,
+      "launch_ready": false,
+      "blockers": [
+        "package_blocked:ml1_train_candidate_and_model_card:dependency_not_evidence:ml_data_governed_acquisition:blocked_missing_env,missing_env:TAMANDUA_ML_DATA_ROOT,unsafe_env:TAMANDUA_ML_DATA_ROOT_not_outside_repo,missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-dataset-manifest.json",
+        "package_blocked:ml2_ml3_onnx_agent_parity:dependency_not_evidence:ml1_train_candidate_and_model_card:blocked_dependency,missing_env:TAMANDUA_ML_DATA_ROOT,unsafe_env:TAMANDUA_ML_DATA_ROOT_not_outside_repo,missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json,missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-artifacts/malware_smell.json",
+        "package_blocked:ml4_live_service_benchmark:dependency_not_evidence:ml1_train_candidate_and_model_card:blocked_dependency,missing_env:TAMANDUA_ML_API_KEY"
+      ],
+      "handoff": {
+        "wave": 2,
+        "handoff_path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_handoff.md",
+        "handoff_exists": true,
+        "preflight_path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_preflight.ps1",
+        "preflight_exists": true,
+        "required_launchers": [
+          {
+            "name": "wave_2_ml1_candidate_launcher.ps1",
+            "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml1_candidate_launcher.ps1",
+            "exists": true
+          },
+          {
+            "name": "wave_2_ml2_ml3_parity_launcher.ps1",
+            "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml2_ml3_parity_launcher.ps1",
+            "exists": true
+          },
+          {
+            "name": "wave_2_ml4_service_launcher.ps1",
+            "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml4_service_launcher.ps1",
+            "exists": true
+          }
+        ]
+      }
+    },
+    {
+      "wave": 3,
+      "purpose": "Full pipeline replay and cross-time holdout",
+      "parallel": true,
+      "launch_ready": false,
+      "blockers": [
+        "package_blocked:ml5_full_pipeline_replay:dependency_not_evidence:ml2_ml3_onnx_agent_parity:blocked_dependency,dependency_not_evidence:ml4_live_service_benchmark:blocked_dependency,missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-ml5-replay-outcomes.json",
+        "package_blocked:ml6_cross_time_holdout:dependency_not_evidence:ml1_train_candidate_and_model_card:blocked_dependency,missing_env:TAMANDUA_ML_TRAINING_CUTOFF,missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-ml6-holdout-prediction-outcomes.json"
+      ],
+      "handoff": {
+        "wave": 3,
+        "handoff_path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_handoff.md",
+        "handoff_exists": true,
+        "preflight_path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_preflight.ps1",
+        "preflight_exists": true,
+        "required_launchers": [
+          {
+            "name": "wave_3_ml5_pipeline_launcher.ps1",
+            "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml5_pipeline_launcher.ps1",
+            "exists": true
+          },
+          {
+            "name": "wave_3_ml6_holdout_launcher.ps1",
+            "path": "docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml6_holdout_launcher.ps1",
+            "exists": true
+          }
+        ]
+      }
+    }
+  ],
+  "packages": [
+    {
+      "package_id": "ml0_contracts_and_smoke_refresh",
+      "wave": 0,
+      "status": "evidence_exists",
+      "evidence_state": "evidence_exists",
+      "launch_ready": true,
+      "blockers": [],
+      "claim_boundary": "Contract and smoke refresh only; not production model evidence.",
+      "next_action": "Regenerate smoke artifacts if contracts drift."
+    },
+    {
+      "package_id": "ml_data_governed_acquisition",
+      "wave": 1,
+      "status": "blocked_missing_env",
+      "evidence_state": "blocked_missing_env",
+      "launch_ready": false,
+      "blockers": [
+        "missing_env:TAMANDUA_ML_DATA_ROOT",
+        "unsafe_env:TAMANDUA_ML_DATA_ROOT_not_outside_repo",
+        "missing_env:VIRUSSHARE_API_KEY"
+      ],
+      "claim_boundary": "Governed acquisition only; raw malware must stay outside Git and inside an isolated lab.",
+      "next_action": "Run governed MalwareBazaar, vx/InTheWild inventory, and goodware acquisition in the malware lab with an external data root, then publish only manifest/hash evidence."
+    },
+    {
+      "package_id": "ml_vx_inventory_holdout",
+      "wave": 1,
+      "status": "evidence_exists",
+      "evidence_state": "evidence_exists",
+      "launch_ready": true,
+      "blockers": [],
+      "claim_boundary": "Inventory metadata only; does not download, extract, execute, classify, or train on VX samples, and VX samples are not included in train/validation/test splits by default.",
+      "next_action": "Create metadata-only inventory and keep selected releases for ML-6 holdout approval."
+    },
+    {
+      "package_id": "ml1_train_candidate_and_model_card",
+      "wave": 2,
+      "status": "blocked_dependency",
+      "evidence_state": "blocked_dependency",
+      "launch_ready": false,
+      "blockers": [
+        "dependency_not_evidence:ml_data_governed_acquisition:blocked_missing_env",
+        "missing_env:TAMANDUA_ML_DATA_ROOT",
+        "unsafe_env:TAMANDUA_ML_DATA_ROOT_not_outside_repo",
+        "missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-dataset-manifest.json"
+      ],
+      "claim_boundary": "Standalone model quality only; no agent/service/platform impact claim.",
+      "next_action": "Train candidate, run ML-1 with explicit thresholds, then generate the model contract and model card."
+    },
+    {
+      "package_id": "ml2_ml3_onnx_agent_parity",
+      "wave": 2,
+      "status": "blocked_dependency",
+      "evidence_state": "blocked_dependency",
+      "launch_ready": false,
+      "blockers": [
+        "dependency_not_evidence:ml1_train_candidate_and_model_card:blocked_dependency",
+        "missing_env:TAMANDUA_ML_DATA_ROOT",
+        "unsafe_env:TAMANDUA_ML_DATA_ROOT_not_outside_repo",
+        "missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
+        "missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-artifacts/malware_smell.json"
+      ],
+      "claim_boundary": "Parity evidence only; blocking rollout waits for signed bundle, runtime provisioning, and canary gates.",
+      "next_action": "Upgrade Rust toolchain for ONNX parity if `ort` build still requires rustc 1.88 or newer."
+    },
+    {
+      "package_id": "ml4_live_service_benchmark",
+      "wave": 2,
+      "status": "blocked_dependency",
+      "evidence_state": "blocked_dependency",
+      "launch_ready": false,
+      "blockers": [
+        "dependency_not_evidence:ml1_train_candidate_and_model_card:blocked_dependency",
+        "missing_env:TAMANDUA_ML_API_KEY"
+      ],
+      "claim_boundary": "FastAPI service evidence only; Phoenix proxy comparison remains separate.",
+      "next_action": "Start the ML service with the candidate model and run ML-4 with API auth."
+    },
+    {
+      "package_id": "ml5_full_pipeline_replay",
+      "wave": 3,
+      "status": "blocked_dependency",
+      "evidence_state": "blocked_dependency",
+      "launch_ready": false,
+      "blockers": [
+        "dependency_not_evidence:ml2_ml3_onnx_agent_parity:blocked_dependency",
+        "dependency_not_evidence:ml4_live_service_benchmark:blocked_dependency",
+        "missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-ml5-replay-outcomes.json"
+      ],
+      "claim_boundary": "Full pipeline replay evidence only for the controlled fixture corpus and enabled detectors.",
+      "next_action": "Generate replay fixture from agent/server traces after ML-3 and ML-4 are green."
+    },
+    {
+      "package_id": "ml6_cross_time_holdout",
+      "wave": 3,
+      "status": "blocked_dependency",
+      "evidence_state": "blocked_dependency",
+      "launch_ready": false,
+      "blockers": [
+        "dependency_not_evidence:ml1_train_candidate_and_model_card:blocked_dependency",
+        "missing_env:TAMANDUA_ML_TRAINING_CUTOFF",
+        "missing_required_artifact:docs/benchmarks/runs/ml-prod-candidate-v1-ml6-holdout-prediction-outcomes.json"
+      ],
+      "claim_boundary": "Robustness evidence only for governed holdout predictions; no zero-day claim by itself.",
+      "next_action": "Build prediction fixture from post-cutoff MalwareBazaar/VX/VirusShare/goodware holdouts."
+    }
+  ]
+}

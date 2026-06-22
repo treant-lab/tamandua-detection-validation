@@ -1,0 +1,601 @@
+{
+  "api_version": "tamandua.io/ml-goal-snapshot/v1",
+  "kind": "MLGoalSnapshot",
+  "metadata": {
+    "report_id": "20260622t_ml_goal_snapshot_post_detection_validation_organization",
+    "generated_at": "2026-06-22T12:22:26.716348+00:00",
+    "created_by": "tamandua-ml-goal-snapshot",
+    "claim_boundary": "No-execution goal audit only. It does not set guards, acquire samples, publish manifests, train models, run inference, run benchmarks, or contact live services."
+  },
+  "source": {
+    "master_handoff": "docs\\benchmarks\\runs\\20260621T-ml-execution-master-handoff-post-win-template-gate-threading.json",
+    "master_handoff_validation": "jsonschema+built-in"
+  },
+  "goal": {
+    "goal_complete": false,
+    "completion_state": "partial_evidence",
+    "goal_missing_requirements": 9,
+    "goal_required_evidence_total": 16,
+    "goal_present_required_evidence": 5,
+    "goal_usable_required_evidence": 1,
+    "goal_missing_required_evidence": 11,
+    "goal_unusable_present_required_evidence": 4,
+    "next_unproven_requirement_id": "wave1_governed_acquisition",
+    "next_unproven_requirement_phase": "01-wave1-manifest-publication",
+    "next_unproven_execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+    "missing_requirement_ids": [
+      "wave1_governed_acquisition",
+      "wave1_sanitized_manifest",
+      "ml1_model_quality",
+      "ml1_model_contract_and_card",
+      "ml2_pytorch_onnx_parity",
+      "ml3_agent_onnx_parity",
+      "ml4_service_benchmark",
+      "ml5_tamandua_replay",
+      "ml6_cross_time_holdout"
+    ],
+    "evidence_status_summary": {
+      "total_required_evidence": 16,
+      "present_required_evidence": 5,
+      "usable_required_evidence": 1,
+      "missing_required_evidence": 11,
+      "unusable_present_required_evidence": 4,
+      "by_status": {
+        "blocked_artifact": 4,
+        "missing": 11,
+        "usable": 1
+      }
+    },
+    "next_unproven_requirement": {
+      "id": "wave1_governed_acquisition",
+      "phase": "01-wave1-manifest-publication",
+      "phase_state": "ready_validation_only",
+      "execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+      "pending_targets": [
+        "manifest_publish_receipt_incomplete",
+        "missing_canonical_dataset_manifest"
+      ],
+      "required_evidence": [
+        "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+        "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+      ],
+      "missing_or_unusable_evidence": [
+        "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+        "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+      ]
+    },
+    "requirement_evidence_matrix": [
+      {
+        "id": "wave1_governed_acquisition",
+        "phase": "01-wave1-manifest-publication",
+        "status": "missing_evidence",
+        "phase_state": "ready_validation_only",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "command_available": true,
+        "validation_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_real_acquisition_launcher.ps1",
+        "execute_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_real_acquisition_launcher.ps1 -Execute",
+        "command_claim_boundary": "Runs governed MalwareBazaar + goodware acquisition only in the isolated lab.",
+        "pending_targets": [
+          "manifest_publish_receipt_incomplete",
+          "missing_canonical_dataset_manifest"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+        ],
+        "platform_status": "incomplete",
+        "platform_blockers": [
+          "unusable_evidence:blocked_artifact:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+          "unusable_evidence:blocked_artifact:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+        ],
+        "evidence_state": "not_proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+            "type": "file",
+            "present": true,
+            "usable": false,
+            "status": "blocked_artifact"
+          },
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json",
+            "type": "file",
+            "present": true,
+            "usable": false,
+            "status": "blocked_artifact"
+          }
+        ]
+      },
+      {
+        "id": "wave1_sanitized_manifest",
+        "phase": "01-wave1-manifest-publication",
+        "status": "missing_evidence",
+        "phase_state": "ready_validation_only",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "command_available": true,
+        "validation_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_real_acquisition_launcher.ps1",
+        "execute_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_1_real_acquisition_launcher.ps1 -Execute",
+        "command_claim_boundary": "Runs governed MalwareBazaar + goodware acquisition only in the isolated lab.",
+        "pending_targets": [
+          "manifest_publish_receipt_incomplete",
+          "missing_canonical_dataset_manifest"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-manifest-publish-receipt.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-dataset-manifest.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-manifest-publish-receipt.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-dataset-manifest.json"
+        ],
+        "platform_status": "missing",
+        "platform_blockers": [
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-dataset-manifest.json",
+          "unusable_evidence:blocked_artifact:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-manifest-publish-receipt.json",
+          "unusable_evidence:blocked_artifact:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json"
+        ],
+        "evidence_state": "not_proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-manifest-publish-receipt.json",
+            "type": "file",
+            "present": true,
+            "usable": false,
+            "status": "blocked_artifact"
+          },
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json",
+            "type": "file",
+            "present": true,
+            "usable": false,
+            "status": "blocked_artifact"
+          },
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-dataset-manifest.json",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          }
+        ]
+      },
+      {
+        "id": "ml1_model_quality",
+        "phase": "02-ml1-candidate-quality",
+        "status": "missing_evidence",
+        "phase_state": "blocked_upstream_evidence",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_TRAINING",
+        "command_available": true,
+        "validation_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml1_candidate_launcher.ps1",
+        "execute_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml1_candidate_launcher.ps1 -Execute",
+        "command_claim_boundary": "Runs candidate training/export/ML-1 benchmark only after Wave 1 acceptance.",
+        "pending_targets": [
+          "wave2_ml1_readiness_blocked",
+          "missing_ml1_benchmark_report",
+          "missing_ml1_model_contract",
+          "missing_ml1_model_card"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml1.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml1.json"
+        ],
+        "platform_status": "missing",
+        "platform_blockers": [
+          "ml_execution_master_handoff_not_ready",
+          "manifest_publish_receipt_incomplete",
+          "missing_canonical_dataset_manifest",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml1.json"
+        ],
+        "evidence_state": "not_proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml1.json",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          }
+        ]
+      },
+      {
+        "id": "ml1_model_contract_and_card",
+        "phase": "02-ml1-candidate-quality",
+        "status": "missing_evidence",
+        "phase_state": "blocked_upstream_evidence",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_TRAINING",
+        "command_available": true,
+        "validation_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml1_candidate_launcher.ps1",
+        "execute_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml1_candidate_launcher.ps1 -Execute",
+        "command_claim_boundary": "Runs candidate training/export/ML-1 benchmark only after Wave 1 acceptance.",
+        "pending_targets": [
+          "wave2_ml1_readiness_blocked",
+          "missing_ml1_benchmark_report",
+          "missing_ml1_model_contract",
+          "missing_ml1_model_card"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-model-contract.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-model-card.md"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-model-contract.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-model-card.md"
+        ],
+        "platform_status": "missing",
+        "platform_blockers": [
+          "ml_execution_master_handoff_not_ready",
+          "manifest_publish_receipt_incomplete",
+          "missing_canonical_dataset_manifest",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-model-contract.json",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-model-card.md"
+        ],
+        "evidence_state": "not_proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-model-contract.json",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          },
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-model-card.md",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          }
+        ]
+      },
+      {
+        "id": "ml2_pytorch_onnx_parity",
+        "phase": "03-onnx-agent-parity",
+        "status": "missing_evidence",
+        "phase_state": "blocked_upstream_evidence",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_PARITY",
+        "command_available": true,
+        "validation_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml2_ml3_parity_launcher.ps1",
+        "execute_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml2_ml3_parity_launcher.ps1 -Execute",
+        "command_claim_boundary": "Runs parity checks only after candidate ML-1 and ONNX evidence exist.",
+        "pending_targets": [
+          "missing_candidate_onnx_model",
+          "missing_candidate_onnx_metadata",
+          "wave2_ml2_ml3_readiness_blocked",
+          "missing_ml3_agent_parity_report",
+          "ml2_pytorch_onnx_parity",
+          "ml3_agent_onnx_parity"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-artifacts\\malware_smell.onnx",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml2-parity.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-artifacts\\malware_smell.onnx",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml2-parity.json"
+        ],
+        "platform_status": "missing",
+        "platform_blockers": [
+          "wave2_ml1_readiness_valid",
+          "wave2_ml1_readiness_blocked",
+          "missing_ml1_benchmark_report",
+          "missing_candidate_onnx_model",
+          "missing_candidate_onnx_metadata",
+          "missing_ml1_model_contract",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-artifacts\\malware_smell.onnx",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml2-parity.json"
+        ],
+        "evidence_state": "not_proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-artifacts\\malware_smell.onnx",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          },
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml2-parity.json",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          }
+        ]
+      },
+      {
+        "id": "ml3_agent_onnx_parity",
+        "phase": "03-onnx-agent-parity",
+        "status": "missing_evidence",
+        "phase_state": "blocked_upstream_evidence",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_PARITY",
+        "command_available": true,
+        "validation_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml2_ml3_parity_launcher.ps1",
+        "execute_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml2_ml3_parity_launcher.ps1 -Execute",
+        "command_claim_boundary": "Runs parity checks only after candidate ML-1 and ONNX evidence exist.",
+        "pending_targets": [
+          "missing_candidate_onnx_model",
+          "missing_candidate_onnx_metadata",
+          "wave2_ml2_ml3_readiness_blocked",
+          "missing_ml3_agent_parity_report",
+          "ml2_pytorch_onnx_parity",
+          "ml3_agent_onnx_parity"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-artifacts\\malware_smell.onnx",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml3-agent-parity.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-artifacts\\malware_smell.onnx",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml3-agent-parity.json"
+        ],
+        "platform_status": "missing",
+        "platform_blockers": [
+          "wave2_ml1_readiness_valid",
+          "wave2_ml1_readiness_blocked",
+          "missing_ml1_benchmark_report",
+          "missing_candidate_onnx_model",
+          "missing_candidate_onnx_metadata",
+          "missing_ml1_model_contract",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-artifacts\\malware_smell.onnx",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml3-agent-parity.json"
+        ],
+        "evidence_state": "not_proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-artifacts\\malware_smell.onnx",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          },
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml3-agent-parity.json",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          }
+        ]
+      },
+      {
+        "id": "ml4_service_benchmark",
+        "phase": "04-service-benchmark",
+        "status": "missing_evidence",
+        "phase_state": "blocked_upstream_evidence",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_SERVICE_BENCH",
+        "command_available": true,
+        "validation_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml4_service_launcher.ps1",
+        "execute_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml4_service_launcher.ps1 -Execute",
+        "command_claim_boundary": "Runs live FastAPI/service checks only after ML-1 evidence and API auth exist.",
+        "pending_targets": [
+          "missing_env:TAMANDUA_ML_API_KEY",
+          "wave2_ml4_readiness_blocked",
+          "missing_ml4_service_report",
+          "ml4_service_benchmark"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml4-api.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml4-api.json"
+        ],
+        "platform_status": "missing",
+        "platform_blockers": [
+          "wave2_ml1_readiness_valid",
+          "wave2_ml1_readiness_blocked",
+          "missing_ml1_benchmark_report",
+          "missing_ml1_model_contract",
+          "missing_ml1_model_card",
+          "missing_env:TAMANDUA_ML_API_KEY",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml4-api.json"
+        ],
+        "evidence_state": "not_proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml4-api.json",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          }
+        ]
+      },
+      {
+        "id": "ml5_tamandua_replay",
+        "phase": "05-platform-replay",
+        "status": "missing_evidence",
+        "phase_state": "blocked_upstream_evidence",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_PIPELINE_REPLAY",
+        "command_available": true,
+        "validation_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml5_pipeline_launcher.ps1",
+        "execute_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml5_pipeline_launcher.ps1 -Execute",
+        "command_claim_boundary": "Runs full platform replay only after parity, service, and replay outcome inputs exist.",
+        "pending_targets": [
+          "missing_ml5_replay_outcomes",
+          "ml5_pipeline_report",
+          "ml5_tamandua_replay"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml5-pipeline.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml5-pipeline.json"
+        ],
+        "platform_status": "missing",
+        "platform_blockers": [
+          "wave2_ml2_ml3_readiness_blocked",
+          "wave2_ml4_readiness_blocked",
+          "missing_ml1_benchmark_report",
+          "missing_ml1_model_contract",
+          "missing_ml1_model_card",
+          "missing_ml3_agent_parity_report",
+          "missing_ml4_service_report",
+          "missing_ml5_replay_outcomes",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml5-pipeline.json"
+        ],
+        "evidence_state": "not_proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml5-pipeline.json",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          }
+        ]
+      },
+      {
+        "id": "ml6_cross_time_holdout",
+        "phase": "06-cross-time-holdout",
+        "status": "missing_evidence",
+        "phase_state": "blocked_upstream_evidence",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_HOLDOUT",
+        "command_available": true,
+        "validation_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml6_holdout_launcher.ps1",
+        "execute_command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_3_ml6_holdout_launcher.ps1 -Execute",
+        "command_claim_boundary": "Runs holdout robustness only after ML-1 evidence, cutoff, and holdout outcomes exist.",
+        "pending_targets": [
+          "missing_env:TAMANDUA_ML_TRAINING_CUTOFF",
+          "missing_ml6_holdout_prediction_outcomes",
+          "ml6_cross_time_holdout"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml6-holdout.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml6-holdout.json"
+        ],
+        "platform_status": "missing",
+        "platform_blockers": [
+          "wave3_ml5_readiness_blocked",
+          "wave2_ml1_readiness_blocked",
+          "missing_ml1_benchmark_report",
+          "missing_ml1_model_contract",
+          "missing_ml1_model_card",
+          "missing_env:TAMANDUA_ML_TRAINING_CUTOFF",
+          "missing_ml6_holdout_prediction_outcomes",
+          "missing_evidence:D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml6-holdout.json"
+        ],
+        "evidence_state": "not_proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\ml-prod-candidate-v1-ml6-holdout.json",
+            "type": "file",
+            "present": false,
+            "usable": false,
+            "status": "missing"
+          }
+        ]
+      },
+      {
+        "id": "public_claim_evidence_boundary",
+        "phase": "00-public-claim-boundary",
+        "status": "proven",
+        "phase_state": "evidence_exists",
+        "execute_guard_env": "",
+        "command_available": false,
+        "validation_command": "",
+        "execute_command": "",
+        "command_claim_boundary": "No guarded command is required for already-proven coordination boundary evidence.",
+        "pending_targets": [],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\tools\\detection_validation\\ml_public_claims_guard.py"
+        ],
+        "missing_or_unusable_evidence": [],
+        "platform_status": "proven",
+        "platform_blockers": [],
+        "evidence_state": "proven",
+        "evidence": [
+          {
+            "ref": "D:\\treant\\tamandua\\tools\\detection_validation\\ml_public_claims_guard.py",
+            "type": "file",
+            "present": true,
+            "usable": true,
+            "status": "usable"
+          }
+        ]
+      }
+    ]
+  },
+  "source_status_summary": {
+    "goal_complete": false,
+    "completion_state": "partial_evidence",
+    "goal_missing_requirements": 9,
+    "goal_required_evidence_total": 16,
+    "goal_present_required_evidence": 5,
+    "goal_usable_required_evidence": 1,
+    "goal_missing_required_evidence": 11,
+    "goal_unusable_present_required_evidence": 4,
+    "next_unproven_requirement_id": "wave1_governed_acquisition",
+    "next_unproven_requirement_phase": "01-wave1-manifest-publication",
+    "next_unproven_execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+    "missing_requirement_ids": [
+      "wave1_governed_acquisition",
+      "wave1_sanitized_manifest",
+      "ml1_model_quality",
+      "ml1_model_contract_and_card",
+      "ml2_pytorch_onnx_parity",
+      "ml3_agent_onnx_parity",
+      "ml4_service_benchmark",
+      "ml5_tamandua_replay",
+      "ml6_cross_time_holdout"
+    ],
+    "wave1_pre_execution_transcript_contract_validation_before_run": "missing",
+    "wave1_pre_execution_transcript_contract_valid_before_run": false,
+    "wave1_pre_execution_transcript_contract_missing_before_run": true,
+    "wave1_acceptance_intake_transcript_contract_validation": "jsonschema+built-in",
+    "wave1_acceptance_intake_transcript_contract_valid": true,
+    "wave1_transcript_contract_valid_for_manifest_publish": true,
+    "wave1_acquisition_transcript_guarded_run_command_packet_sha256": "e7ca30e57d940cc224bec38d88199fa7676d4c29eb452bf8634468d0e259e2f7",
+    "wave1_acquisition_transcript_stdout_sha256": "3f2d1e736841888d82a5d66e28d9b5a73cf10e58cbcbc34ce3e2de5fd827bf7a",
+    "wave1_acquisition_transcript_stderr_sha256": "8c16ee29597a2089696bae4bd3704161924570f4bbc5743e14c4e6075c7f12c6",
+    "wave1_manifest_transcript_guarded_run_command_packet_sha256": "e7ca30e57d940cc224bec38d88199fa7676d4c29eb452bf8634468d0e259e2f7",
+    "wave1_manifest_transcript_stdout_sha256": "3f2d1e736841888d82a5d66e28d9b5a73cf10e58cbcbc34ce3e2de5fd827bf7a",
+    "wave1_manifest_transcript_stderr_sha256": "8c16ee29597a2089696bae4bd3704161924570f4bbc5743e14c4e6075c7f12c6",
+    "wave1_transcript_hashes_match_between_receipts": true,
+    "goal_snapshot_anchor_check_passed": true,
+    "mismatched_snapshot_fields": [],
+    "requirement_matrix_items": 10,
+    "requirement_matrix_not_proven": 9,
+    "requirement_matrix_proven": 1,
+    "check_count": 5,
+    "passed_checks": 5,
+    "failed_checks": 0
+  },
+  "ready_for_completion_claim": false,
+  "checks": [
+    {
+      "name": "master_handoff_valid",
+      "passed": true,
+      "detail": "docs\\benchmarks\\runs\\20260621T-ml-execution-master-handoff-post-win-template-gate-threading.json (jsonschema+built-in)"
+    },
+    {
+      "name": "goal_not_complete",
+      "passed": true,
+      "detail": "{\"completion_state\": \"partial_evidence\", \"goal_complete\": false}"
+    },
+    {
+      "name": "next_unproven_requirement_is_wave1",
+      "passed": true,
+      "detail": "wave1_governed_acquisition"
+    },
+    {
+      "name": "shared_snapshot_matches_master",
+      "passed": true,
+      "detail": "{\"mismatched_fields\": []}"
+    },
+    {
+      "name": "goal_snapshot_anchor_check_passed",
+      "passed": true,
+      "detail": "{\"master_summary_wave1_goal_snapshot_anchor_check_passed\": true}"
+    }
+  ]
+}
