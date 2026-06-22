@@ -42,17 +42,22 @@ def _find_root() -> tuple[Path, bool]:
     # 2. Try to detect based on script location
     script_dir = Path(__file__).resolve().parent
 
-    # Check if we're in monorepo (parents[2] has monorepo markers)
+    # Check if we're in monorepo. Scripts may live at
+    # tools/detection_validation/ in older layouts or
+    # tools/detection_validation/scripts/ in the organized layout.
     try:
-        monorepo_root = script_dir.parents[1]  # tools/detection_validation → tools → monorepo
+        monorepo_root = script_dir.parents[2] if script_dir.name == "scripts" else script_dir.parents[1]
         if all((monorepo_root / m).exists() for m in ["Makefile", "apps"]):
             return monorepo_root, False
     except IndexError:
         pass
 
-    # Check if we're standalone (script_dir has standalone markers)
+    # Check if we're standalone. Scripts may live either at the standalone root
+    # in older mirrors or under scripts/ in the organized mirror layout.
     if all((script_dir / m).exists() for m in ["profiles", "fixtures"]):
         return script_dir, True
+    if script_dir.name == "scripts" and all((script_dir.parent / m).exists() for m in ["profiles", "fixtures"]):
+        return script_dir.parent, True
 
     # 3. Fallback to environment variable for external deployments
     env_root = os.environ.get("TAMANDUA_DEPLOYMENT_ROOT")

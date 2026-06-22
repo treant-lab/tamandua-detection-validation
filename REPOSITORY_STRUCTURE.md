@@ -1,8 +1,8 @@
 # Tamandua Detection Validation Repository Structure
 
 This repository is a standalone validation toolkit. The root intentionally keeps
-probe scripts flat so each probe can be executed directly with `python
-<probe>.py --help` after the mirror is synced.
+only repository metadata, docs, fixtures, profiles, schemas, scripts, and tests.
+Executable probes and validators live under `scripts/`.
 
 ML validation boundary: current ML artifacts are validation-ready only,
 not production-trained, and production validation remains pending through the
@@ -12,8 +12,8 @@ ML-1..ML-6 gates.
 
 | Path | Purpose |
 | --- | --- |
-| `*.py` | Standalone probes, scorecard generators, validators, and the legacy all-in-one harness kept root-local for compatibility. |
-| `tests/` | Focused pytest contract tests for schemas, ML gates, publication audits, and mirror evidence. |
+| `scripts/` | Standalone probes, scorecard generators, validators, shared helpers, and operational utilities. |
+| `tests/` | Pytest coverage, including focused contract tests and the legacy all-in-one harness. |
 | `fixtures/` | Synthetic fixtures and replay inputs. No raw malware or secrets. |
 | `profiles/` | JSON execution profiles for repeatable validation runs. |
 | `roadmaps/` | Roadmap source shards consumed by roadmap tooling. |
@@ -21,10 +21,8 @@ ML-1..ML-6 gates.
 | `docs/benchmarks/` | Curated evidence, handoff notes, and selected run artifacts explicitly allowlisted by the mirror manifest. |
 | `.github/` | Mirror-local CI and repository metadata. |
 
-The root is flat only for executable entry points that operators call directly.
-Focused tests live under `tests/`; `test_tamandua_detection_validation.py`
-remains at root until the legacy harness is split because it dynamically loads
-many sibling probes with root-local paths. Use
+The repository root should not contain Python entry points. Operators call
+scripts with `python scripts/<name>.py ...`; tests live under `tests/`. Use
 [PROBE_CATALOG.md](./PROBE_CATALOG.md) as the maintained index for probe
 domains, ML contract validators, platform probes, and publication rules.
 
@@ -40,14 +38,14 @@ domains, ML contract validators, platform probes, and publication rules.
 
 ## Standalone Root Resolution
 
-Most ML validators use `root_resolver.py`.
+Most ML validators use `scripts/root_resolver.py`.
 
 Inside the monorepo, paths resolve to the monorepo root automatically. Inside the
 standalone mirror, set `TAMANDUA_ROOT` when a validator needs monorepo example
 contracts or benchmark artifacts that are not copied into the mirror:
 
 ```bash
-TAMANDUA_ROOT=/path/to/tamandua python validate_ml_contracts.py --help
+TAMANDUA_ROOT=/path/to/tamandua python scripts/validate_ml_contracts.py --help
 ```
 
 ## Current ML Evidence Boundaries
@@ -74,7 +72,7 @@ Validate the agent-rush benchmark packet:
 
 ```bash
 TAMANDUA_ROOT=/path/to/tamandua \
-python validate_ml_contracts.py \
+python scripts/validate_ml_contracts.py \
   --ml-agent-rush-benchmark-execution-packet \
   docs/benchmarks/runs/20260621T-ml-agent-rush-benchmark-execution-packet.json
 ```
@@ -83,7 +81,7 @@ Validate the latest ML-3 production gap audit:
 
 ```bash
 TAMANDUA_ROOT=/path/to/tamandua \
-python validate_ml_contracts.py \
+python scripts/validate_ml_contracts.py \
   --ml3-agent-production-gap-audit \
   docs/benchmarks/runs/20260621T-ml3-agent-production-gap-audit-agent-rush.json
 ```
@@ -100,5 +98,5 @@ python -m pytest \
 Run a probe help check:
 
 ```bash
-python linux_ebpf_readiness_probe.py --help
+python scripts/linux_ebpf_readiness_probe.py --help
 ```

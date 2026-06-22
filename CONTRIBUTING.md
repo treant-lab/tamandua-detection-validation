@@ -14,7 +14,7 @@ Please also read this component's [README](./README.md) and
 ```bash
 python -m venv .venv && . .venv/bin/activate
 pip install requests pyyaml
-python linux_ebpf_readiness_probe.py --help
+python scripts/linux_ebpf_readiness_probe.py --help
 ```
 
 ## Before opening a PR

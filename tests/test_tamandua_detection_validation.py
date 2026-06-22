@@ -10,7 +10,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-MODULE_PATH = Path(__file__).with_name("tamandua_detection_validation.py")
+DETECTION_VALIDATION_ROOT = Path(__file__).resolve().parents[1]
+DETECTION_VALIDATION_SCRIPTS = DETECTION_VALIDATION_ROOT / "scripts"
+
+
+def module_path(name: str) -> Path:
+    for base in (DETECTION_VALIDATION_SCRIPTS, DETECTION_VALIDATION_ROOT):
+        candidate = base / name
+        if candidate.exists():
+            return candidate
+    return DETECTION_VALIDATION_SCRIPTS / name
+
+
+MODULE_PATH = module_path("tamandua_detection_validation.py")
 if str(MODULE_PATH.parent) not in sys.path:
     sys.path.insert(0, str(MODULE_PATH.parent))
 SPEC = importlib.util.spec_from_file_location("tamandua_detection_validation", MODULE_PATH)
@@ -20,7 +32,7 @@ sys.modules[SPEC.name] = validation
 SPEC.loader.exec_module(validation)
 REPO_ROOT = MODULE_PATH.parents[2]
 
-MACOS_ARTIFACT_PREFLIGHT_MODULE_PATH = Path(__file__).with_name(
+MACOS_ARTIFACT_PREFLIGHT_MODULE_PATH = module_path(
     "macos_release_artifact_preflight.py"
 )
 MACOS_ARTIFACT_PREFLIGHT_SPEC = importlib.util.spec_from_file_location(
@@ -2226,14 +2238,14 @@ def test_macos_release_artifact_preflight_rejects_invalid_explicit_run_id(tmp_pa
     else:
         raise AssertionError("invalid run id was accepted")
 
-ROADMAP_MODULE_PATH = Path(__file__).with_name("generate_windows_roadmap_300.py")
+ROADMAP_MODULE_PATH = module_path("generate_windows_roadmap_300.py")
 ROADMAP_SPEC = importlib.util.spec_from_file_location("generate_windows_roadmap_300", ROADMAP_MODULE_PATH)
 roadmap = importlib.util.module_from_spec(ROADMAP_SPEC)
 assert ROADMAP_SPEC.loader is not None
 sys.modules[ROADMAP_SPEC.name] = roadmap
 ROADMAP_SPEC.loader.exec_module(roadmap)
 
-ROADMAP_BATCH_MODULE_PATH = Path(__file__).with_name("generate_roadmap_batch_profiles.py")
+ROADMAP_BATCH_MODULE_PATH = module_path("generate_roadmap_batch_profiles.py")
 ROADMAP_BATCH_SPEC = importlib.util.spec_from_file_location(
     "generate_roadmap_batch_profiles",
     ROADMAP_BATCH_MODULE_PATH,
@@ -2243,7 +2255,7 @@ assert ROADMAP_BATCH_SPEC.loader is not None
 sys.modules[ROADMAP_BATCH_SPEC.name] = roadmap_batch
 ROADMAP_BATCH_SPEC.loader.exec_module(roadmap_batch)
 
-MERGE_REPORTS_MODULE_PATH = Path(__file__).with_name("merge_tamandua_validation_reports.py")
+MERGE_REPORTS_MODULE_PATH = module_path("merge_tamandua_validation_reports.py")
 MERGE_REPORTS_SPEC = importlib.util.spec_from_file_location(
     "merge_tamandua_validation_reports",
     MERGE_REPORTS_MODULE_PATH,
@@ -2253,42 +2265,42 @@ assert MERGE_REPORTS_SPEC.loader is not None
 sys.modules[MERGE_REPORTS_SPEC.name] = merge_reports
 MERGE_REPORTS_SPEC.loader.exec_module(merge_reports)
 
-SCORECARD_MODULE_PATH = Path(__file__).with_name("generate_validation_scorecard.py")
+SCORECARD_MODULE_PATH = module_path("generate_validation_scorecard.py")
 SCORECARD_SPEC = importlib.util.spec_from_file_location("generate_validation_scorecard", SCORECARD_MODULE_PATH)
 scorecard = importlib.util.module_from_spec(SCORECARD_SPEC)
 assert SCORECARD_SPEC.loader is not None
 sys.modules[SCORECARD_SPEC.name] = scorecard
 SCORECARD_SPEC.loader.exec_module(scorecard)
 
-SUMMARY_MODULE_PATH = Path(__file__).with_name("summarize_benchmark_runs.py")
+SUMMARY_MODULE_PATH = module_path("summarize_benchmark_runs.py")
 SUMMARY_SPEC = importlib.util.spec_from_file_location("summarize_benchmark_runs", SUMMARY_MODULE_PATH)
 benchmark_summary = importlib.util.module_from_spec(SUMMARY_SPEC)
 assert SUMMARY_SPEC.loader is not None
 sys.modules[SUMMARY_SPEC.name] = benchmark_summary
 SUMMARY_SPEC.loader.exec_module(benchmark_summary)
 
-CLOSURE_GATE_MODULE_PATH = Path(__file__).with_name("roadmap_closure_gate_probe.py")
+CLOSURE_GATE_MODULE_PATH = module_path("roadmap_closure_gate_probe.py")
 CLOSURE_GATE_SPEC = importlib.util.spec_from_file_location("roadmap_closure_gate_probe", CLOSURE_GATE_MODULE_PATH)
 closure_gate = importlib.util.module_from_spec(CLOSURE_GATE_SPEC)
 assert CLOSURE_GATE_SPEC.loader is not None
 sys.modules[CLOSURE_GATE_SPEC.name] = closure_gate
 CLOSURE_GATE_SPEC.loader.exec_module(closure_gate)
 
-CONSISTENCY_MODULE_PATH = Path(__file__).with_name("validation_status_consistency.py")
+CONSISTENCY_MODULE_PATH = module_path("validation_status_consistency.py")
 CONSISTENCY_SPEC = importlib.util.spec_from_file_location("validation_status_consistency", CONSISTENCY_MODULE_PATH)
 consistency = importlib.util.module_from_spec(CONSISTENCY_SPEC)
 assert CONSISTENCY_SPEC.loader is not None
 sys.modules[CONSISTENCY_SPEC.name] = consistency
 CONSISTENCY_SPEC.loader.exec_module(consistency)
 
-PREFLIGHT_MODULE_PATH = Path(__file__).with_name("validation_execution_preflight_probe.py")
+PREFLIGHT_MODULE_PATH = module_path("validation_execution_preflight_probe.py")
 PREFLIGHT_SPEC = importlib.util.spec_from_file_location("validation_execution_preflight_probe", PREFLIGHT_MODULE_PATH)
 preflight = importlib.util.module_from_spec(PREFLIGHT_SPEC)
 assert PREFLIGHT_SPEC.loader is not None
 sys.modules[PREFLIGHT_SPEC.name] = preflight
 PREFLIGHT_SPEC.loader.exec_module(preflight)
 
-PREFLIGHT_WORK_PACKAGE_MODULE_PATH = Path(__file__).with_name("run_preflight_work_package.py")
+PREFLIGHT_WORK_PACKAGE_MODULE_PATH = module_path("run_preflight_work_package.py")
 PREFLIGHT_WORK_PACKAGE_SPEC = importlib.util.spec_from_file_location(
     "run_preflight_work_package",
     PREFLIGHT_WORK_PACKAGE_MODULE_PATH,
@@ -2298,7 +2310,7 @@ assert PREFLIGHT_WORK_PACKAGE_SPEC.loader is not None
 sys.modules[PREFLIGHT_WORK_PACKAGE_SPEC.name] = preflight_work_package
 PREFLIGHT_WORK_PACKAGE_SPEC.loader.exec_module(preflight_work_package)
 
-REFRESH_AUTHORITY_MODULE_PATH = Path(__file__).with_name("refresh_validation_authority.py")
+REFRESH_AUTHORITY_MODULE_PATH = module_path("refresh_validation_authority.py")
 REFRESH_AUTHORITY_SPEC = importlib.util.spec_from_file_location(
     "refresh_validation_authority",
     REFRESH_AUTHORITY_MODULE_PATH,
@@ -2308,7 +2320,7 @@ assert REFRESH_AUTHORITY_SPEC.loader is not None
 sys.modules[REFRESH_AUTHORITY_SPEC.name] = refresh_authority
 REFRESH_AUTHORITY_SPEC.loader.exec_module(refresh_authority)
 
-PRODUCT_READINESS_MODULE_PATH = Path(__file__).with_name("generate_product_readiness_summary.py")
+PRODUCT_READINESS_MODULE_PATH = module_path("generate_product_readiness_summary.py")
 PRODUCT_READINESS_SPEC = importlib.util.spec_from_file_location(
     "generate_product_readiness_summary",
     PRODUCT_READINESS_MODULE_PATH,
@@ -6748,7 +6760,7 @@ def test_manual_claim_resolution_blocks_macos_runtime_claim_execution():
     )
 
 
-FRESH_RESTORE_MODULE_PATH = Path(__file__).with_name("fresh_restore_provenance_probe.py")
+FRESH_RESTORE_MODULE_PATH = module_path("fresh_restore_provenance_probe.py")
 FRESH_RESTORE_SPEC = importlib.util.spec_from_file_location(
     "fresh_restore_provenance_probe",
     FRESH_RESTORE_MODULE_PATH,
@@ -6758,7 +6770,7 @@ assert FRESH_RESTORE_SPEC.loader is not None
 sys.modules[FRESH_RESTORE_SPEC.name] = fresh_restore
 FRESH_RESTORE_SPEC.loader.exec_module(fresh_restore)
 
-CALDERA_PAW_MODULE_PATH = Path(__file__).with_name("caldera_paw_readiness_probe.py")
+CALDERA_PAW_MODULE_PATH = module_path("caldera_paw_readiness_probe.py")
 CALDERA_PAW_SPEC = importlib.util.spec_from_file_location(
     "caldera_paw_readiness_probe",
     CALDERA_PAW_MODULE_PATH,
@@ -6768,7 +6780,7 @@ assert CALDERA_PAW_SPEC.loader is not None
 sys.modules[CALDERA_PAW_SPEC.name] = caldera_paw
 CALDERA_PAW_SPEC.loader.exec_module(caldera_paw)
 
-CALDERA_API_MODULE_PATH = Path(__file__).with_name("caldera_api_shape_probe.py")
+CALDERA_API_MODULE_PATH = module_path("caldera_api_shape_probe.py")
 CALDERA_API_SPEC = importlib.util.spec_from_file_location(
     "caldera_api_shape_probe",
     CALDERA_API_MODULE_PATH,
@@ -6778,7 +6790,7 @@ assert CALDERA_API_SPEC.loader is not None
 sys.modules[CALDERA_API_SPEC.name] = caldera_api
 CALDERA_API_SPEC.loader.exec_module(caldera_api)
 
-CALDERA_REPEATABILITY_MODULE_PATH = Path(__file__).with_name("caldera_repeatability_probe.py")
+CALDERA_REPEATABILITY_MODULE_PATH = module_path("caldera_repeatability_probe.py")
 CALDERA_REPEATABILITY_SPEC = importlib.util.spec_from_file_location(
     "caldera_repeatability_probe",
     CALDERA_REPEATABILITY_MODULE_PATH,
@@ -6788,7 +6800,7 @@ assert CALDERA_REPEATABILITY_SPEC.loader is not None
 sys.modules[CALDERA_REPEATABILITY_SPEC.name] = caldera_repeatability
 CALDERA_REPEATABILITY_SPEC.loader.exec_module(caldera_repeatability)
 
-MACOS_BACKEND_MODULE_PATH = Path(__file__).with_name("macos_backend_readiness_probe.py")
+MACOS_BACKEND_MODULE_PATH = module_path("macos_backend_readiness_probe.py")
 MACOS_BACKEND_SPEC = importlib.util.spec_from_file_location(
     "macos_backend_readiness_probe",
     MACOS_BACKEND_MODULE_PATH,
@@ -6798,7 +6810,7 @@ assert MACOS_BACKEND_SPEC.loader is not None
 sys.modules[MACOS_BACKEND_SPEC.name] = macos_backend
 MACOS_BACKEND_SPEC.loader.exec_module(macos_backend)
 
-ATOMIC_T1047_MODULE_PATH = Path(__file__).with_name("atomic_t1047_lab_capability_probe.py")
+ATOMIC_T1047_MODULE_PATH = module_path("atomic_t1047_lab_capability_probe.py")
 ATOMIC_T1047_SPEC = importlib.util.spec_from_file_location(
     "atomic_t1047_lab_capability_probe",
     ATOMIC_T1047_MODULE_PATH,
@@ -6808,7 +6820,7 @@ assert ATOMIC_T1047_SPEC.loader is not None
 sys.modules[ATOMIC_T1047_SPEC.name] = atomic_t1047
 ATOMIC_T1047_SPEC.loader.exec_module(atomic_t1047)
 
-WINDOWS_QGA_READINESS_MODULE_PATH = Path(__file__).with_name("windows_proxmox_qga_readiness_probe.py")
+WINDOWS_QGA_READINESS_MODULE_PATH = module_path("windows_proxmox_qga_readiness_probe.py")
 WINDOWS_QGA_READINESS_SPEC = importlib.util.spec_from_file_location(
     "windows_proxmox_qga_readiness_probe",
     WINDOWS_QGA_READINESS_MODULE_PATH,
@@ -6818,7 +6830,7 @@ assert WINDOWS_QGA_READINESS_SPEC.loader is not None
 sys.modules[WINDOWS_QGA_READINESS_SPEC.name] = windows_qga_readiness
 WINDOWS_QGA_READINESS_SPEC.loader.exec_module(windows_qga_readiness)
 
-WINDOWS_QGA_FILE_DIAGNOSTICS_MODULE_PATH = Path(__file__).with_name(
+WINDOWS_QGA_FILE_DIAGNOSTICS_MODULE_PATH = module_path(
     "windows_proxmox_qga_file_diagnostics_probe.py"
 )
 WINDOWS_QGA_FILE_DIAGNOSTICS_SPEC = importlib.util.spec_from_file_location(
@@ -6830,7 +6842,7 @@ assert WINDOWS_QGA_FILE_DIAGNOSTICS_SPEC.loader is not None
 sys.modules[WINDOWS_QGA_FILE_DIAGNOSTICS_SPEC.name] = windows_qga_file_diagnostics
 WINDOWS_QGA_FILE_DIAGNOSTICS_SPEC.loader.exec_module(windows_qga_file_diagnostics)
 
-WINDOWS_LAB_READINESS_MODULE_PATH = Path(__file__).with_name("windows_lab_execution_readiness_probe.py")
+WINDOWS_LAB_READINESS_MODULE_PATH = module_path("windows_lab_execution_readiness_probe.py")
 WINDOWS_LAB_READINESS_SPEC = importlib.util.spec_from_file_location(
     "windows_lab_execution_readiness_probe",
     WINDOWS_LAB_READINESS_MODULE_PATH,
@@ -6840,7 +6852,7 @@ assert WINDOWS_LAB_READINESS_SPEC.loader is not None
 sys.modules[WINDOWS_LAB_READINESS_SPEC.name] = windows_lab_readiness
 WINDOWS_LAB_READINESS_SPEC.loader.exec_module(windows_lab_readiness)
 
-WINDOWS_CONNECTION_STABILITY_MODULE_PATH = Path(__file__).with_name(
+WINDOWS_CONNECTION_STABILITY_MODULE_PATH = module_path(
     "windows_agent_connection_stability_probe.py"
 )
 WINDOWS_CONNECTION_STABILITY_SPEC = importlib.util.spec_from_file_location(
@@ -6852,7 +6864,7 @@ assert WINDOWS_CONNECTION_STABILITY_SPEC.loader is not None
 sys.modules[WINDOWS_CONNECTION_STABILITY_SPEC.name] = windows_connection_stability
 WINDOWS_CONNECTION_STABILITY_SPEC.loader.exec_module(windows_connection_stability)
 
-AGENT_PLATFORM_LIVE_MODULE_PATH = Path(__file__).with_name("agent_platform_capabilities_live_api_probe.py")
+AGENT_PLATFORM_LIVE_MODULE_PATH = module_path("agent_platform_capabilities_live_api_probe.py")
 AGENT_PLATFORM_LIVE_SPEC = importlib.util.spec_from_file_location(
     "agent_platform_capabilities_live_api_probe",
     AGENT_PLATFORM_LIVE_MODULE_PATH,
@@ -6862,7 +6874,7 @@ assert AGENT_PLATFORM_LIVE_SPEC.loader is not None
 sys.modules[AGENT_PLATFORM_LIVE_SPEC.name] = agent_platform_live
 AGENT_PLATFORM_LIVE_SPEC.loader.exec_module(agent_platform_live)
 
-FLEET_INVENTORY_MODULE_PATH = Path(__file__).with_name("fleet_inventory_probe.py")
+FLEET_INVENTORY_MODULE_PATH = module_path("fleet_inventory_probe.py")
 FLEET_INVENTORY_SPEC = importlib.util.spec_from_file_location(
     "fleet_inventory_probe",
     FLEET_INVENTORY_MODULE_PATH,
@@ -7026,7 +7038,7 @@ def test_scorecard_roadmap_j_includes_live_windows_benign_baseline_gate():
 
 
 def test_benign_registry_read_scopes_registry_key_to_registry_event():
-    profile_path = Path(__file__).with_name("profiles") / "windows_benign_baseline.json"
+    profile_path = module_path("profiles") / "windows_benign_baseline.json"
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
     test = next(item for item in profile["tests"] if item["id"] == "benign-registry-read")
 
@@ -7035,7 +7047,7 @@ def test_benign_registry_read_scopes_registry_key_to_registry_event():
 
 
 def test_atomic_t1112_scopes_registry_key_to_registry_set_value_event():
-    profile_path = Path(__file__).with_name("profiles") / "windows_atomic_upstream_smoke.json"
+    profile_path = module_path("profiles") / "windows_atomic_upstream_smoke.json"
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
     test = next(item for item in profile["tests"] if item["id"] == "atomic-upstream-T1112-registry-modification")
 
@@ -7044,7 +7056,7 @@ def test_atomic_t1112_scopes_registry_key_to_registry_set_value_event():
 
 
 def test_atomic_t1082_fallback_avoids_slow_systeminfo():
-    profile_path = Path(__file__).with_name("profiles") / "windows_atomic_upstream_smoke.json"
+    profile_path = module_path("profiles") / "windows_atomic_upstream_smoke.json"
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
     test = next(item for item in profile["tests"] if item["id"] == "atomic-upstream-T1082-system-info")
     command = test["fallback_command"].lower()
@@ -7054,7 +7066,7 @@ def test_atomic_t1082_fallback_avoids_slow_systeminfo():
 
 
 def test_benign_scheduled_task_query_avoids_pager():
-    profile_path = Path(__file__).with_name("profiles") / "windows_benign_baseline.json"
+    profile_path = module_path("profiles") / "windows_benign_baseline.json"
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
     test = next(item for item in profile["tests"] if item["id"] == "benign-scheduled-task-query")
     command = test["fallback_command"].lower()

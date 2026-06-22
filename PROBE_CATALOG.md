@@ -1,9 +1,7 @@
 # Detection Validation Probe Catalog
 
-The standalone mirror keeps executable probes at repository root so existing
-commands such as `python <probe>.py --help` keep working. Focused pytest
-contracts live under `tests/`; only the legacy all-in-one harness remains at
-root until it is split because it dynamically imports many sibling probes. This
+The standalone mirror keeps executable probes, validators, generators, and
+shared helpers under `scripts/`. Pytest coverage lives under `tests/`. This
 catalog should be updated whenever a new probe, validator, generated-contract
 helper, or test family is added.
 
@@ -11,11 +9,10 @@ helper, or test family is added.
 
 | Group | Files | Purpose |
 | --- | ---: | --- |
-| Focused tests | 84 | `tests/test_*.py` coverage for standalone contracts, schemas, publication audits, and ML gates. |
-| Legacy root harness | 1 | `test_tamandua_detection_validation.py`, retained root-local until its dynamic sibling probe imports are decomposed. |
-| Generators and probes | 50 | Executable validation probes, roadmap generators, benchmark scorecards, and readiness summaries. |
-| Support | 23 | Shared runners, adapters, root resolution, migration helpers, and operational utilities. |
-| Validators | 7 | Contract and metadata validators intended for CI or mirror publication gates. |
+| Tests | 85 | `tests/test_*.py` coverage for standalone contracts, schemas, probes, publication audits, and ML gates. |
+| Generators and probes | 50 | `scripts/*.py` executable validation probes, roadmap generators, benchmark scorecards, and readiness summaries. |
+| Support | 23 | `scripts/*.py` shared runners, adapters, root resolution, migration helpers, and operational utilities. |
+| Validators | 7 | `scripts/*.py` contract and metadata validators intended for CI or mirror publication gates. |
 | Docs | 5 | Mirror usage, repository structure, contribution, external-rule, and probe catalog documentation. |
 | Configs | 1 | Top-level integration metadata. |
 
@@ -23,11 +20,11 @@ helper, or test family is added.
 
 | File | Role |
 | --- | --- |
-| `tamandua_detection_validation.py` | Main validation runner for profile-driven execution and evidence generation. |
-| `run_preflight_work_package.py` | Large preflight orchestrator for readiness work packages. |
-| `validate_ml_contracts.py` | ML evidence contract validator used by ML and detection-validation mirrors. |
-| `validation_status_consistency.py` | Cross-artifact consistency checks for generated validation status. |
-| `root_resolver.py` | Standalone/monorepo path resolver used by validators and tests. |
+| `scripts/tamandua_detection_validation.py` | Main validation runner for profile-driven execution and evidence generation. |
+| `scripts/run_preflight_work_package.py` | Large preflight orchestrator for readiness work packages. |
+| `scripts/validate_ml_contracts.py` | ML evidence contract validator used by ML and detection-validation mirrors. |
+| `scripts/validation_status_consistency.py` | Cross-artifact consistency checks for generated validation status. |
+| `scripts/root_resolver.py` | Standalone/monorepo path resolver used by validators and tests. |
 
 ## Platform Probes
 
@@ -54,7 +51,7 @@ helper, or test family is added.
 
 | Domain | Representative files |
 | --- | --- |
-| Public claim guard | `ml_public_claims_guard.py`, `tests/test_ml_public_claims_guard.py` |
+| Public claim guard | `scripts/ml_public_claims_guard.py`, `tests/test_ml_public_claims_guard.py` |
 | Training roadmap | `tests/test_ml_training_pipeline_roadmap.py` |
 | Dataset/acquisition contracts | `tests/test_validate_ml_acquisition_dry_run.py`, `tests/test_validate_ml_dataset_manifest.py`, `tests/test_validate_ml_vx_underground_inventory.py`, `tests/test_validate_ml_virusshare_fallback_contracts.py` |
 | Model and benchmark contracts | `tests/test_validate_ml_model_contract.py`, `tests/test_validate_ml_benchmark_report.py`, `tests/test_validate_ml_benchmark_execution_matrix.py`, `tests/test_validate_ml_agent_rush_benchmark_execution_packet.py` |
@@ -63,9 +60,8 @@ helper, or test family is added.
 
 ## Publication Rules
 
-- Keep root files directly executable unless a move is paired with import-path
-  migration, CI changes, and mirror manifest updates. New focused tests belong
-  under `tests/`, not at repository root.
+- Keep Python entry points under `scripts/` and pytest modules under `tests/`;
+  do not add new loose `.py` files at repository root.
 - Put durable fixtures under `fixtures/`, repeatable execution profiles under
   `profiles/`, roadmap shards under `roadmaps/`, and schemas under `schemas/`.
 - Do not commit generated `runs/`, `generated/`, cache, bytecode, secrets, raw

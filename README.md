@@ -7,7 +7,7 @@ behavior and emits a structured result used to build readiness scorecards.
 
 ## Overview
 
-- **Probes** (`*.py`) — standalone scripts (e.g. eBPF readiness, control-plane
+- **`scripts/`** — standalone probes and validators (e.g. eBPF readiness, control-plane
   tenant safety, ATT&CK coverage matrix, crash-resilience fixtures).
 - **`tests/`** — focused pytest contract tests for ML gates, schemas,
   publication audits, and curated evidence.
@@ -57,8 +57,8 @@ pip install requests pyyaml
 Each probe is invoked directly and supports `--help`:
 
 ```bash
-python linux_ebpf_readiness_probe.py --help
-python attack_coverage_matrix.py --help
+python scripts/linux_ebpf_readiness_probe.py --help
+python scripts/attack_coverage_matrix.py --help
 ```
 
 Probes write JSON/Markdown results to their configured output directory.
@@ -74,7 +74,7 @@ monorepo checkout:
 
 ```bash
 TAMANDUA_ROOT=/path/to/tamandua \
-python validate_ml_contracts.py \
+python scripts/validate_ml_contracts.py \
   --ml-agent-rush-benchmark-execution-packet \
   docs/benchmarks/runs/20260621T-ml-agent-rush-benchmark-execution-packet.json
 ```
