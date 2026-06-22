@@ -84,6 +84,7 @@ ML_BENCHMARK_UNBLOCK_HANDOFF_BUNDLE_SCHEMA = ROOT / "schemas/ml_benchmark_unbloc
 ML_BENCHMARK_UNBLOCK_HANDOFF_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_benchmark_unblock_handoff_consistency_v1.schema.json"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_SCHEMA = ROOT / "schemas/ml_benchmark_unblock_validation_status_v1.schema.json"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_CONSISTENCY_SCHEMA = ROOT / "schemas/ml_benchmark_unblock_validation_status_consistency_v1.schema.json"
+ML_AGENT_RUSH_BENCHMARK_EXECUTION_PACKET_SCHEMA = ROOT / "schemas/ml_agent_rush_benchmark_execution_packet_v1.schema.json"
 ML_MIRROR_PUBLICATION_AUDIT_SCHEMA = ROOT / "schemas/ml_mirror_publication_audit_v1.schema.json"
 ML_VIRUSSHARE_FALLBACK_READINESS_SCHEMA = ROOT / "schemas/ml_virusshare_fallback_readiness_v1.schema.json"
 ML_VIRUSSHARE_FALLBACK_COMMAND_PACKET_CHECK_SCHEMA = ROOT / "schemas/ml_virusshare_fallback_command_packet_check_v1.schema.json"
@@ -187,6 +188,7 @@ ML_BENCHMARK_UNBLOCK_HANDOFF_BUNDLE_API_VERSION = "tamandua.io/ml-benchmark-unbl
 ML_BENCHMARK_UNBLOCK_HANDOFF_CONSISTENCY_API_VERSION = "tamandua.io/ml-benchmark-unblock-handoff-consistency/v1"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_API_VERSION = "tamandua.io/ml-benchmark-unblock-validation-status/v1"
 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_CONSISTENCY_API_VERSION = "tamandua.io/ml-benchmark-unblock-validation-status-consistency/v1"
+ML_AGENT_RUSH_BENCHMARK_EXECUTION_PACKET_API_VERSION = "tamandua.io/ml-agent-rush-benchmark-execution-packet/v1"
 ML_MIRROR_PUBLICATION_AUDIT_API_VERSION = "tamandua.io/ml-mirror-publication-audit/v1"
 ML_VIRUSSHARE_FALLBACK_READINESS_API_VERSION = "tamandua.io/ml-virusshare-fallback-readiness/v1"
 ML_VIRUSSHARE_FALLBACK_COMMAND_PACKET_CHECK_API_VERSION = "tamandua.io/ml-virusshare-fallback-command-packet-check/v1"
@@ -1067,6 +1069,103 @@ def validate_benchmark_report(data: dict[str, Any], path: Path) -> None:
             actual_sha = file_sha256(artifact_path)
             if actual_sha.lower() != str(artifact_sha).lower():
                 raise ContractError(f"{path}.artifacts[{index}].sha256: does not match artifact file")
+
+
+def validate_ml_agent_rush_benchmark_execution_packet(data: dict[str, Any], path: Path) -> None:
+    require_keys(
+        data,
+        {
+            "api_version",
+            "kind",
+            "metadata",
+            "current_detection_evidence",
+            "agent_rush_contracts",
+            "next_parallel_work",
+            "go_no_go",
+        },
+        str(path),
+    )
+    if data["api_version"] != ML_AGENT_RUSH_BENCHMARK_EXECUTION_PACKET_API_VERSION:
+        raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
+    if data["kind"] != "MLAgentRushBenchmarkExecutionPacket":
+        raise ContractError(f"{path}: invalid kind {data['kind']!r}")
+
+    metadata = require_object(data["metadata"], f"{path}.metadata")
+    require_keys(metadata, {"packet_id", "created_at", "created_by", "git_commit", "claim_boundary"}, f"{path}.metadata")
+    claim_boundary = str(metadata["claim_boundary"]).lower()
+    if "does not" not in claim_boundary:
+        raise ContractError(f"{path}.metadata.claim_boundary: must state the negative claim boundary")
+    for forbidden in ("production-ready", "go_for_detection"):
+        if forbidden in claim_boundary:
+            raise ContractError(f"{path}.metadata.claim_boundary: must not claim production detection")
+
+    evidence = require_object(data["current_detection_evidence"], f"{path}.current_detection_evidence")
+    require_keys(evidence, {"win_template_probe", "agent_smoke_report", "summary"}, f"{path}.current_detection_evidence")
+    summary = require_object(evidence["summary"], f"{path}.current_detection_evidence.summary")
+    prediction_summary = require_object(summary["prediction_summary"], f"{path}.current_detection_evidence.summary.prediction_summary")
+    total = int(prediction_summary["total"])
+    benign = int(prediction_summary["benign"])
+    malicious = int(prediction_summary["malicious"])
+    if total != benign + malicious:
+        raise ContractError(f"{path}.current_detection_evidence.summary.prediction_summary.total: must equal benign + malicious")
+    false_positive_candidates = require_array(
+        summary["false_positive_candidate_sample_ids"],
+        f"{path}.current_detection_evidence.summary.false_positive_candidate_sample_ids",
+    )
+    if bool(summary["fixtures_declared_non_malware"]) and malicious > 0 and not false_positive_candidates:
+        raise ContractError(
+            f"{path}.current_detection_evidence.summary.false_positive_candidate_sample_ids: "
+            "must record malicious predictions on non-malware fixtures as false-positive candidates"
+        )
+    if summary["production_gate_impact"] != "no_go_for_detection_claims":
+        raise ContractError(f"{path}.current_detection_evidence.summary.production_gate_impact: must remain no-go")
+
+    contracts = [
+        require_object(item, f"{path}.agent_rush_contracts.item")
+        for item in require_array(data["agent_rush_contracts"], f"{path}.agent_rush_contracts")
+    ]
+    lanes = [str(item["lane"]) for item in contracts]
+    expected_lanes = ["ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]
+    if sorted(lanes) != expected_lanes:
+        raise ContractError(f"{path}.agent_rush_contracts: must contain exactly {expected_lanes}")
+    for contract in contracts:
+        lane = str(contract["lane"])
+        status = str(contract["status"])
+        artifact = str(contract["artifact"])
+        successor = str(contract["canonical_successor"])
+        blocked_by = require_array(contract["blocked_by"], f"{path}.agent_rush_contracts[{lane}].blocked_by")
+        if not artifact.startswith("docs/benchmarks/runs/"):
+            raise ContractError(f"{path}.agent_rush_contracts[{lane}].artifact: must reference docs/benchmarks/runs")
+        if "ml-prod-candidate-v1" not in successor:
+            raise ContractError(f"{path}.agent_rush_contracts[{lane}].canonical_successor: must reference ml-prod-candidate-v1")
+        if lane == "ML-3":
+            if status != "smoke_pass_production_blocked":
+                raise ContractError(f"{path}.agent_rush_contracts[ML-3].status: must remain smoke_pass_production_blocked")
+        elif status not in {"not_run", "blocked"}:
+            raise ContractError(f"{path}.agent_rush_contracts[{lane}].status: invalid execution status")
+        if not blocked_by:
+            raise ContractError(f"{path}.agent_rush_contracts[{lane}].blocked_by: must explain remaining blocker")
+
+    parallel_work = [
+        require_object(item, f"{path}.next_parallel_work.item")
+        for item in require_array(data["next_parallel_work"], f"{path}.next_parallel_work")
+    ]
+    if not any(item.get("safe_now") is True for item in parallel_work):
+        raise ContractError(f"{path}.next_parallel_work: must include at least one safe-now track")
+    for item in parallel_work:
+        if item.get("safe_now") is False and "requires" not in item:
+            raise ContractError(f"{path}.next_parallel_work[{item.get('track')}].requires: blocked work must list requirements")
+
+    go_no_go = require_object(data["go_no_go"], f"{path}.go_no_go")
+    expectations = {
+        "agent_smoke": "go",
+        "production_detection_claim": "no_go",
+        "tamandua_ml_public_mirror_push": "no_go",
+        "next_unblock": "wave1_governed_acquisition",
+    }
+    for field, expected in expectations.items():
+        if go_no_go.get(field) != expected:
+            raise ContractError(f"{path}.go_no_go.{field}: must be {expected!r}")
 
 
 def validate_model_contract(data: dict[str, Any], path: Path) -> None:
@@ -27429,6 +27528,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--ml-benchmark-unblock-handoff-consistency", type=Path, default=None)
     parser.add_argument("--ml-benchmark-unblock-validation-status", type=Path, default=None)
     parser.add_argument("--ml-benchmark-unblock-validation-status-consistency", type=Path, default=None)
+    parser.add_argument("--ml-agent-rush-benchmark-execution-packet", type=Path, default=None)
     parser.add_argument("--ml-mirror-publication-audit", type=Path, default=None)
     parser.add_argument("--ml-virusshare-fallback-readiness", type=Path, default=None)
     parser.add_argument("--ml-virusshare-fallback-command-packet-check", type=Path, default=None)
@@ -27868,6 +27968,13 @@ def main() -> int:
                 ML_BENCHMARK_UNBLOCK_VALIDATION_STATUS_CONSISTENCY_SCHEMA,
                 validate_ml_benchmark_unblock_validation_status_consistency,
             )
+        ml_agent_rush_benchmark_execution_packet_mode = None
+        if args.ml_agent_rush_benchmark_execution_packet is not None:
+            ml_agent_rush_benchmark_execution_packet_mode = validate_contract(
+                args.ml_agent_rush_benchmark_execution_packet,
+                ML_AGENT_RUSH_BENCHMARK_EXECUTION_PACKET_SCHEMA,
+                validate_ml_agent_rush_benchmark_execution_packet,
+            )
         ml_mirror_publication_audit_mode = None
         if args.ml_mirror_publication_audit is not None:
             ml_mirror_publication_audit_mode = validate_contract(
@@ -28215,6 +28322,11 @@ def main() -> int:
         print(
             "validated ML benchmark unblock validation status consistency: "
             f"{args.ml_benchmark_unblock_validation_status_consistency} ({ml_benchmark_unblock_validation_status_consistency_mode})"
+        )
+    if ml_agent_rush_benchmark_execution_packet_mode is not None:
+        print(
+            "validated ML agent rush benchmark execution packet: "
+            f"{args.ml_agent_rush_benchmark_execution_packet} ({ml_agent_rush_benchmark_execution_packet_mode})"
         )
     if ml_mirror_publication_audit_mode is not None:
         print(

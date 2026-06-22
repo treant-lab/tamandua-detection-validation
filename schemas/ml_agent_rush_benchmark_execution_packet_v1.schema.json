@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ml_agent_rush_benchmark_execution_packet_v1.schema.json",
+  "title": "Tamandua ML Agent Rush Benchmark Execution Packet v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "current_detection_evidence",
+    "agent_rush_contracts",
+    "next_parallel_work",
+    "go_no_go"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-agent-rush-benchmark-execution-packet/v1"},
+    "kind": {"const": "MLAgentRushBenchmarkExecutionPacket"},
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packet_id", "created_at", "created_by", "git_commit", "claim_boundary"],
+      "properties": {
+        "packet_id": {"type": "string", "minLength": 1},
+        "created_at": {"type": "string", "format": "date-time"},
+        "created_by": {"type": "string", "minLength": 1},
+        "git_commit": {"type": "string", "minLength": 1},
+        "claim_boundary": {"type": "string", "minLength": 20}
+      }
+    },
+    "current_detection_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["win_template_probe", "agent_smoke_report", "summary"],
+      "properties": {
+        "win_template_probe": {"type": "string", "minLength": 1},
+        "agent_smoke_report": {"type": "string", "minLength": 1},
+        "summary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "win_template_inference_status",
+            "fixtures_declared_non_malware",
+            "prediction_summary",
+            "false_positive_candidate_sample_ids",
+            "production_gate_impact"
+          ],
+          "properties": {
+            "win_template_inference_status": {"enum": ["completed", "not_run", "failed"]},
+            "fixtures_declared_non_malware": {"type": "boolean"},
+            "prediction_summary": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["total", "benign", "malicious"],
+              "properties": {
+                "total": {"type": "integer", "minimum": 0},
+                "benign": {"type": "integer", "minimum": 0},
+                "malicious": {"type": "integer", "minimum": 0}
+              }
+            },
+            "false_positive_candidate_sample_ids": {
+              "type": "array",
+              "items": {"type": "string", "minLength": 1}
+            },
+            "production_gate_impact": {"enum": ["no_go_for_detection_claims", "go_for_detection_claims"]}
+          }
+        }
+      }
+    },
+    "agent_rush_contracts": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["lane", "purpose", "status", "artifact", "canonical_successor", "blocked_by"],
+        "properties": {
+          "lane": {"enum": ["ML-1", "ML-2", "ML-3", "ML-4", "ML-5", "ML-6"]},
+          "purpose": {"type": "string", "minLength": 1},
+          "status": {"enum": ["not_run", "blocked", "smoke_pass_production_blocked"]},
+          "artifact": {"type": "string", "minLength": 1},
+          "canonical_successor": {"type": "string", "minLength": 1},
+          "blocked_by": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "next_parallel_work": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["track", "action", "safe_now"],
+        "properties": {
+          "track": {"type": "string", "minLength": 1},
+          "action": {"type": "string", "minLength": 1},
+          "safe_now": {"type": "boolean"},
+          "requires": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          }
+        }
+      }
+    },
+    "go_no_go": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["agent_smoke", "production_detection_claim", "tamandua_ml_public_mirror_push", "next_unblock"],
+      "properties": {
+        "agent_smoke": {"enum": ["go", "no_go"]},
+        "production_detection_claim": {"enum": ["go", "no_go"]},
+        "tamandua_ml_public_mirror_push": {"enum": ["go", "no_go"]},
+        "next_unblock": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}
