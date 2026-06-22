@@ -27,6 +27,14 @@ ML validation boundary: current ML artifacts are validation-ready only,
 not production-trained, and production validation remains pending through the
 ML-1..ML-6 gates.
 
+Latest WIN-TEMPLATE status: the production mTLS path was restored and
+`5622e06b-81ae-4f33-85e1-0f7fcae090ef` reached `online` through the server.
+`20260622T-agent-bound-win-template-live-response-smoke` passed as an
+agent-bound deterministic execution smoke. ML evidence remains bounded to safe
+fixtures: the Rust agent ONNX parity rerun passed on the frozen synthetic
+fixture, while the local checkpoint WIN-TEMPLATE probe still records one
+false-positive candidate on a non-malware high-entropy control.
+
 See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the standalone
 mirror layout and artifact policy, and [PROBE_CATALOG.md](./PROBE_CATALOG.md)
 for the logical grouping of root-level probes, validators, and tests.

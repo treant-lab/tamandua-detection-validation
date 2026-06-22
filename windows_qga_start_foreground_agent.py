@@ -21,7 +21,7 @@ except ImportError:
 
 sys.path.insert(0, str(ROOT / "tools" / "detection_validation"))
 import windows_proxmox_qga_readiness_probe as qga  # noqa: E402
-from windows_qga_agent_service_probe import guest_exec  # noqa: E402
+from windows_qga_agent_service_probe import guest_exec, tasklist_agent_process_seen  # noqa: E402
 
 
 DEFAULT_AGENT_ID = "717f4ffc-d373-4bb4-b021-36d7c51838f0"
@@ -96,8 +96,8 @@ def create_installation_token(args: argparse.Namespace) -> str:
 
 
 def build_guest_script(args: argparse.Namespace) -> str:
-    server_ws = f"ws://{args.server_host}:4000/socket/agent"
-    agent_url = f"http://{args.server_host}:4000/downloads/agents/tamandua-agent-windows-x64.exe"
+    server_ws = args.agent_server_url or f"ws://{args.server_host}:4000/socket/agent"
+    agent_url = args.agent_download_url or f"http://{args.server_host}:4000/downloads/agents/tamandua-agent-windows-x64.exe"
     auth_token = f"dev-win-template-{args.agent_id}"
     # Keep this as plain cmd.exe input. Long PowerShell -EncodedCommand payloads
     # are brittle through QGA/cmd command-line limits on this lab VM.
@@ -158,9 +158,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "passed": False,
             "auth": {key: value for key, value in auth.items() if "password" not in key.lower()},
         }
-    server_ws = f"ws://{args.server_host}:4000/socket/agent"
-    enrollment_url = f"http://{args.server_host}:4000"
-    agent_url = f"http://{args.server_host}:4000/downloads/agents/tamandua-agent-windows-x64.exe"
+    server_ws = args.agent_server_url or f"ws://{args.server_host}:4000/socket/agent"
+    enrollment_url = args.enrollment_url or f"http://{args.server_host}:4000"
+    agent_url = args.agent_download_url or f"http://{args.server_host}:4000/downloads/agents/tamandua-agent-windows-x64.exe"
     issued_installation_token = None
     try:
         installation_token = create_installation_token(args)
@@ -239,7 +239,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         ),
     ]
     inspect = steps[-1]
-    running = "RUNNING" in inspect.get("stdout_tail", "") or "tamandua-agent.exe" in inspect.get("stdout_tail", "")
+    inspect_stdout = inspect.get("stdout_tail", "")
+    running = "RUNNING" in inspect_stdout or tasklist_agent_process_seen(inspect_stdout)
     parsed = {"exe": exe, "pid": None, "stdout_tail": inspect.get("stdout_tail", ""), "stderr_tail": inspect.get("stderr_tail", "")}
     for line in inspect.get("stdout_tail", "").splitlines():
         if line.strip().startswith("PID:"):
@@ -292,6 +293,9 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Start foreground Windows agent via Proxmox QGA")
     parser.add_argument("--agent-id", default=DEFAULT_AGENT_ID)
     parser.add_argument("--server-host", default=DEFAULT_SERVER_HOST)
+    parser.add_argument("--agent-server-url")
+    parser.add_argument("--agent-download-url")
+    parser.add_argument("--enrollment-url")
     parser.add_argument("--installation-token")
     parser.add_argument("--remote-config", default=str(DEFAULT_REMOTE_CONFIG))
     parser.add_argument("--proxmox-host")

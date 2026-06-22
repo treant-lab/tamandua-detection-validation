@@ -54,6 +54,9 @@ claim production detection quality.
 - WIN-TEMPLATE local checkpoint inference completed on non-malware fixtures and
   recorded a false-positive candidate.
 - Agent-side ONNX evidence is smoke parity against a frozen synthetic fixture.
+- WIN-TEMPLATE agent-bound execution is now proven for a deterministic
+  live-response smoke through `tamandua-ctl`; this proves agent connectivity and
+  execution evidence, not ML malware detection.
 - Agent-rush ML-1, ML-4, ML-5, and ML-6 reports are dry-run contracts with
   `quality_gate.status=not_run`.
 - ML-3 production gap remains blocked until `ml-prod-candidate-v1` model,

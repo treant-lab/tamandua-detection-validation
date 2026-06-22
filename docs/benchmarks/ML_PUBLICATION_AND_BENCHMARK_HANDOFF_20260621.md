@@ -122,6 +122,31 @@ It completed local inference on 4 deterministic non-malware fixtures: 3 benign,
 1 malicious (`win_template_seeded_high_entropy_control`). That malicious verdict
 remains a false-positive candidate, not a detection success.
 
+The 2026-06-22 production mTLS recovery succeeded after aligning the server
+agent CA bundle with the DB-backed Tamandua EDR CA and restoring
+`MTLS_REQUIRED=true`. The WIN-TEMPLATE agent
+`5622e06b-81ae-4f33-85e1-0f7fcae090ef` connected, registered, joined its agent
+channel, and emitted telemetry. A single-test agent-bound smoke then passed:
+`docs/benchmarks/runs/20260622T-agent-bound-win-template-live-response-smoke.json`
+and `.md` show `Gate: pass`, `covered=1`, `missed=0`, with evidence sources
+including endpoint process/file/network/DNS, kernel driver, and
+`live_response_audit=1`. This proves agent-bound execution and telemetry
+collection through Tamandua, not ML detection.
+
+The agent-side ONNX rerun with ONNX Runtime 1.23.2 is
+`docs/benchmarks/runs/20260622T-agent-onnx-parity-agent-online-rerun.json`.
+Result: `passed=true`, `sample_count=6`, `verdict_agreement=1.0`,
+`verdict_matches=6`, and `max_abs_probability_delta=0.000027954578`. This
+proves the Rust agent ONNX path still matches the frozen synthetic fixture while
+the WIN-TEMPLATE agent is online; it is not malware detection evidence.
+
+The current safe WIN-TEMPLATE ML checkpoint probe is
+`docs/benchmarks/runs/20260622T-win-template-ml-probe-local-inference-agent-online.json`.
+It ran local inference on 4 deterministic non-malware fixtures: 3 benign and 1
+malicious verdict on `win_template_seeded_high_entropy_control`. That remains a
+false-positive candidate and a `no_go_for_detection_claims` signal until the
+canonical `ml-prod-candidate-v1` dataset and benchmark gates exist.
+
 The follow-up agent-bound WIN-TEMPLATE run was attempted with
 `tools/detection_validation/tamandua_detection_validation.py --execute` and
 generated `docs/benchmarks/runs/exec-windows-ml-probe-win-template-direct-agent-bench.json`.

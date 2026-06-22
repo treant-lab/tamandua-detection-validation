@@ -92,8 +92,25 @@ def parse_service_state(stdout: str) -> dict[str, str]:
     return parsed
 
 
+def tasklist_agent_process_seen(stdout: str) -> bool:
+    for line in stdout.splitlines():
+        stripped = line.strip().lower()
+        if stripped.startswith("tamandua-agent.exe"):
+            return True
+    return False
+
+
+def tamandua_agent_service_running(stdout: str) -> bool:
+    marker = "D:\\Windows\\System32>sc query TamanduaAgent"
+    if marker not in stdout:
+        return False
+    section = stdout.split(marker, 1)[1].split("D:\\Windows\\System32>sc queryex TamanduaAgent", 1)[0]
+    return "RUNNING" in section
+
+
 def redact_sensitive(value: str) -> str:
     value = re.sub(r'(?im)^(auth_token\s*=\s*")[^"]+(")', r"\1<redacted>\2", value)
+    value = re.sub(r'(?im)^(jwt\s*=\s*")[^"]+(")', r"\1<redacted>\2", value)
     value = re.sub(r"(?i)(Bearer\s+)[A-Za-z0-9._~+/=-]+", r"\1<redacted>", value)
     return value
 
@@ -142,8 +159,9 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     stdout = redact_sensitive(str(exec_result.get("stdout", "")))
     stderr = redact_sensitive(str(exec_result.get("stderr", "")))
     service_state = parse_service_state(stdout)
-    running = "RUNNING" in stdout
-    process_seen = "tamandua-agent.exe" in stdout
+    service_running = tamandua_agent_service_running(stdout)
+    process_seen = tasklist_agent_process_seen(stdout)
+    running = service_running or process_seen
     return {
         "api_version": "tamandua.io/windows-qga-agent-service-probe/v1",
         "kind": "WindowsQgaAgentServiceProbe",
@@ -165,6 +183,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
         "service": {
             "query_ok": bool(exec_result.get("ok")),
             "running": running,
+            "service_running": service_running,
             "process_seen": process_seen,
             "state": service_state,
         },
