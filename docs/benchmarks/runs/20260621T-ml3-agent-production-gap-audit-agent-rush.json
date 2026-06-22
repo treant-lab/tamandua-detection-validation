@@ -1,0 +1,90 @@
+{
+  "api_version": "tamandua.io/ml3-agent-production-gap-audit/v1",
+  "blockers": [
+    "missing_canonical_ml3_agent_parity_report",
+    "missing_candidate_model_contract",
+    "missing_candidate_onnx_metadata",
+    "upstream_ml1_candidate_not_available"
+  ],
+  "claim_boundary": "No-execution ML-3 production gap audit. It records existing smoke parity and missing production-candidate artifacts; it does not run inference, contact WIN-TEMPLATE, train, publish ML artifacts, or unblock ML-5.",
+  "kind": "ML3AgentProductionGapAudit",
+  "metadata": {
+    "created_at": "2026-06-22T02:14:57.259510+00:00",
+    "created_by": "tamandua-ml3-agent-production-gap-audit",
+    "report_id": "20260621t_ml3_agent_production_gap_audit_agent_rush"
+  },
+  "next_actions": [
+    {
+      "description": "Wait for ML-1 production candidate artifacts and model contract.",
+      "id": "ml3-prod-001",
+      "required_artifacts": [
+        "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
+        "docs/benchmarks/runs/ml-prod-candidate-v1-artifacts/malware_smell.json"
+      ]
+    },
+    {
+      "command": ".\\docs\\benchmarks\\runs\\20260604T-ml-execution-plan.handoff\\wave_2_ml2_ml3_parity_launcher.ps1 -Execute",
+      "description": "Run Wave 2 ML-2/ML-3 parity in the isolated lab after upstream artifacts exist.",
+      "guard": "TAMANDUA_ALLOW_ML_PARITY",
+      "id": "ml3-prod-002"
+    },
+    {
+      "description": "Produce canonical ml-prod-candidate-v1 ML-3 report without treating smoke parity as production evidence.",
+      "id": "ml3-prod-003",
+      "required_artifacts": [
+        "docs/benchmarks/runs/ml-prod-candidate-v1-ml3-agent-parity.json"
+      ]
+    }
+  ],
+  "quality_gate": {
+    "checks": [
+      {
+        "details": "{\"model_version\": \"ml-smoke-fixture-v1\", \"smoke_quality_gate\": \"pass\"}",
+        "name": "smoke_agent_onnx_parity_present",
+        "status": "pass"
+      },
+      {
+        "details": "{\"artifact_names\": [\"agent_onnx_parity_results\", \"agent_parity_fixture\", \"agent_parity_fixture_cli_log\", \"win_template_ml_probe\"]}",
+        "name": "win_template_false_positive_context_attached",
+        "status": "pass"
+      },
+      {
+        "details": "ML-3 smoke agent-side evidence with WIN-TEMPLATE local fixture inference rerun. This proves Rust ONNX parity only against the frozen synthetic fixture and records local checkpoint behavior on non-malware WIN-TEMPLATE fixtures. It does not satisfy the canonical ml-prod-candidate-v1 ML-3 gate or prove production detection.",
+        "name": "smoke_report_does_not_unblock_production",
+        "status": "pass"
+      },
+      {
+        "details": "docs/benchmarks/runs/ml-prod-candidate-v1-ml3-agent-parity.json",
+        "name": "canonical_ml3_agent_parity_report_missing",
+        "status": "pass"
+      },
+      {
+        "details": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
+        "name": "candidate_model_contract_missing",
+        "status": "pass"
+      },
+      {
+        "details": "docs/benchmarks/runs/ml-prod-candidate-v1-artifacts/malware_smell.json",
+        "name": "candidate_onnx_metadata_missing",
+        "status": "pass"
+      }
+    ],
+    "status": "pass"
+  },
+  "source": {
+    "canonical_report": "docs/benchmarks/runs/ml-prod-candidate-v1-ml3-agent-parity.json",
+    "model_contract": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json",
+    "onnx_metadata": "docs/benchmarks/runs/ml-prod-candidate-v1-artifacts/malware_smell.json",
+    "smoke_report": "docs/benchmarks/runs/20260621T-ml3-agent-onnx-parity-smoke-with-win-template-rerun.json",
+    "smoke_report_sha256": "F2B12DACCBB08290BC8524F4664B189B5268D225F22F8F6C66A71771C65ED7EC"
+  },
+  "summary": {
+    "blocker_count": 4,
+    "canonical_ml3_agent_parity_ready": false,
+    "next_required_guard": "TAMANDUA_ALLOW_ML_PARITY",
+    "smoke_agent_onnx_parity_available": true,
+    "status": "blocked",
+    "unblocks_ml5_platform_replay": false,
+    "win_template_context_available": true
+  }
+}

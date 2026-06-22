@@ -44,6 +44,12 @@ Use these artifacts as the current authority for ML state:
   `docs/benchmarks/runs/20260621T-ml5-pipeline-benchmark-contract-agent-rush.json`
 - Agent rush ML-6 contract:
   `docs/benchmarks/runs/20260621T-ml6-holdout-benchmark-contract-agent-rush.json`
+- Agent rush ML-3 production gap audit:
+  `docs/benchmarks/runs/20260621T-ml3-agent-production-gap-audit-agent-rush.json`
+- Agent rush benchmark lane rollup:
+  `docs/benchmarks/runs/20260621T-ml-benchmark-lane-rollup-agent-rush.json`
+- Agent rush benchmark actionability audit:
+  `docs/benchmarks/runs/20260621T-ml-benchmark-actionability-audit-agent-rush.json`
 - ML-2/ML-3 operator go/no-go with local inference context:
   `docs/benchmarks/runs/20260621T-ml-wave2-ml2-ml3-agent-smoke-local-inference-go-no-go.json`
 - Benchmark unblock queue after WIN-TEMPLATE gate threading:
@@ -111,8 +117,18 @@ keeps `tamandua_ml_public_mirror_push=no_go`, preserves Wave 1 as the next
 unblock, and tracks the WIN-TEMPLATE malicious prediction on a non-malware
 fixture as a false-positive candidate.
 
+The latest agent-rush gap/readiness refresh records:
+
+- ML-3 production gap audit: `status=blocked`, `blocker_count=4`,
+  `unblocks_ml5_platform_replay=false`.
+- Benchmark lane rollup: 7 lanes, 1 ready smoke lane, 6 blocked lanes,
+  43 pending unblock items, and `next_operator_publication_decision=hold_do_not_push`.
+- Benchmark actionability audit: `actionable=true` for validation-only
+  commands, with `evidence_usable_for_goal=0` and next unblock still
+  `wave1_governed_acquisition`.
+
 The benchmark unblock queue has been refreshed after this smoke result. It still
-has 40 pending items, zero resolved items, zero unknown evidence targets, and
+has 43 pending items, zero resolved items, zero unknown evidence targets, and
 `next_operator_publication_decision=hold_do_not_push`. The current post-403
 operator packet is not ready for guarded Wave 1 acquisition:
 `ready_for_guarded_execution=false`,

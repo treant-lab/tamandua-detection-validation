@@ -1,0 +1,442 @@
+{
+  "api_version": "tamandua.io/ml-benchmark-lane-rollup/v1",
+  "kind": "MLBenchmarkLaneRollup",
+  "metadata": {
+    "report_id": "20260621t_ml_benchmark_lane_rollup_agent_rush",
+    "generated_at": "2026-06-22T02:14:58.285888+00:00",
+    "created_by": "tamandua-ml-benchmark-lane-rollup",
+    "claim_boundary": "No-execution ML benchmark lane rollup only. It summarizes existing matrix and unblock status artifacts without running launchers, acquisition, publication, training, inference, benchmarks, or live services."
+  },
+  "source": {
+    "benchmark_execution_matrix": "docs\\benchmarks\\runs\\20260604T-ml-benchmark-execution-matrix.json",
+    "benchmark_execution_matrix_validation": "jsonschema+built-in",
+    "benchmark_unblock_validation_status": "docs\\benchmarks\\runs\\20260621T-ml-benchmark-unblock-validation-status-post-win-template-gate-threading.json",
+    "benchmark_unblock_validation_status_validation": "jsonschema+built-in",
+    "benchmark_unblock_validation_status_consistency": "docs\\benchmarks\\runs\\20260621T-ml-benchmark-unblock-validation-status-consistency-post-win-template-gate-threading.json",
+    "benchmark_unblock_validation_status_consistency_validation": "jsonschema+built-in",
+    "source_alignment": {
+      "status_source_matches_handoff_consistency": true,
+      "consistency_configuration_matches_status": true,
+      "consistency_configuration_matches_queue": true
+    },
+    "source_status_summary": {
+      "benchmark_execution_matrix_validation": "jsonschema+built-in",
+      "benchmark_unblock_validation_status_validation": "jsonschema+built-in",
+      "benchmark_unblock_validation_status_consistency_validation": "jsonschema+built-in",
+      "matrix_validated": true,
+      "status_validated": true,
+      "status_consistency_validated": true,
+      "source_alignment_verified": true,
+      "source_status_pending_items": 43,
+      "rollup_pending_items": 43,
+      "pending_item_ids": [
+        "ml-benchmark-unblock-001",
+        "ml-benchmark-unblock-011",
+        "ml-benchmark-unblock-035",
+        "ml-benchmark-unblock-036",
+        "ml-benchmark-unblock-037",
+        "ml-benchmark-unblock-002",
+        "ml-benchmark-unblock-003",
+        "ml-benchmark-unblock-012",
+        "ml-benchmark-unblock-013",
+        "ml-benchmark-unblock-014",
+        "ml-benchmark-unblock-015",
+        "ml-benchmark-unblock-038",
+        "ml-benchmark-unblock-004",
+        "ml-benchmark-unblock-005",
+        "ml-benchmark-unblock-016",
+        "ml-benchmark-unblock-017",
+        "ml-benchmark-unblock-018",
+        "ml-benchmark-unblock-019",
+        "ml-benchmark-unblock-039",
+        "ml-benchmark-unblock-006",
+        "ml-benchmark-unblock-007",
+        "ml-benchmark-unblock-020",
+        "ml-benchmark-unblock-021",
+        "ml-benchmark-unblock-022",
+        "ml-benchmark-unblock-033",
+        "ml-benchmark-unblock-040",
+        "ml-benchmark-unblock-008",
+        "ml-benchmark-unblock-009",
+        "ml-benchmark-unblock-023",
+        "ml-benchmark-unblock-024",
+        "ml-benchmark-unblock-025",
+        "ml-benchmark-unblock-026",
+        "ml-benchmark-unblock-027",
+        "ml-benchmark-unblock-028",
+        "ml-benchmark-unblock-041",
+        "ml-benchmark-unblock-042",
+        "ml-benchmark-unblock-010",
+        "ml-benchmark-unblock-029",
+        "ml-benchmark-unblock-030",
+        "ml-benchmark-unblock-031",
+        "ml-benchmark-unblock-032",
+        "ml-benchmark-unblock-034",
+        "ml-benchmark-unblock-043"
+      ],
+      "matrix_lanes": 7,
+      "rollup_lanes": 7,
+      "ready_lane_ids": [
+        "ML-0"
+      ],
+      "blocked_lane_ids": [
+        "ML-1",
+        "ML-2",
+        "ML-3",
+        "ML-4",
+        "ML-5",
+        "ML-6"
+      ],
+      "standalone_detection_lane_ids": [
+        "ML-1"
+      ],
+      "agent_onnx_detection_lane_ids": [
+        "ML-3",
+        "ML-5"
+      ],
+      "tamandua_detection_lane_ids": [
+        "ML-3",
+        "ML-4",
+        "ML-5"
+      ],
+      "ready_lanes": 1,
+      "blocked_lanes": 6,
+      "standalone_detection_lanes": 1,
+      "agent_onnx_detection_lanes": 2,
+      "tamandua_detection_lanes": 3,
+      "standalone_detection_surface_covered": true,
+      "agent_onnx_detection_surface_covered": true,
+      "tamandua_detection_surface_covered": true,
+      "benchmark_detection_surface_contract_ready": true,
+      "upstream_ready_validation_only": 1,
+      "upstream_blocked": 5,
+      "contract_packets_all_validated": true,
+      "contract_packets_validated": 3,
+      "next_operator_publication_decision": "hold_do_not_push",
+      "ml2_ml3_agent_smoke_unblocks_production": false,
+      "pending_by_category": {
+        "dependency": 10,
+        "artifact": 22,
+        "env": 2,
+        "other": 9
+      },
+      "resolved_by_category": {
+        "dependency": 0,
+        "artifact": 0,
+        "env": 0,
+        "other": 0
+      },
+      "dependency_pending": 10,
+      "artifact_pending": 22,
+      "env_pending": 2,
+      "goal_complete": false,
+      "completion_state": "partial_evidence",
+      "goal_missing_requirements": 9,
+      "goal_required_evidence_total": 16,
+      "goal_present_required_evidence": 5,
+      "goal_usable_required_evidence": 1,
+      "goal_missing_required_evidence": 11,
+      "goal_unusable_present_required_evidence": 4,
+      "next_unproven_requirement_id": "wave1_governed_acquisition",
+      "next_unproven_requirement_phase": "01-wave1-manifest-publication",
+      "next_unproven_execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+      "missing_requirement_ids": [
+        "wave1_governed_acquisition",
+        "wave1_sanitized_manifest",
+        "ml1_model_quality",
+        "ml1_model_contract_and_card",
+        "ml2_pytorch_onnx_parity",
+        "ml3_agent_onnx_parity",
+        "ml4_service_benchmark",
+        "ml5_tamandua_replay",
+        "ml6_cross_time_holdout"
+      ],
+      "evidence_status_summary": {
+        "total_required_evidence": 16,
+        "present_required_evidence": 5,
+        "usable_required_evidence": 1,
+        "missing_required_evidence": 11,
+        "unusable_present_required_evidence": 4,
+        "by_status": {
+          "blocked_artifact": 4,
+          "missing": 11,
+          "usable": 1
+        }
+      },
+      "next_unproven_requirement": {
+        "id": "wave1_governed_acquisition",
+        "phase": "01-wave1-manifest-publication",
+        "phase_state": "ready_validation_only",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "pending_targets": [
+          "manifest_publish_receipt_incomplete",
+          "missing_canonical_dataset_manifest"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+        ]
+      }
+    }
+  },
+  "summary": {
+    "total_lanes": 7,
+    "evidence_exists_lanes": 1,
+    "blocked_lanes": 6,
+    "ready_lanes": 1,
+    "standalone_detection_lanes": 1,
+    "agent_onnx_detection_lanes": 2,
+    "tamandua_detection_lanes": 3,
+    "standalone_detection_surface_covered": true,
+    "agent_onnx_detection_surface_covered": true,
+    "tamandua_detection_surface_covered": true,
+    "benchmark_detection_surface_contract_ready": true,
+    "total_pending_items": 43,
+    "upstream_ready_validation_only": 1,
+    "upstream_blocked": 5,
+    "contract_packets_all_validated": true,
+    "contract_packets_validated": 3,
+    "next_operator_publication_decision": "hold_do_not_push",
+    "ml2_ml3_agent_smoke_unblocks_production": false,
+    "pending_by_category": {
+      "dependency": 10,
+      "artifact": 22,
+      "env": 2,
+      "other": 9
+    },
+    "resolved_by_category": {
+      "dependency": 0,
+      "artifact": 0,
+      "env": 0,
+      "other": 0
+    },
+    "dependency_pending": 10,
+    "artifact_pending": 22,
+    "env_pending": 2,
+    "goal_complete": false,
+    "completion_state": "partial_evidence",
+    "goal_usable_required_evidence": 1,
+    "goal_required_evidence_total": 16,
+    "next_unproven_requirement_id": "wave1_governed_acquisition",
+    "next_unproven_execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"
+  },
+  "lanes": [
+    {
+      "lane_id": "ML-0",
+      "title": "Pipeline smoke",
+      "scope": "pipeline_smoke",
+      "benchmark_modality": {
+        "mode": "pipeline_smoke",
+        "execution_surface": "planning_smoke",
+        "detection_target": "none",
+        "integration_level": "contract_only",
+        "requires_candidate_model": false,
+        "requires_agent_onnx": false,
+        "requires_tamandua_integration": false
+      },
+      "parallel_group": "contract-smoke",
+      "current_status": "evidence_exists",
+      "ready_for_benchmark": true,
+      "pending_total": 0,
+      "pending_by_category": {
+        "dependency": 0,
+        "artifact": 0,
+        "env": 0,
+        "other": 0
+      },
+      "next_pending_items": [],
+      "execute_guard_env": null,
+      "claim_boundary": "Smoke and contract evidence only; no production detection-quality claim."
+    },
+    {
+      "lane_id": "ML-1",
+      "title": "Isolated model quality",
+      "scope": "isolated_model",
+      "benchmark_modality": {
+        "mode": "standalone_model_detection",
+        "execution_surface": "python_model",
+        "detection_target": "model_verdict",
+        "integration_level": "standalone",
+        "requires_candidate_model": true,
+        "requires_agent_onnx": false,
+        "requires_tamandua_integration": false
+      },
+      "parallel_group": "model-quality",
+      "current_status": "blocked_artifact",
+      "ready_for_benchmark": false,
+      "pending_total": 5,
+      "pending_by_category": {
+        "dependency": 1,
+        "artifact": 1,
+        "env": 0,
+        "other": 3
+      },
+      "next_pending_items": [
+        "ml-benchmark-unblock-001",
+        "ml-benchmark-unblock-011",
+        "ml-benchmark-unblock-035"
+      ],
+      "execute_guard_env": "TAMANDUA_ALLOW_ML_TRAINING",
+      "claim_boundary": "Standalone model quality only; does not prove ONNX, agent, service, or platform impact."
+    },
+    {
+      "lane_id": "ML-2",
+      "title": "PyTorch vs ONNX parity",
+      "scope": "onnx_parity",
+      "benchmark_modality": {
+        "mode": "pytorch_onnx_parity",
+        "execution_surface": "python_onnxruntime",
+        "detection_target": "onnx_verdict_parity",
+        "integration_level": "export_parity",
+        "requires_candidate_model": true,
+        "requires_agent_onnx": false,
+        "requires_tamandua_integration": false
+      },
+      "parallel_group": "parity",
+      "current_status": "blocked_artifact",
+      "ready_for_benchmark": false,
+      "pending_total": 7,
+      "pending_by_category": {
+        "dependency": 2,
+        "artifact": 4,
+        "env": 0,
+        "other": 1
+      },
+      "next_pending_items": [
+        "ml-benchmark-unblock-002",
+        "ml-benchmark-unblock-003",
+        "ml-benchmark-unblock-012"
+      ],
+      "execute_guard_env": "TAMANDUA_ALLOW_ML_PARITY",
+      "claim_boundary": "ONNX parity only; does not prove Rust agent execution or service behavior."
+    },
+    {
+      "lane_id": "ML-3",
+      "title": "Agent local inference",
+      "scope": "agent_local",
+      "benchmark_modality": {
+        "mode": "agent_onnx_local_detection",
+        "execution_surface": "rust_agent_onnx",
+        "detection_target": "agent_local_verdict",
+        "integration_level": "agent_local",
+        "requires_candidate_model": true,
+        "requires_agent_onnx": true,
+        "requires_tamandua_integration": true
+      },
+      "parallel_group": "parity",
+      "current_status": "blocked_artifact",
+      "ready_for_benchmark": false,
+      "pending_total": 7,
+      "pending_by_category": {
+        "dependency": 2,
+        "artifact": 4,
+        "env": 0,
+        "other": 1
+      },
+      "next_pending_items": [
+        "ml-benchmark-unblock-004",
+        "ml-benchmark-unblock-005",
+        "ml-benchmark-unblock-016"
+      ],
+      "execute_guard_env": "TAMANDUA_ALLOW_ML_PARITY",
+      "claim_boundary": "Agent-local inference evidence only; fixture evidence is not final Rust ONNX parity."
+    },
+    {
+      "lane_id": "ML-4",
+      "title": "ML service API integration",
+      "scope": "service_api",
+      "benchmark_modality": {
+        "mode": "tamandua_service_detection",
+        "execution_surface": "fastapi_ml_service",
+        "detection_target": "service_prediction_response",
+        "integration_level": "service_api",
+        "requires_candidate_model": true,
+        "requires_agent_onnx": false,
+        "requires_tamandua_integration": true
+      },
+      "parallel_group": "service",
+      "current_status": "blocked_env",
+      "ready_for_benchmark": false,
+      "pending_total": 7,
+      "pending_by_category": {
+        "dependency": 2,
+        "artifact": 3,
+        "env": 1,
+        "other": 1
+      },
+      "next_pending_items": [
+        "ml-benchmark-unblock-006",
+        "ml-benchmark-unblock-007",
+        "ml-benchmark-unblock-020"
+      ],
+      "execute_guard_env": "TAMANDUA_ALLOW_ML_SERVICE_BENCH",
+      "claim_boundary": "Live service integration only; does not prove full Tamandua replay or holdout robustness."
+    },
+    {
+      "lane_id": "ML-5",
+      "title": "Full Tamandua pipeline replay",
+      "scope": "platform_replay",
+      "benchmark_modality": {
+        "mode": "tamandua_end_to_end_replay",
+        "execution_surface": "tamandua_platform_replay",
+        "detection_target": "pipeline_alert_and_verdict",
+        "integration_level": "full_platform",
+        "requires_candidate_model": true,
+        "requires_agent_onnx": true,
+        "requires_tamandua_integration": true
+      },
+      "parallel_group": "platform-replay",
+      "current_status": "blocked_artifact",
+      "ready_for_benchmark": false,
+      "pending_total": 10,
+      "pending_by_category": {
+        "dependency": 2,
+        "artifact": 6,
+        "env": 0,
+        "other": 2
+      },
+      "next_pending_items": [
+        "ml-benchmark-unblock-008",
+        "ml-benchmark-unblock-009",
+        "ml-benchmark-unblock-023"
+      ],
+      "execute_guard_env": "TAMANDUA_ALLOW_ML_PIPELINE_REPLAY",
+      "claim_boundary": "Full platform replay evidence only; does not replace cross-time holdout robustness."
+    },
+    {
+      "lane_id": "ML-6",
+      "title": "Cross-time holdout robustness",
+      "scope": "cross_time_holdout",
+      "benchmark_modality": {
+        "mode": "cross_time_holdout_detection",
+        "execution_surface": "python_model_holdout",
+        "detection_target": "post_cutoff_model_verdict",
+        "integration_level": "robustness_holdout",
+        "requires_candidate_model": true,
+        "requires_agent_onnx": false,
+        "requires_tamandua_integration": false
+      },
+      "parallel_group": "holdout",
+      "current_status": "blocked_env",
+      "ready_for_benchmark": false,
+      "pending_total": 7,
+      "pending_by_category": {
+        "dependency": 1,
+        "artifact": 4,
+        "env": 1,
+        "other": 1
+      },
+      "next_pending_items": [
+        "ml-benchmark-unblock-010",
+        "ml-benchmark-unblock-029",
+        "ml-benchmark-unblock-030"
+      ],
+      "execute_guard_env": "TAMANDUA_ALLOW_ML_HOLDOUT",
+      "claim_boundary": "Robustness evidence only; VX inventory is metadata-only unless separately approved."
+    }
+  ]
+}

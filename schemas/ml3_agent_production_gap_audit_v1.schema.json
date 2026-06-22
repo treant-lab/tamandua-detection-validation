@@ -56,7 +56,10 @@
       "additionalProperties": false,
       "required": ["smoke_report", "smoke_report_sha256", "canonical_report", "model_contract", "onnx_metadata"],
       "properties": {
-        "smoke_report": {"type": "string", "pattern": "20260621T-ml3-agent-parity-with-win-template-local-inference\\.json$"},
+        "smoke_report": {
+          "type": "string",
+          "pattern": "(20260621T-ml3-agent-parity-with-win-template-local-inference|20260621T-ml3-agent-onnx-parity-smoke-with-win-template-rerun)\\.json$"
+        },
         "smoke_report_sha256": {"type": "string", "pattern": "^[a-fA-F0-9]{64}$"},
         "canonical_report": {"const": "docs/benchmarks/runs/ml-prod-candidate-v1-ml3-agent-parity.json"},
         "model_contract": {"const": "docs/benchmarks/runs/ml-prod-candidate-v1-model-contract.json"},

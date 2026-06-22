@@ -1,0 +1,163 @@
+{
+  "api_version": "tamandua.io/ml-benchmark-actionability-audit/v1",
+  "kind": "MLBenchmarkActionabilityAudit",
+  "metadata": {
+    "report_id": "20260621t_ml_benchmark_actionability_audit_agent_rush",
+    "generated_at": "2026-06-22T02:14:58.322206+00:00",
+    "created_by": "tamandua-ml-benchmark-actionability-audit",
+    "claim_boundary": "No-execution actionability audit only. It verifies validation-only command exposure and does not run launchers, set env vars, execute guards, acquire data, train, infer, benchmark, or contact services."
+  },
+  "actionable": true,
+  "source": {
+    "benchmark_unblock_queue": "docs\\benchmarks\\runs\\20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading.json",
+    "benchmark_unblock_queue_validation": "jsonschema+built-in",
+    "benchmark_critical_path": "docs\\benchmarks\\runs\\20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.json",
+    "benchmark_critical_path_validation": "jsonschema+built-in",
+    "benchmark_critical_path_handoff_bundle": "docs\\benchmarks\\runs\\20260621T-ml-benchmark-critical-path-post-win-template-gate-threading-handoff-bundle.json",
+    "benchmark_critical_path_handoff_bundle_validation": "jsonschema+built-in",
+    "benchmark_critical_path_handoff_consistency": "docs\\benchmarks\\runs\\20260621T-ml-benchmark-critical-path-post-win-template-gate-threading-handoff-consistency.json",
+    "benchmark_critical_path_handoff_consistency_validation": "jsonschema+built-in",
+    "source_status_summary": {
+      "goal_complete": false,
+      "completion_state": "partial_evidence",
+      "goal_missing_requirements": 9,
+      "goal_required_evidence_total": 16,
+      "goal_present_required_evidence": 5,
+      "goal_usable_required_evidence": 1,
+      "goal_missing_required_evidence": 11,
+      "goal_unusable_present_required_evidence": 4,
+      "next_unproven_requirement_id": "wave1_governed_acquisition",
+      "next_unproven_requirement_phase": "01-wave1-manifest-publication",
+      "next_unproven_execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+      "missing_requirement_ids": [
+        "wave1_governed_acquisition",
+        "wave1_sanitized_manifest",
+        "ml1_model_quality",
+        "ml1_model_contract_and_card",
+        "ml2_pytorch_onnx_parity",
+        "ml3_agent_onnx_parity",
+        "ml4_service_benchmark",
+        "ml5_tamandua_replay",
+        "ml6_cross_time_holdout"
+      ],
+      "evidence_status_summary": {
+        "total_required_evidence": 16,
+        "present_required_evidence": 5,
+        "usable_required_evidence": 1,
+        "missing_required_evidence": 11,
+        "unusable_present_required_evidence": 4,
+        "by_status": {
+          "blocked_artifact": 4,
+          "missing": 11,
+          "usable": 1
+        }
+      },
+      "next_unproven_requirement": {
+        "id": "wave1_governed_acquisition",
+        "phase": "01-wave1-manifest-publication",
+        "phase_state": "ready_validation_only",
+        "execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "pending_targets": [
+          "manifest_publish_receipt_incomplete",
+          "missing_canonical_dataset_manifest"
+        ],
+        "required_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+        ],
+        "missing_or_unusable_evidence": [
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-real-acquisition-transcript.json",
+          "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acquisition-receipt.json"
+        ]
+      },
+      "standalone_detection_surface_covered": true,
+      "agent_onnx_detection_surface_covered": true,
+      "tamandua_detection_surface_covered": true,
+      "benchmark_detection_surface_contract_ready": true
+    }
+  },
+  "summary": {
+    "queue_items": 43,
+    "queue_items_with_resolution_command": 43,
+    "queue_items_without_resolution_command": 0,
+    "critical_path_steps": 23,
+    "critical_path_steps_with_resolution_command": 23,
+    "critical_path_steps_without_resolution_command": 0,
+    "handoff_files": 23,
+    "handoff_files_with_resolution_command": 23,
+    "validation_command_count": 23,
+    "validation_commands_are_validation_only": true,
+    "guarded_execute_commands_exposed": 17,
+    "non_guarded_resolution_commands": 6,
+    "env_validation_commands": 2,
+    "env_validation_commands_redacted": true,
+    "env_validation_commands_parse_cutoff": true,
+    "evidence_usable_for_goal": 0,
+    "standalone_detection_surface_covered": true,
+    "agent_onnx_detection_surface_covered": true,
+    "tamandua_detection_surface_covered": true,
+    "benchmark_detection_surface_contract_ready": true,
+    "actionability_gap_count": 0,
+    "check_count": 10,
+    "passed_checks": 10,
+    "failed_checks": 0,
+    "goal_complete": false,
+    "completion_state": "partial_evidence",
+    "goal_usable_required_evidence": 1,
+    "goal_required_evidence_total": 16,
+    "next_unproven_requirement_id": "wave1_governed_acquisition",
+    "next_unproven_execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION"
+  },
+  "checks": [
+    {
+      "name": "queue_all_items_have_resolution_command",
+      "passed": true,
+      "detail": "43/43 queue items expose commands"
+    },
+    {
+      "name": "critical_path_all_steps_have_resolution_command",
+      "passed": true,
+      "detail": "23/23 critical steps expose commands"
+    },
+    {
+      "name": "handoff_all_files_have_resolution_command",
+      "passed": true,
+      "detail": "23/23 handoff files expose commands"
+    },
+    {
+      "name": "handoff_validation_commands_are_validation_only",
+      "passed": true,
+      "detail": "23 validation commands inspected"
+    },
+    {
+      "name": "critical_handoff_consistency_passed",
+      "passed": true,
+      "detail": "critical path handoff consistency artifact is pass"
+    },
+    {
+      "name": "env_validation_commands_present",
+      "passed": true,
+      "detail": "2/2 env validation commands present"
+    },
+    {
+      "name": "api_key_validation_redacts_secret",
+      "passed": true,
+      "detail": "TAMANDUA_ML_API_KEY command redacts value"
+    },
+    {
+      "name": "training_cutoff_validation_parses_iso8601",
+      "passed": true,
+      "detail": "TAMANDUA_ML_TRAINING_CUTOFF command parses timestamp"
+    },
+    {
+      "name": "no_goal_evidence_claimed",
+      "passed": true,
+      "detail": "usable evidence across critical path and handoffs=0"
+    },
+    {
+      "name": "benchmark_detection_surface_contract_ready",
+      "passed": true,
+      "detail": "critical path covers standalone, agent ONNX, and Tamandua benchmark surfaces"
+    }
+  ]
+}

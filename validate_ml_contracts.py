@@ -1598,7 +1598,11 @@ def validate_ml3_agent_production_gap_audit(data: dict[str, Any], path: Path) ->
 
     source = require_object(data["source"], f"{path}.source")
     require_keys(source, {"smoke_report", "smoke_report_sha256", "canonical_report", "model_contract", "onnx_metadata"}, f"{path}.source")
-    if not str(source["smoke_report"]).endswith("20260621T-ml3-agent-parity-with-win-template-local-inference.json"):
+    valid_smoke_reports = (
+        "20260621T-ml3-agent-parity-with-win-template-local-inference.json",
+        "20260621T-ml3-agent-onnx-parity-smoke-with-win-template-rerun.json",
+    )
+    if not str(source["smoke_report"]).endswith(valid_smoke_reports):
         raise ContractError(f"{path}.source.smoke_report: must reference canonical WIN-TEMPLATE smoke report")
     smoke_report_path = Path(str(source["smoke_report"]))
     smoke_mode = validate_contract(smoke_report_path, BENCHMARK_SCHEMA, validate_benchmark_report)
