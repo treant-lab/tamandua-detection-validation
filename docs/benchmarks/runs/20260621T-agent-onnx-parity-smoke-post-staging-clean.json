@@ -1,0 +1,79 @@
+{
+  "api_version": "tamandua.io/ml-agent-onnx-parity-results/v1",
+  "kind": "MLAgentOnnxParityResults",
+  "fixture_id": "20260604t174850z_ml_agent_parity_fixture",
+  "sample_count": 6,
+  "verdict_matches": 6,
+  "verdict_agreement": 1.0,
+  "max_abs_probability_delta": 0.000027954578,
+  "allowed_max_abs_probability_delta": 0.0001,
+  "passed": true,
+  "samples": [
+    {
+      "sample_id": "empty",
+      "expected_index": 0,
+      "actual_index": 0,
+      "expected_is_malicious": false,
+      "actual_is_malicious": false,
+      "expected_confidence": 0.60012,
+      "actual_confidence": 0.60012,
+      "max_abs_probability_delta": 0.0,
+      "verdict_match": true
+    },
+    {
+      "sample_id": "pe_like_4096",
+      "expected_index": 0,
+      "actual_index": 0,
+      "expected_is_malicious": false,
+      "actual_is_malicious": false,
+      "expected_confidence": 0.6002184,
+      "actual_confidence": 0.6002184,
+      "max_abs_probability_delta": 0.0,
+      "verdict_match": true
+    },
+    {
+      "sample_id": "high_entropy_4096",
+      "expected_index": 0,
+      "actual_index": 0,
+      "expected_is_malicious": false,
+      "actual_is_malicious": false,
+      "expected_confidence": 0.60022426,
+      "actual_confidence": 0.60022426,
+      "max_abs_probability_delta": 0.0,
+      "verdict_match": true
+    },
+    {
+      "sample_id": "short_script",
+      "expected_index": 0,
+      "actual_index": 0,
+      "expected_is_malicious": false,
+      "actual_is_malicious": false,
+      "expected_confidence": 0.60021967,
+      "actual_confidence": 0.6001917,
+      "max_abs_probability_delta": 0.000027954578,
+      "verdict_match": true
+    },
+    {
+      "sample_id": "alternating_1024",
+      "expected_index": 0,
+      "actual_index": 0,
+      "expected_is_malicious": false,
+      "actual_is_malicious": false,
+      "expected_confidence": 0.60022813,
+      "actual_confidence": 0.6002148,
+      "max_abs_probability_delta": 0.00001335144,
+      "verdict_match": true
+    },
+    {
+      "sample_id": "structured_4096",
+      "expected_index": 0,
+      "actual_index": 0,
+      "expected_is_malicious": false,
+      "actual_is_malicious": false,
+      "expected_confidence": 0.6002176,
+      "actual_confidence": 0.6002176,
+      "max_abs_probability_delta": 0.0,
+      "verdict_match": true
+    }
+  ]
+}

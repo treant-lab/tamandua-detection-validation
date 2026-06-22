@@ -7,14 +7,24 @@ behavior and emits a structured result used to build readiness scorecards.
 
 ## Overview
 
-- **Probes** (`*.py`) — ~140 standalone scripts (e.g. eBPF readiness, control-plane
+- **Probes** (`*.py`) — standalone scripts (e.g. eBPF readiness, control-plane
   tenant safety, ATT&CK coverage matrix, crash-resilience fixtures).
 - **`fixtures/`** — synthetic payloads and event fixtures consumed by the probes.
+- **`profiles/`** — JSON profiles for repeatable probe execution.
+- **`roadmaps/`** — source roadmap shards consumed by roadmap/index generators.
+- **`schemas/`** — JSON Schemas copied into standalone mirrors for contract
+  validation.
+- **`docs/benchmarks/`** — selected, versioned evidence and handoff notes copied
+  from the monorepo. Raw generated output remains excluded unless explicitly
+  allowlisted by the mirror manifest.
 - **Scorecards / roadmaps** — curated Markdown artifacts the probes feed into.
 
 Probes are designed to be honest: they report what was actually observed, and
 benchmark caveats (e.g. label-leakage holdouts, untrained sequence heads) are
 preserved verbatim rather than smoothed over.
+
+See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the standalone
+mirror layout, artifact policy, and ML contract validation commands.
 
 ## Prerequisites
 
@@ -38,6 +48,21 @@ python attack_coverage_matrix.py --help
 
 Probes write JSON/Markdown results to their configured output directory.
 Generated `runs/` and `generated/` outputs are not version-controlled.
+Curated evidence under `docs/benchmarks/runs/` is version-controlled only when
+the monorepo mirror manifest names the file explicitly.
+
+## Validate ML Contracts
+
+The ML contract validator can run inside the standalone mirror. If default
+example contracts are not present in the mirror, point `TAMANDUA_ROOT` at a
+monorepo checkout:
+
+```bash
+TAMANDUA_ROOT=/path/to/tamandua \
+python validate_ml_contracts.py \
+  --ml-agent-rush-benchmark-execution-packet \
+  docs/benchmarks/runs/20260621T-ml-agent-rush-benchmark-execution-packet.json
+```
 
 ## Contributing
 

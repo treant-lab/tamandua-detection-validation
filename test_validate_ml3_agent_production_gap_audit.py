@@ -20,7 +20,7 @@ from validate_ml_contracts import (  # noqa: E402
 )
 
 
-SMOKE_REPORT = Path("docs/benchmarks/runs/20260621T-ml3-agent-parity-with-win-template-local-inference.json")
+SMOKE_REPORT = Path("docs/benchmarks/runs/20260621T-ml3-agent-onnx-parity-smoke-with-win-template-rerun.json")
 
 
 def valid_audit() -> dict:
