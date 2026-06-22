@@ -77,6 +77,29 @@ Use these artifacts as the current authority for ML state:
   `docs/benchmarks/runs/20260621T-ml-next-operator-post-malwarebazaar-403-virusshare-lab-root-packet.json`
 - VX metadata inventory: `docs/benchmarks/runs/ml-vx-inthewild-inventory.json`
 - Governed acquisition dry run: `docs/benchmarks/runs/ml-prod-candidate-v1-acquisition-dry-run.json`
+- Agent alert/API/GUI E2E audit:
+  `docs/benchmarks/runs/20260622T-agent-alert-gui-e2e.json`
+- Agent ML alert bridge fix:
+  `docs/benchmarks/runs/20260622T-agent-ml-alert-bridge-fix.json`
+
+## 2026-06-22 Agent Alert Update
+
+Authenticated server/API/frontend evidence now proves that the WIN-TEMPLATE
+agent has existing alerts visible through `/api/v1/alerts` and `/app/alerts`.
+That evidence does not prove ML detection: the sampled WIN-TEMPLATE alert source
+is `behavioral`, the demo trigger returned 403, and no deployed agent-side ONNX
+alert creation was observed.
+
+The code bridge for future ML alerts was tightened after the audit:
+agent ML scan results now emit a top-level `DetectionType::Ml`, and server
+evidence extraction now derives `source: "ml"` / `detection_source: "ml"` for
+alert API and GUI filtering. The Rust agent check passed with
+`cargo check --features onnx,ml-local`; Elixir tests were updated but not run in
+this shell because `mix`/`elixir` are unavailable on PATH.
+
+Next required proof remains a live WIN-TEMPLATE run that creates a new alert
+from an ONNX/local ML malicious fixture and shows it in the GUI plus
+`alerts:feed`.
 
 Do not use older `*-validation-only.run.json` receipts as current Wave 1
 authorization. They are historical validation evidence only.

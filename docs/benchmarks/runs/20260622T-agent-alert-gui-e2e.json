@@ -1,0 +1,74 @@
+﻿{
+    "run_id":  "20260622T-agent-alert-gui-e2e",
+    "generated_at_utc":  "2026-06-22T17:48:05.5027085Z",
+    "claim_boundary":  "Authenticated server/API/frontend evidence only. This does not prove ML malware detection or agent-side ONNX alert creation.",
+    "base_url":  "http://192.168.12.146:4000",
+    "target_agent_id":  "5622e06b-81ae-4f33-85e1-0f7fcae090ef",
+    "authentication":  {
+                           "login_page_status":  200,
+                           "csrf_token_extracted":  true,
+                           "login_post_status":  null,
+                           "credentials_redacted":  true
+                       },
+    "alerts_before":  {
+                          "status":  200,
+                          "count":  18,
+                          "first_alert":  {
+                                              "id":  "774b9f18-ea8d-4899-a7d6-8cdff0262ae0",
+                                              "agent_id":  "5622e06b-81ae-4f33-85e1-0f7fcae090ef",
+                                              "source":  "behavioral",
+                                              "severity":  "high",
+                                              "status":  "new",
+                                              "title":  "Agent detection: behavioral_svchost_unusual_parent",
+                                              "threat_score":  0.85,
+                                              "event_ids":  [
+                                                                "03d589b6-0ec1-4b9e-9116-29826cac8ee8"
+                                                            ],
+                                              "inserted_at":  null
+                                          }
+                      },
+    "gui":  {
+                "alerts_route":  "http://192.168.12.146:4000/app/alerts",
+                "status":  200,
+                "body_length":  275755
+            },
+    "demo_trigger":  {
+                         "endpoint":  "http://192.168.12.146:4000/api/v1/demo/trigger-detection",
+                         "status":  403,
+                         "scenario":  "browser_credential_theft",
+                         "severity":  "high",
+                         "sanitized_response":  null,
+                         "error":  "The remote server returned an error: (403) Forbidden."
+                     },
+    "alerts_after":  {
+                         "status":  200,
+                         "count":  18,
+                         "first_alert":  {
+                                             "id":  "774b9f18-ea8d-4899-a7d6-8cdff0262ae0",
+                                             "agent_id":  "5622e06b-81ae-4f33-85e1-0f7fcae090ef",
+                                             "source":  "behavioral",
+                                             "severity":  "high",
+                                             "status":  "new",
+                                             "title":  "Agent detection: behavioral_svchost_unusual_parent",
+                                             "threat_score":  0.85,
+                                             "event_ids":  [
+                                                               "03d589b6-0ec1-4b9e-9116-29826cac8ee8"
+                                                           ],
+                                             "inserted_at":  null
+                                         }
+                     },
+    "verdict":  {
+                    "alerts_api_authenticated":  true,
+                    "gui_alerts_route_authenticated":  true,
+                    "demo_alert_creation_attempted":  true,
+                    "demo_alert_created":  false,
+                    "agent_ml_detection_proven":  false,
+                    "gui_alert_render_proven_by_http":  true,
+                    "gui_live_socket_broadcast_proven":  false
+                },
+    "next_required_work":  [
+                               "Wire or verify agent-side ONNX/ML verdict emission into the server alert ingestion path.",
+                               "Run a controlled benign/malicious fixture through the WIN-TEMPLATE agent and assert a new alert references the agent, fixture hash, and ML source.",
+                               "Use browser automation to verify the created alert appears in the GUI alerts table and via the alerts:feed socket."
+                           ]
+}

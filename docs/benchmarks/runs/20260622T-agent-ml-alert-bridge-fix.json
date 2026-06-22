@@ -1,0 +1,44 @@
+{
+  "run_id": "20260622T-agent-ml-alert-bridge-fix",
+  "generated_at_utc": "2026-06-22T18:10:00Z",
+  "status": "code_bridge_fixed_live_proof_pending",
+  "claim_boundary": "Focused code change and local Rust compilation only. Does not prove the deployed WIN-TEMPLATE agent emitted a new ML alert.",
+  "changes": [
+    {
+      "path": "apps/tamandua_agent/src/main.rs",
+      "summary": "Malicious ML scan results now emit top-level DetectionType::Ml and metadata source ml_analysis."
+    },
+    {
+      "path": "apps/tamandua_server/lib/tamandua_server/detection/evidence.ex",
+      "summary": "Alert detection metadata now includes source and detection_source derived from normalized detection type."
+    },
+    {
+      "path": "apps/tamandua_server/test/tamandua_server/detection/evidence_test.exs",
+      "summary": "Evidence tests now assert ML maps to source ml and detection_source ml."
+    }
+  ],
+  "verification": {
+    "agent_cargo_check": {
+      "command": "cargo check --features onnx,ml-local",
+      "workdir": "apps/tamandua_agent",
+      "status": "passed",
+      "notes": "Completed with pre-existing warnings."
+    },
+    "server_elixir_tests": {
+      "command": "mix test test/tamandua_server/detection/evidence_test.exs",
+      "workdir": "apps/tamandua_server",
+      "status": "blocked",
+      "reason": "mix and elixir are not available in this shell PATH."
+    }
+  },
+  "related_evidence": [
+    "docs/benchmarks/runs/20260622T-agent-alert-gui-e2e.json",
+    "docs/benchmarks/runs/20260622T-agent-alert-gui-e2e.md"
+  ],
+  "next_required_work": [
+    "Deploy updated server/agent bridge to the environment used by WIN-TEMPLATE.",
+    "Run a controlled malicious fixture through WIN-TEMPLATE with ONNX/local ML enabled.",
+    "Assert a new alert has detection_metadata.source equal to ml and appears in /app/alerts.",
+    "Verify live socket broadcast on alerts:feed for the new ML alert."
+  ]
+}
