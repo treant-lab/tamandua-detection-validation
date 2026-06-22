@@ -9,6 +9,8 @@ behavior and emits a structured result used to build readiness scorecards.
 
 - **Probes** (`*.py`) — standalone scripts (e.g. eBPF readiness, control-plane
   tenant safety, ATT&CK coverage matrix, crash-resilience fixtures).
+- **`tests/`** — focused pytest contract tests for ML gates, schemas,
+  publication audits, and curated evidence.
 - **`fixtures/`** — synthetic payloads and event fixtures consumed by the probes.
 - **`profiles/`** — JSON profiles for repeatable probe execution.
 - **`roadmaps/`** — source roadmap shards consumed by roadmap/index generators.
@@ -37,7 +39,7 @@ false-positive candidate on a non-malware high-entropy control.
 
 See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the standalone
 mirror layout and artifact policy, and [PROBE_CATALOG.md](./PROBE_CATALOG.md)
-for the logical grouping of root-level probes, validators, and tests.
+for the logical grouping of root-level probes, validators, and test families.
 
 ## Prerequisites
 

@@ -12,7 +12,8 @@ ML-1..ML-6 gates.
 
 | Path | Purpose |
 | --- | --- |
-| `*.py` | Standalone probes, scorecard generators, validators, and tests. |
+| `*.py` | Standalone probes, scorecard generators, validators, and the legacy all-in-one harness kept root-local for compatibility. |
+| `tests/` | Focused pytest contract tests for schemas, ML gates, publication audits, and mirror evidence. |
 | `fixtures/` | Synthetic fixtures and replay inputs. No raw malware or secrets. |
 | `profiles/` | JSON execution profiles for repeatable validation runs. |
 | `roadmaps/` | Roadmap source shards consumed by roadmap tooling. |
@@ -20,7 +21,10 @@ ML-1..ML-6 gates.
 | `docs/benchmarks/` | Curated evidence, handoff notes, and selected run artifacts explicitly allowlisted by the mirror manifest. |
 | `.github/` | Mirror-local CI and repository metadata. |
 
-The root is flat by compatibility, not by ownership. Use
+The root is flat only for executable entry points that operators call directly.
+Focused tests live under `tests/`; `test_tamandua_detection_validation.py`
+remains at root until the legacy harness is split because it dynamically loads
+many sibling probes with root-local paths. Use
 [PROBE_CATALOG.md](./PROBE_CATALOG.md) as the maintained index for probe
 domains, ML contract validators, platform probes, and publication rules.
 
@@ -88,8 +92,8 @@ Run focused contract tests:
 
 ```bash
 python -m pytest \
-  test_validate_ml_agent_rush_benchmark_execution_packet.py \
-  test_validate_ml3_agent_production_gap_audit.py \
+  tests/test_validate_ml_agent_rush_benchmark_execution_packet.py \
+  tests/test_validate_ml3_agent_production_gap_audit.py \
   -q
 ```
 

@@ -1,15 +1,18 @@
 # Detection Validation Probe Catalog
 
 The standalone mirror keeps executable probes at repository root so existing
-commands such as `python <probe>.py --help` keep working. This catalog is the
-logical structure for that flat root and should be updated whenever a new probe,
-validator, or generated-contract helper is added.
+commands such as `python <probe>.py --help` keep working. Focused pytest
+contracts live under `tests/`; only the legacy all-in-one harness remains at
+root until it is split because it dynamically imports many sibling probes. This
+catalog should be updated whenever a new probe, validator, generated-contract
+helper, or test family is added.
 
 ## Root Groups
 
 | Group | Files | Purpose |
 | --- | ---: | --- |
-| Tests | 85 | Pytest coverage for standalone contracts, schemas, probes, and ML gates. |
+| Focused tests | 84 | `tests/test_*.py` coverage for standalone contracts, schemas, publication audits, and ML gates. |
+| Legacy root harness | 1 | `test_tamandua_detection_validation.py`, retained root-local until its dynamic sibling probe imports are decomposed. |
 | Generators and probes | 50 | Executable validation probes, roadmap generators, benchmark scorecards, and readiness summaries. |
 | Support | 23 | Shared runners, adapters, root resolution, migration helpers, and operational utilities. |
 | Validators | 7 | Contract and metadata validators intended for CI or mirror publication gates. |
@@ -51,17 +54,18 @@ validator, or generated-contract helper is added.
 
 | Domain | Representative files |
 | --- | --- |
-| Public claim guard | `ml_public_claims_guard.py`, `test_ml_public_claims_guard.py` |
-| Training roadmap | `test_ml_training_pipeline_roadmap.py` |
-| Dataset/acquisition contracts | `test_validate_ml_acquisition_dry_run.py`, `test_validate_ml_dataset_manifest.py`, `test_validate_ml_vx_underground_inventory.py`, `test_validate_ml_virusshare_fallback_contracts.py` |
-| Model and benchmark contracts | `test_validate_ml_model_contract.py`, `test_validate_ml_benchmark_report.py`, `test_validate_ml_benchmark_execution_matrix.py`, `test_validate_ml_agent_rush_benchmark_execution_packet.py` |
-| Agent-side ML evidence | `test_validate_ml_win_template_probe.py`, `test_validate_ml3_agent_production_gap_audit.py`, `test_validate_ml_wave2_ml2_ml3_readiness.py` |
-| Pipeline and holdout gates | `test_validate_ml_dvc_pipeline.py`, `test_validate_ml_replay_holdout_outcomes.py`, `test_validate_ml_wave3_ml5_readiness.py`, `test_validate_ml_wave3_ml6_readiness.py` |
+| Public claim guard | `ml_public_claims_guard.py`, `tests/test_ml_public_claims_guard.py` |
+| Training roadmap | `tests/test_ml_training_pipeline_roadmap.py` |
+| Dataset/acquisition contracts | `tests/test_validate_ml_acquisition_dry_run.py`, `tests/test_validate_ml_dataset_manifest.py`, `tests/test_validate_ml_vx_underground_inventory.py`, `tests/test_validate_ml_virusshare_fallback_contracts.py` |
+| Model and benchmark contracts | `tests/test_validate_ml_model_contract.py`, `tests/test_validate_ml_benchmark_report.py`, `tests/test_validate_ml_benchmark_execution_matrix.py`, `tests/test_validate_ml_agent_rush_benchmark_execution_packet.py` |
+| Agent-side ML evidence | `tests/test_validate_ml_win_template_probe.py`, `tests/test_validate_ml3_agent_production_gap_audit.py`, `tests/test_validate_ml_wave2_ml2_ml3_readiness.py` |
+| Pipeline and holdout gates | `tests/test_validate_ml_dvc_pipeline.py`, `tests/test_validate_ml_replay_holdout_outcomes.py`, `tests/test_validate_ml_wave3_ml5_readiness.py`, `tests/test_validate_ml_wave3_ml6_readiness.py` |
 
 ## Publication Rules
 
 - Keep root files directly executable unless a move is paired with import-path
-  migration, CI changes, and mirror manifest updates.
+  migration, CI changes, and mirror manifest updates. New focused tests belong
+  under `tests/`, not at repository root.
 - Put durable fixtures under `fixtures/`, repeatable execution profiles under
   `profiles/`, roadmap shards under `roadmaps/`, and schemas under `schemas/`.
 - Do not commit generated `runs/`, `generated/`, cache, bytecode, secrets, raw
