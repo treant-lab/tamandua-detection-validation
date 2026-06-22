@@ -122,6 +122,17 @@ It completed local inference on 4 deterministic non-malware fixtures: 3 benign,
 1 malicious (`win_template_seeded_high_entropy_control`). That malicious verdict
 remains a false-positive candidate, not a detection success.
 
+The follow-up agent-bound WIN-TEMPLATE run was attempted with
+`tools/detection_validation/tamandua_detection_validation.py --execute` and
+generated `docs/benchmarks/runs/exec-windows-ml-probe-win-template-direct-agent-bench.json`.
+It did not reach endpoint execution: `infrastructure_blocked=true`,
+`quality_gate=fail`, 12/12 deterministic Windows roadmap checks reported
+`infra_blocked`, and the live readiness blocker was
+`tamandua_ctl_target_agent_missing` / `tamandua_ctl_agent_missing`. The database
+record for the requested WIN-TEMPLATE agent was offline with stale
+`last_seen_at=2026-05-27T03:53:00`. This is an infrastructure/lab freshness
+blocker, not an ML model result.
+
 The agent rush benchmark packet now records dry-run contracts for ML-1, ML-4,
 ML-5, and ML-6 plus the existing ML-2 inference contract and ML-3 smoke report.
 Those contracts are execution scaffolding only: every generated report keeps
