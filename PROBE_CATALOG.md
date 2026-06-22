@@ -1,0 +1,69 @@
+# Detection Validation Probe Catalog
+
+The standalone mirror keeps executable probes at repository root so existing
+commands such as `python <probe>.py --help` keep working. This catalog is the
+logical structure for that flat root and should be updated whenever a new probe,
+validator, or generated-contract helper is added.
+
+## Root Groups
+
+| Group | Files | Purpose |
+| --- | ---: | --- |
+| Tests | 85 | Pytest coverage for standalone contracts, schemas, probes, and ML gates. |
+| Generators and probes | 50 | Executable validation probes, roadmap generators, benchmark scorecards, and readiness summaries. |
+| Support | 23 | Shared runners, adapters, root resolution, migration helpers, and operational utilities. |
+| Validators | 7 | Contract and metadata validators intended for CI or mirror publication gates. |
+| Docs | 5 | Mirror usage, repository structure, contribution, external-rule, and probe catalog documentation. |
+| Configs | 1 | Top-level integration metadata. |
+
+## Operational Entry Points
+
+| File | Role |
+| --- | --- |
+| `tamandua_detection_validation.py` | Main validation runner for profile-driven execution and evidence generation. |
+| `run_preflight_work_package.py` | Large preflight orchestrator for readiness work packages. |
+| `validate_ml_contracts.py` | ML evidence contract validator used by ML and detection-validation mirrors. |
+| `validation_status_consistency.py` | Cross-artifact consistency checks for generated validation status. |
+| `root_resolver.py` | Standalone/monorepo path resolver used by validators and tests. |
+
+## Platform Probes
+
+| Domain | Representative files |
+| --- | --- |
+| Windows lab and QGA | `windows_lab_execution_readiness_probe.py`, `windows_proxmox_qga_readiness_probe.py`, `windows_qga_agent_service_probe.py`, `windows_qga_start_foreground_agent.py`, `windows_agent_connection_stability_probe.py` |
+| Linux/eBPF | `linux_ebpf_readiness_probe.py` |
+| macOS | `macos_backend_readiness_probe.py`, `macos_release_artifact_preflight.py`, `generate_macos_local_contract_benchmark.py`, `generate_macos_parity_profiles.py` |
+| Agent/runtime capability | `agent_platform_capabilities_live_api_probe.py`, `agent_platform_capabilities_runtime_probe.py`, `agent_driver_reliability_fixture_probe.py`, `platform_capabilities_probe.py` |
+| Control plane and tenancy | `control_plane_tenant_safety_probe.py`, `control_plane_two_tenant_fixture_probe.py`, `platform_capability_evidence_fixture_probe.py` |
+| Resilience/release | `crash_resilience_fixture_probe.py`, `fresh_restore_provenance_probe.py`, `release_resilience_static_probe.py`, `release_operations_fixture_probe.py`, `generate_release_reliability_gate.py` |
+
+## Detection Content And Replay
+
+| Domain | Representative files |
+| --- | --- |
+| ATT&CK and rule coverage | `attack_coverage_matrix.py`, `generate_external_rule_coverage_map.py`, `external_rule_event_contracts.py`, `validate_external_rule_readiness.py` |
+| Detection governance | `detection_content_governance_probe.py`, `detection_rule_evidence_backlog.py`, `detection_rule_evidence_matrix.py`, `detection_rule_wave_fixture_plan.py` |
+| Replay and telemetry | `event_envelope_replay_probe.py`, `historical_replay_adapter_probe.py`, `telemetry_replay_executor.py`, `telemetry_replay_readiness_probe.py`, `validate_replay_fixtures.py` |
+| DFIR | `dfir_collection_fixture_probe.py`, `dfir_readiness_probe.py` |
+| Fleet and scale | `fleet_inventory_probe.py`, `fleet_scale_isolation_fixture_probe.py` |
+
+## ML Validation
+
+| Domain | Representative files |
+| --- | --- |
+| Public claim guard | `ml_public_claims_guard.py`, `test_ml_public_claims_guard.py` |
+| Training roadmap | `test_ml_training_pipeline_roadmap.py` |
+| Dataset/acquisition contracts | `test_validate_ml_acquisition_dry_run.py`, `test_validate_ml_dataset_manifest.py`, `test_validate_ml_vx_underground_inventory.py`, `test_validate_ml_virusshare_fallback_contracts.py` |
+| Model and benchmark contracts | `test_validate_ml_model_contract.py`, `test_validate_ml_benchmark_report.py`, `test_validate_ml_benchmark_execution_matrix.py`, `test_validate_ml_agent_rush_benchmark_execution_packet.py` |
+| Agent-side ML evidence | `test_validate_ml_win_template_probe.py`, `test_validate_ml3_agent_production_gap_audit.py`, `test_validate_ml_wave2_ml2_ml3_readiness.py` |
+| Pipeline and holdout gates | `test_validate_ml_dvc_pipeline.py`, `test_validate_ml_replay_holdout_outcomes.py`, `test_validate_ml_wave3_ml5_readiness.py`, `test_validate_ml_wave3_ml6_readiness.py` |
+
+## Publication Rules
+
+- Keep root files directly executable unless a move is paired with import-path
+  migration, CI changes, and mirror manifest updates.
+- Put durable fixtures under `fixtures/`, repeatable execution profiles under
+  `profiles/`, roadmap shards under `roadmaps/`, and schemas under `schemas/`.
+- Do not commit generated `runs/`, `generated/`, cache, bytecode, secrets, raw
+  samples, malware, or model weights.
+- Version curated benchmark artifacts only through the monorepo mirror manifest.

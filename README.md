@@ -28,7 +28,8 @@ not production-trained, and production validation remains pending through the
 ML-1..ML-6 gates.
 
 See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the standalone
-mirror layout, artifact policy, and ML contract validation commands.
+mirror layout and artifact policy, and [PROBE_CATALOG.md](./PROBE_CATALOG.md)
+for the logical grouping of root-level probes, validators, and tests.
 
 ## Prerequisites
 

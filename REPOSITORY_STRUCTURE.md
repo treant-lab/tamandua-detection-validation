@@ -20,6 +20,10 @@ ML-1..ML-6 gates.
 | `docs/benchmarks/` | Curated evidence, handoff notes, and selected run artifacts explicitly allowlisted by the mirror manifest. |
 | `.github/` | Mirror-local CI and repository metadata. |
 
+The root is flat by compatibility, not by ownership. Use
+[PROBE_CATALOG.md](./PROBE_CATALOG.md) as the maintained index for probe
+domains, ML contract validators, platform probes, and publication rules.
+
 ## Artifact Policy
 
 - Do not commit generated `runs/`, `generated/`, cache, or bytecode output.

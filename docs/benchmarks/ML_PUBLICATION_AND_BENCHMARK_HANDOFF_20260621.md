@@ -104,6 +104,24 @@ frozen fixture. It scored 4 safe fixtures as 3 benign and 1 malicious, with
 candidate. It is not `ml-prod-candidate-v1` evidence and must not unblock ML-5
 or public detection claims.
 
+The direct agent ONNX rerun on 2026-06-22 used
+`apps/tamandua_agent/src/bin/ml_agent_onnx_parity.rs` against
+`docs/benchmarks/runs/20260604T174850Z-ml-agent-parity-fixture.json` and wrote
+`docs/benchmarks/runs/20260622T-agent-onnx-parity-direct-agent-bench.json`.
+Result: `passed=true`, `sample_count=6`, `verdict_agreement=1.0`,
+`verdict_matches=6`, and `max_abs_probability_delta=0.000027954578` against the
+allowed `0.0001` tolerance. The paired report is
+`docs/benchmarks/runs/20260622T-ml3-agent-onnx-parity-direct-agent-bench-with-win-template.json`.
+This is direct proof that the Rust agent ONNX path runs and matches the frozen
+synthetic fixture. It is still not malware detection evidence because the
+fixture is synthetic and not the canonical `ml-prod-candidate-v1` benchmark.
+
+The matching WIN-TEMPLATE local checkpoint rerun is
+`docs/benchmarks/runs/20260622T-win-template-ml-probe-local-inference-direct-agent-bench.json`.
+It completed local inference on 4 deterministic non-malware fixtures: 3 benign,
+1 malicious (`win_template_seeded_high_entropy_control`). That malicious verdict
+remains a false-positive candidate, not a detection success.
+
 The agent rush benchmark packet now records dry-run contracts for ML-1, ML-4,
 ML-5, and ML-6 plus the existing ML-2 inference contract and ML-3 smoke report.
 Those contracts are execution scaffolding only: every generated report keeps
@@ -171,6 +189,14 @@ Blocked until Wave 1 produces the canonical sanitized manifest:
 - Agent-local ONNX benchmark against a production candidate.
 - Service benchmark against a production candidate.
 - Full Tamandua replay and cross-time holdout.
+
+Unblocked validation-only work after the 2026-06-22 direct agent run:
+
+- Keep the direct agent ONNX parity artifact in both mirrors as smoke evidence.
+- Add the `ml-prod-candidate-v1` agent fixture and ONNX export after Wave 1
+  acquisition and ML-1 training complete.
+- Promote the WIN-TEMPLATE command from local fixture inference to agent-bound
+  execution only after backend credentials and live lab transport are available.
 
 ## VX Underground Policy
 
