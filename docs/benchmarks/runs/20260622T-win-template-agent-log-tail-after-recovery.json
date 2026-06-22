@@ -1,0 +1,19 @@
+{
+  "api_version": "tamandua.io/win-template-agent-log-tail/v1",
+  "kind": "WinTemplateAgentLogTail",
+  "generated_at": "2026-06-22T14:28:00.904643Z",
+  "target": {
+    "proxmox_host": "192.168.12.149",
+    "node": "Default",
+    "vmid": "1521"
+  },
+  "authenticated": true,
+  "claim_boundary": "Sanitized QGA log/config tail for lab connectivity diagnosis. Not detection evidence.",
+  "guest_exec": {
+    "ok": true,
+    "exitcode": 0,
+    "error": null
+  },
+  "stdout_tail": "Microsoft Windows [vers\u00c6o 10.0.26200.8655]\n(c) Microsoft Corporation. Todos os direitos reservados.\n\nD:\\Windows\\System32>echo tamandua-qga-file-metadata-ready\ntamandua-qga-file-metadata-ready\n\nD:\\Windows\\System32>if exist \"D:\\ProgramData\\Tamandua\\config\\agent.toml\" echo exists=D:\\ProgramData\\Tamandua\\config\\agent.toml\nexists=D:\\ProgramData\\Tamandua\\config\\agent.toml\n\nD:\\Windows\\System32>if exist \"C:\\ProgramData\\Tamandua\\config\\agent.toml\" echo exists=C:\\ProgramData\\Tamandua\\config\\agent.toml\n\nD:\\Windows\\System32>if exist \"D:\\ProgramData\\Tamandua\\logs\\agent.log\" echo exists=D:\\ProgramData\\Tamandua\\logs\\agent.log\n\nD:\\Windows\\System32>if exist \"C:\\ProgramData\\Tamandua\\logs\\agent.log\" echo exists=C:\\ProgramData\\Tamandua\\logs\\agent.log\n\nD:\\Windows\\System32>exit /b 0",
+  "stderr_tail": ""
+}

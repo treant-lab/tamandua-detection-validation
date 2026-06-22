@@ -1,0 +1,1358 @@
+{
+  "benchmark_lane": "enterprise-eval",
+  "execute": true,
+  "profile_id": "windows-roadmap-p0-existing-sensor-contract",
+  "quality_gate": {
+    "actionable_gaps": [
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "initial-access"
+        ],
+        "techniques": [
+          "T1566.001"
+        ],
+        "test_id": "roadmap-win-initialaccess-001-t1566-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "execution"
+        ],
+        "techniques": [
+          "T1059.001"
+        ],
+        "test_id": "roadmap-win-execution-001-t1059-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "execution"
+        ],
+        "techniques": [
+          "T1059.001"
+        ],
+        "test_id": "roadmap-win-execution-009-t1059-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "persistence"
+        ],
+        "techniques": [
+          "T1547.001"
+        ],
+        "test_id": "roadmap-win-persistence-001-t1547-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "privilege-escalation"
+        ],
+        "techniques": [
+          "T1548.002"
+        ],
+        "test_id": "roadmap-win-privilegeescalation-001-t1548-002",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "defense-evasion"
+        ],
+        "techniques": [
+          "T1027"
+        ],
+        "test_id": "roadmap-win-defenseevasion-001-t1027",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "defense-evasion"
+        ],
+        "techniques": [
+          "T1036"
+        ],
+        "test_id": "roadmap-win-defenseevasion-009-t1036",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "credential-access"
+        ],
+        "techniques": [
+          "T1003.001"
+        ],
+        "test_id": "roadmap-win-credentialaccess-001-t1003-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "credential-access"
+        ],
+        "techniques": [
+          "T1552.001"
+        ],
+        "test_id": "roadmap-win-credentialaccess-009-t1552-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "discovery"
+        ],
+        "techniques": [
+          "T1082"
+        ],
+        "test_id": "roadmap-win-discovery-001-t1082",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "lateral-movement"
+        ],
+        "techniques": [
+          "T1021.002"
+        ],
+        "test_id": "roadmap-win-lateralmovement-001-t1021-002",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "lateral-movement"
+        ],
+        "techniques": [
+          "T1047"
+        ],
+        "test_id": "roadmap-win-lateralmovement-009-t1047",
+        "validation_category": "telemetry"
+      }
+    ],
+    "failures": [
+      "infrastructure_blocked_tests"
+    ],
+    "gap_category_counts": {
+      "infrastructure": 12
+    },
+    "passed": false,
+    "thresholds": {
+      "benchmark_lane": "enterprise-eval",
+      "fail_on_missed": true,
+      "fail_on_partial": true,
+      "fresh_restore_provenance_required_when_claimed": true,
+      "max_driver_channel_drops": 0,
+      "max_driver_kernel_drops": 0,
+      "max_unexpected_high_critical": 0,
+      "max_unknown_source": 0,
+      "require_upstream": false
+    }
+  },
+  "schema_version": 1,
+  "scorecard": {
+    "analytic_quality": 1.0,
+    "blocking_gaps": [
+      "quality_gate_failed",
+      "deterministic_commands_present",
+      "not_all_tests_upstream_backed"
+    ],
+    "context_quality": 1.0,
+    "covered_rate": 0.0,
+    "driver_quality": 1.0,
+    "external_claim_allowed": false,
+    "field_quality": 1.0,
+    "maturity_band": "calibration",
+    "maturity_score": 50,
+    "noise_quality": 1.0,
+    "recommended_claim": "Tamandua deterministic regression; not external-tool-backed",
+    "telemetry_rate": 0.0,
+    "upstream_rate": 0.0
+  },
+  "summary": {
+    "actionable_gaps": [
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "initial-access"
+        ],
+        "techniques": [
+          "T1566.001"
+        ],
+        "test_id": "roadmap-win-initialaccess-001-t1566-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "execution"
+        ],
+        "techniques": [
+          "T1059.001"
+        ],
+        "test_id": "roadmap-win-execution-001-t1059-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "execution"
+        ],
+        "techniques": [
+          "T1059.001"
+        ],
+        "test_id": "roadmap-win-execution-009-t1059-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "persistence"
+        ],
+        "techniques": [
+          "T1547.001"
+        ],
+        "test_id": "roadmap-win-persistence-001-t1547-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "privilege-escalation"
+        ],
+        "techniques": [
+          "T1548.002"
+        ],
+        "test_id": "roadmap-win-privilegeescalation-001-t1548-002",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "defense-evasion"
+        ],
+        "techniques": [
+          "T1027"
+        ],
+        "test_id": "roadmap-win-defenseevasion-001-t1027",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "defense-evasion"
+        ],
+        "techniques": [
+          "T1036"
+        ],
+        "test_id": "roadmap-win-defenseevasion-009-t1036",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "credential-access"
+        ],
+        "techniques": [
+          "T1003.001"
+        ],
+        "test_id": "roadmap-win-credentialaccess-001-t1003-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "credential-access"
+        ],
+        "techniques": [
+          "T1552.001"
+        ],
+        "test_id": "roadmap-win-credentialaccess-009-t1552-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "discovery"
+        ],
+        "techniques": [
+          "T1082"
+        ],
+        "test_id": "roadmap-win-discovery-001-t1082",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "lateral-movement"
+        ],
+        "techniques": [
+          "T1021.002"
+        ],
+        "test_id": "roadmap-win-lateralmovement-001-t1021-002",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "lateral-movement"
+        ],
+        "techniques": [
+          "T1047"
+        ],
+        "test_id": "roadmap-win-lateralmovement-009-t1047",
+        "validation_category": "telemetry"
+      }
+    ],
+    "category_coverage": {
+      "telemetry": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 12
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 12,
+        "upstream_backed_tests": 0
+      }
+    },
+    "claim_level_counts": {
+      "deterministic": 12
+    },
+    "covered": 0,
+    "deterministic_command_tests": 12,
+    "evidence_source_coverage": {},
+    "excluded_benchmark_setup_alerts": 0,
+    "excluded_stale_source_events": 0,
+    "execution_class_counts": {
+      "deterministic": 12
+    },
+    "execution_failed": 0,
+    "executor_counts": {
+      "command": 12
+    },
+    "fallback_command_tests": 0,
+    "gap_category_counts": {
+      "infrastructure": 12
+    },
+    "investigable_alert_gaps": 0,
+    "missed": 0,
+    "missing_expected_driver_raw_events": 0,
+    "missing_expected_fields": 0,
+    "missing_expected_values": 0,
+    "partial": 0,
+    "planned": 0,
+    "tactic_coverage": {
+      "credential-access": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "defense-evasion": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "discovery": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "execution": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "initial-access": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "lateral-movement": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "persistence": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "privilege-escalation": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      }
+    },
+    "technique_coverage": {
+      "T1003.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1021.002": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1027": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1036": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1047": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1059.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "T1082": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1547.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1548.002": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1552.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1566.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      }
+    },
+    "tests": 12,
+    "unexpected_high_or_critical_alerts": 0,
+    "unexpected_high_or_critical_events": 0,
+    "unknown_source_events": 0,
+    "upstream_backed_tests": 0
+  },
+  "tests": [
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-credentialaccess-001-t1003-001",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "credential-access",
+        "technique": "T1003.001",
+        "technique_name": "LSASS Memory",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-credentialaccess-009-t1552-001",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "credential-access",
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-defenseevasion-001-t1027",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "defense-evasion",
+        "technique": "T1027",
+        "technique_name": "Obfuscated Files or Information",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-defenseevasion-009-t1036",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "defense-evasion",
+        "technique": "T1036",
+        "technique_name": "Masquerading",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-discovery-001-t1082",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "discovery",
+        "technique": "T1082",
+        "technique_name": "System Information Discovery",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-execution-001-t1059-001",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-enterprise-safe",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "execution",
+        "technique": "T1059.001",
+        "technique_name": "PowerShell",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-execution-009-t1059-001",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-enterprise-safe",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "execution",
+        "technique": "T1059.001",
+        "technique_name": "PowerShell",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-initialaccess-001-t1566-001",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "initial-access",
+        "technique": "T1566.001",
+        "technique_name": "Spearphishing Attachment",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-lateralmovement-001-t1021-002",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "lateral-movement",
+        "technique": "T1021.002",
+        "technique_name": "SMB/Windows Admin Shares",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-lateralmovement-009-t1047",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-extended-safe",
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "lateral-movement",
+        "technique": "T1047",
+        "technique_name": "Windows Management Instrumentation",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-persistence-001-t1547-001",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "persistence",
+        "technique": "T1547.001",
+        "technique_name": "Registry Run Keys / Startup Folder",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "claim_level": "deterministic",
+      "coverage": {},
+      "evidence_source_counts": {},
+      "execution_class": "deterministic",
+      "executor_used": "command",
+      "expected_telemetry_any": [],
+      "fallback_used": false,
+      "gap_category": "infrastructure",
+      "id": "roadmap-win-privilegeescalation-001-t1548-002",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "missing_strict_expected_telemetry": [],
+      "observed_telemetry_alternative": [],
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "privilege-escalation",
+        "technique": "T1548.002",
+        "technique_name": "Bypass User Account Control",
+        "upstream_target_lane": null
+      },
+      "status": "infra_blocked",
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    }
+  ],
+  "upstream_readiness": {
+    "atomic_red_team": {
+      "items": {
+        "all_atomic_capable_tests_upstream_backed": false,
+        "atomic_profile_selected": false,
+        "atomic_upstream_lane": false,
+        "no_fallback_commands": true,
+        "quality_gate_passed": false
+      },
+      "lane": "enterprise-eval",
+      "ready": false
+    },
+    "caldera": {
+      "items": {
+        "adversary_group_and_paw_recorded": false,
+        "caldera_profile_selected": false,
+        "caldera_upstream_lane": false,
+        "operation_proof_recorded": false,
+        "operations_succeeded": false,
+        "quality_gate_passed": false
+      },
+      "lane": "enterprise-eval",
+      "ready": false
+    }
+  }
+}

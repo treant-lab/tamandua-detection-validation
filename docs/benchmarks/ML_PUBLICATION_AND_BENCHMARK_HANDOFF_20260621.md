@@ -133,6 +133,27 @@ record for the requested WIN-TEMPLATE agent was offline with stale
 `last_seen_at=2026-05-27T03:53:00`. This is an infrastructure/lab freshness
 blocker, not an ML model result.
 
+The WIN-TEMPLATE lab recovery path was then exercised through Proxmox/QGA on
+2026-06-22. QGA readiness passed for VM `1521`, the agent service was installed
+and observed running with PID `2548`, and the driver service `tamandua` was also
+running. The install generated the current backend agent record
+`fa7d2282-e896-4937-aedf-57b0c7454080`. The recovered agent-bound validation
+still did not execute detection tests: `quality_gate=fail`, 12/12 Windows
+roadmap checks remained `infra_blocked`, and readiness reported
+`agent_status_registered`/`agent_status_offline` with `last_seen_at=2026-06-22T14:07:38`.
+QGA file diagnostics confirmed `D:\ProgramData\Tamandua\config\agent.toml`
+exists, but the standard `D:\ProgramData\Tamandua\logs\agent.log` path was not
+present. The remaining blocker is backend heartbeat/live-response readiness, not
+model execution.
+
+New WIN-TEMPLATE recovery artifacts:
+
+- `docs/benchmarks/runs/20260622T-win-template-qga-readiness-current-agent-id/20260622T141950Z-windows-proxmox-qga-readiness-probe.md`
+- `docs/benchmarks/runs/20260622T-win-template-qga-agent-service-after-start-current-agent-id/20260622T142345Z-windows-qga-agent-service-probe.json`
+- `docs/benchmarks/runs/20260622T-win-template-qga-start-foreground-current-agent-id/20260622T142008Z-windows-qga-start-foreground-agent.json`
+- `docs/benchmarks/runs/exec-windows-ml-probe-win-template-recovered-agent.json`
+- `docs/benchmarks/runs/20260622T-win-template-agent-log-tail-after-recovery.json`
+
 The agent rush benchmark packet now records dry-run contracts for ML-1, ML-4,
 ML-5, and ML-6 plus the existing ML-2 inference contract and ML-3 smoke report.
 Those contracts are execution scaffolding only: every generated report keeps

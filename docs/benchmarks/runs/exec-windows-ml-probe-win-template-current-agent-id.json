@@ -1,0 +1,2658 @@
+{
+  "agent_db_after": {
+    "agent_version": "0.1.0",
+    "db_now": "2026-06-22T14:04:49.50361+00:00",
+    "hostname": "WIN-TEMPLATE",
+    "id": "717f4ffc-d373-4bb4-b021-36d7c51838f0",
+    "last_seen_at": "2026-06-19T06:28:39",
+    "os_type": "windows",
+    "os_version": "11 (26200)",
+    "status": "offline",
+    "updated_at": "2026-06-19T06:28:48"
+  },
+  "agent_db_before": {
+    "agent_version": "0.1.0",
+    "db_now": "2026-06-22T14:04:45.933545+00:00",
+    "hostname": "WIN-TEMPLATE",
+    "id": "717f4ffc-d373-4bb4-b021-36d7c51838f0",
+    "last_seen_at": "2026-06-19T06:28:39",
+    "os_type": "windows",
+    "os_version": "11 (26200)",
+    "status": "offline",
+    "updated_at": "2026-06-19T06:28:48"
+  },
+  "agent_live_before": {
+    "agent": {
+      "agent_version": "0.1.0",
+      "capabilities": [],
+      "created_at": null,
+      "health_status": {
+        "metrics": {},
+        "reasons": [
+          "offline"
+        ],
+        "status": "unknown"
+      },
+      "hostname": "WIN-TEMPLATE",
+      "id": "717f4ffc-d373-4bb4-b021-36d7c51838f0",
+      "ip_address": "::ffff:168.205.203.166",
+      "isolated": false,
+      "isolation_status": null,
+      "last_seen": "2026-06-19T06:28:39",
+      "os_type": "windows",
+      "os_version": "11 (26200)",
+      "platform_capabilities": [
+        {
+          "detail": "No live signal observed; maturity remains supported.",
+          "id": "endpoint_telemetry",
+          "maturity": "supported",
+          "name": "Endpoint telemetry",
+          "observed": "not_observed",
+          "platform": "windows",
+          "status": "partial"
+        },
+        {
+          "detail": "No live signal observed; maturity remains lab.",
+          "id": "kernel_sensor",
+          "maturity": "lab",
+          "name": "Kernel / platform sensor",
+          "observed": "not_observed",
+          "platform": "windows",
+          "status": "lab"
+        },
+        {
+          "detail": "No live signal observed; maturity remains supported.",
+          "id": "registry_telemetry",
+          "maturity": "supported",
+          "name": "Registry telemetry",
+          "observed": "not_observed",
+          "platform": "windows",
+          "status": "partial"
+        },
+        {
+          "detail": "No live signal observed; maturity remains partial.",
+          "id": "live_response",
+          "maturity": "partial",
+          "name": "Live response shell",
+          "observed": "not_observed",
+          "platform": "windows",
+          "status": "partial"
+        },
+        {
+          "detail": "No live signal observed; maturity remains partial.",
+          "id": "network_isolation",
+          "maturity": "partial",
+          "name": "Network isolation",
+          "observed": "not_observed",
+          "platform": "windows",
+          "status": "partial"
+        },
+        {
+          "detail": "No live signal observed; maturity remains partial.",
+          "id": "prevention_policy",
+          "maturity": "partial",
+          "name": "Prevention policy enforcement",
+          "observed": "not_observed",
+          "platform": "windows",
+          "status": "partial"
+        }
+      ],
+      "status": "offline"
+    },
+    "agent_count": 6,
+    "command_result": {
+      "command": "'D:\\treant\\tamandua\\apps\\tamandua_ctl\\target\\release\\tamandua-ctl.exe' --json remote agents list",
+      "duration_ms": 391,
+      "exit_code": 0,
+      "host": "local",
+      "stderr": "",
+      "stdout": "{\n  \"data\": [\n    {\n      \"agent_version\": \"0.1.0\",\n      \"capabilities\": [],\n      \"created_at\": null,\n      \"health_status\": {\n        \"metrics\": {},\n        \"reasons\": [\n          \"offline\"\n        ],\n        \"status\": \"unknown\"\n      },\n      \"hostname\": \"WIN-TEMPLATE\",\n      \"id\": \"717f4ffc-d373-4bb4-b021-36d7c51838f0\",\n      \"ip_address\": \"::ffff:168.205.203.166\",\n      \"isolated\": false,\n      \"isolation_status\": null,\n      \"last_seen\": \"2026-06-19T06:28:39\",\n      \"os_type\": \"windows\",\n      \"os_version\": \"11 (26200)\",\n      \"platform_capabilities\": [\n        {\n          \"detail\": \"No live signal observed; maturity remains supported.\",\n          \"id\": \"endpoint_telemetry\",\n          \"maturity\": \"supported\",\n          \"name\": \"Endpoint telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains lab.\",\n          \"id\": \"kernel_sensor\",\n          \"maturity\": \"lab\",\n          \"name\": \"Kernel / platform sensor\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"lab\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains supported.\",\n          \"id\": \"registry_telemetry\",\n          \"maturity\": \"supported\",\n          \"name\": \"Registry telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"live_response\",\n          \"maturity\": \"partial\",\n          \"name\": \"Live response shell\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"network_isolation\",\n          \"maturity\": \"partial\",\n          \"name\": \"Network isolation\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"prevention_policy\",\n          \"maturity\": \"partial\",\n          \"name\": \"Prevention policy enforcement\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        }\n      ],\n      \"status\": \"offline\"\n    },\n    {\n      \"agent_version\": \"0.1.0\",\n      \"capabilities\": [],\n      \"created_at\": null,\n      \"health_status\": {\n        \"metrics\": {},\n        \"reasons\": [\n          \"offline\"\n        ],\n        \"status\": \"unknown\"\n      },\n      \"hostname\": \"lab-linux01\",\n      \"id\": \"fcfd71f0-ee91-4fbd-9da4-fcd4818058d7\",\n      \"ip_address\": \"::ffff:192.168.12.104\",\n      \"isolated\": false,\n      \"isolation_status\": null,\n      \"last_seen\": \"2026-05-27T14:33:53\",\n      \"os_type\": \"linux\",\n      \"os_version\": \"11\",\n      \"platform_capabilities\": [\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"endpoint_telemetry\",\n          \"maturity\": \"partial\",\n          \"name\": \"Endpoint telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains lab.\",\n          \"id\": \"kernel_sensor\",\n          \"maturity\": \"lab\",\n          \"name\": \"Kernel / platform sensor\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"lab\"\n        },\n        {\n          \"detail\": \"Not available for this OS.\",\n          \"id\": \"registry_telemetry\",\n          \"maturity\": \"unavailable\",\n          \"name\": \"Registry telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"unavailable\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"live_response\",\n          \"maturity\": \"partial\",\n          \"name\": \"Live response shell\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"network_isolation\",\n          \"maturity\": \"partial\",\n          \"name\": \"Network isolation\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"prevention_policy\",\n          \"maturity\": \"partial\",\n          \"name\": \"Prevention policy enforcement\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"partial\"\n        }\n      ],\n      \"status\": \"offline\"\n    },\n    {\n      \"agent_version\": \"0.1.0\",\n      \"capabilities\": [],\n      \"created_at\": null,\n      \"health_status\": {\n        \"metrics\": {},\n        \"reasons\": [\n          \"offline\"\n        ],\n        \"status\": \"unknown\"\n      },\n      \"hostname\": \"LAB-AD01\",\n      \"id\": \"33661715-49e9-4420-b07e-ed00e69dd2d9\",\n      \"ip_address\": \"::ffff:192.168.12.199\",\n      \"isolated\": false,\n      \"isolation_status\": null,\n      \"last_seen\": \"2026-05-08T21:21:50\",\n      \"os_type\": \"windows\",\n      \"os_version\": \"10 (20348)\",\n      \"platform_capabilities\": [\n        {\n          \"detail\": \"No live signal observed; maturity remains supported.\",\n          \"id\": \"endpoint_telemetry\",\n          \"maturity\": \"supported\",\n          \"name\": \"Endpoint telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains lab.\",\n          \"id\": \"kernel_sensor\",\n          \"maturity\": \"lab\",\n          \"name\": \"Kernel / platform sensor\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"lab\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains supported.\",\n          \"id\": \"registry_telemetry\",\n          \"maturity\": \"supported\",\n          \"name\": \"Registry telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"live_response\",\n          \"maturity\": \"partial\",\n          \"name\": \"Live response shell\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"network_isolation\",\n          \"maturity\": \"partial\",\n          \"name\": \"Network isolation\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"prevention_policy\",\n          \"maturity\": \"partial\",\n          \"name\": \"Prevention policy enforcement\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        }\n      ],\n      \"status\": \"offline\"\n    },\n    {\n      \"agent_version\": \"0.1.0\",\n      \"capabilities\": [],\n      \"created_at\": null,\n      \"health_status\": {\n        \"metrics\": {},\n        \"reasons\": [\n          \"offline\"\n        ],\n        \"status\": \"unknown\"\n      },\n      \"hostname\": \"LAB-DC01\",\n      \"id\": \"c5706989-46e8-4ecb-9feb-75c5f3a42f1a\",\n      \"ip_address\": \"::ffff:192.168.12.198\",\n      \"isolated\": false,\n      \"isolation_status\": null,\n      \"last_seen\": \"2026-05-08T21:21:40\",\n      \"os_type\": \"windows\",\n      \"os_version\": \"11 (26200)\",\n      \"platform_capabilities\": [\n        {\n          \"detail\": \"No live signal observed; maturity remains supported.\",\n          \"id\": \"endpoint_telemetry\",\n          \"maturity\": \"supported\",\n          \"name\": \"Endpoint telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains lab.\",\n          \"id\": \"kernel_sensor\",\n          \"maturity\": \"lab\",\n          \"name\": \"Kernel / platform sensor\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"lab\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains supported.\",\n          \"id\": \"registry_telemetry\",\n          \"maturity\": \"supported\",\n          \"name\": \"Registry telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"live_response\",\n          \"maturity\": \"partial\",\n          \"name\": \"Live response shell\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"network_isolation\",\n          \"maturity\": \"partial\",\n          \"name\": \"Network isolation\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"prevention_policy\",\n          \"maturity\": \"partial\",\n          \"name\": \"Prevention policy enforcement\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        }\n      ],\n      \"status\": \"offline\"\n    },\n    {\n      \"agent_version\": \"0.1.0\",\n      \"capabilities\": [],\n      \"created_at\": null,\n      \"health_status\": {\n        \"metrics\": {},\n        \"reasons\": [\n          \"offline\"\n        ],\n        \"status\": \"unknown\"\n      },\n      \"hostname\": \"LAB-WS01\",\n      \"id\": \"27ca3a1b-8c4e-47ad-abe2-2d345caed52a\",\n      \"ip_address\": \"::ffff:192.168.12.192\",\n      \"isolated\": false,\n      \"isolation_status\": null,\n      \"last_seen\": \"2026-05-07T19:14:48\",\n      \"os_type\": \"windows\",\n      \"os_version\": \"11 (26200)\",\n      \"platform_capabilities\": [\n        {\n          \"detail\": \"No live signal observed; maturity remains supported.\",\n          \"id\": \"endpoint_telemetry\",\n          \"maturity\": \"supported\",\n          \"name\": \"Endpoint telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains lab.\",\n          \"id\": \"kernel_sensor\",\n          \"maturity\": \"lab\",\n          \"name\": \"Kernel / platform sensor\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"lab\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains supported.\",\n          \"id\": \"registry_telemetry\",\n          \"maturity\": \"supported\",\n          \"name\": \"Registry telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"live_response\",\n          \"maturity\": \"partial\",\n          \"name\": \"Live response shell\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"network_isolation\",\n          \"maturity\": \"partial\",\n          \"name\": \"Network isolation\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"prevention_policy\",\n          \"maturity\": \"partial\",\n          \"name\": \"Prevention policy enforcement\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"windows\",\n          \"status\": \"partial\"\n        }\n      ],\n      \"status\": \"offline\"\n    },\n    {\n      \"agent_version\": \"0.1.0\",\n      \"capabilities\": [],\n      \"created_at\": null,\n      \"health_status\": {\n        \"metrics\": {},\n        \"reasons\": [\n          \"offline\"\n        ],\n        \"status\": \"unknown\"\n      },\n      \"hostname\": \"DESKTOP-CQKJ5Q9\",\n      \"id\": \"a6aaeb3f-1b6e-4db2-b5db-45c3557d210e\",\n      \"ip_address\": \"::ffff:192.168.12.103\",\n      \"isolated\": false,\n      \"isolation_status\": null,\n      \"last_seen\": \"2026-05-07T11:41:13\",\n      \"os_type\": \"linux\",\n      \"os_version\": \"20.04\",\n      \"platform_capabilities\": [\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"endpoint_telemetry\",\n          \"maturity\": \"partial\",\n          \"name\": \"Endpoint telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains lab.\",\n          \"id\": \"kernel_sensor\",\n          \"maturity\": \"lab\",\n          \"name\": \"Kernel / platform sensor\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"lab\"\n        },\n        {\n          \"detail\": \"Not available for this OS.\",\n          \"id\": \"registry_telemetry\",\n          \"maturity\": \"unavailable\",\n          \"name\": \"Registry telemetry\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"unavailable\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"live_response\",\n          \"maturity\": \"partial\",\n          \"name\": \"Live response shell\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"network_isolation\",\n          \"maturity\": \"partial\",\n          \"name\": \"Network isolation\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"partial\"\n        },\n        {\n          \"detail\": \"No live signal observed; maturity remains partial.\",\n          \"id\": \"prevention_policy\",\n          \"maturity\": \"partial\",\n          \"name\": \"Prevention policy enforcement\",\n          \"observed\": \"not_observed\",\n          \"platform\": \"linux\",\n          \"status\": \"partial\"\n        }\n      ],\n      \"status\": \"offline\"\n    }\n  ]\n}\n"
+    },
+    "transport": "tamandua_ctl_agents_list"
+  },
+  "agent_live_readiness_before": {
+    "freshness_seconds": 180,
+    "health_status": "unknown",
+    "heartbeat_age_ms": null,
+    "issues": [
+      "agent_status_offline",
+      "agent_last_seen_stale_287405s"
+    ],
+    "last_seen_age_seconds": 287405.311823,
+    "last_seen_at": "2026-06-19T06:28:39",
+    "last_seen_source": "last_seen",
+    "ready": false,
+    "source": "tamandua-ctl",
+    "status": "offline"
+  },
+  "agent_readiness_before": {
+    "database": {
+      "freshness_seconds": 180,
+      "issues": [
+        "agent_status_offline",
+        "agent_last_seen_stale_286566s"
+      ],
+      "last_seen_age_seconds": 286566.933545,
+      "last_seen_at": "2026-06-19T06:28:39",
+      "ready": false,
+      "reference_time": "2026-06-22T14:04:45.933545Z",
+      "reference_time_source": "db_now",
+      "status": "offline"
+    },
+    "issues": [
+      "agent_status_offline",
+      "agent_last_seen_stale_287405s",
+      "agent_status_offline",
+      "agent_last_seen_stale_286566s"
+    ],
+    "live": {
+      "freshness_seconds": 180,
+      "health_status": "unknown",
+      "heartbeat_age_ms": null,
+      "issues": [
+        "agent_status_offline",
+        "agent_last_seen_stale_287405s"
+      ],
+      "last_seen_age_seconds": 287405.311823,
+      "last_seen_at": "2026-06-19T06:28:39",
+      "last_seen_source": "last_seen",
+      "ready": false,
+      "source": "tamandua-ctl",
+      "status": "offline"
+    },
+    "ready": false,
+    "source": "tamandua-ctl-live"
+  },
+  "baseline": null,
+  "benchmark_lane": "enterprise-eval",
+  "execute": true,
+  "finished_at": "2026-06-22T14:18:44.312346Z",
+  "git": {
+    "commit": "40afad1325bd5d65075e759dcd53107c6600e76b",
+    "commit_short": "40afad13",
+    "dirty": true,
+    "status_short": [
+      " M apps/tamandua_ml/docs/DATASET_ACQUISITION.md",
+      " M apps/tamandua_ml/docs/DATASET_QUICKSTART.md",
+      " M apps/tamandua_ml/scripts/README.md",
+      " M apps/tamandua_ml/scripts/ml_execution_master_handoff.py",
+      " M apps/tamandua_ml/scripts/ml_execution_plan.py",
+      " M apps/tamandua_ml/scripts/ml_execution_status.py",
+      " M apps/tamandua_ml/scripts/ml_goal_snapshot.py",
+      " M apps/tamandua_ml/scripts/ml_platform_readiness_audit.py",
+      " M apps/tamandua_ml/scripts/ml_wave1_guarded_run_command_packet.py",
+      " M apps/tamandua_ml/scripts/ml_wave1_post_acquisition_go_no_go_summary.py",
+      " M apps/tamandua_ml/scripts/run_ml_next_action.py",
+      " M apps/tamandua_ml/scripts/win_template_ml_probe.py",
+      " M apps/tamandua_ml/tests/test_ml_execution_master_handoff.py",
+      " M apps/tamandua_ml/tests/test_ml_execution_plan.py",
+      " M apps/tamandua_ml/tests/test_ml_execution_status.py",
+      " M apps/tamandua_ml/tests/test_ml_platform_readiness_audit.py",
+      " M apps/tamandua_ml/tests/test_run_ml_next_action.py",
+      " M apps/tamandua_ml/tests/test_win_template_ml_probe.py",
+      " M apps/tamandua_server/lib/tamandua_server/alerts/timeline_builder.ex",
+      " M apps/tamandua_server/lib/tamandua_server_web/controllers/api/v1/dns_controller.ex",
+      " M apps/tamandua_server/lib/tamandua_server_web/controllers/inertia_controller.ex",
+      " M docs/apps/tamandua_ml/ML_BENCHMARK_VALIDATION_PLAN.md",
+      " M docs/apps/tamandua_ml/ML_PLATFORM_EVOLUTION_PLAN.md",
+      " M docs/apps/tamandua_ml/PRODUCTION_ACQUISITION_RUNBOOK.md",
+      " M docs/apps/tamandua_ml/TRAINING_QUICKSTART.md",
+      " M docs/benchmarks/ML_AGENT_ONNX_PARITY_SMOKE_20260621.md",
+      " M docs/benchmarks/ML_PUBLICATION_AND_BENCHMARK_HANDOFF_20260621.md",
+      " M docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP.md",
+      " M docs/benchmarks/NEXT_VALIDATION_WORK_QUEUE.md",
+      " M docs/benchmarks/PARALLEL_EXECUTION_BOARD.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.handoff/ml-1-isolated-model-quality.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.handoff/ml-2-pytorch-vs-onnx-parity.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.handoff/ml-3-agent-local-inference.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.handoff/ml-4-ml-service-api-integration.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/README.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-003-ml-3-dependency-wave2-ml1-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-004-ml-4-dependency-wave2-ml1-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-005-ml-5-dependency-wave2-ml2-ml3-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-006-ml-5-dependency-wave2-ml4-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-007-ml-6-dependency-wave2-ml1-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-008-ml-1-artifact-missing-canonical-dataset-manifest.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-009-ml-2-artifact-missing-candidate-onnx-metadata.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-010-ml-2-artifact-missing-candidate-onnx-model.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-011-ml-2-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-012-ml-2-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-013-ml-3-artifact-missing-candidate-onnx-metadata.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-014-ml-3-artifact-missing-candidate-onnx-model.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-015-ml-3-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-016-ml-3-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-017-ml-4-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-018-ml-4-artifact-missing-ml1-model-card.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-019-ml-4-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-020-ml-5-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-021-ml-5-artifact-missing-ml1-model-card.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-022-ml-5-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-023-ml-5-artifact-missing-ml3-agent-parity-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-024-ml-5-artifact-missing-ml4-service-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-025-ml-5-artifact-missing-ml5-replay-outcomes.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-026-ml-6-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-027-ml-6-artifact-missing-ml1-model-card.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-028-ml-6-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-029-ml-6-artifact-missing-ml6-holdout-prediction-outcomes.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-030-ml-4-env-tamandua-ml-api-key.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-031-ml-6-env-tamandua-ml-training-cutoff.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-032-ml-1-other-ml1-model-contract-and-card.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-033-ml-1-other-wave1-governed-acquisition.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-034-ml-1-other-wave1-sanitized-manifest.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-035-ml-2-other-ml2-pytorch-onnx-parity.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-036-ml-3-other-ml3-agent-onnx-parity.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-037-ml-4-other-ml4-service-benchmark.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-038-ml-5-other-ml5-pipeline-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-039-ml-5-other-ml5-tamandua-replay.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-040-ml-6-other-ml6-cross-time-holdout.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-master-handoff.json",
+      " M docs/benchmarks/runs/20260604T-ml-execution-master-handoff.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/README.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/ml_benchmark_refresh_launcher.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/ml_prelab_validation_launcher.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/ml_readiness_refresh_launcher.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_handoff.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_preflight.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_real_acquisition_launcher.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_2_preflight.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.json",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-status.json",
+      " M docs/benchmarks/runs/20260604T-ml-execution-status.md",
+      " M docs/benchmarks/runs/20260604T-ml-lab-standby-readiness.json",
+      " M docs/benchmarks/runs/20260604T-ml-lab-standby-readiness.md",
+      " M docs/benchmarks/runs/20260604T-ml-local-training-readiness.json",
+      " M docs/benchmarks/runs/20260604T-ml-local-training-readiness.md",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-work-packages.handoff/ml-ml-data-governed-acquisition.md",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-work-packages.json",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-work-packages.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-queue-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-queue-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-queue.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-queue.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-validation-status-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-validation-status-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-validation-status.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-validation-status.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-acceptance-checklist.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-acceptance-checklist.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-acquisition-receipt.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-acquisition-receipt.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-closure-gate.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-closure-gate.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-execution-packet-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-execution-packet-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-execution-packet.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-execution-packet.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-lab-run-intake.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-lab-run-intake.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-manifest-publish-receipt.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-manifest-publish-receipt.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-operator-handoff-index.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-operator-handoff-index.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-post-acquisition-go-no-go-summary.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-post-acquisition-go-no-go-summary.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-real-acquisition-transcript.template.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-real-acquisition-transcript.template.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml1-readiness-probe.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml1-readiness-probe.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml2-ml3-readiness-probe.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml4-readiness-probe.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml4-readiness-probe.md",
+      " M docs/benchmarks/runs/20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+      " M docs/benchmarks/runs/20260620T2005Z-ml-benchmark-critical-path-contract-packets.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/01-01-wave1-manifest-publication-manifest-publish-receipt-incomplete.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/02-01-wave1-manifest-publication-missing-canonical-dataset-manifest.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/03-02-ml1-candidate-quality-wave2-ml1-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/04-02-ml1-candidate-quality-missing-ml1-benchmark-report.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/05-02-ml1-candidate-quality-missing-ml1-model-contract.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/06-02-ml1-candidate-quality-missing-ml1-model-card.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/07-03-onnx-agent-parity-missing-candidate-onnx-model.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/08-03-onnx-agent-parity-missing-candidate-onnx-metadata.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/09-03-onnx-agent-parity-wave2-ml2-ml3-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/10-03-onnx-agent-parity-missing-ml3-agent-parity-report.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/11-03-onnx-agent-parity-ml2-pytorch-onnx-parity.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/12-03-onnx-agent-parity-ml3-agent-onnx-parity.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/13-04-service-benchmark-missing-env-tamandua-ml-api-key.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/14-04-service-benchmark-wave2-ml4-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/15-04-service-benchmark-missing-ml4-service-report.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/16-04-service-benchmark-ml4-service-benchmark.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/17-05-platform-replay-missing-ml5-replay-outcomes.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/18-05-platform-replay-ml5-pipeline-report.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/19-05-platform-replay-ml5-tamandua-replay.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/20-06-cross-time-holdout-missing-env-tamandua-ml-training-cutoff.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/21-06-cross-time-holdout-missing-ml6-holdout-prediction-outcomes.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/22-06-cross-time-holdout-ml6-cross-time-holdout.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-handoff-bundle-contract-packets.json",
+      " M docs/benchmarks/runs/20260620T2025Z-ml-benchmark-critical-path-handoff-consistency-contract-packets.json",
+      " M docs/benchmarks/runs/20260620T2025Z-ml-benchmark-critical-path-handoff-consistency-contract-packets.md",
+      " M docs/benchmarks/runs/20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
+      " M docs/benchmarks/runs/20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.md",
+      " M docs/benchmarks/runs/20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.json",
+      " M docs/benchmarks/runs/20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.md",
+      " M docs/benchmarks/runs/20260620T2155Z-ml-platform-readiness-ml6-packets.json",
+      " M docs/benchmarks/runs/20260620T2155Z-ml-platform-readiness-ml6-packets.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-actionability-audit-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-actionability-audit-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/01-01-wave1-manifest-publication-manifest-publish-receipt-incomplete.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/02-01-wave1-manifest-publication-missing-canonical-dataset-manifest.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/03-02-ml1-candidate-quality-wave2-ml1-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/04-02-ml1-candidate-quality-missing-ml1-benchmark-report.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/05-02-ml1-candidate-quality-missing-ml1-model-contract.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/06-02-ml1-candidate-quality-missing-ml1-model-card.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/07-03-onnx-agent-parity-missing-candidate-onnx-model.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/08-03-onnx-agent-parity-missing-candidate-onnx-metadata.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/09-03-onnx-agent-parity-wave2-ml2-ml3-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/10-03-onnx-agent-parity-missing-ml3-agent-parity-report.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/11-03-onnx-agent-parity-ml2-pytorch-onnx-parity.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/12-03-onnx-agent-parity-ml3-agent-onnx-parity.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/13-04-service-benchmark-missing-env-tamandua-ml-api-key.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/14-04-service-benchmark-wave2-ml4-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/15-04-service-benchmark-missing-ml4-service-report.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/16-04-service-benchmark-ml4-service-benchmark.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/17-05-platform-replay-missing-ml5-replay-outcomes.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/18-05-platform-replay-ml5-pipeline-report.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/19-05-platform-replay-ml5-tamandua-replay.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/20-06-cross-time-holdout-missing-env-tamandua-ml-training-cutoff.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/21-06-cross-time-holdout-missing-ml6-holdout-prediction-outcomes.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/22-06-cross-time-holdout-ml6-cross-time-holdout.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/README.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-lane-rollup-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-lane-rollup-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-validation-status-consistency-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-validation-status-consistency-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-validation-status-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-validation-status-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-mirror-publish.json",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-mirror-publish.md",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-readiness-refresh.md",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-goal-snapshot-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-gate-authorization-post-lab-root-governed.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-gate-authorization-post-lab-root-governed.md",
+      " M docs/benchmarks/runs/20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.md",
+      " M docs/benchmarks/runs/20260621T-ml-next-operator-post-lab-root-packet.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-operator-post-lab-root-packet.md",
+      " M docs/benchmarks/runs/20260621T-ml-next-operator-post-win-template-gate-threading-packet.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-operator-post-win-template-gate-threading-packet.md",
+      " M docs/benchmarks/runs/20260621T-ml-parallel-work-packages-post-readiness-refresh.json",
+      " M docs/benchmarks/runs/20260621T-ml-parallel-work-packages-post-readiness-refresh.md",
+      " M docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-execution-environment-preflight-post-lab-root-guarded.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-execution-environment-preflight-post-lab-root-guarded.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-execution-environment-preflight-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-execution-environment-preflight-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-operator-go-no-go-summary-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-operator-go-no-go-summary-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-pre-execution-checklist-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-pre-execution-checklist-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading-go-no-go.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading-go-no-go.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/index.json",
+      " M schemas/ml3_agent_production_gap_audit_v1.schema.json",
+      " M schemas/ml_benchmark_unblock_handoff_bundle_v1.schema.json",
+      " M schemas/ml_benchmark_unblock_handoff_consistency_v1.schema.json",
+      " M schemas/ml_benchmark_unblock_validation_status_consistency_v1.schema.json",
+      " M schemas/ml_benchmark_unblock_validation_status_v1.schema.json",
+      " M schemas/ml_goal_snapshot_v1.schema.json",
+      " M schemas/ml_next_action_run_v1.schema.json",
+      " M schemas/ml_next_gate_authorization_packet_v1.schema.json",
+      " M schemas/ml_next_operator_packet_v1.schema.json",
+      " M schemas/ml_wave1_guarded_run_command_packet_v1.schema.json",
+      " M schemas/ml_wave1_post_acquisition_go_no_go_summary_v1.schema.json",
+      " M tools/detection_validation/CONTRIBUTING.md",
+      "A  tools/detection_validation/PROBE_CATALOG.md",
+      " M tools/detection_validation/README.md",
+      " M tools/detection_validation/test_ml_training_pipeline_roadmap.py",
+      " M tools/detection_validation/test_validate_ml3_agent_production_gap_audit.py",
+      " M tools/detection_validation/test_validate_ml_execution_master_handoff.py",
+      " M tools/detection_validation/test_validate_ml_next_operator_packet.py",
+      " M tools/detection_validation/test_validate_ml_virusshare_fallback_contracts.py",
+      " M tools/detection_validation/test_validate_ml_wave1_guarded_run_command_packet.py",
+      " M tools/detection_validation/test_validate_ml_wave1_operator_go_no_go_summary.py",
+      " M tools/detection_validation/validate_ml_contracts.py",
+      " M tools/mirror_deploy/mirror_manifest.json",
+      "?? schemas/ml_agent_rush_benchmark_execution_packet_v1.schema.json",
+      "?? tmp/",
+      "?? tools/detection_validation/REPOSITORY_STRUCTURE.md",
+      "?? tools/detection_validation/test_validate_ml_agent_rush_benchmark_execution_packet.py"
+    ]
+  },
+  "preflight": {
+    "reason": "tamandua_ctl_no_qga",
+    "skipped": true
+  },
+  "preflight_readiness": {
+    "ready": true,
+    "skipped": true
+  },
+  "profile": {
+    "name": "Windows Roadmap P0 Existing Sensor Contract",
+    "platform": "windows",
+    "profile_id": "windows-roadmap-p0-existing-sensor-contract",
+    "quality_bar": {
+      "max_driver_channel_drops": 0,
+      "max_driver_kernel_drops": 0,
+      "max_unexpected_high_critical": 0,
+      "max_unknown_source_events": 0,
+      "purpose": "windows_p0_existing_sensor_contract",
+      "requires_driver_health": true,
+      "requires_persisted_events": true
+    }
+  },
+  "quality_gate": {
+    "actionable_gaps": [
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "initial-access"
+        ],
+        "techniques": [
+          "T1566.001"
+        ],
+        "test_id": "roadmap-win-initialaccess-001-t1566-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "execution"
+        ],
+        "techniques": [
+          "T1059.001"
+        ],
+        "test_id": "roadmap-win-execution-001-t1059-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "execution"
+        ],
+        "techniques": [
+          "T1059.001"
+        ],
+        "test_id": "roadmap-win-execution-009-t1059-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "persistence"
+        ],
+        "techniques": [
+          "T1547.001"
+        ],
+        "test_id": "roadmap-win-persistence-001-t1547-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "privilege-escalation"
+        ],
+        "techniques": [
+          "T1548.002"
+        ],
+        "test_id": "roadmap-win-privilegeescalation-001-t1548-002",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "defense-evasion"
+        ],
+        "techniques": [
+          "T1027"
+        ],
+        "test_id": "roadmap-win-defenseevasion-001-t1027",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "defense-evasion"
+        ],
+        "techniques": [
+          "T1036"
+        ],
+        "test_id": "roadmap-win-defenseevasion-009-t1036",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "credential-access"
+        ],
+        "techniques": [
+          "T1003.001"
+        ],
+        "test_id": "roadmap-win-credentialaccess-001-t1003-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "credential-access"
+        ],
+        "techniques": [
+          "T1552.001"
+        ],
+        "test_id": "roadmap-win-credentialaccess-009-t1552-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "discovery"
+        ],
+        "techniques": [
+          "T1082"
+        ],
+        "test_id": "roadmap-win-discovery-001-t1082",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "lateral-movement"
+        ],
+        "techniques": [
+          "T1021.002"
+        ],
+        "test_id": "roadmap-win-lateralmovement-001-t1021-002",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "lateral-movement"
+        ],
+        "techniques": [
+          "T1047"
+        ],
+        "test_id": "roadmap-win-lateralmovement-009-t1047",
+        "validation_category": "telemetry"
+      }
+    ],
+    "failures": [
+      "infrastructure_blocked_tests"
+    ],
+    "gap_category_counts": {
+      "infrastructure": 12
+    },
+    "passed": false,
+    "thresholds": {
+      "benchmark_lane": "enterprise-eval",
+      "fail_on_missed": true,
+      "fail_on_partial": true,
+      "fresh_restore_provenance_required_when_claimed": true,
+      "max_driver_channel_drops": 0,
+      "max_driver_kernel_drops": 0,
+      "max_unexpected_high_critical": 0,
+      "max_unknown_source": 0,
+      "require_upstream": false
+    }
+  },
+  "run_id": "exec-windows-ml-probe-win-template-current-agent-id",
+  "schema_version": 1,
+  "scorecard": {
+    "analytic_quality": 1.0,
+    "blocking_gaps": [
+      "quality_gate_failed",
+      "deterministic_commands_present",
+      "not_all_tests_upstream_backed"
+    ],
+    "context_quality": 1.0,
+    "covered_rate": 0.0,
+    "driver_quality": 1.0,
+    "external_claim_allowed": false,
+    "field_quality": 1.0,
+    "maturity_band": "calibration",
+    "maturity_score": 50,
+    "noise_quality": 1.0,
+    "recommended_claim": "Tamandua deterministic regression; not external-tool-backed",
+    "telemetry_rate": 0.0,
+    "upstream_rate": 0.0
+  },
+  "selected_tests": [
+    "roadmap-win-initialaccess-001-t1566-001",
+    "roadmap-win-execution-001-t1059-001",
+    "roadmap-win-execution-009-t1059-001",
+    "roadmap-win-persistence-001-t1547-001",
+    "roadmap-win-privilegeescalation-001-t1548-002",
+    "roadmap-win-defenseevasion-001-t1027",
+    "roadmap-win-defenseevasion-009-t1036",
+    "roadmap-win-credentialaccess-001-t1003-001",
+    "roadmap-win-credentialaccess-009-t1552-001",
+    "roadmap-win-discovery-001-t1082",
+    "roadmap-win-lateralmovement-001-t1021-002",
+    "roadmap-win-lateralmovement-009-t1047"
+  ],
+  "started_at": "2026-06-22T14:18:38.808303Z",
+  "summary": {
+    "actionable_gaps": [
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "initial-access"
+        ],
+        "techniques": [
+          "T1566.001"
+        ],
+        "test_id": "roadmap-win-initialaccess-001-t1566-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "execution"
+        ],
+        "techniques": [
+          "T1059.001"
+        ],
+        "test_id": "roadmap-win-execution-001-t1059-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "execution"
+        ],
+        "techniques": [
+          "T1059.001"
+        ],
+        "test_id": "roadmap-win-execution-009-t1059-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "persistence"
+        ],
+        "techniques": [
+          "T1547.001"
+        ],
+        "test_id": "roadmap-win-persistence-001-t1547-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "privilege-escalation"
+        ],
+        "techniques": [
+          "T1548.002"
+        ],
+        "test_id": "roadmap-win-privilegeescalation-001-t1548-002",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "defense-evasion"
+        ],
+        "techniques": [
+          "T1027"
+        ],
+        "test_id": "roadmap-win-defenseevasion-001-t1027",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "defense-evasion"
+        ],
+        "techniques": [
+          "T1036"
+        ],
+        "test_id": "roadmap-win-defenseevasion-009-t1036",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "credential-access"
+        ],
+        "techniques": [
+          "T1003.001"
+        ],
+        "test_id": "roadmap-win-credentialaccess-001-t1003-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "credential-access"
+        ],
+        "techniques": [
+          "T1552.001"
+        ],
+        "test_id": "roadmap-win-credentialaccess-009-t1552-001",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "discovery"
+        ],
+        "techniques": [
+          "T1082"
+        ],
+        "test_id": "roadmap-win-discovery-001-t1082",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "lateral-movement"
+        ],
+        "techniques": [
+          "T1021.002"
+        ],
+        "test_id": "roadmap-win-lateralmovement-001-t1021-002",
+        "validation_category": "telemetry"
+      },
+      {
+        "execution_class": "deterministic",
+        "fallback_used": false,
+        "gap_category": "infrastructure",
+        "missing_expected_alerts": [],
+        "missing_expected_correlations": [],
+        "missing_expected_detections": [],
+        "missing_expected_driver_raw_event_types": [],
+        "missing_expected_fields": [],
+        "missing_expected_telemetry": [],
+        "missing_expected_values": [],
+        "status": "infra_blocked",
+        "tactics": [
+          "lateral-movement"
+        ],
+        "techniques": [
+          "T1047"
+        ],
+        "test_id": "roadmap-win-lateralmovement-009-t1047",
+        "validation_category": "telemetry"
+      }
+    ],
+    "category_coverage": {
+      "telemetry": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 12
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 12,
+        "upstream_backed_tests": 0
+      }
+    },
+    "claim_level_counts": {
+      "deterministic": 12
+    },
+    "covered": 0,
+    "deterministic_command_tests": 12,
+    "driver_channel_drops": 0,
+    "driver_kernel_drops": 0,
+    "evidence_source_coverage": {},
+    "excluded_benchmark_setup_alerts": 0,
+    "excluded_stale_source_events": 0,
+    "executed_without_server_evidence": 0,
+    "execution_class_counts": {
+      "deterministic": 12
+    },
+    "execution_failed": 0,
+    "executor_counts": {
+      "command": 12
+    },
+    "fallback_command_tests": 0,
+    "gap_category_counts": {
+      "infrastructure": 12
+    },
+    "infra_blocked": 12,
+    "investigable_alert_gaps": 0,
+    "missed": 0,
+    "missing_expected_alerts": 0,
+    "missing_expected_correlations": 0,
+    "missing_expected_detections": 0,
+    "missing_expected_driver_raw_events": 0,
+    "missing_expected_fields": 0,
+    "missing_expected_values": 0,
+    "partial": 0,
+    "planned": 0,
+    "skipped": 0,
+    "tactic_coverage": {
+      "credential-access": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "defense-evasion": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "discovery": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "execution": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "initial-access": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "lateral-movement": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "persistence": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "privilege-escalation": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      }
+    },
+    "technique_coverage": {
+      "T1003.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1021.002": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1027": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1036": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1047": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1059.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 2
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 2,
+        "upstream_backed_tests": 0
+      },
+      "T1082": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1547.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1548.002": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1552.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      },
+      "T1566.001": {
+        "covered": 0,
+        "evidence_sources": {},
+        "execution_failed": 0,
+        "gap_category_counts": {
+          "infrastructure": 1
+        },
+        "missed": 0,
+        "partial": 0,
+        "planned": 0,
+        "skipped": 0,
+        "tests": 1,
+        "upstream_backed_tests": 0
+      }
+    },
+    "tests": 12,
+    "unexpected_high_or_critical_alerts": 0,
+    "unexpected_high_or_critical_events": 0,
+    "unknown_source_events": 0,
+    "upstream_backed_tests": 0
+  },
+  "target": {
+    "agent_hostname": null,
+    "agent_id": "717f4ffc-d373-4bb4-b021-36d7c51838f0",
+    "proxmox_host": null,
+    "resolve_agent_by_hostname": false,
+    "server_host": "192.168.12.146",
+    "vmid": 0
+  },
+  "tests": [
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"echo tamandua-phishing-attachment > %TEMP%\\tamandua-phishing-attachment.txt & type %TEMP%\\tamandua-phishing-attachment.txt & del /f /q %TEMP%\\tamandua-phishing-attachment.txt & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-initialaccess-001-t1566-001",
+      "name": "Spearphishing Attachment: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-roadmap-p0-safe-expansion"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "initial-access",
+        "technique": "T1566.001",
+        "technique_name": "Spearphishing Attachment",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-initialaccess-001",
+        "tactic:initial-access",
+        "mitre:T1566.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"whoami & hostname & ver & echo tamandua-live-response-marker-378bab4e4077 & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-execution-001-t1059-001",
+      "name": "PowerShell: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-enterprise-safe",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "execution",
+        "technique": "T1059.001",
+        "technique_name": "PowerShell",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-execution-001",
+        "tactic:execution",
+        "mitre:T1059.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"whoami & hostname & ver & echo tamandua-live-response-marker-378bab4e4077 & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-execution-009-t1059-001",
+      "name": "PowerShell: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-enterprise-safe",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "execution",
+        "technique": "T1059.001",
+        "technique_name": "PowerShell",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-execution-009",
+        "tactic:execution",
+        "mitre:T1059.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /t REG_SZ /d tamandua-bench-run /f & reg query HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun & ping -n 8 127.0.0.1 > nul & reg delete HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /v TamanduaBenchRun /f & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create",
+        "registry_set_value"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-persistence-001-t1547-001",
+      "name": "Registry Run Keys / Startup Folder: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-extended-safe",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "persistence",
+        "technique": "T1547.001",
+        "technique_name": "Registry Run Keys / Startup Folder",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create",
+          "registry_set_value"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-persistence-001",
+        "tactic:persistence",
+        "mitre:T1547.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"whoami /groups & whoami /priv & echo tamandua-live-response-marker-d00f3f44fa44 & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-privilegeescalation-001-t1548-002",
+      "name": "Bypass User Account Control: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "privilege-escalation",
+        "technique": "T1548.002",
+        "technique_name": "Bypass User Account Control",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-privilegeescalation-001",
+        "tactic:privilege-escalation",
+        "mitre:T1548.002",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"echo tamandua>%TEMP%\\tamandua-evasion.txt & attrib +h %TEMP%\\tamandua-evasion.txt & attrib -h %TEMP%\\tamandua-evasion.txt & del /f /q %TEMP%\\tamandua-evasion.txt & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-defenseevasion-001-t1027",
+      "name": "Obfuscated Files or Information: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "defense-evasion",
+        "technique": "T1027",
+        "technique_name": "Obfuscated Files or Information",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-defenseevasion-001",
+        "tactic:defense-evasion",
+        "mitre:T1027",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"echo tamandua>%TEMP%\\tamandua-evasion.txt & attrib +h %TEMP%\\tamandua-evasion.txt & attrib -h %TEMP%\\tamandua-evasion.txt & del /f /q %TEMP%\\tamandua-evasion.txt & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-defenseevasion-009-t1036",
+      "name": "Masquerading: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-enterprise-eval-safe-v1",
+          "windows-response-validation-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "defense-evasion",
+        "technique": "T1036",
+        "technique_name": "Masquerading",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-defenseevasion-009",
+        "tactic:defense-evasion",
+        "mitre:T1036",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"tasklist.exe /FI \\\"IMAGENAME eq lsass.exe\\\" /NH > nul & echo tamandua-live-response-marker-ca2750870472 & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-credentialaccess-001-t1003-001",
+      "name": "LSASS Memory: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-driver-contract",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "credential-access",
+        "technique": "T1003.001",
+        "technique_name": "LSASS Memory",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-001",
+        "tactic:credential-access",
+        "mitre:T1003.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"whoami /user & cmdkey /list 2>nul & echo tamandua-live-response-marker-cded6140f8e3 & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-credentialaccess-009-t1552-001",
+      "name": "Credentials In Files: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "credential-access",
+        "technique": "T1552.001",
+        "technique_name": "Credentials In Files",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-credentialaccess-009",
+        "tactic:credential-access",
+        "mitre:T1552.001",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"whoami & hostname & ipconfig /all & echo tamandua-live-response-marker-e3b58e0ef27c & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-discovery-001-t1082",
+      "name": "System Information Discovery: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-core-coverage",
+          "windows-atomic-detection-smoke",
+          "windows-atomic-extended-safe",
+          "windows-atomic-smoke",
+          "windows-atomic-upstream-smoke",
+          "windows-attack-safe-v1",
+          "windows-caldera-smoke",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "discovery",
+        "technique": "T1082",
+        "technique_name": "System Information Discovery",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-discovery-001",
+        "tactic:discovery",
+        "mitre:T1082",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"net view \\\\localhost 2>nul || whoami & echo tamandua-live-response-marker-69a393efcd2a & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-lateralmovement-001-t1021-002",
+      "name": "SMB/Windows Admin Shares: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-caldera-enterprise-safe",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "lateral-movement",
+        "technique": "T1021.002",
+        "technique_name": "SMB/Windows Admin Shares",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-001",
+        "tactic:lateral-movement",
+        "mitre:T1021.002",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    },
+    {
+      "atomic": null,
+      "claim_boundary": "deterministic roadmap evidence; upstream claims require matching upstream lane artifacts",
+      "claim_level": "deterministic",
+      "command": "cmd.exe /d /c \"net view \\\\localhost 2>nul || whoami & echo tamandua-live-response-marker-69a393efcd2a & ping -n 9 127.0.0.1 > nul\"",
+      "execution_class": "deterministic",
+      "executor_label": "Deterministic command",
+      "executor_requested": "command",
+      "executor_used": "command",
+      "expected_telemetry": [
+        "process_create"
+      ],
+      "fallback_reason": null,
+      "fallback_used": false,
+      "id": "roadmap-win-lateralmovement-009-t1047",
+      "name": "Windows Management Instrumentation: telemetry contract",
+      "provenance": {
+        "claim_level": "deterministic",
+        "execution_class": "deterministic",
+        "fallback_reason": null,
+        "fallback_used": false,
+        "upstream_backed": false,
+        "upstream_tool": null
+      },
+      "risk": "low",
+      "roadmap_traceability": {
+        "category": "telemetry",
+        "executor": "sensor_contract",
+        "existing_profile_refs": [
+          "windows-atomic-extended-safe",
+          "windows-caldera-enterprise-safe",
+          "windows-enterprise-eval-safe-v1",
+          "windows-roadmap-p0-existing-sensor-contract"
+        ],
+        "lane": "enterprise-eval",
+        "tactic": "lateral-movement",
+        "technique": "T1047",
+        "technique_name": "Windows Management Instrumentation",
+        "upstream_target_lane": null
+      },
+      "score": {
+        "details": {
+          "database": {
+            "freshness_seconds": 180,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_286566s"
+            ],
+            "last_seen_age_seconds": 286566.933545,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "ready": false,
+            "reference_time": "2026-06-22T14:04:45.933545Z",
+            "reference_time_source": "db_now",
+            "status": "offline"
+          },
+          "issues": [
+            "agent_status_offline",
+            "agent_last_seen_stale_287405s",
+            "agent_status_offline",
+            "agent_last_seen_stale_286566s"
+          ],
+          "live": {
+            "freshness_seconds": 180,
+            "health_status": "unknown",
+            "heartbeat_age_ms": null,
+            "issues": [
+              "agent_status_offline",
+              "agent_last_seen_stale_287405s"
+            ],
+            "last_seen_age_seconds": 287405.311823,
+            "last_seen_at": "2026-06-19T06:28:39",
+            "last_seen_source": "last_seen",
+            "ready": false,
+            "source": "tamandua-ctl",
+            "status": "offline"
+          },
+          "ready": false,
+          "source": "tamandua-ctl-live"
+        },
+        "error": "agent_not_ready_for_benchmark",
+        "expected_telemetry": [
+          "process_create"
+        ],
+        "status": "infra_blocked"
+      },
+      "status": "infra_blocked",
+      "tags": [
+        "windows-roadmap-batch",
+        "roadmap:win-lateralmovement-009",
+        "tactic:lateral-movement",
+        "mitre:T1047",
+        "category:telemetry",
+        "lane:enterprise-eval",
+        "variant:telemetry-contract",
+        "executor:sensor_contract",
+        "status:covered-by-existing-profile"
+      ],
+      "upstream_available": {
+        "atomic_red_team": false
+      },
+      "upstream_backed": false,
+      "validation_category": "telemetry"
+    }
+  ],
+  "upstream_readiness": {
+    "atomic_red_team": {
+      "items": {
+        "all_atomic_capable_tests_upstream_backed": false,
+        "atomic_profile_selected": false,
+        "atomic_upstream_lane": false,
+        "no_fallback_commands": true,
+        "quality_gate_passed": false
+      },
+      "lane": "enterprise-eval",
+      "ready": false
+    },
+    "caldera": {
+      "items": {
+        "adversary_group_and_paw_recorded": false,
+        "caldera_profile_selected": false,
+        "caldera_upstream_lane": false,
+        "operation_proof_recorded": false,
+        "operations_succeeded": false,
+        "quality_gate_passed": false
+      },
+      "lane": "enterprise-eval",
+      "ready": false
+    }
+  }
+}

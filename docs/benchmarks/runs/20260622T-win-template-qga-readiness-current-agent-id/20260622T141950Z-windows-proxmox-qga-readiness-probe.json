@@ -1,0 +1,2988 @@
+{
+  "benchmark_lane": "claim-boundary",
+  "finished_at": "2026-06-22T14:19:50.419458Z",
+  "git": {
+    "commit": "40afad1325bd5d65075e759dcd53107c6600e76b",
+    "commit_short": "40afad13",
+    "dirty": true,
+    "status_short": [
+      "M apps/tamandua_ml/docs/DATASET_ACQUISITION.md",
+      " M apps/tamandua_ml/docs/DATASET_QUICKSTART.md",
+      " M apps/tamandua_ml/scripts/README.md",
+      " M apps/tamandua_ml/scripts/ml_execution_master_handoff.py",
+      " M apps/tamandua_ml/scripts/ml_execution_plan.py",
+      " M apps/tamandua_ml/scripts/ml_execution_status.py",
+      " M apps/tamandua_ml/scripts/ml_goal_snapshot.py",
+      " M apps/tamandua_ml/scripts/ml_platform_readiness_audit.py",
+      " M apps/tamandua_ml/scripts/ml_wave1_guarded_run_command_packet.py",
+      " M apps/tamandua_ml/scripts/ml_wave1_post_acquisition_go_no_go_summary.py",
+      " M apps/tamandua_ml/scripts/run_ml_next_action.py",
+      " M apps/tamandua_ml/scripts/win_template_ml_probe.py",
+      " M apps/tamandua_ml/tests/test_ml_execution_master_handoff.py",
+      " M apps/tamandua_ml/tests/test_ml_execution_plan.py",
+      " M apps/tamandua_ml/tests/test_ml_execution_status.py",
+      " M apps/tamandua_ml/tests/test_ml_platform_readiness_audit.py",
+      " M apps/tamandua_ml/tests/test_run_ml_next_action.py",
+      " M apps/tamandua_ml/tests/test_win_template_ml_probe.py",
+      " M apps/tamandua_server/lib/tamandua_server/alerts/timeline_builder.ex",
+      " M apps/tamandua_server/lib/tamandua_server_web/controllers/api/v1/dns_controller.ex",
+      " M apps/tamandua_server/lib/tamandua_server_web/controllers/inertia_controller.ex",
+      " M docs/apps/tamandua_ml/ML_BENCHMARK_VALIDATION_PLAN.md",
+      " M docs/apps/tamandua_ml/ML_PLATFORM_EVOLUTION_PLAN.md",
+      " M docs/apps/tamandua_ml/PRODUCTION_ACQUISITION_RUNBOOK.md",
+      " M docs/apps/tamandua_ml/TRAINING_QUICKSTART.md",
+      " M docs/benchmarks/ML_AGENT_ONNX_PARITY_SMOKE_20260621.md",
+      " M docs/benchmarks/ML_PUBLICATION_AND_BENCHMARK_HANDOFF_20260621.md",
+      " M docs/benchmarks/ML_TRAINING_PIPELINE_ROADMAP.md",
+      " M docs/benchmarks/NEXT_VALIDATION_WORK_QUEUE.md",
+      " M docs/benchmarks/PARALLEL_EXECUTION_BOARD.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.handoff/ml-1-isolated-model-quality.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.handoff/ml-2-pytorch-vs-onnx-parity.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.handoff/ml-3-agent-local-inference.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.handoff/ml-4-ml-service-api-integration.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-execution-matrix.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/README.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-003-ml-3-dependency-wave2-ml1-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-004-ml-4-dependency-wave2-ml1-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-005-ml-5-dependency-wave2-ml2-ml3-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-006-ml-5-dependency-wave2-ml4-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-007-ml-6-dependency-wave2-ml1-readiness-blocked.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-008-ml-1-artifact-missing-canonical-dataset-manifest.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-009-ml-2-artifact-missing-candidate-onnx-metadata.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-010-ml-2-artifact-missing-candidate-onnx-model.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-011-ml-2-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-012-ml-2-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-013-ml-3-artifact-missing-candidate-onnx-metadata.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-014-ml-3-artifact-missing-candidate-onnx-model.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-015-ml-3-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-016-ml-3-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-017-ml-4-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-018-ml-4-artifact-missing-ml1-model-card.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-019-ml-4-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-020-ml-5-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-021-ml-5-artifact-missing-ml1-model-card.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-022-ml-5-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-023-ml-5-artifact-missing-ml3-agent-parity-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-024-ml-5-artifact-missing-ml4-service-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-025-ml-5-artifact-missing-ml5-replay-outcomes.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-026-ml-6-artifact-missing-ml1-benchmark-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-027-ml-6-artifact-missing-ml1-model-card.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-028-ml-6-artifact-missing-ml1-model-contract.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-029-ml-6-artifact-missing-ml6-holdout-prediction-outcomes.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-030-ml-4-env-tamandua-ml-api-key.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-031-ml-6-env-tamandua-ml-training-cutoff.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-032-ml-1-other-ml1-model-contract-and-card.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-033-ml-1-other-wave1-governed-acquisition.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-034-ml-1-other-wave1-sanitized-manifest.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-035-ml-2-other-ml2-pytorch-onnx-parity.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-036-ml-3-other-ml3-agent-onnx-parity.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-037-ml-4-other-ml4-service-benchmark.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-038-ml-5-other-ml5-pipeline-report.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-039-ml-5-other-ml5-tamandua-replay.md",
+      " D docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.handoff/ml-benchmark-unblock-040-ml-6-other-ml6-cross-time-holdout.md",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.json",
+      " M docs/benchmarks/runs/20260604T-ml-benchmark-unblock-queue.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-master-handoff.json",
+      " M docs/benchmarks/runs/20260604T-ml-execution-master-handoff.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/README.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/ml_benchmark_refresh_launcher.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/ml_prelab_validation_launcher.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/ml_readiness_refresh_launcher.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_handoff.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_preflight.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_1_real_acquisition_launcher.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.handoff/wave_2_preflight.ps1",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.json",
+      " M docs/benchmarks/runs/20260604T-ml-execution-plan.md",
+      " M docs/benchmarks/runs/20260604T-ml-execution-status.json",
+      " M docs/benchmarks/runs/20260604T-ml-execution-status.md",
+      " M docs/benchmarks/runs/20260604T-ml-lab-standby-readiness.json",
+      " M docs/benchmarks/runs/20260604T-ml-lab-standby-readiness.md",
+      " M docs/benchmarks/runs/20260604T-ml-local-training-readiness.json",
+      " M docs/benchmarks/runs/20260604T-ml-local-training-readiness.md",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-work-packages.handoff/ml-ml-data-governed-acquisition.md",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-work-packages.json",
+      " M docs/benchmarks/runs/20260604T-ml-parallel-work-packages.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-queue-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-queue-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-queue.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-queue.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-validation-status-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-validation-status-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-validation-status.json",
+      " M docs/benchmarks/runs/20260604T-ml-unblock-validation-status.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-acceptance-checklist.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-acceptance-checklist.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-acquisition-receipt.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-acquisition-receipt.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-closure-gate.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-closure-gate.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-execution-packet-consistency.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-execution-packet-consistency.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-execution-packet.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-execution-packet.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-lab-run-intake.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-lab-run-intake.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-manifest-publish-receipt.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-manifest-publish-receipt.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-operator-handoff-index.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-operator-handoff-index.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-post-acquisition-go-no-go-summary.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-post-acquisition-go-no-go-summary.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-real-acquisition-transcript.template.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave1-real-acquisition-transcript.template.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml1-readiness-probe.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml1-readiness-probe.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml2-ml3-readiness-probe.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml2-ml3-readiness-probe.md",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml4-readiness-probe.json",
+      " M docs/benchmarks/runs/20260604T-ml-wave2-ml4-readiness-probe.md",
+      " M docs/benchmarks/runs/20260620T2005Z-ml-benchmark-critical-path-contract-packets.json",
+      " M docs/benchmarks/runs/20260620T2005Z-ml-benchmark-critical-path-contract-packets.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/01-01-wave1-manifest-publication-manifest-publish-receipt-incomplete.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/02-01-wave1-manifest-publication-missing-canonical-dataset-manifest.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/03-02-ml1-candidate-quality-wave2-ml1-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/04-02-ml1-candidate-quality-missing-ml1-benchmark-report.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/05-02-ml1-candidate-quality-missing-ml1-model-contract.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/06-02-ml1-candidate-quality-missing-ml1-model-card.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/07-03-onnx-agent-parity-missing-candidate-onnx-model.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/08-03-onnx-agent-parity-missing-candidate-onnx-metadata.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/09-03-onnx-agent-parity-wave2-ml2-ml3-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/10-03-onnx-agent-parity-missing-ml3-agent-parity-report.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/11-03-onnx-agent-parity-ml2-pytorch-onnx-parity.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/12-03-onnx-agent-parity-ml3-agent-onnx-parity.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/13-04-service-benchmark-missing-env-tamandua-ml-api-key.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/14-04-service-benchmark-wave2-ml4-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/15-04-service-benchmark-missing-ml4-service-report.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/16-04-service-benchmark-ml4-service-benchmark.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/17-05-platform-replay-missing-ml5-replay-outcomes.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/18-05-platform-replay-ml5-pipeline-report.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/19-05-platform-replay-ml5-tamandua-replay.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/20-06-cross-time-holdout-missing-env-tamandua-ml-training-cutoff.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/21-06-cross-time-holdout-missing-ml6-holdout-prediction-outcomes.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-contract-packets.handoff/22-06-cross-time-holdout-ml6-cross-time-holdout.md",
+      " M docs/benchmarks/runs/20260620T2015Z-ml-benchmark-critical-path-handoff-bundle-contract-packets.json",
+      " M docs/benchmarks/runs/20260620T2025Z-ml-benchmark-critical-path-handoff-consistency-contract-packets.json",
+      " M docs/benchmarks/runs/20260620T2025Z-ml-benchmark-critical-path-handoff-consistency-contract-packets.md",
+      " M docs/benchmarks/runs/20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.json",
+      " M docs/benchmarks/runs/20260620T2125Z-ml-wave3-ml5-readiness-ml2-ml3-packets.md",
+      " M docs/benchmarks/runs/20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.json",
+      " M docs/benchmarks/runs/20260620T2135Z-ml-wave3-ml6-readiness-ml5-packets.md",
+      " M docs/benchmarks/runs/20260620T2155Z-ml-platform-readiness-ml6-packets.json",
+      " M docs/benchmarks/runs/20260620T2155Z-ml-platform-readiness-ml6-packets.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-actionability-audit-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-actionability-audit-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading-handoff-bundle.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading-handoff-consistency.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading-handoff-consistency.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/01-01-wave1-manifest-publication-manifest-publish-receipt-incomplete.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/02-01-wave1-manifest-publication-missing-canonical-dataset-manifest.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/03-02-ml1-candidate-quality-wave2-ml1-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/04-02-ml1-candidate-quality-missing-ml1-benchmark-report.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/05-02-ml1-candidate-quality-missing-ml1-model-contract.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/06-02-ml1-candidate-quality-missing-ml1-model-card.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/07-03-onnx-agent-parity-missing-candidate-onnx-model.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/08-03-onnx-agent-parity-missing-candidate-onnx-metadata.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/09-03-onnx-agent-parity-wave2-ml2-ml3-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/10-03-onnx-agent-parity-missing-ml3-agent-parity-report.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/11-03-onnx-agent-parity-ml2-pytorch-onnx-parity.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/12-03-onnx-agent-parity-ml3-agent-onnx-parity.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/13-04-service-benchmark-missing-env-tamandua-ml-api-key.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/14-04-service-benchmark-wave2-ml4-readiness-blocked.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/15-04-service-benchmark-missing-ml4-service-report.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/16-04-service-benchmark-ml4-service-benchmark.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/17-05-platform-replay-missing-ml5-replay-outcomes.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/18-05-platform-replay-ml5-pipeline-report.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/19-05-platform-replay-ml5-tamandua-replay.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/20-06-cross-time-holdout-missing-env-tamandua-ml-training-cutoff.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/21-06-cross-time-holdout-missing-ml6-holdout-prediction-outcomes.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/22-06-cross-time-holdout-ml6-cross-time-holdout.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.handoff/README.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-critical-path-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-lane-rollup-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-lane-rollup-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-queue-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-validation-status-consistency-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-validation-status-consistency-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-validation-status-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-benchmark-unblock-validation-status-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-mirror-publish.json",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-mirror-publish.md",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-readiness-refresh.json",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-readiness-refresh.md",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-execution-master-handoff-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-goal-snapshot-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-gate-authorization-post-lab-root-governed.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-gate-authorization-post-lab-root-governed.md",
+      " M docs/benchmarks/runs/20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-gate-authorization-post-win-template-gate-threading-governed.md",
+      " M docs/benchmarks/runs/20260621T-ml-next-operator-post-lab-root-packet.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-operator-post-lab-root-packet.md",
+      " M docs/benchmarks/runs/20260621T-ml-next-operator-post-win-template-gate-threading-packet.json",
+      " M docs/benchmarks/runs/20260621T-ml-next-operator-post-win-template-gate-threading-packet.md",
+      " M docs/benchmarks/runs/20260621T-ml-parallel-work-packages-post-readiness-refresh.json",
+      " M docs/benchmarks/runs/20260621T-ml-parallel-work-packages-post-readiness-refresh.md",
+      " M docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-execution-environment-preflight-post-lab-root-guarded.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-execution-environment-preflight-post-lab-root-guarded.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-execution-environment-preflight-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-execution-environment-preflight-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-operator-go-no-go-summary-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-operator-go-no-go-summary-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-pre-execution-checklist-post-lab-root.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave1-pre-execution-checklist-post-lab-root.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml1-readiness-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading-go-no-go.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading-go-no-go.md",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading.json",
+      " M docs/benchmarks/runs/20260621T-ml-wave2-ml2-ml3-readiness-post-win-template-gate-threading.md",
+      " M docs/benchmarks/runs/index.json",
+      " M schemas/ml3_agent_production_gap_audit_v1.schema.json",
+      " M schemas/ml_benchmark_unblock_handoff_bundle_v1.schema.json",
+      " M schemas/ml_benchmark_unblock_handoff_consistency_v1.schema.json",
+      " M schemas/ml_benchmark_unblock_validation_status_consistency_v1.schema.json",
+      " M schemas/ml_benchmark_unblock_validation_status_v1.schema.json",
+      " M schemas/ml_goal_snapshot_v1.schema.json",
+      " M schemas/ml_next_action_run_v1.schema.json",
+      " M schemas/ml_next_gate_authorization_packet_v1.schema.json",
+      " M schemas/ml_next_operator_packet_v1.schema.json",
+      " M schemas/ml_wave1_guarded_run_command_packet_v1.schema.json",
+      " M schemas/ml_wave1_post_acquisition_go_no_go_summary_v1.schema.json",
+      " M tools/detection_validation/CONTRIBUTING.md",
+      "A  tools/detection_validation/PROBE_CATALOG.md",
+      " M tools/detection_validation/README.md",
+      " M tools/detection_validation/test_ml_training_pipeline_roadmap.py",
+      " M tools/detection_validation/test_validate_ml3_agent_production_gap_audit.py",
+      " M tools/detection_validation/test_validate_ml_execution_master_handoff.py",
+      " M tools/detection_validation/test_validate_ml_next_operator_packet.py",
+      " M tools/detection_validation/test_validate_ml_virusshare_fallback_contracts.py",
+      " M tools/detection_validation/test_validate_ml_wave1_guarded_run_command_packet.py",
+      " M tools/detection_validation/test_validate_ml_wave1_operator_go_no_go_summary.py",
+      " M tools/detection_validation/validate_ml_contracts.py",
+      " M tools/mirror_deploy/mirror_manifest.json",
+      "?? schemas/ml_agent_rush_benchmark_execution_packet_v1.schema.json",
+      "?? tmp/",
+      "?? tools/detection_validation/REPOSITORY_STRUCTURE.md",
+      "?? tools/detection_validation/test_validate_ml_agent_rush_benchmark_execution_packet.py"
+    ]
+  },
+  "mode": "execute",
+  "name": "Windows Proxmox QGA Readiness Probe",
+  "profile": "windows-proxmox-qga-readiness-probe",
+  "profile_id": "windows-proxmox-qga-readiness-probe",
+  "proxmox_qga_readiness": {
+    "host": "192.168.12.149",
+    "next_action": {
+      "action": "QGA readiness is green; keep the file diagnostics probe current before using QGA as a broad Windows execution transport.",
+      "blockers": [],
+      "host": "192.168.12.149",
+      "missing_readiness": [],
+      "node": "Default",
+      "required_env": [],
+      "rerun_commands": [
+        "python tools/detection_validation/windows_proxmox_qga_readiness_probe.py --output-dir <out>",
+        "python tools/detection_validation/windows_proxmox_qga_file_diagnostics_probe.py --output-dir <out>"
+      ],
+      "vmid": 1521
+    },
+    "node": "Default",
+    "permissions": {
+      "attempt": 1,
+      "attempt_count": 1,
+      "attempts": [
+        {
+          "attempt": 1,
+          "body": {
+            "data": {
+              "/": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              },
+              "/access": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              },
+              "/access/groups": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              },
+              "/nodes": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              },
+              "/pool": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              },
+              "/sdn": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              },
+              "/storage": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              },
+              "/storage/local": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              },
+              "/storage/local-lvm": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              },
+              "/vms": {
+                "Datastore.Allocate": 1,
+                "Datastore.AllocateSpace": 1,
+                "Datastore.AllocateTemplate": 1,
+                "Datastore.Audit": 1,
+                "Group.Allocate": 1,
+                "Mapping.Audit": 1,
+                "Mapping.Modify": 1,
+                "Mapping.Use": 1,
+                "Permissions.Modify": 1,
+                "Pool.Allocate": 1,
+                "Pool.Audit": 1,
+                "Realm.Allocate": 1,
+                "Realm.AllocateUser": 1,
+                "SDN.Allocate": 1,
+                "SDN.Audit": 1,
+                "SDN.Use": 1,
+                "Sys.AccessNetwork": 1,
+                "Sys.Audit": 1,
+                "Sys.Console": 1,
+                "Sys.Incoming": 1,
+                "Sys.Modify": 1,
+                "Sys.PowerMgmt": 1,
+                "Sys.Syslog": 1,
+                "User.Modify": 1,
+                "VM.Allocate": 1,
+                "VM.Audit": 1,
+                "VM.Backup": 1,
+                "VM.Clone": 1,
+                "VM.Config.CDROM": 1,
+                "VM.Config.CPU": 1,
+                "VM.Config.Cloudinit": 1,
+                "VM.Config.Disk": 1,
+                "VM.Config.HWType": 1,
+                "VM.Config.Memory": 1,
+                "VM.Config.Network": 1,
+                "VM.Config.Options": 1,
+                "VM.Console": 1,
+                "VM.Migrate": 1,
+                "VM.Monitor": 1,
+                "VM.PowerMgmt": 1,
+                "VM.Snapshot": 1,
+                "VM.Snapshot.Rollback": 1
+              }
+            }
+          },
+          "duration_ms": 547,
+          "method": "GET",
+          "ok": true,
+          "path": "/access/permissions",
+          "status": 200
+        }
+      ],
+      "body": {
+        "data": {
+          "/": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          },
+          "/access": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          },
+          "/access/groups": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          },
+          "/nodes": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          },
+          "/pool": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          },
+          "/sdn": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          },
+          "/storage": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          },
+          "/storage/local": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          },
+          "/storage/local-lvm": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          },
+          "/vms": {
+            "Datastore.Allocate": 1,
+            "Datastore.AllocateSpace": 1,
+            "Datastore.AllocateTemplate": 1,
+            "Datastore.Audit": 1,
+            "Group.Allocate": 1,
+            "Mapping.Audit": 1,
+            "Mapping.Modify": 1,
+            "Mapping.Use": 1,
+            "Permissions.Modify": 1,
+            "Pool.Allocate": 1,
+            "Pool.Audit": 1,
+            "Realm.Allocate": 1,
+            "Realm.AllocateUser": 1,
+            "SDN.Allocate": 1,
+            "SDN.Audit": 1,
+            "SDN.Use": 1,
+            "Sys.AccessNetwork": 1,
+            "Sys.Audit": 1,
+            "Sys.Console": 1,
+            "Sys.Incoming": 1,
+            "Sys.Modify": 1,
+            "Sys.PowerMgmt": 1,
+            "Sys.Syslog": 1,
+            "User.Modify": 1,
+            "VM.Allocate": 1,
+            "VM.Audit": 1,
+            "VM.Backup": 1,
+            "VM.Clone": 1,
+            "VM.Config.CDROM": 1,
+            "VM.Config.CPU": 1,
+            "VM.Config.Cloudinit": 1,
+            "VM.Config.Disk": 1,
+            "VM.Config.HWType": 1,
+            "VM.Config.Memory": 1,
+            "VM.Config.Network": 1,
+            "VM.Config.Options": 1,
+            "VM.Console": 1,
+            "VM.Migrate": 1,
+            "VM.Monitor": 1,
+            "VM.PowerMgmt": 1,
+            "VM.Snapshot": 1,
+            "VM.Snapshot.Rollback": 1
+          }
+        }
+      },
+      "duration_ms": 547,
+      "method": "GET",
+      "ok": true,
+      "path": "/access/permissions",
+      "retried": false,
+      "status": 200
+    },
+    "qga_exec": {
+      "exitcode": 0,
+      "poll": {
+        "body": {
+          "data": {
+            "exitcode": 0,
+            "exited": 1,
+            "out-data": "Microsoft Windows [vers\u00c6o 10.0.26200.8655]\r\n(c) Microsoft Corporation. Todos os direitos reservados.\r\n\r\nD:\\Windows\\System32>echo tamandua-qga-ready\r\ntamandua-qga-ready\r\n\r\nD:\\Windows\\System32>exit /b 0\r\n"
+          }
+        },
+        "duration_ms": 1031,
+        "method": "GET",
+        "ok": true,
+        "path": "/nodes/Default/qemu/1521/agent/exec-status",
+        "status": 200
+      },
+      "ready": true,
+      "start": {
+        "attempt": 1,
+        "attempt_count": 1,
+        "attempts": [
+          {
+            "attempt": 1,
+            "body": {
+              "data": {
+                "pid": 2092
+              }
+            },
+            "duration_ms": 4561,
+            "method": "POST",
+            "ok": true,
+            "path": "/nodes/Default/qemu/1521/agent/exec",
+            "status": 200
+          }
+        ],
+        "body": {
+          "data": {
+            "pid": 2092
+          }
+        },
+        "duration_ms": 4561,
+        "method": "POST",
+        "ok": true,
+        "path": "/nodes/Default/qemu/1521/agent/exec",
+        "retried": false,
+        "status": 200
+      },
+      "start_variants": [
+        {
+          "start": {
+            "attempt": 1,
+            "attempt_count": 1,
+            "attempts": [
+              {
+                "attempt": 1,
+                "body": {
+                  "data": {
+                    "pid": 2092
+                  }
+                },
+                "duration_ms": 4561,
+                "method": "POST",
+                "ok": true,
+                "path": "/nodes/Default/qemu/1521/agent/exec",
+                "status": 200
+              }
+            ],
+            "body": {
+              "data": {
+                "pid": 2092
+              }
+            },
+            "duration_ms": 4561,
+            "method": "POST",
+            "ok": true,
+            "path": "/nodes/Default/qemu/1521/agent/exec",
+            "retried": false,
+            "status": 200
+          },
+          "variant": "stdin_raw_cmd"
+        }
+      ],
+      "stderr": "",
+      "stdout": "Microsoft Windows [vers\u00c6o 10.0.26200.8655]\r\n(c) Microsoft Corporation. Todos os direitos reservados.\r\n\r\nD:\\Windows\\System32>echo tamandua-qga-ready\r\ntamandua-qga-ready\r\n\r\nD:\\Windows\\System32>exit /b 0\r\n",
+      "stdout_required": true,
+      "successful_start_variant": "stdin_raw_cmd",
+      "transport": "proxmox_api_qga"
+    },
+    "qga_hostname": {
+      "attempt": 1,
+      "attempt_count": 1,
+      "attempts": [
+        {
+          "attempt": 1,
+          "body": {
+            "data": {
+              "result": {
+                "host-name": "WIN-TEMPLATE"
+              }
+            }
+          },
+          "duration_ms": 1108,
+          "method": "GET",
+          "ok": true,
+          "path": "/nodes/Default/qemu/1521/agent/get-host-name",
+          "status": 200
+        }
+      ],
+      "body": {
+        "data": {
+          "result": {
+            "host-name": "WIN-TEMPLATE"
+          }
+        }
+      },
+      "duration_ms": 1108,
+      "method": "GET",
+      "ok": true,
+      "path": "/nodes/Default/qemu/1521/agent/get-host-name",
+      "retried": false,
+      "status": 200
+    },
+    "qga_hostname_exec_fallback": {},
+    "qga_info": {
+      "attempt": 2,
+      "attempt_count": 2,
+      "attempts": [
+        {
+          "attempt": 1,
+          "body": {
+            "data": null
+          },
+          "duration_ms": 3234,
+          "method": "GET",
+          "ok": false,
+          "path": "/nodes/Default/qemu/1521/agent/info",
+          "status": 500
+        },
+        {
+          "attempt": 2,
+          "body": {
+            "data": {
+              "result": {
+                "supported_commands": [
+                  {
+                    "enabled": true,
+                    "name": "guest-get-load",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-ssh-remove-authorized-keys",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-ssh-add-authorized-keys",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-ssh-get-authorized-keys",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-devices",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-osinfo",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-timezone",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-users",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-host-name",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-exec",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-exec-status",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-set-user-password",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-fsinfo",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-disks",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-vcpus",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-network-get-interfaces",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-suspend-ram",
+                    "success-response": false
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-suspend-disk",
+                    "success-response": false
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fstrim",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fsfreeze-thaw",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fsfreeze-freeze-list",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fsfreeze-freeze",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fsfreeze-status",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-flush",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-seek",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-write",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-read",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-close",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-open",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-shutdown",
+                    "success-response": false
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-info",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-set-time",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-time",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-ping",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-sync",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-sync-delimited",
+                    "success-response": true
+                  }
+                ],
+                "version": "110.0.2"
+              }
+            }
+          },
+          "duration_ms": 1358,
+          "method": "GET",
+          "ok": true,
+          "path": "/nodes/Default/qemu/1521/agent/info",
+          "status": 200
+        }
+      ],
+      "body": {
+        "data": {
+          "result": {
+            "supported_commands": [
+              {
+                "enabled": true,
+                "name": "guest-get-load",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-ssh-remove-authorized-keys",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-ssh-add-authorized-keys",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-ssh-get-authorized-keys",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-get-devices",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-get-osinfo",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-get-timezone",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-get-users",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-get-host-name",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-exec",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-exec-status",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-set-user-password",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-get-fsinfo",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-get-disks",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-get-vcpus",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-network-get-interfaces",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-suspend-ram",
+                "success-response": false
+              },
+              {
+                "enabled": true,
+                "name": "guest-suspend-disk",
+                "success-response": false
+              },
+              {
+                "enabled": true,
+                "name": "guest-fstrim",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-fsfreeze-thaw",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-fsfreeze-freeze-list",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-fsfreeze-freeze",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-fsfreeze-status",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-file-flush",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-file-seek",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-file-write",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-file-read",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-file-close",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-file-open",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-shutdown",
+                "success-response": false
+              },
+              {
+                "enabled": true,
+                "name": "guest-info",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-set-time",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-get-time",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-ping",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-sync",
+                "success-response": true
+              },
+              {
+                "enabled": true,
+                "name": "guest-sync-delimited",
+                "success-response": true
+              }
+            ],
+            "version": "110.0.2"
+          }
+        }
+      },
+      "duration_ms": 1358,
+      "method": "GET",
+      "ok": true,
+      "path": "/nodes/Default/qemu/1521/agent/info",
+      "retried": true,
+      "status": 200
+    },
+    "qga_ping": {
+      "attempt": 2,
+      "attempt_count": 2,
+      "attempts": [
+        {
+          "attempt": 1,
+          "body": {
+            "data": null
+          },
+          "duration_ms": 3375,
+          "method": "POST",
+          "ok": false,
+          "path": "/nodes/Default/qemu/1521/agent/ping",
+          "status": 500
+        },
+        {
+          "attempt": 2,
+          "body": {
+            "data": {
+              "result": {}
+            }
+          },
+          "duration_ms": 797,
+          "method": "POST",
+          "ok": true,
+          "path": "/nodes/Default/qemu/1521/agent/ping",
+          "status": 200
+        }
+      ],
+      "body": {
+        "data": {
+          "result": {}
+        }
+      },
+      "duration_ms": 797,
+      "method": "POST",
+      "ok": true,
+      "path": "/nodes/Default/qemu/1521/agent/ping",
+      "retried": true,
+      "status": 200
+    },
+    "ready_for_bounded_execution": true,
+    "vm_status": {
+      "attempt": 1,
+      "attempt_count": 1,
+      "attempts": [
+        {
+          "attempt": 1,
+          "body": {
+            "data": {
+              "agent": 1,
+              "balloon": 8589934592,
+              "ballooninfo": {
+                "actual": 8589934592,
+                "free_mem": 6768345088,
+                "last_update": 1782067464,
+                "major_page_faults": 245085,
+                "max_mem": 8589934592,
+                "mem_swapped_in": 7127875584,
+                "mem_swapped_out": 0,
+                "minor_page_faults": 973642136,
+                "total_mem": 8589324288
+              },
+              "blockstat": {
+                "sata0": {
+                  "account_failed": true,
+                  "account_invalid": true,
+                  "failed_flush_operations": 0,
+                  "failed_rd_operations": 0,
+                  "failed_unmap_operations": 0,
+                  "failed_wr_operations": 0,
+                  "failed_zone_append_operations": 0,
+                  "flush_operations": 903445,
+                  "flush_total_time_ns": 3751930632384,
+                  "idle_time_ns": 110270805,
+                  "invalid_flush_operations": 0,
+                  "invalid_rd_operations": 0,
+                  "invalid_unmap_operations": 0,
+                  "invalid_wr_operations": 0,
+                  "invalid_zone_append_operations": 0,
+                  "rd_bytes": 3852972032,
+                  "rd_merged": 0,
+                  "rd_operations": 151876,
+                  "rd_total_time_ns": 1523768240502,
+                  "timed_stats": [],
+                  "unmap_bytes": 39750414336,
+                  "unmap_merged": 0,
+                  "unmap_operations": 1335644,
+                  "unmap_total_time_ns": 1033083266186,
+                  "wr_bytes": 54686763008,
+                  "wr_highest_offset": 68143521792,
+                  "wr_merged": 0,
+                  "wr_operations": 6594990,
+                  "wr_total_time_ns": 23071564150685,
+                  "zone_append_bytes": 0,
+                  "zone_append_merged": 0,
+                  "zone_append_operations": 0,
+                  "zone_append_total_time_ns": 0
+                }
+              },
+              "clipboard": null,
+              "cpu": 0.847016565744259,
+              "cpus": 4,
+              "disk": 0,
+              "diskread": 3852972032,
+              "diskwrite": 54686763008,
+              "freemem": 6768345088,
+              "ha": {
+                "managed": 0
+              },
+              "maxdisk": 68719476736,
+              "maxmem": 8589934592,
+              "mem": 1820979200,
+              "name": "lab-ws01",
+              "netin": 149191931,
+              "netout": 27095587,
+              "nics": {
+                "tap1521i0": {
+                  "netin": 149191931,
+                  "netout": 27095587
+                }
+              },
+              "pid": 992012,
+              "proxmox-support": {
+                "backup-max-workers": true,
+                "pbs-dirty-bitmap": true,
+                "pbs-dirty-bitmap-migration": true,
+                "pbs-dirty-bitmap-savevm": true,
+                "pbs-library-version": "1.4.1 (UNKNOWN)",
+                "pbs-masterkey": true,
+                "query-bitmap-info": true
+              },
+              "qmpstatus": "running",
+              "running-machine": "pc-i440fx-5.1+pve0",
+              "running-qemu": "8.1.5",
+              "status": "running",
+              "uptime": 242461,
+              "vmid": 1521
+            }
+          },
+          "duration_ms": 750,
+          "method": "GET",
+          "ok": true,
+          "path": "/nodes/Default/qemu/1521/status/current",
+          "status": 200
+        }
+      ],
+      "body": {
+        "data": {
+          "agent": 1,
+          "balloon": 8589934592,
+          "ballooninfo": {
+            "actual": 8589934592,
+            "free_mem": 6768345088,
+            "last_update": 1782067464,
+            "major_page_faults": 245085,
+            "max_mem": 8589934592,
+            "mem_swapped_in": 7127875584,
+            "mem_swapped_out": 0,
+            "minor_page_faults": 973642136,
+            "total_mem": 8589324288
+          },
+          "blockstat": {
+            "sata0": {
+              "account_failed": true,
+              "account_invalid": true,
+              "failed_flush_operations": 0,
+              "failed_rd_operations": 0,
+              "failed_unmap_operations": 0,
+              "failed_wr_operations": 0,
+              "failed_zone_append_operations": 0,
+              "flush_operations": 903445,
+              "flush_total_time_ns": 3751930632384,
+              "idle_time_ns": 110270805,
+              "invalid_flush_operations": 0,
+              "invalid_rd_operations": 0,
+              "invalid_unmap_operations": 0,
+              "invalid_wr_operations": 0,
+              "invalid_zone_append_operations": 0,
+              "rd_bytes": 3852972032,
+              "rd_merged": 0,
+              "rd_operations": 151876,
+              "rd_total_time_ns": 1523768240502,
+              "timed_stats": [],
+              "unmap_bytes": 39750414336,
+              "unmap_merged": 0,
+              "unmap_operations": 1335644,
+              "unmap_total_time_ns": 1033083266186,
+              "wr_bytes": 54686763008,
+              "wr_highest_offset": 68143521792,
+              "wr_merged": 0,
+              "wr_operations": 6594990,
+              "wr_total_time_ns": 23071564150685,
+              "zone_append_bytes": 0,
+              "zone_append_merged": 0,
+              "zone_append_operations": 0,
+              "zone_append_total_time_ns": 0
+            }
+          },
+          "clipboard": null,
+          "cpu": 0.847016565744259,
+          "cpus": 4,
+          "disk": 0,
+          "diskread": 3852972032,
+          "diskwrite": 54686763008,
+          "freemem": 6768345088,
+          "ha": {
+            "managed": 0
+          },
+          "maxdisk": 68719476736,
+          "maxmem": 8589934592,
+          "mem": 1820979200,
+          "name": "lab-ws01",
+          "netin": 149191931,
+          "netout": 27095587,
+          "nics": {
+            "tap1521i0": {
+              "netin": 149191931,
+              "netout": 27095587
+            }
+          },
+          "pid": 992012,
+          "proxmox-support": {
+            "backup-max-workers": true,
+            "pbs-dirty-bitmap": true,
+            "pbs-dirty-bitmap-migration": true,
+            "pbs-dirty-bitmap-savevm": true,
+            "pbs-library-version": "1.4.1 (UNKNOWN)",
+            "pbs-masterkey": true,
+            "query-bitmap-info": true
+          },
+          "qmpstatus": "running",
+          "running-machine": "pc-i440fx-5.1+pve0",
+          "running-qemu": "8.1.5",
+          "status": "running",
+          "uptime": 242461,
+          "vmid": 1521
+        }
+      },
+      "duration_ms": 750,
+      "method": "GET",
+      "ok": true,
+      "path": "/nodes/Default/qemu/1521/status/current",
+      "retried": false,
+      "status": 200
+    },
+    "vmid": 1521
+  },
+  "quality_gate": {
+    "actionable_gaps": [],
+    "failures": [],
+    "passed": true,
+    "status": "pass"
+  },
+  "run_id": "20260622T141950Z-windows-proxmox-qga-readiness-probe",
+  "schema_version": 1,
+  "scorecard": {
+    "analytic_quality": 1.0,
+    "blocking_gaps": [],
+    "context_quality": 1.0,
+    "covered_rate": 1.0,
+    "driver_quality": 1.0,
+    "external_claim_allowed": false,
+    "field_quality": 1.0,
+    "maturity_band": "windows-qga-ready",
+    "maturity_score": 100,
+    "noise_quality": 1.0,
+    "recommended_claim": "WIN-TEMPLATE QGA can execute bounded commands",
+    "telemetry_rate": 1.0,
+    "upstream_rate": 0.0
+  },
+  "started_at": "2026-06-22T14:19:27.118191Z",
+  "summary": {
+    "category_coverage": {
+      "windows_proxmox_qga_readiness": {
+        "covered": 7,
+        "missed": 0
+      }
+    },
+    "claim_level_counts": {
+      "windows_qga_readiness_claim_boundary": 7
+    },
+    "covered": 7,
+    "execution_failed": 0,
+    "executor_counts": {
+      "windows-proxmox-qga-readiness-probe": 7
+    },
+    "gap_category_counts": {},
+    "missed": 0,
+    "missing_expected_fields": 0,
+    "partial": 0,
+    "roadmap_coverage": {
+      "A": {
+        "covered": 7,
+        "missed": 0
+      }
+    },
+    "tests": 7,
+    "unexpected_high_or_critical_alerts": 0,
+    "unexpected_high_or_critical_events": 0,
+    "unknown_source_events": 0
+  },
+  "tests": [
+    {
+      "claim_level": "windows_qga_readiness_claim_boundary",
+      "evidence": {
+        "authenticated": true,
+        "duration_ms": 1500,
+        "status": 200,
+        "url": "https://192.168.12.149:8006/api2/json/access/ticket"
+      },
+      "execution_class": "proxmox_api_readiness_probe",
+      "executor_used": "windows-proxmox-qga-readiness-probe",
+      "fallback_used": false,
+      "gap_category": "none",
+      "id": "proxmox-api-authenticated",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "name": "Proxmox API accepts configured credentials",
+      "status": "covered",
+      "upstream_backed": false,
+      "validation_category": "windows_proxmox_qga_readiness"
+    },
+    {
+      "claim_level": "windows_qga_readiness_claim_boundary",
+      "evidence": {
+        "ok": true,
+        "paths_checked": [
+          "/vms",
+          "/",
+          "/vms/1521"
+        ],
+        "permission": "VM.Monitor",
+        "present": true,
+        "status": 200
+      },
+      "execution_class": "proxmox_api_readiness_probe",
+      "executor_used": "windows-proxmox-qga-readiness-probe",
+      "fallback_used": false,
+      "gap_category": "none",
+      "id": "proxmox-api-vm-monitor-permission",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "name": "Configured Proxmox user has VM.Monitor permission for agent commands",
+      "status": "covered",
+      "upstream_backed": false,
+      "validation_category": "windows_proxmox_qga_readiness"
+    },
+    {
+      "claim_level": "windows_qga_readiness_claim_boundary",
+      "evidence": {
+        "status_response": {
+          "attempt": 1,
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "body": {
+                "data": {
+                  "agent": 1,
+                  "balloon": 8589934592,
+                  "ballooninfo": {
+                    "actual": 8589934592,
+                    "free_mem": 6768345088,
+                    "last_update": 1782067464,
+                    "major_page_faults": 245085,
+                    "max_mem": 8589934592,
+                    "mem_swapped_in": 7127875584,
+                    "mem_swapped_out": 0,
+                    "minor_page_faults": 973642136,
+                    "total_mem": 8589324288
+                  },
+                  "blockstat": {
+                    "sata0": {
+                      "account_failed": true,
+                      "account_invalid": true,
+                      "failed_flush_operations": 0,
+                      "failed_rd_operations": 0,
+                      "failed_unmap_operations": 0,
+                      "failed_wr_operations": 0,
+                      "failed_zone_append_operations": 0,
+                      "flush_operations": 903445,
+                      "flush_total_time_ns": 3751930632384,
+                      "idle_time_ns": 110270805,
+                      "invalid_flush_operations": 0,
+                      "invalid_rd_operations": 0,
+                      "invalid_unmap_operations": 0,
+                      "invalid_wr_operations": 0,
+                      "invalid_zone_append_operations": 0,
+                      "rd_bytes": 3852972032,
+                      "rd_merged": 0,
+                      "rd_operations": 151876,
+                      "rd_total_time_ns": 1523768240502,
+                      "timed_stats": [],
+                      "unmap_bytes": 39750414336,
+                      "unmap_merged": 0,
+                      "unmap_operations": 1335644,
+                      "unmap_total_time_ns": 1033083266186,
+                      "wr_bytes": 54686763008,
+                      "wr_highest_offset": 68143521792,
+                      "wr_merged": 0,
+                      "wr_operations": 6594990,
+                      "wr_total_time_ns": 23071564150685,
+                      "zone_append_bytes": 0,
+                      "zone_append_merged": 0,
+                      "zone_append_operations": 0,
+                      "zone_append_total_time_ns": 0
+                    }
+                  },
+                  "clipboard": null,
+                  "cpu": 0.847016565744259,
+                  "cpus": 4,
+                  "disk": 0,
+                  "diskread": 3852972032,
+                  "diskwrite": 54686763008,
+                  "freemem": 6768345088,
+                  "ha": {
+                    "managed": 0
+                  },
+                  "maxdisk": 68719476736,
+                  "maxmem": 8589934592,
+                  "mem": 1820979200,
+                  "name": "lab-ws01",
+                  "netin": 149191931,
+                  "netout": 27095587,
+                  "nics": {
+                    "tap1521i0": {
+                      "netin": 149191931,
+                      "netout": 27095587
+                    }
+                  },
+                  "pid": 992012,
+                  "proxmox-support": {
+                    "backup-max-workers": true,
+                    "pbs-dirty-bitmap": true,
+                    "pbs-dirty-bitmap-migration": true,
+                    "pbs-dirty-bitmap-savevm": true,
+                    "pbs-library-version": "1.4.1 (UNKNOWN)",
+                    "pbs-masterkey": true,
+                    "query-bitmap-info": true
+                  },
+                  "qmpstatus": "running",
+                  "running-machine": "pc-i440fx-5.1+pve0",
+                  "running-qemu": "8.1.5",
+                  "status": "running",
+                  "uptime": 242461,
+                  "vmid": 1521
+                }
+              },
+              "duration_ms": 750,
+              "method": "GET",
+              "ok": true,
+              "path": "/nodes/Default/qemu/1521/status/current",
+              "status": 200
+            }
+          ],
+          "body": {
+            "data": {
+              "agent": 1,
+              "balloon": 8589934592,
+              "ballooninfo": {
+                "actual": 8589934592,
+                "free_mem": 6768345088,
+                "last_update": 1782067464,
+                "major_page_faults": 245085,
+                "max_mem": 8589934592,
+                "mem_swapped_in": 7127875584,
+                "mem_swapped_out": 0,
+                "minor_page_faults": 973642136,
+                "total_mem": 8589324288
+              },
+              "blockstat": {
+                "sata0": {
+                  "account_failed": true,
+                  "account_invalid": true,
+                  "failed_flush_operations": 0,
+                  "failed_rd_operations": 0,
+                  "failed_unmap_operations": 0,
+                  "failed_wr_operations": 0,
+                  "failed_zone_append_operations": 0,
+                  "flush_operations": 903445,
+                  "flush_total_time_ns": 3751930632384,
+                  "idle_time_ns": 110270805,
+                  "invalid_flush_operations": 0,
+                  "invalid_rd_operations": 0,
+                  "invalid_unmap_operations": 0,
+                  "invalid_wr_operations": 0,
+                  "invalid_zone_append_operations": 0,
+                  "rd_bytes": 3852972032,
+                  "rd_merged": 0,
+                  "rd_operations": 151876,
+                  "rd_total_time_ns": 1523768240502,
+                  "timed_stats": [],
+                  "unmap_bytes": 39750414336,
+                  "unmap_merged": 0,
+                  "unmap_operations": 1335644,
+                  "unmap_total_time_ns": 1033083266186,
+                  "wr_bytes": 54686763008,
+                  "wr_highest_offset": 68143521792,
+                  "wr_merged": 0,
+                  "wr_operations": 6594990,
+                  "wr_total_time_ns": 23071564150685,
+                  "zone_append_bytes": 0,
+                  "zone_append_merged": 0,
+                  "zone_append_operations": 0,
+                  "zone_append_total_time_ns": 0
+                }
+              },
+              "clipboard": null,
+              "cpu": 0.847016565744259,
+              "cpus": 4,
+              "disk": 0,
+              "diskread": 3852972032,
+              "diskwrite": 54686763008,
+              "freemem": 6768345088,
+              "ha": {
+                "managed": 0
+              },
+              "maxdisk": 68719476736,
+              "maxmem": 8589934592,
+              "mem": 1820979200,
+              "name": "lab-ws01",
+              "netin": 149191931,
+              "netout": 27095587,
+              "nics": {
+                "tap1521i0": {
+                  "netin": 149191931,
+                  "netout": 27095587
+                }
+              },
+              "pid": 992012,
+              "proxmox-support": {
+                "backup-max-workers": true,
+                "pbs-dirty-bitmap": true,
+                "pbs-dirty-bitmap-migration": true,
+                "pbs-dirty-bitmap-savevm": true,
+                "pbs-library-version": "1.4.1 (UNKNOWN)",
+                "pbs-masterkey": true,
+                "query-bitmap-info": true
+              },
+              "qmpstatus": "running",
+              "running-machine": "pc-i440fx-5.1+pve0",
+              "running-qemu": "8.1.5",
+              "status": "running",
+              "uptime": 242461,
+              "vmid": 1521
+            }
+          },
+          "duration_ms": 750,
+          "method": "GET",
+          "ok": true,
+          "path": "/nodes/Default/qemu/1521/status/current",
+          "retried": false,
+          "status": 200
+        },
+        "vmid": 1521
+      },
+      "execution_class": "proxmox_api_readiness_probe",
+      "executor_used": "windows-proxmox-qga-readiness-probe",
+      "fallback_used": false,
+      "gap_category": "none",
+      "id": "proxmox-vm-running",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "name": "WIN-TEMPLATE VM is running and has QGA enabled",
+      "status": "covered",
+      "upstream_backed": false,
+      "validation_category": "windows_proxmox_qga_readiness"
+    },
+    {
+      "claim_level": "windows_qga_readiness_claim_boundary",
+      "evidence": {
+        "attempt": 2,
+        "attempt_count": 2,
+        "attempts": [
+          {
+            "attempt": 1,
+            "body": {
+              "data": null
+            },
+            "duration_ms": 3375,
+            "method": "POST",
+            "ok": false,
+            "path": "/nodes/Default/qemu/1521/agent/ping",
+            "status": 500
+          },
+          {
+            "attempt": 2,
+            "body": {
+              "data": {
+                "result": {}
+              }
+            },
+            "duration_ms": 797,
+            "method": "POST",
+            "ok": true,
+            "path": "/nodes/Default/qemu/1521/agent/ping",
+            "status": 200
+          }
+        ],
+        "body": {
+          "data": {
+            "result": {}
+          }
+        },
+        "duration_ms": 797,
+        "method": "POST",
+        "ok": true,
+        "path": "/nodes/Default/qemu/1521/agent/ping",
+        "retried": true,
+        "status": 200
+      },
+      "execution_class": "proxmox_api_readiness_probe",
+      "executor_used": "windows-proxmox-qga-readiness-probe",
+      "fallback_used": false,
+      "gap_category": "none",
+      "id": "proxmox-qga-ping",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "name": "QEMU Guest Agent ping succeeds",
+      "status": "covered",
+      "upstream_backed": false,
+      "validation_category": "windows_proxmox_qga_readiness"
+    },
+    {
+      "claim_level": "windows_qga_readiness_claim_boundary",
+      "evidence": {
+        "hostname": "WIN-TEMPLATE",
+        "hostname_exec_fallback": {},
+        "hostname_response": {
+          "attempt": 1,
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "body": {
+                "data": {
+                  "result": {
+                    "host-name": "WIN-TEMPLATE"
+                  }
+                }
+              },
+              "duration_ms": 1108,
+              "method": "GET",
+              "ok": true,
+              "path": "/nodes/Default/qemu/1521/agent/get-host-name",
+              "status": 200
+            }
+          ],
+          "body": {
+            "data": {
+              "result": {
+                "host-name": "WIN-TEMPLATE"
+              }
+            }
+          },
+          "duration_ms": 1108,
+          "method": "GET",
+          "ok": true,
+          "path": "/nodes/Default/qemu/1521/agent/get-host-name",
+          "retried": false,
+          "status": 200
+        },
+        "hostname_source": "agent/get-host-name"
+      },
+      "execution_class": "proxmox_api_readiness_probe",
+      "executor_used": "windows-proxmox-qga-readiness-probe",
+      "fallback_used": false,
+      "gap_category": "none",
+      "id": "proxmox-qga-readonly-hostname",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "name": "QEMU Guest Agent can identify the guest hostname",
+      "status": "covered",
+      "upstream_backed": false,
+      "validation_category": "windows_proxmox_qga_readiness"
+    },
+    {
+      "claim_level": "windows_qga_readiness_claim_boundary",
+      "evidence": {
+        "empirical_source": "proxmox-qga-bounded-guest-exec",
+        "guest_exec_empirically_supported": true,
+        "guest_exec_supported": true,
+        "info_response": {
+          "attempt": 2,
+          "attempt_count": 2,
+          "attempts": [
+            {
+              "attempt": 1,
+              "body": {
+                "data": null
+              },
+              "duration_ms": 3234,
+              "method": "GET",
+              "ok": false,
+              "path": "/nodes/Default/qemu/1521/agent/info",
+              "status": 500
+            },
+            {
+              "attempt": 2,
+              "body": {
+                "data": {
+                  "result": {
+                    "supported_commands": [
+                      {
+                        "enabled": true,
+                        "name": "guest-get-load",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-ssh-remove-authorized-keys",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-ssh-add-authorized-keys",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-ssh-get-authorized-keys",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-get-devices",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-get-osinfo",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-get-timezone",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-get-users",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-get-host-name",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-exec",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-exec-status",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-set-user-password",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-get-fsinfo",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-get-disks",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-get-vcpus",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-network-get-interfaces",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-suspend-ram",
+                        "success-response": false
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-suspend-disk",
+                        "success-response": false
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-fstrim",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-fsfreeze-thaw",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-fsfreeze-freeze-list",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-fsfreeze-freeze",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-fsfreeze-status",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-file-flush",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-file-seek",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-file-write",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-file-read",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-file-close",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-file-open",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-shutdown",
+                        "success-response": false
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-info",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-set-time",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-get-time",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-ping",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-sync",
+                        "success-response": true
+                      },
+                      {
+                        "enabled": true,
+                        "name": "guest-sync-delimited",
+                        "success-response": true
+                      }
+                    ],
+                    "version": "110.0.2"
+                  }
+                }
+              },
+              "duration_ms": 1358,
+              "method": "GET",
+              "ok": true,
+              "path": "/nodes/Default/qemu/1521/agent/info",
+              "status": 200
+            }
+          ],
+          "body": {
+            "data": {
+              "result": {
+                "supported_commands": [
+                  {
+                    "enabled": true,
+                    "name": "guest-get-load",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-ssh-remove-authorized-keys",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-ssh-add-authorized-keys",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-ssh-get-authorized-keys",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-devices",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-osinfo",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-timezone",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-users",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-host-name",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-exec",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-exec-status",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-set-user-password",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-fsinfo",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-disks",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-vcpus",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-network-get-interfaces",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-suspend-ram",
+                    "success-response": false
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-suspend-disk",
+                    "success-response": false
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fstrim",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fsfreeze-thaw",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fsfreeze-freeze-list",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fsfreeze-freeze",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-fsfreeze-status",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-flush",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-seek",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-write",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-read",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-close",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-file-open",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-shutdown",
+                    "success-response": false
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-info",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-set-time",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-get-time",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-ping",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-sync",
+                    "success-response": true
+                  },
+                  {
+                    "enabled": true,
+                    "name": "guest-sync-delimited",
+                    "success-response": true
+                  }
+                ],
+                "version": "110.0.2"
+              }
+            }
+          },
+          "duration_ms": 1358,
+          "method": "GET",
+          "ok": true,
+          "path": "/nodes/Default/qemu/1521/agent/info",
+          "retried": true,
+          "status": 200
+        },
+        "supported_command_count": 36
+      },
+      "execution_class": "proxmox_api_readiness_probe",
+      "executor_used": "windows-proxmox-qga-readiness-probe",
+      "fallback_used": false,
+      "gap_category": "none",
+      "id": "proxmox-qga-guest-exec-supported",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "name": "QEMU Guest Agent reports or proves guest-exec support",
+      "status": "covered",
+      "upstream_backed": false,
+      "validation_category": "windows_proxmox_qga_readiness"
+    },
+    {
+      "claim_level": "windows_qga_readiness_claim_boundary",
+      "evidence": {
+        "exitcode": 0,
+        "poll": {
+          "body": {
+            "data": {
+              "exitcode": 0,
+              "exited": 1,
+              "out-data": "Microsoft Windows [vers\u00c6o 10.0.26200.8655]\r\n(c) Microsoft Corporation. Todos os direitos reservados.\r\n\r\nD:\\Windows\\System32>echo tamandua-qga-ready\r\ntamandua-qga-ready\r\n\r\nD:\\Windows\\System32>exit /b 0\r\n"
+            }
+          },
+          "duration_ms": 1031,
+          "method": "GET",
+          "ok": true,
+          "path": "/nodes/Default/qemu/1521/agent/exec-status",
+          "status": 200
+        },
+        "ready": true,
+        "start": {
+          "attempt": 1,
+          "attempt_count": 1,
+          "attempts": [
+            {
+              "attempt": 1,
+              "body": {
+                "data": {
+                  "pid": 2092
+                }
+              },
+              "duration_ms": 4561,
+              "method": "POST",
+              "ok": true,
+              "path": "/nodes/Default/qemu/1521/agent/exec",
+              "status": 200
+            }
+          ],
+          "body": {
+            "data": {
+              "pid": 2092
+            }
+          },
+          "duration_ms": 4561,
+          "method": "POST",
+          "ok": true,
+          "path": "/nodes/Default/qemu/1521/agent/exec",
+          "retried": false,
+          "status": 200
+        },
+        "start_variants": [
+          {
+            "start": {
+              "attempt": 1,
+              "attempt_count": 1,
+              "attempts": [
+                {
+                  "attempt": 1,
+                  "body": {
+                    "data": {
+                      "pid": 2092
+                    }
+                  },
+                  "duration_ms": 4561,
+                  "method": "POST",
+                  "ok": true,
+                  "path": "/nodes/Default/qemu/1521/agent/exec",
+                  "status": 200
+                }
+              ],
+              "body": {
+                "data": {
+                  "pid": 2092
+                }
+              },
+              "duration_ms": 4561,
+              "method": "POST",
+              "ok": true,
+              "path": "/nodes/Default/qemu/1521/agent/exec",
+              "retried": false,
+              "status": 200
+            },
+            "variant": "stdin_raw_cmd"
+          }
+        ],
+        "stderr": "",
+        "stdout": "Microsoft Windows [vers\u00c6o 10.0.26200.8655]\r\n(c) Microsoft Corporation. Todos os direitos reservados.\r\n\r\nD:\\Windows\\System32>echo tamandua-qga-ready\r\ntamandua-qga-ready\r\n\r\nD:\\Windows\\System32>exit /b 0\r\n",
+        "stdout_required": true,
+        "successful_start_variant": "stdin_raw_cmd",
+        "transport": "proxmox_api_qga"
+      },
+      "execution_class": "proxmox_api_readiness_probe",
+      "executor_used": "windows-proxmox-qga-readiness-probe",
+      "fallback_used": false,
+      "gap_category": "none",
+      "id": "proxmox-qga-bounded-guest-exec",
+      "missing_expected_alerts": [],
+      "missing_expected_correlations": [],
+      "missing_expected_detections": [],
+      "missing_expected_driver_raw_event_types": [],
+      "missing_expected_fields": [],
+      "missing_expected_telemetry": [],
+      "name": "QGA can execute a bounded benign command",
+      "status": "covered",
+      "upstream_backed": false,
+      "validation_category": "windows_proxmox_qga_readiness"
+    }
+  ]
+}

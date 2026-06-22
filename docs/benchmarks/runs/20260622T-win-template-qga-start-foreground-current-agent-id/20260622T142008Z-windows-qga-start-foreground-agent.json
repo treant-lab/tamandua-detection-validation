@@ -1,0 +1,66 @@
+{
+  "api_version": "tamandua.io/windows-qga-start-foreground-agent/v1",
+  "kind": "WindowsQgaStartForegroundAgent",
+  "metadata": {
+    "started_at": "2026-06-22T14:20:08.280067Z",
+    "finished_at": "2026-06-22T14:22:50.564510Z",
+    "claim_boundary": "Installs and starts the Windows agent service for lab validation. When no token is provided it creates a one-use installation token from tamandua-ctl credentials. Does not execute ML detection workloads by itself."
+  },
+  "target": {
+    "proxmox_host": "192.168.12.149",
+    "proxmox_node": "Default",
+    "vmid": "1521",
+    "agent_id": "717f4ffc-d373-4bb4-b021-36d7c51838f0",
+    "server_host": "192.168.12.146"
+  },
+  "runtime_effect": "qga_guest_exec_starts_foreground_agent_process",
+  "passed": false,
+  "foreground_agent": {
+    "running": true,
+    "pid": null,
+    "exe": "D:\\ProgramData\\Tamandua\\qga-foreground\\tamandua-agent.exe",
+    "stdout_tail": "\u001b[0m\u001b[2m:\u001b[0m Agent service registered \u001b[3mname\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgent\"\n       Configuring service recovery actions...\n\u001b[2m2026-06-22T11:08:39.866587Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::service_recovery\u001b[0m\u001b[2m:\u001b[0m Configuring service recovery actions \u001b[3mservice\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgent\" \u001b[3mfirst_delay_ms\u001b[0m\u001b[2m=\u001b[0m5000 \u001b[3msecond_delay_ms\u001b[0m\u001b[2m=\u001b[0m10000 \u001b[3msubsequent_delay_ms\u001b[0m\u001b[2m=\u001b[0m30000 \u001b[3mreset_period_s\u001b[0m\u001b[2m=\u001b[0m86400\n\u001b[2m2026-06-22T11:08:39.895103Z\u001b[0m \u001b[33m WARN\u001b[0m \u001b[2mtamandua_agent::installer\u001b[0m\u001b[2m:\u001b[0m Failed to configure service recovery (non-fatal) \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mFailed to set SERVICE_CONFIG_FAILURE_ACTIONS\n       WARNING: Recovery configuration failed: Failed to set SERVICE_CONFIG_FAILURE_ACTIONS\n       Installing backup scheduled task...\n\u001b[2m2026-06-22T11:08:39.908009Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::scheduled_task\u001b[0m\u001b[2m:\u001b[0m Installing scheduled task for agent health monitoring \u001b[3mtask\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgentHealthCheck\" \u001b[3mpath\u001b[0m\u001b[2m=\u001b[0mD:\\Program Files\\Tamandua\\tamandua-agent.exe\n\u001b[2m2026-06-22T11:08:41.419821Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::scheduled_task\u001b[0m\u001b[2m:\u001b[0m Scheduled task installed successfully \u001b[3mtask\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgentHealthCheck\"\n       Task: TamanduaAgentHealthCheck (every 5 min + boot trigger)\n       Installing WMI event subscription...\n\u001b[2m2026-06-22T11:08:41.477733Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::wmi_persistence\u001b[0m\u001b[2m:\u001b[0m Installing WMI persistence mechanism \u001b[3mpath\u001b[0m\u001b[2m=\u001b[0mD:\\Program Files\\Tamandua\\tamandua-agent.exe\n\u001b[2m2026-06-22T11:08:42.035947Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::wmi_persistence\u001b[0m\u001b[2m:\u001b[0m WMI event filter created \u001b[3mname\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgentRecovery_Filter\"\n\u001b[2m2026-06-22T11:08:44.202057Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::wmi_persistence\u001b[0m\u001b[2m:\u001b[0m WMI event consumer created \u001b[3mname\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgentRecovery_Consumer\"\nexit /b 0\r\n",
+    "stderr_tail": ""
+  },
+  "token_source": "tamandua_ctl_remote_config",
+  "installation_token_created": true,
+  "steps": [
+    {
+      "name": "prepare",
+      "ok": true,
+      "error": null,
+      "stdout_tail": "Microsoft Windows [vers\u00c6o 10.0.26200.8655]\r\n(c) Microsoft Corporation. Todos os direitos reservados.\r\n\r\nD:\\Windows\\System32>@echo off\r\nmkdir \"D:\\ProgramData\\Tamandua\\qga-foreground\" 2>nul\r\nsc stop TamanduaAgent >nul 2>nul\r\ntaskkill /IM tamandua-agent.exe /T /F >nul 2>nul\r\nping -n 6 127.0.0.1 >nul\r\nsc delete TamanduaAgent >nul 2>nul\r\nattrib -R \"D:\\ProgramData\\Tamandua\\qga-foreground\\tamandua-agent.exe\" >nul 2>nul\r\ndel \"D:\\ProgramData\\Tamandua\\qga-foreground\\tamandua-agent.exe\" >nul 2>nul\r\ndel \"D:\\ProgramData\\Tamandua\\qga-foreground\\agent.out.log\" \"D:\\ProgramData\\Tamandua\\qga-foreground\\agent.err.log\" 2>nul\r\nexit /b 0\r\n",
+      "stderr_tail": ""
+    },
+    {
+      "name": "download",
+      "ok": true,
+      "error": null,
+      "stdout_tail": "Microsoft Windows [vers\u00c6o 10.0.26200.8655]\r\n(c) Microsoft Corporation. Todos os direitos reservados.\r\n\r\nD:\\Windows\\System32>@echo off\r\ncurl.exe -f -L --max-time 90 -o \"D:\\ProgramData\\Tamandua\\qga-foreground\\tamandua-agent.exe\" \"http://192.168.12.146:4000/downloads/agents/tamandua-agent-windows-x64.exe\"\r\nif errorlevel 1 exit /b 23\r\nif not exist \"D:\\ProgramData\\Tamandua\\qga-foreground\\tamandua-agent.exe\" exit /b 2\r\nexit /b 0\r\n",
+      "stderr_tail": "  % Total    % Received % Xferd  Average Speed  Time    Time    Time   Current\r\n                                 Dload  Upload  Total   Spent   Left   Speed\r\n\r  0      0   0      0   0      0      0      0                              0\r 19 34.50M  19  6.89M   0      0  6.83M      0   00:05   00:01   00:04  6.85M\r 44 34.50M  44 15.48M   0      0  7.52M      0   00:04   00:02   00:02  7.53M\r 78 34.50M  78 27.24M   0      0  8.67M      0   00:03   00:03          8.68M\r100 34.50M 100 34.50M   0      0  8.42M      0   00:04   00:04          8.68M\r100 34.50M 100 34.50M   0      0  8.40M      0   00:04   00:04          8.68M\r100 34.50M 100 34.50M   0      0  8.38M      0   00:04   00:04          8.68M\r\n"
+    },
+    {
+      "name": "install",
+      "ok": false,
+      "error": "guest_exec_status_timeout",
+      "stdout_tail": "",
+      "stderr_tail": ""
+    },
+    {
+      "name": "start",
+      "ok": true,
+      "error": null,
+      "stdout_tail": "Microsoft Windows [vers\u00c6o 10.0.26200.8655]\r\n(c) Microsoft Corporation. Todos os direitos reservados.\r\n\r\nD:\\Windows\\System32>@echo off\r\n\"D:\\ProgramData\\Tamandua\\qga-foreground\\tamandua-agent.exe\" start >\"D:\\ProgramData\\Tamandua\\qga-foreground\\agent.out.log\" 2>\"D:\\ProgramData\\Tamandua\\qga-foreground\\agent.err.log\"\r\nping -n 12 127.0.0.1 >nul\r\nexit /b 0\r\n",
+      "stderr_tail": "O arquivo j\u00a0 est\u00a0 sendo usado por outro processo.\r\n"
+    },
+    {
+      "name": "inspect",
+      "ok": true,
+      "error": null,
+      "stdout_tail": "\u001b[0m\u001b[2m:\u001b[0m Agent service registered \u001b[3mname\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgent\"\n       Configuring service recovery actions...\n\u001b[2m2026-06-22T11:08:39.866587Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::service_recovery\u001b[0m\u001b[2m:\u001b[0m Configuring service recovery actions \u001b[3mservice\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgent\" \u001b[3mfirst_delay_ms\u001b[0m\u001b[2m=\u001b[0m5000 \u001b[3msecond_delay_ms\u001b[0m\u001b[2m=\u001b[0m10000 \u001b[3msubsequent_delay_ms\u001b[0m\u001b[2m=\u001b[0m30000 \u001b[3mreset_period_s\u001b[0m\u001b[2m=\u001b[0m86400\n\u001b[2m2026-06-22T11:08:39.895103Z\u001b[0m \u001b[33m WARN\u001b[0m \u001b[2mtamandua_agent::installer\u001b[0m\u001b[2m:\u001b[0m Failed to configure service recovery (non-fatal) \u001b[3merror\u001b[0m\u001b[2m=\u001b[0mFailed to set SERVICE_CONFIG_FAILURE_ACTIONS\n       WARNING: Recovery configuration failed: Failed to set SERVICE_CONFIG_FAILURE_ACTIONS\n       Installing backup scheduled task...\n\u001b[2m2026-06-22T11:08:39.908009Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::scheduled_task\u001b[0m\u001b[2m:\u001b[0m Installing scheduled task for agent health monitoring \u001b[3mtask\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgentHealthCheck\" \u001b[3mpath\u001b[0m\u001b[2m=\u001b[0mD:\\Program Files\\Tamandua\\tamandua-agent.exe\n\u001b[2m2026-06-22T11:08:41.419821Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::scheduled_task\u001b[0m\u001b[2m:\u001b[0m Scheduled task installed successfully \u001b[3mtask\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgentHealthCheck\"\n       Task: TamanduaAgentHealthCheck (every 5 min + boot trigger)\n       Installing WMI event subscription...\n\u001b[2m2026-06-22T11:08:41.477733Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::wmi_persistence\u001b[0m\u001b[2m:\u001b[0m Installing WMI persistence mechanism \u001b[3mpath\u001b[0m\u001b[2m=\u001b[0mD:\\Program Files\\Tamandua\\tamandua-agent.exe\n\u001b[2m2026-06-22T11:08:42.035947Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::wmi_persistence\u001b[0m\u001b[2m:\u001b[0m WMI event filter created \u001b[3mname\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgentRecovery_Filter\"\n\u001b[2m2026-06-22T11:08:44.202057Z\u001b[0m \u001b[32m INFO\u001b[0m \u001b[2mtamandua_agent::installer::wmi_persistence\u001b[0m\u001b[2m:\u001b[0m WMI event consumer created \u001b[3mname\u001b[0m\u001b[2m=\u001b[0m\"TamanduaAgentRecovery_Consumer\"\nexit /b 0\r\n",
+      "stderr_tail": ""
+    }
+  ],
+  "raw_guest_exec_ok": false,
+  "raw_guest_exec_error": "guest_exec_status_timeout"
+}
