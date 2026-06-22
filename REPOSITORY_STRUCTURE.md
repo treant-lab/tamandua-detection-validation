@@ -4,6 +4,10 @@ This repository is a standalone validation toolkit. The root intentionally keeps
 probe scripts flat so each probe can be executed directly with `python
 <probe>.py --help` after the mirror is synced.
 
+ML validation boundary: current ML artifacts are validation-ready only,
+not production-trained, and production validation remains pending through the
+ML-1..ML-6 gates.
+
 ## Top-Level Layout
 
 | Path | Purpose |

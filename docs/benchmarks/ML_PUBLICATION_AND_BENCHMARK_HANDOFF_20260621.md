@@ -4,6 +4,9 @@ Status: active handoff
 Claim boundary: coordination and publication decision only. This document does
 not claim that acquisition, training, inference, live service execution, or
 Tamandua end-to-end benchmark execution has happened.
+ML validation boundary: current ML artifacts are validation-ready only,
+not production-trained, and production validation remains pending through the
+ML-1..ML-6 gates.
 
 ## Current Decision
 

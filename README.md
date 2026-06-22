@@ -23,6 +23,10 @@ Probes are designed to be honest: they report what was actually observed, and
 benchmark caveats (e.g. label-leakage holdouts, untrained sequence heads) are
 preserved verbatim rather than smoothed over.
 
+ML validation boundary: current ML artifacts are validation-ready only,
+not production-trained, and production validation remains pending through the
+ML-1..ML-6 gates.
+
 See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the standalone
 mirror layout, artifact policy, and ML contract validation commands.
 
