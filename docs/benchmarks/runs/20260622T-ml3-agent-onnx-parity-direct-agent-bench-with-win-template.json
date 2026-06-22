@@ -1,0 +1,138 @@
+{
+  "api_version": "tamandua.io/ml-benchmark-report/v1",
+  "kind": "MLBenchmarkReport",
+  "metadata": {
+    "report_id": "20260622t_ml3_agent_onnx_parity_direct_agent_bench_with_win_template",
+    "created_at": "2026-06-22T14:05:26.255864+00:00",
+    "created_by": "tamandua-ml3-agent-parity-report",
+    "git_commit": "workspace",
+    "command": ""
+  },
+  "lane": "ML-3",
+  "subject": {
+    "type": "agent_local_ml",
+    "name": "tamandua-agent-onnx-parity",
+    "version": "ml-smoke-fixture-v1",
+    "artifact_hashes": {
+      "agent_parity_fixture": "0CCA2069C1B4E8F9FD1CC6593468F67C9288D92DA3B1254796BBB3EFC9D1F4F1",
+      "onnx_model": "FBD177AB922A270383D04C387D2C3172C841BA3943D31E108DACAF2345A46417",
+      "onnx_metadata": "C1241379857913107F112720B6B3EA39398F85C16E0A10407FEA0C5527CD081D"
+    },
+    "input_contract": {
+      "name": "malware-smell-onnx-agent-v1",
+      "input_name": "input",
+      "shape": [
+        "batch_size",
+        3,
+        64,
+        64
+      ],
+      "preprocessing": "binary_to_image_64_rgb_v1",
+      "threshold": 0.7
+    }
+  },
+  "dataset": {
+    "dataset_id": "ml-smoke-fixture-v1-ml3-agent-parity-fixture",
+    "manifest_ref": "docs/benchmarks/runs/20260604T174850Z-ml-agent-parity-fixture.json",
+    "sample_counts": {
+      "total": 6,
+      "malware": 0,
+      "goodware": 0,
+      "unknown": 6
+    }
+  },
+  "environment": {
+    "os": "Windows-10-10.0.22631-SP0",
+    "python_version": "3.10.6",
+    "rust_version": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "cargo_version": "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "onnxruntime_version": "1.21.0",
+    "onnxruntime_version_source": "fixture",
+    "runner_onnxruntime_python_version": "1.23.2",
+    "runner_ort_dylib_path": "C:\\Python310\\lib\\site-packages\\onnxruntime\\capi\\onnxruntime.dll",
+    "agent_features": [
+      "onnx",
+      "ml-local"
+    ]
+  },
+  "metrics": {
+    "accuracy": null,
+    "precision": null,
+    "recall": null,
+    "f1": null,
+    "false_positive_rate": null,
+    "false_negative_rate": null,
+    "roc_auc": null,
+    "verdict_agreement": 1.0,
+    "confidence_delta_p95": 2.7954578e-05,
+    "latency_ms_p50": null,
+    "latency_ms_p95": null,
+    "latency_ms_p99": null,
+    "throughput_per_second": null,
+    "memory_mb_peak": null,
+    "ml_contribution": {
+      "ml_only": 0,
+      "ml_assisted": 0,
+      "deterministic_only": 0,
+      "missed": 0
+    }
+  },
+  "quality_gate": {
+    "status": "pass",
+    "checks": [
+      {
+        "name": "production_candidate_fixture_identity",
+        "status": "pass",
+        "details": "{\"fixture_id\": \"20260604t174850z_ml_agent_parity_fixture\", \"fixture_path\": \"docs/benchmarks/runs/20260604T174850Z-ml-agent-parity-fixture.json\", \"identity_matches_model_version\": false, \"model_contract_ref\": \"docs/apps/tamandua_ml/examples/ml_model_contract_malware_smell_onnx_v1.json\", \"model_version\": \"ml-smoke-fixture-v1\", \"onnx_model_path\": \"docs\\\\benchmarks\\\\runs\\\\20260604T173304Z-ml-pipeline-smoke-artifacts\\\\malware_smell.onnx\", \"requirement\": \"Production candidate ML-3 reports must consume a fixture, model, metadata, or contract whose identity includes ml-prod-candidate-v1. Smoke fixture parity cannot unblock ML-5.\", \"requires_candidate_identity\": false}"
+      },
+      {
+        "name": "fixture_schema_contract",
+        "status": "pass",
+        "details": "Fixture loaded from docs/benchmarks/runs/20260604T174850Z-ml-agent-parity-fixture.json with 6 samples."
+      },
+      {
+        "name": "rust_fixture_cli",
+        "status": "pass",
+        "details": "{\"expected_sample_count\": 6, \"fixture_validated\": true, \"present\": true, \"sample_count\": 6, \"sample_count_matches_fixture\": true}"
+      },
+      {
+        "name": "rust_agent_onnx_parity",
+        "status": "pass",
+        "details": "{\"allowed_max_abs_probability_delta\": 0.0001, \"expected_sample_count\": 6, \"fixture_max_abs_probability_delta\": 0.0001, \"fixture_verdict_agreement_required\": 1.0, \"max_abs_probability_delta\": 2.7954578e-05, \"max_abs_probability_delta_within_tolerance\": true, \"passed\": true, \"path\": \"docs/benchmarks/runs/20260622T-agent-onnx-parity-direct-agent-bench.json\", \"present\": true, \"sample_count\": 6, \"sample_count_matches_fixture\": true, \"verdict_agreement\": 1.0, \"verdict_agreement_within_tolerance\": true}"
+      },
+      {
+        "name": "win_template_ml_probe",
+        "status": "pass",
+        "details": "{\"agent_id\": \"5a2c7e97-cd1c-449f-b85b-8fb1711798b9\", \"all_fixtures_declared_non_malware\": true, \"endpoint_contacted\": false, \"false_positive_candidate_sample_ids\": [\"win_template_seeded_high_entropy_control\"], \"fixture_count\": 4, \"hostname\": \"WIN-TEMPLATE\", \"inference_status\": \"completed\", \"malicious_prediction_count_on_safe_fixtures\": 1, \"path\": \"docs/benchmarks/runs/20260622T-win-template-ml-probe-local-inference-direct-agent-bench.json\", \"prediction_count\": 4, \"present\": true, \"production_gate_impact\": \"no_go_for_detection_claims\", \"safe_fixture_behavior_summary_present\": true, \"status\": \"pass\"}"
+      },
+      {
+        "name": "production_claim_boundary",
+        "status": "pass",
+        "details": "Direct Rust agent ONNX parity run against the frozen synthetic fixture plus WIN-TEMPLATE local checkpoint context. This proves the agent ONNX path executes on the smoke fixture only. It does not prove malware detection or satisfy ml-prod-candidate-v1."
+      }
+    ]
+  },
+  "claim_boundary": "Direct Rust agent ONNX parity run against the frozen synthetic fixture plus WIN-TEMPLATE local checkpoint context. This proves the agent ONNX path executes on the smoke fixture only. It does not prove malware detection or satisfy ml-prod-candidate-v1.",
+  "artifacts": [
+    {
+      "name": "agent_parity_fixture",
+      "path": "docs/benchmarks/runs/20260604T174850Z-ml-agent-parity-fixture.json",
+      "sha256": "0CCA2069C1B4E8F9FD1CC6593468F67C9288D92DA3B1254796BBB3EFC9D1F4F1"
+    },
+    {
+      "name": "agent_parity_fixture_cli_log",
+      "path": "docs/benchmarks/runs/20260622T-agent-parity-fixture-direct-agent-bench.log",
+      "sha256": "4D1268A7E96F63CB3FA917B374DF507D75FC34F6071AAE5CAA297C9A60835D4C"
+    },
+    {
+      "name": "agent_onnx_parity_results",
+      "path": "docs/benchmarks/runs/20260622T-agent-onnx-parity-direct-agent-bench.json",
+      "sha256": "BC7490C0E4D81C68F55E21A2EE36409580B281DF65BBB49A0F20E469072FC730"
+    },
+    {
+      "name": "win_template_ml_probe",
+      "path": "docs/benchmarks/runs/20260622T-win-template-ml-probe-local-inference-direct-agent-bench.json",
+      "sha256": "2BCF344AC3D65422973CCC6C6B744585E380F446445D59A4FE4B07D525EBC5AD"
+    }
+  ]
+}
