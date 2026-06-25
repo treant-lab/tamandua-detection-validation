@@ -3,6 +3,11 @@
 Status: controlled server/API/GUI evidence. This is not a live agent telemetry
 emission proof.
 
+Follow-up implementation now exists for the missing live proof:
+`apps/tamandua_agent/src/bin/ml_detection_telemetry_smoke.rs` scans a file with
+local ONNX, emits `DetectionType::Ml`, and sends the event through the real
+agent telemetry transport.
+
 ## What Ran
 
 - A controlled `events` row and linked `alerts` row were created on the lab
@@ -55,8 +60,8 @@ Not proven:
 
 Next required proof:
 
-1. Run the agent-bound ONNX scan path on a Windows host with model/runtime
-   dependencies installed.
+1. Run `ml_detection_telemetry_smoke` on a Windows host with model/runtime
+   dependencies installed and valid agent socket credentials.
 2. Send the resulting telemetry event through the live agent socket.
 3. Assert a new `source=ml` alert appears in `/api/v1/alerts`, `/api/v1/timeline`,
    `/app/alerts`, and `alerts:feed`.
