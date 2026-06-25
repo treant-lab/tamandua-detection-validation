@@ -1,12 +1,12 @@
 # ML Alert API GUI Evidence - 2026-06-25
 
-Status: controlled server/API/GUI evidence. This is not a live agent telemetry
-emission proof.
+Status: controlled server/API/GUI evidence plus follow-up live telemetry
+evidence.
 
-Follow-up implementation now exists for the missing live proof:
-`apps/tamandua_agent/src/bin/ml_detection_telemetry_smoke.rs` scans a file with
-local ONNX, emits `DetectionType::Ml`, and sends the event through the real
-agent telemetry transport.
+Follow-up live proof now exists:
+`apps/tamandua_agent/src/bin/ml_detection_telemetry_smoke.rs` scanned a file
+with local ONNX, emitted `DetectionType::Ml`, and sent the event through the
+real agent telemetry transport over mTLS.
 
 ## What Ran
 
@@ -31,6 +31,16 @@ agent telemetry transport.
 - Event ID: `de19458c-3d73-44ab-b2bc-88b394e240ef`
 - Agent ID: `c5706989-46e8-4ecb-9feb-75c5f3a42f1a` (`LAB-DC01`)
 
+Follow-up live telemetry:
+
+- Alert ID: `f2c50bfe-665b-45c4-8599-9fc09c3a6bac`
+- Event ID: `41eb6303-e267-432b-ad5c-69eb74569809`
+- Alert: `ML Detection: ML_MALWARE_TROJAN`
+- Severity: `critical`
+- Inserted at: `2026-06-25 10:39:18.906371`
+- Event created at: `2026-06-25 10:39:20`
+- Verdict: `trojan`, confidence `1.0`, `telemetry_sent=true`
+
 ## Results
 
 | Surface | Result |
@@ -51,17 +61,17 @@ Proven:
 - The `source=ml` API filter returns the ML alert.
 - The GUI alert and event routes load without 500s and include the ML evidence.
 - Timeline API loads the linked event without 500s.
+- Live agent telemetry over mTLS can create a critical ML alert from
+  `DetectionType::Ml`.
 
 Not proven:
 
-- The currently running Windows agent emitted this alert through telemetry.
 - The live `alerts:feed` socket broadcast carried this specific alert.
 - The current bootstrap ML model has acceptable production false-positive rate.
+- Browser visual confirmation of the new live alert ID `f2c50bfe...`.
 
 Next required proof:
 
-1. Run `ml_detection_telemetry_smoke` on a Windows host with model/runtime
-   dependencies installed and valid agent socket credentials.
-2. Send the resulting telemetry event through the live agent socket.
-3. Assert a new `source=ml` alert appears in `/api/v1/alerts`, `/api/v1/timeline`,
-   `/app/alerts`, and `alerts:feed`.
+1. Refresh `/api/v1/alerts`, `/api/v1/timeline`, `/app/alerts`, and
+   `/app/events` probes against alert `f2c50bfe...`.
+2. Add an automated `alerts:feed` socket probe for the live ML alert path.

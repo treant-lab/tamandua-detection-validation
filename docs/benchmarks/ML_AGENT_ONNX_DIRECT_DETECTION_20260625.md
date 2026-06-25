@@ -1,6 +1,7 @@
 # ML Agent ONNX Direct Detection - 2026-06-25
 
-Status: smoke evidence only. This is not a production model-quality claim.
+Status: live agent telemetry evidence complete. This is not a production
+model-quality claim.
 
 ## What Ran
 
@@ -15,6 +16,8 @@ Status: smoke evidence only. This is not a production model-quality claim.
 - Ran direct local smoke benchmarks against 25 malware and 25 goodware files.
 - Ran `ml_onnx_scan.exe` on LAB-DC01 (`192.168.12.110`) against
   `malware_00000.bin`.
+- Ran `ml_detection_telemetry_smoke` through the real agent socket using
+  LAB-DC01 mTLS credentials and `wss://192.168.12.146:8443/socket/agent`.
 
 ## Results
 
@@ -23,6 +26,7 @@ Status: smoke evidence only. This is not a production model-quality claim.
 | Local smoke | `malware_smell.onnx` marker wrapper | 0/25 | 0/25 | Non-candidate export |
 | Local smoke | `malware_smell_knn.onnx` KNN export | 25/25 | 22/25 | Detects, but FP is unacceptable |
 | LAB-DC01 Windows smoke | `malware_smell_knn.onnx` KNN export | 1/1 | Not measured | Detected `trojan`, confidence 1.0 |
+| Agent telemetry smoke over mTLS | `malware_smell_knn.onnx` KNN export | 1/1 | Not measured | Sent ML telemetry, created critical ML alert |
 
 LAB-DC01 report:
 
@@ -36,6 +40,31 @@ LAB-DC01 report:
   "inference_time_ms": 5410
 }
 ```
+
+Agent telemetry smoke report:
+
+```json
+{
+  "kind": "MLDetectionTelemetrySmoke",
+  "server_url": "wss://192.168.12.146:8443/socket/agent",
+  "agent_id": "c5706989-46e8-4ecb-9feb-75c5f3a42f1a",
+  "threshold": 0.7,
+  "is_malicious": true,
+  "confidence": 1.0,
+  "family": "trojan",
+  "family_index": 1,
+  "inference_time_ms": 27,
+  "telemetry_sent": true
+}
+```
+
+Server evidence:
+
+- Event ID: `41eb6303-e267-432b-ad5c-69eb74569809`
+- Alert ID: `f2c50bfe-665b-45c4-8599-9fc09c3a6bac`
+- Alert: `ML Detection: ML_MALWARE_TROJAN`
+- Severity: `critical`
+- Inserted at: `2026-06-25 10:39:18.906371`
 
 ## Runtime Notes
 
@@ -71,30 +100,38 @@ Proven:
 - The KNN ONNX export can emit a malicious verdict on a staged malware fixture.
 - The agent now has a compiled smoke binary that converts local ONNX detection
   into real agent telemetry.
+- The lab backend accepts the ML telemetry over mTLS and creates a critical
+  `source=ml` alert.
 
 Not proven:
 
 - Production model quality.
 - Acceptable false-positive rate.
-- A live LAB/WIN-TEMPLATE run of `ml_detection_telemetry_smoke` with valid
-  socket credentials/certificates.
 - WIN-TEMPLATE transport stability.
+- GUI/browser visual confirmation for the new `f2c50bfe...` alert.
 
 Next work:
 
 1. Retrain/calibrate using governed malware/goodware sources before publishing
    `tamandua-ml`.
-2. Run `ml_detection_telemetry_smoke` on LAB-DC01 or WIN-TEMPLATE with the
-   production agent config and verify the new alert.
-3. Verify the alert in `/api/v1/alerts`, timeline/events, GUI, and
+2. Run the same smoke from inside LAB-DC01 or WIN-TEMPLATE once remote
+   execution is available through a governed action.
+3. Verify the new alert in `/api/v1/alerts`, timeline/events, GUI, and
    `alerts:feed`.
 
 Follow-up evidence:
 
-- `docs/benchmarks/ML_ALERT_API_GUI_EVIDENCE_20260625.md` proves the
-  server/API/GUI path can store and render a controlled `source=ml` alert. It
-  does not prove the currently running agent emitted that alert through
-  telemetry.
+- `docs/benchmarks/ML_ALERT_API_GUI_EVIDENCE_20260625.md` contains the
+  earlier controlled API/GUI proof and should be refreshed against alert
+  `f2c50bfe-665b-45c4-8599-9fc09c3a6bac`.
 - `apps/tamandua_server/test/tamandua_server/telemetry/ml_agent_detection_alert_test.exs`
   covers the server-side contract: ML detection telemetry creates an ML alert
   and broadcasts `alerts:feed`.
+
+Operational notes:
+
+- The server requires mTLS for this agent credential. Plain `ws://...:4000`
+  attempts are rejected with `:missing_certificate`.
+- Live response `os_info` exposed a contract gap: the server supported the
+  command but the agent enum did not, causing a timeout. The agent now maps
+  `os_info` to a local OS information response.
