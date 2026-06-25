@@ -41,17 +41,27 @@ Follow-up live telemetry:
 - Event created at: `2026-06-25 10:39:20`
 - Verdict: `trojan`, confidence `1.0`, `telemetry_sent=true`
 
+Final live source-filter proof:
+
+- Run ID: `20260625T-live-ml-telemetry-mtls-source-filter`
+- Alert ID: `67048401-7bbf-4414-8b9c-a2a0b5d8362d`
+- Event ID: `5305aa7e-7a7e-432b-970b-979ff9fd7dbf`
+- Alert: `ML Detection: ML_MALWARE_TROJAN`
+- Severity: `critical`
+- Source: `ml`
+- Verdict: `trojan`, confidence `1.0`, `telemetry_sent=true`
+
 ## Results
 
 | Surface | Result |
 | --- | --- |
-| `/api/v1/alerts/:id` | `200`, alert source serialized as `ml` |
-| `/api/v1/alerts?source=ml` | `200`, returned the controlled alert |
-| `/api/v1/events` | `200`, returned the linked event |
-| `/api/v1/timeline` | `200`, returned the linked file event |
-| `/app/alerts` | `200`, page contains alert ID, `ml`, and run ID |
-| `/app/alerts/:id` | `200`, page contains alert ID, `ml`, and run ID |
-| `/app/events` | `200`, page contains `ml` and run ID |
+| `/api/v1/alerts/:id` | `200`, live alert source serialized as `ml` |
+| `/api/v1/alerts?source=ml` | `200`, returned the live alert as the first result |
+| `/api/v1/events` | `200`, returned event `5305aa7e-7a7e-432b-970b-979ff9fd7dbf` |
+| `/api/v1/timeline` | `200`, returned event `5305aa7e-7a7e-432b-970b-979ff9fd7dbf` |
+| `/app/alerts` | `200`, page contains live alert ID and `ml` |
+| `/app/alerts/:id` | `200`, page contains live alert ID and `ml` |
+| `/app/events` | `200`, page contains `ml` |
 
 ## Claim Boundary
 
@@ -63,15 +73,19 @@ Proven:
 - Timeline API loads the linked event without 500s.
 - Live agent telemetry over mTLS can create a critical ML alert from
   `DetectionType::Ml`.
+- The live ML alert now appears under the `source=ml` API filter after
+  metadata backfill for the already-created lab alerts.
 
 Not proven:
 
 - The live `alerts:feed` socket broadcast carried this specific alert.
 - The current bootstrap ML model has acceptable production false-positive rate.
-- Browser visual confirmation of the new live alert ID `f2c50bfe...`.
+- Browser pixel/screenshot confirmation of the new live alert ID
+  `67048401...`.
 
 Next required proof:
 
-1. Refresh `/api/v1/alerts`, `/api/v1/timeline`, `/app/alerts`, and
-   `/app/events` probes against alert `f2c50bfe...`.
-2. Add an automated `alerts:feed` socket probe for the live ML alert path.
+1. Add an automated `alerts:feed` socket probe for the live ML alert path.
+2. Replace the current metadata backfill with a deployed server-side ingestion
+   fix for future ML telemetry alerts if the lab image is rebuilt from an older
+   server baseline.

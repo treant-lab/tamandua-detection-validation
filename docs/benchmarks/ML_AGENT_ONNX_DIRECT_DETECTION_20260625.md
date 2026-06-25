@@ -58,6 +58,23 @@ Agent telemetry smoke report:
 }
 ```
 
+Second mTLS telemetry smoke after the source-filter fix:
+
+```json
+{
+  "kind": "MLDetectionTelemetrySmoke",
+  "server_url": "wss://192.168.12.146:8443/socket/agent",
+  "agent_id": "c5706989-46e8-4ecb-9feb-75c5f3a42f1a",
+  "threshold": 0.7,
+  "is_malicious": true,
+  "confidence": 1.0,
+  "family": "trojan",
+  "family_index": 1,
+  "inference_time_ms": 37,
+  "telemetry_sent": true
+}
+```
+
 Server evidence:
 
 - Event ID: `41eb6303-e267-432b-ad5c-69eb74569809`
@@ -65,6 +82,15 @@ Server evidence:
 - Alert: `ML Detection: ML_MALWARE_TROJAN`
 - Severity: `critical`
 - Inserted at: `2026-06-25 10:39:18.906371`
+
+Final source-filter evidence:
+
+- Event ID: `5305aa7e-7a7e-432b-970b-979ff9fd7dbf`
+- Alert ID: `67048401-7bbf-4414-8b9c-a2a0b5d8362d`
+- Alert source: `ml`
+- `/api/v1/alerts?source=ml`: `200`, first result is the live alert
+- `/api/v1/timeline`: `200`, includes event `5305aa7e-7a7e-432b-970b-979ff9fd7dbf`
+- `/app/alerts`, `/app/alerts/:id`, `/app/events`: `200`
 
 ## Runtime Notes
 
@@ -102,13 +128,15 @@ Proven:
   into real agent telemetry.
 - The lab backend accepts the ML telemetry over mTLS and creates a critical
   `source=ml` alert.
+- The API/GUI source path now resolves the live telemetry alert as `source=ml`
+  after metadata backfill and server-side source inference work.
 
 Not proven:
 
 - Production model quality.
 - Acceptable false-positive rate.
 - WIN-TEMPLATE transport stability.
-- GUI/browser visual confirmation for the new `f2c50bfe...` alert.
+- Browser pixel/visual screenshot confirmation for the new `67048401...` alert.
 
 Next work:
 
@@ -116,14 +144,13 @@ Next work:
    `tamandua-ml`.
 2. Run the same smoke from inside LAB-DC01 or WIN-TEMPLATE once remote
    execution is available through a governed action.
-3. Verify the new alert in `/api/v1/alerts`, timeline/events, GUI, and
-   `alerts:feed`.
+3. Add an automated `alerts:feed` socket probe for the live ML alert path.
 
 Follow-up evidence:
 
 - `docs/benchmarks/ML_ALERT_API_GUI_EVIDENCE_20260625.md` contains the
-  earlier controlled API/GUI proof and should be refreshed against alert
-  `f2c50bfe-665b-45c4-8599-9fc09c3a6bac`.
+  controlled proof and the refreshed live proof against alert
+  `67048401-7bbf-4414-8b9c-a2a0b5d8362d`.
 - `apps/tamandua_server/test/tamandua_server/telemetry/ml_agent_detection_alert_test.exs`
   covers the server-side contract: ML detection telemetry creates an ML alert
   and broadcasts `alerts:feed`.
