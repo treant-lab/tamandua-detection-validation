@@ -84,6 +84,29 @@ Socket probe follow-up:
 - Code follow-up: `TamanduaServer.Alerts.AlertBroadcastRelay` now emits and
   listens for PostgreSQL `NOTIFY` messages on `tamandua_alert_broadcasts`, so
   dashboard runtimes can rebroadcast alerts created by a separate mTLS runtime.
+- Post-fix relay/socket proof on rebuilt validation runtime
+  `tamandua-server-relay-4004`:
+  - Server image: `tamandua-server-current-relay:local`
+  - Endpoint: `http://127.0.0.1:4004`
+  - Probe artifact:
+    `.tmp/alerts_feed_socket_probe_pg_relay_4004_final_20260625.json`
+  - `GET /health`: `200`
+  - `alerts:feed` join: accepted
+  - Trigger: PostgreSQL `pg_notify('tamandua_alert_broadcasts', ...)`
+  - Observed frame: `new_alert`
+  - Alert ID in frame: `0ba50c86-8b8f-492e-81f7-90a3ca640add`
+  - Serialization fix verified: `acknowledgedBy` emitted as JSON `null`
+    instead of attempting to encode an unloaded Ecto association.
+- Cross-runtime agent presence fix on the same validation runtime:
+  - DB state had WIN-TEMPLATE
+    `9fc88ce7-87ad-4e25-a880-e175d068bd42` with `status=online` and a fresh
+    `last_seen_at`.
+  - Before the fix, `/api/v1/agents` displayed the endpoint as offline because
+    dashboard runtimes without a local ETS Registry entry forced persisted
+    presence to offline.
+  - After the fix, `/api/v1/agents` on `http://127.0.0.1:4004` returns
+    `1 online / 1 offline`, and `/app/agents` contains both `WIN-TEMPLATE` and
+    `online`.
 
 ## Results
 
@@ -96,6 +119,9 @@ Socket probe follow-up:
 | `/app/alerts` | `200`, page contains live alert ID and `ml` |
 | `/app/alerts/:id` | `200`, page contains live alert ID and `ml` |
 | `/app/events` | `200`, page contains `ml` |
+| `alerts:feed` relay/socket probe on `:4004` | joined and received `new_alert` after PostgreSQL `NOTIFY` |
+| `/api/v1/agents` on `:4004` | `200`, returns `1 online / 1 offline` after cross-runtime presence fix |
+| `/app/agents` on `:4004` | `200`, contains `WIN-TEMPLATE` and `online` |
 
 ## Claim Boundary
 
@@ -113,21 +139,26 @@ Proven:
   `ml_verdict=trojan` and `model_version=malware_smell_knn.onnx`.
 - A non-deduplicated run ID can force a fresh ML event/alert for repeatable
   socket proof attempts.
+- The rebuilt server image can relay a database alert notification into a live
+  `alerts:feed` socket subscriber.
+- Dashboard/API agent presence can display recent DB-backed online heartbeats
+  from a separate ingestion runtime instead of requiring a local Registry entry.
 
 Not proven:
 
 - The live `alerts:feed` socket broadcast carried this specific alert.
-- End-to-end proof of the PostgreSQL relay delivering that fresh ML alert to a
-  live `alerts:feed` subscriber.
+- End-to-end proof where a fresh post-fix ML telemetry event, created through
+  the mTLS agent listener, is observed by the dashboard `alerts:feed` subscriber
+  in the same run.
 - The current bootstrap ML model has acceptable production false-positive rate.
 - Browser pixel/screenshot confirmation of the new live alert ID
   `67048401...`.
 
 Next required proof:
 
-1. Rebuild/redeploy the server image with `AlertBroadcastRelay`, trigger a
-   non-deduplicated ML alert, and capture `new_alert` or `alert_updated` from
-   `alerts:feed`.
+1. Put the same rebuilt image on the mTLS ingestion runtime or run a combined
+   runtime with mTLS enabled, then trigger a non-deduplicated ML alert and
+   capture `new_alert` or `alert_updated` from `alerts:feed`.
 2. Persist `source=ml`/`detection_source=ml` at alert creation time for ML
    detections, not only via API inference/backfill.
 3. Keep lab port ownership explicit: HTTP probes used `:4000`; mTLS telemetry

@@ -25,6 +25,7 @@ model-quality claim.
 | --- | --- | ---: | ---: | --- |
 | Local smoke | `malware_smell.onnx` marker wrapper | 0/25 | 0/25 | Non-candidate export |
 | Local smoke | `malware_smell_knn.onnx` KNN export | 25/25 | 22/25 | Detects, but FP is unacceptable |
+| Local smoke rerun | `malware_smell_knn.onnx` KNN export | 25/25 | 22/25 | Reproduced after relay fix; avg 29.84 ms malware, 31.32 ms goodware |
 | LAB-DC01 Windows smoke | `malware_smell_knn.onnx` KNN export | 1/1 | Not measured | Detected `trojan`, confidence 1.0 |
 | Agent telemetry smoke over mTLS | `malware_smell_knn.onnx` KNN export | 1/1 | Not measured | Sent ML telemetry, created critical ML alert |
 
@@ -105,6 +106,16 @@ Final source-filter evidence:
 - `/api/v1/timeline`: `200`, includes event `5305aa7e-7a7e-432b-970b-979ff9fd7dbf`
 - `/app/alerts`, `/app/alerts/:id`, `/app/events`: `200`
 
+Post-relay local ONNX rerun:
+
+- Output directory:
+  `docs/benchmarks/runs/20260625T-ml-onnx-direct-local-smoke-clean`
+- Summary:
+  `docs/benchmarks/runs/20260625T-ml-onnx-direct-local-smoke-clean/summary.json`
+- Malware: `25/25` detected malicious
+- Goodware: `22/25` detected malicious (`88%` false-positive rate)
+- Average inference time: `29.84 ms` malware, `31.32 ms` goodware
+
 ## Runtime Notes
 
 The Windows smoke required these DLLs in the scanner directory:
@@ -157,8 +168,9 @@ Not proven:
 - Browser pixel/visual screenshot confirmation for the new `67048401...` alert.
 - Fresh post-fix ML alert creation plus `alerts:feed` socket delivery in the
   same run.
-- Cross-runtime socket relay proof after rebuilding the server image with
-  `TamanduaServer.Alerts.AlertBroadcastRelay`.
+- Fresh post-fix ML alert creation through the mTLS runtime plus socket
+  delivery in the same run. The relay itself has been proven separately on the
+  rebuilt `:4004` validation runtime with an existing alert notification.
 
 Next work:
 
@@ -166,7 +178,7 @@ Next work:
    `tamandua-ml`.
 2. Run the same smoke from inside LAB-DC01 or WIN-TEMPLATE once remote
    execution is available through a governed action.
-3. Rebuild/redeploy the server with `AlertBroadcastRelay`, then rerun the
+3. Deploy the relay/image fix onto the mTLS ingestion runtime, then rerun the
    automated `alerts:feed` socket probe for the live ML alert path.
 4. Keep using a non-deduplicated ML sample/run ID for socket proof so the
    backend creates or updates an alert during the probe window.
