@@ -87,6 +87,8 @@ Use these artifacts as the current authority for ML state:
   `docs/benchmarks/runs/20260625T-ml-onnx-knn-direct-local-smoke/summary.json`
 - Direct LAB-DC01 Windows KNN ONNX smoke:
   `docs/benchmarks/runs/20260625T-ml-onnx-knn-lab-dc01-windows-smoke/summary.json`
+- Controlled ML alert API/GUI evidence:
+  `docs/benchmarks/ML_ALERT_API_GUI_EVIDENCE_20260625.md`
 
 ## 2026-06-25 Direct Detection Update
 
@@ -106,6 +108,11 @@ is now "can a retrained/calibrated candidate create a Tamandua ML alert end to
 end and keep false positives within the ML-1/ML-6 gates." Keep the public ML
 mirror on hold until that model-card and benchmark evidence exists.
 
+Controlled API/GUI evidence now shows that a `source=ml` alert can be stored,
+filtered, rendered in `/app/alerts`, linked to `/api/v1/timeline`, and loaded
+without 500s. That evidence is DB-backed and deliberately does not claim that
+the running Windows agent emitted the alert through telemetry.
+
 ## 2026-06-22 Agent Alert Update
 
 Authenticated server/API/frontend evidence now proves that the WIN-TEMPLATE
@@ -121,10 +128,11 @@ alert API and GUI filtering. The Rust agent check passed with
 `cargo check --features onnx,ml-local`; Elixir tests were updated but not run in
 this shell because `mix`/`elixir` are unavailable on PATH.
 
-Next required end-to-end proof remains a live agent run that creates a new alert
-from an ONNX/local ML malicious fixture and shows it in the GUI plus
-`alerts:feed`. The 2026-06-25 LAB-DC01 smoke proves direct Windows inference,
-not alert ingestion or GUI propagation.
+Next required end-to-end proof remains a live agent run that creates a new
+`source=ml` alert from an ONNX/local ML malicious fixture and shows it in the
+GUI plus `alerts:feed`. The 2026-06-25 LAB-DC01 smoke proves direct Windows
+inference, and the controlled alert proof covers API/GUI/timeline loading; the
+missing join is live agent telemetry producing the alert.
 
 Do not use older `*-validation-only.run.json` receipts as current Wave 1
 authorization. They are historical validation evidence only.
