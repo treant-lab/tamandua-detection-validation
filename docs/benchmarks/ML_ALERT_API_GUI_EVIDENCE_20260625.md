@@ -51,6 +51,28 @@ Final live source-filter proof:
 - Source: `ml`
 - Verdict: `trojan`, confidence `1.0`, `telemetry_sent=true`
 
+Post-restart live event evidence:
+
+- Event ID: `33543ce2-2087-4e77-b3cd-43294b8248c1`
+- Event type: `ransomware_detected`
+- Agent ID: `c5706989-46e8-4ecb-9feb-75c5f3a42f1a`
+- Timestamp: `2026-06-25 12:00:30.267`
+- Verdict: `trojan`
+- Model: `malware_smell_knn.onnx`
+- Transport: `wss://192.168.12.146:8443/socket/agent`
+
+Socket probe follow-up:
+
+- `dashboard:lobby` and `alerts:feed` both accepted authenticated joins.
+- The raw Phoenix client required heartbeat frames to avoid disconnecting
+  during the Cargo-triggered smoke.
+- A broadcast payload issue was found and fixed in
+  `TamanduaServerWeb.Broadcaster.serialize_alert/1`: `threatScore` is now
+  normalized to a JSON number instead of allowing a `Decimal` struct through.
+- After that fix, `dashboard:lobby` no longer emitted `phx_error`; however, no
+  new ML alert was generated during the post-fix smoke window, so live alert
+  socket delivery remains unproven.
+
 ## Results
 
 | Surface | Result |
@@ -75,17 +97,23 @@ Proven:
   `DetectionType::Ml`.
 - The live ML alert now appears under the `source=ml` API filter after
   metadata backfill for the already-created lab alerts.
+- Live agent telemetry over mTLS can persist ML verdict events with
+  `ml_verdict=trojan` and `model_version=malware_smell_knn.onnx`.
 
 Not proven:
 
 - The live `alerts:feed` socket broadcast carried this specific alert.
+- A fresh post-fix ML alert creation and socket delivery in the same run.
 - The current bootstrap ML model has acceptable production false-positive rate.
 - Browser pixel/screenshot confirmation of the new live alert ID
   `67048401...`.
 
 Next required proof:
 
-1. Add an automated `alerts:feed` socket probe for the live ML alert path.
-2. Replace the current metadata backfill with a deployed server-side ingestion
-   fix for future ML telemetry alerts if the lab image is rebuilt from an older
-   server baseline.
+1. Trigger a non-deduplicated ML alert after the WebSocket payload fix and
+   capture `new_alert` or `alert_updated` from `alerts:feed`.
+2. Persist `source=ml`/`detection_source=ml` at alert creation time for ML
+   detections, not only via API inference/backfill.
+3. Keep lab port ownership explicit: HTTP probes used `:4000`; mTLS telemetry
+   used `:8443`; additional lab containers are also present on `:4002` and
+   `:4003`.

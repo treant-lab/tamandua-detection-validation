@@ -75,6 +75,19 @@ Second mTLS telemetry smoke after the source-filter fix:
 }
 ```
 
+Post-restart mTLS event evidence:
+
+```json
+{
+  "event_id": "33543ce2-2087-4e77-b3cd-43294b8248c1",
+  "event_type": "ransomware_detected",
+  "agent_id": "c5706989-46e8-4ecb-9feb-75c5f3a42f1a",
+  "timestamp": "2026-06-25 12:00:30.267",
+  "ml_verdict": "trojan",
+  "model_version": "malware_smell_knn.onnx"
+}
+```
+
 Server evidence:
 
 - Event ID: `41eb6303-e267-432b-ad5c-69eb74569809`
@@ -130,6 +143,8 @@ Proven:
   `source=ml` alert.
 - The API/GUI source path now resolves the live telemetry alert as `source=ml`
   after metadata backfill and server-side source inference work.
+- The lab backend continues to persist ML verdict events over mTLS after the
+  server restart.
 
 Not proven:
 
@@ -137,6 +152,8 @@ Not proven:
 - Acceptable false-positive rate.
 - WIN-TEMPLATE transport stability.
 - Browser pixel/visual screenshot confirmation for the new `67048401...` alert.
+- Fresh post-fix ML alert creation plus `alerts:feed` socket delivery in the
+  same run.
 
 Next work:
 
@@ -145,6 +162,8 @@ Next work:
 2. Run the same smoke from inside LAB-DC01 or WIN-TEMPLATE once remote
    execution is available through a governed action.
 3. Add an automated `alerts:feed` socket probe for the live ML alert path.
+4. Use a non-deduplicated ML sample/run ID for the next socket proof so the
+   backend creates or updates an alert during the probe window.
 
 Follow-up evidence:
 
