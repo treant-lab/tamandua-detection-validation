@@ -81,6 +81,30 @@ Use these artifacts as the current authority for ML state:
   `docs/benchmarks/runs/20260622T-agent-alert-gui-e2e.json`
 - Agent ML alert bridge fix:
   `docs/benchmarks/runs/20260622T-agent-ml-alert-bridge-fix.json`
+- Direct local marker-wrapper ONNX smoke:
+  `docs/benchmarks/runs/20260625T-ml-onnx-direct-local-smoke/summary.json`
+- Direct local KNN ONNX smoke:
+  `docs/benchmarks/runs/20260625T-ml-onnx-knn-direct-local-smoke/summary.json`
+- Direct LAB-DC01 Windows KNN ONNX smoke:
+  `docs/benchmarks/runs/20260625T-ml-onnx-knn-lab-dc01-windows-smoke/summary.json`
+
+## 2026-06-25 Direct Detection Update
+
+Direct agent-side detection now has smoke evidence, but it is still below the
+publication bar for `tamandua-ml`.
+
+The original marker-wrapper ONNX export produced 0/25 malware detections on the
+local smoke slice and must not be used as a detection candidate. A new KNN ONNX
+export produced 25/25 malware detections locally and detected the staged
+`malware_00000.bin` fixture on LAB-DC01 as `trojan` with confidence 1.0.
+However, the same local smoke showed 22/25 goodware false positives. That means
+the export/integration path is viable, while the current bootstrap checkpoint is
+not production-ready.
+
+The next proof is no longer "can the agent-side ONNX path detect anything"; it
+is now "can a retrained/calibrated candidate create a Tamandua ML alert end to
+end and keep false positives within the ML-1/ML-6 gates." Keep the public ML
+mirror on hold until that model-card and benchmark evidence exists.
 
 ## 2026-06-22 Agent Alert Update
 
@@ -97,9 +121,10 @@ alert API and GUI filtering. The Rust agent check passed with
 `cargo check --features onnx,ml-local`; Elixir tests were updated but not run in
 this shell because `mix`/`elixir` are unavailable on PATH.
 
-Next required proof remains a live WIN-TEMPLATE run that creates a new alert
+Next required end-to-end proof remains a live agent run that creates a new alert
 from an ONNX/local ML malicious fixture and shows it in the GUI plus
-`alerts:feed`.
+`alerts:feed`. The 2026-06-25 LAB-DC01 smoke proves direct Windows inference,
+not alert ingestion or GUI propagation.
 
 Do not use older `*-validation-only.run.json` receipts as current Wave 1
 authorization. They are historical validation evidence only.
