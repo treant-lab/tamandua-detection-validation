@@ -1,9 +1,8 @@
 # Tamandua Detection Validation Repository Structure
 
 This repository is a standalone validation toolkit. The root intentionally keeps
-only repository metadata, the README/contribution files, top-level config, and
-the main source directories. Executable probes and validators live under
-`scripts/`; durable reference docs live under `docs/reference/`.
+only repository metadata, docs, fixtures, profiles, schemas, scripts, and tests.
+Executable probes and validators live under `scripts/`.
 
 ML validation boundary: current ML artifacts are validation-ready only,
 not production-trained, and production validation remains pending through the
@@ -20,7 +19,6 @@ ML-1..ML-6 gates.
 | `roadmaps/` | Roadmap source shards consumed by roadmap tooling. |
 | `schemas/` | JSON Schemas copied from the monorepo for standalone contract validation. |
 | `docs/benchmarks/` | Curated evidence, handoff notes, and selected run artifacts explicitly allowlisted by the mirror manifest. |
-| `docs/reference/` | Maintained repository structure, probe catalog, and external-rule acquisition references. |
 | `.github/` | Mirror-local CI and repository metadata. |
 
 The repository root should not contain Python entry points. Operators call

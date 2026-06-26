@@ -37,10 +37,9 @@ fixtures: the Rust agent ONNX parity rerun passed on the frozen synthetic
 fixture, while the local checkpoint WIN-TEMPLATE probe still records one
 false-positive candidate on a non-malware high-entropy control.
 
-See [docs/reference/REPOSITORY_STRUCTURE.md](./docs/reference/REPOSITORY_STRUCTURE.md)
-for the standalone mirror layout and artifact policy, and
-[docs/reference/PROBE_CATALOG.md](./docs/reference/PROBE_CATALOG.md) for the
-logical grouping of probes, validators, and test families.
+See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the standalone
+mirror layout and artifact policy, and [PROBE_CATALOG.md](./PROBE_CATALOG.md)
+for the logical grouping of root-level probes, validators, and test families.
 
 ## Prerequisites
 

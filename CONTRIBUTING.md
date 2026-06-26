@@ -7,8 +7,7 @@ norms — see the community repository:
   https://github.com/treant-lab/tamandua-community
 
 Please also read this component's [README](./README.md) and
-[probe catalog](./docs/reference/PROBE_CATALOG.md) for the repository
-organization rules.
+[PROBE_CATALOG.md](./PROBE_CATALOG.md) for the root-file organization rules.
 
 ## Component build & test
 

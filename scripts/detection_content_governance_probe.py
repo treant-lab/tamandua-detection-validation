@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -27,6 +28,17 @@ RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 GENERATED_DIR = ROOT / "docs" / "benchmarks" / "generated"
 PROFILE_ID = "detection-content-governance-probe"
 PROFILE_NAME = "Detection Content Governance Probe"
+
+
+def layout_path(monorepo_path: str, standalone_path: str) -> str:
+    return standalone_path if is_standalone() else monorepo_path
+
+
+def script_path(script_name: str) -> str:
+    return layout_path(
+        f"tools/detection_validation/scripts/{script_name}",
+        f"scripts/{script_name}",
+    )
 
 
 ARTIFACT_CHECKS: list[dict[str, Any]] = [
@@ -78,7 +90,10 @@ SOURCE_CHECKS: list[dict[str, Any]] = [
     {
         "id": "governance-clean-room-acquisition-doc",
         "name": "External rule acquisition document preserves clean-room boundaries",
-        "file": "docs/reference/EXTERNAL_RULE_ACQUISITION.md",
+        "file": layout_path(
+            "tools/detection_validation/EXTERNAL_RULE_ACQUISITION.md",
+            "EXTERNAL_RULE_ACQUISITION.md",
+        ),
         "roadmaps": ["Q"],
         "required": [
             "Do not copy rule bodies",
@@ -114,7 +129,7 @@ SOURCE_CHECKS: list[dict[str, Any]] = [
     {
         "id": "governance-metadata-checker-conservative-fields",
         "name": "Metadata checker enforces high/critical explanation fields",
-        "file": "scripts/check_detection_rule_metadata.py",
+        "file": script_path("check_detection_rule_metadata.py"),
         "roadmaps": ["Q"],
         "required": [
             "REQUIRED_HIGH_FIELDS",
@@ -131,7 +146,10 @@ JSON_CHECKS: list[dict[str, Any]] = [
     {
         "id": "governance-external-inventory-shape",
         "name": "External rule inventory preserves source and candidate accounting",
-        "file": "tools/detection_validation/roadmaps/external_rule_inventory.json",
+        "file": layout_path(
+            "tools/detection_validation/roadmaps/external_rule_inventory.json",
+            "roadmaps/external_rule_inventory.json",
+        ),
         "roadmaps": ["Q"],
         "required_keys": ["items"],
         "min_items": 1000,
@@ -139,7 +157,10 @@ JSON_CHECKS: list[dict[str, Any]] = [
     {
         "id": "governance-semantic-candidate-shape",
         "name": "Semantic rewrite candidate list exists for Tamandua-authored promotion",
-        "file": "tools/detection_validation/roadmaps/external_rule_semantic_rewrite_candidates.json",
+        "file": layout_path(
+            "tools/detection_validation/roadmaps/external_rule_semantic_rewrite_candidates.json",
+            "roadmaps/external_rule_semantic_rewrite_candidates.json",
+        ),
         "roadmaps": ["Q"],
         "required_keys": ["candidates"],
         "min_items": 20,
@@ -324,7 +345,7 @@ def test_result(item: dict[str, Any], category: str, missing: list[str], evidenc
 
 def collect_tests() -> list[dict[str, Any]]:
     subprocess.run(
-        ["python", "tools\\detection_validation\\check_detection_rule_metadata.py", "--fail-on-review"],
+        [sys.executable, script_path("check_detection_rule_metadata.py"), "--fail-on-review"],
         cwd=ROOT,
         check=True,
         stdout=subprocess.PIPE,
@@ -332,7 +353,7 @@ def collect_tests() -> list[dict[str, Any]]:
         text=True,
     )
     subprocess.run(
-        ["python", "tools\\detection_validation\\detection_rule_evidence_matrix.py"],
+        [sys.executable, script_path("detection_rule_evidence_matrix.py")],
         cwd=ROOT,
         check=True,
         stdout=subprocess.PIPE,
@@ -340,7 +361,7 @@ def collect_tests() -> list[dict[str, Any]]:
         text=True,
     )
     subprocess.run(
-        ["python", "tools\\detection_validation\\detection_rule_evidence_backlog.py"],
+        [sys.executable, script_path("detection_rule_evidence_backlog.py")],
         cwd=ROOT,
         check=True,
         stdout=subprocess.PIPE,
@@ -348,7 +369,7 @@ def collect_tests() -> list[dict[str, Any]]:
         text=True,
     )
     subprocess.run(
-        ["python", "tools\\detection_validation\\detection_rule_wave_fixture_plan.py", "--wave", "wave_1"],
+        [sys.executable, script_path("detection_rule_wave_fixture_plan.py"), "--wave", "wave_1"],
         cwd=ROOT,
         check=True,
         stdout=subprocess.PIPE,

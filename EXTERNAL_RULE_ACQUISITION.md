@@ -30,14 +30,14 @@ written as Tamandua-owned semantic rewrite work.
 
 | Artifact | Purpose |
 | --- | --- |
-| `roadmaps/external_rule_inventory.json` | One row per upstream rule/item, including skipped items and reasons |
-| `roadmaps/external_rule_coverage_map.json` | Platform and ATT&CK coverage map across sources |
-| `roadmaps/external_rule_semantic_rewrite_candidates.json` | Tamandua-authored rewrite queue by platform and technique |
-| `roadmaps/external_rule_global_improvement_roadmap.json` | Agent, collector, schema, D&R, runner, and documentation improvement map |
-| `roadmaps/external_rule_implementation_backlog.json` | Code-area implementation backlog grouped by owner area |
-| `roadmaps/external_rule_event_contracts.json` | Normalized event contracts required by the rewrite queue |
-| `profiles/*_external_rule_coverage_map.json` | Report-only source coverage probes |
-| `profiles/*_external_semantic_rewrite_*.json` | Safe execution-prep profiles for semantic rewrite candidates |
+| `tools/detection_validation/roadmaps/external_rule_inventory.json` | One row per upstream rule/item, including skipped items and reasons |
+| `tools/detection_validation/roadmaps/external_rule_coverage_map.json` | Platform and ATT&CK coverage map across sources |
+| `tools/detection_validation/roadmaps/external_rule_semantic_rewrite_candidates.json` | Tamandua-authored rewrite queue by platform and technique |
+| `tools/detection_validation/roadmaps/external_rule_global_improvement_roadmap.json` | Agent, collector, schema, D&R, runner, and documentation improvement map |
+| `tools/detection_validation/roadmaps/external_rule_implementation_backlog.json` | Code-area implementation backlog grouped by owner area |
+| `tools/detection_validation/roadmaps/external_rule_event_contracts.json` | Normalized event contracts required by the rewrite queue |
+| `tools/detection_validation/profiles/*_external_rule_coverage_map.json` | Report-only source coverage probes |
+| `tools/detection_validation/profiles/*_external_semantic_rewrite_*.json` | Safe execution-prep profiles for semantic rewrite candidates |
 | `docs/benchmarks/EXTERNAL_RULE_COVERAGE_MAPPING.md` | Human-readable coverage summary |
 | `docs/benchmarks/EXTERNAL_RULE_EXECUTION_PLAN.md` | Execution order and promotion gate |
 | `docs/benchmarks/EXTERNAL_RULE_IMPLEMENTATION_BACKLOG.md` | Human-readable code-area implementation backlog |
@@ -46,7 +46,7 @@ written as Tamandua-owned semantic rewrite work.
 ## Regeneration
 
 ```powershell
-python scripts\generate_external_rule_coverage_map.py `
+python tools\detection_validation\generate_external_rule_coverage_map.py `
   --elastic-root 'D:\treant\external\elastic-detection-rules' `
   --sigmahq-root 'D:\treant\external\sigmahq-sigma' `
   --wazuh-root 'D:\treant\external\wazuh-ruleset' `
@@ -62,12 +62,12 @@ For release-quality regeneration, pass the source commit flags printed by
 ## Validation
 
 ```powershell
-python scripts\validate_profile_catalog.py --strict
-python scripts\external_rule_event_contracts.py
-python scripts\validate_external_rule_readiness.py
-python scripts\external_rule_implementation_backlog.py
-python -m py_compile scripts\generate_external_rule_coverage_map.py scripts\tamandua_detection_validation.py scripts\external_rule_event_contracts.py scripts\validate_external_rule_readiness.py
-python scripts\tamandua_detection_validation.py --profile profiles\windows_external_semantic_rewrite_p0_p1_execution.json --benchmark-lane external-semantic-rewrite-execution
+python tools\detection_validation\validate_profile_catalog.py --strict
+python tools\detection_validation\external_rule_event_contracts.py
+python tools\detection_validation\validate_external_rule_readiness.py
+python tools\detection_validation\external_rule_implementation_backlog.py
+python -m py_compile tools\detection_validation\generate_external_rule_coverage_map.py tools\detection_validation\tamandua_detection_validation.py tools\detection_validation\external_rule_event_contracts.py tools\detection_validation\validate_external_rule_readiness.py
+python tools\detection_validation\tamandua_detection_validation.py --profile tools\detection_validation\profiles\windows_external_semantic_rewrite_p0_p1_execution.json --benchmark-lane external-semantic-rewrite-execution
 ```
 
 ## Promotion Rules
