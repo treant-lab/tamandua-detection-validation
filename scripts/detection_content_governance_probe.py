@@ -78,7 +78,7 @@ SOURCE_CHECKS: list[dict[str, Any]] = [
     {
         "id": "governance-clean-room-acquisition-doc",
         "name": "External rule acquisition document preserves clean-room boundaries",
-        "file": "tools/detection_validation/EXTERNAL_RULE_ACQUISITION.md",
+        "file": "docs/reference/EXTERNAL_RULE_ACQUISITION.md",
         "roadmaps": ["Q"],
         "required": [
             "Do not copy rule bodies",
@@ -114,7 +114,7 @@ SOURCE_CHECKS: list[dict[str, Any]] = [
     {
         "id": "governance-metadata-checker-conservative-fields",
         "name": "Metadata checker enforces high/critical explanation fields",
-        "file": "tools/detection_validation/check_detection_rule_metadata.py",
+        "file": "scripts/check_detection_rule_metadata.py",
         "roadmaps": ["Q"],
         "required": [
             "REQUIRED_HIGH_FIELDS",
