@@ -37,6 +37,13 @@ fixtures: the Rust agent ONNX parity rerun passed on the frozen synthetic
 fixture, while the local checkpoint WIN-TEMPLATE probe still records one
 false-positive candidate on a non-malware high-entropy control.
 
+Mobile/App Guard validation boundary: `fixtures/app_guard_rasp_replay_v1.json`
+adds metadata-only protected WebView/RASP replay fixtures. They validate App
+Guard event shape plus expected alert/timeline projection, including active
+signals, privacy markers, server fanout topics, and "must not 500" contract
+expectations. They do not claim live backend persistence, physical-device
+collection, or store readiness.
+
 See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the standalone
 mirror layout and artifact policy, and [PROBE_CATALOG.md](./PROBE_CATALOG.md)
 for the logical grouping of root-level probes, validators, and test families.
@@ -65,6 +72,12 @@ Probes write JSON/Markdown results to their configured output directory.
 Generated `runs/` and `generated/` outputs are not version-controlled.
 Curated evidence under `docs/benchmarks/runs/` is version-controlled only when
 the monorepo mirror manifest names the file explicitly.
+
+Validate replay fixtures, including App Guard/RASP:
+
+```bash
+python scripts/validate_replay_fixtures.py
+```
 
 ## Validate ML Contracts
 

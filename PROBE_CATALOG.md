@@ -43,7 +43,7 @@ helper, or test family is added.
 | --- | --- |
 | ATT&CK and rule coverage | `attack_coverage_matrix.py`, `generate_external_rule_coverage_map.py`, `external_rule_event_contracts.py`, `validate_external_rule_readiness.py` |
 | Detection governance | `detection_content_governance_probe.py`, `detection_rule_evidence_backlog.py`, `detection_rule_evidence_matrix.py`, `detection_rule_wave_fixture_plan.py` |
-| Replay and telemetry | `event_envelope_replay_probe.py`, `historical_replay_adapter_probe.py`, `telemetry_replay_executor.py`, `telemetry_replay_readiness_probe.py`, `validate_replay_fixtures.py` |
+| Replay and telemetry | `event_envelope_replay_probe.py`, `historical_replay_adapter_probe.py`, `telemetry_replay_executor.py`, `telemetry_replay_readiness_probe.py`, `validate_replay_fixtures.py` including App Guard/RASP protected WebView replay fixtures |
 | DFIR | `dfir_collection_fixture_probe.py`, `dfir_readiness_probe.py` |
 | Fleet and scale | `fleet_inventory_probe.py`, `fleet_scale_isolation_fixture_probe.py` |
 

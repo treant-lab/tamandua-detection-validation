@@ -59,6 +59,10 @@ claim production detection quality.
 - WIN-TEMPLATE agent-bound execution is now proven for a deterministic
   live-response smoke through `tamandua-ctl`; this proves agent connectivity and
   execution evidence, not ML malware detection.
+- App Guard/RASP protected WebView replay fixtures are static contracts only:
+  they prove metadata-only event shape and alert/timeline projection
+  expectations, not live ingestion, physical Android/iOS collection, or store
+  release readiness.
 - Agent-rush ML-1, ML-4, ML-5, and ML-6 reports are dry-run contracts with
   `quality_gate.status=not_run`.
 - ML-3 production gap remains blocked until `ml-prod-candidate-v1` model,
