@@ -43,9 +43,17 @@ jobs:
       - name: Byte-compile all probes
         run: python -m compileall -q .
 
+      - name: Validate replay fixtures
+        run: python scripts/validate_replay_fixtures.py
+
+      - name: App Guard RASP replay pytest
+        run: |
+          PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 \
+          python -m pytest tests/test_validate_app_guard_rasp_replay_fixtures.py -q
+
       - name: Probe --help smoke (representative subset)
         run: |
-          for probe in linux_ebpf_readiness_probe.py attack_coverage_matrix.py; do
+          for probe in scripts/linux_ebpf_readiness_probe.py scripts/attack_coverage_matrix.py; do
             if [ -f "$probe" ]; then
               echo "== $probe --help =="
               python "$probe" --help
