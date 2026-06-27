@@ -9,9 +9,9 @@ helper, or test family is added.
 
 | Group | Files | Purpose |
 | --- | ---: | --- |
-| Tests | 85 | `tests/test_*.py` coverage for standalone contracts, schemas, probes, publication audits, and ML gates. |
+| Tests | 86 | `tests/test_*.py` coverage for standalone contracts, schemas, probes, publication audits, and ML gates. See `tests/README.md` for families. |
 | Generators and probes | 50 | `scripts/*.py` executable validation probes, roadmap generators, benchmark scorecards, and readiness summaries. |
-| Support | 23 | `scripts/*.py` shared runners, adapters, root resolution, migration helpers, and operational utilities. |
+| Support | 20 | `scripts/*.py` shared runners, adapters, root resolution, migration helpers, and operational utilities. |
 | Validators | 7 | `scripts/*.py` contract and metadata validators intended for CI or mirror publication gates. |
 | Docs | 5 | Mirror usage, repository structure, contribution, external-rule, and probe catalog documentation. |
 | Configs | 1 | Top-level integration metadata. |
