@@ -13,7 +13,7 @@ ML-1..ML-6 gates.
 | Path | Purpose |
 | --- | --- |
 | `scripts/` | Standalone probes, scorecard generators, validators, shared helpers, and operational utilities. |
-| `tests/` | Pytest coverage, including focused contract tests and the legacy all-in-one harness. See `tests/README.md` for prefix families. |
+| `tests/` | Pytest coverage, including focused contract tests and the legacy all-in-one harness. |
 | `fixtures/` | Synthetic fixtures and replay inputs. No raw malware or secrets. |
 | `profiles/` | JSON execution profiles for repeatable validation runs. |
 | `roadmaps/` | Roadmap source shards consumed by roadmap tooling. |
@@ -25,9 +25,6 @@ The repository root should not contain Python entry points. Operators call
 scripts with `python scripts/<name>.py ...`; tests live under `tests/`. Use
 [PROBE_CATALOG.md](./PROBE_CATALOG.md) as the maintained index for probe
 domains, ML contract validators, platform probes, and publication rules.
-The current flat pytest layout is intentional for standalone compatibility;
-organize new tests by the filename families documented in `tests/README.md`
-until a dedicated package migration is planned and tested.
 
 ## Artifact Policy
 
@@ -62,10 +59,12 @@ claim production detection quality.
 - WIN-TEMPLATE agent-bound execution is now proven for a deterministic
   live-response smoke through `tamandua-ctl`; this proves agent connectivity and
   execution evidence, not ML malware detection.
-- App Guard/RASP protected WebView replay fixtures are static contracts only:
-  they prove metadata-only event shape and alert/timeline projection
-  expectations, not live ingestion, physical Android/iOS collection, or store
-  release readiness.
+- App Guard/RASP protected WebView and Browser Guard replay fixtures are static
+  contracts only: they prove metadata-only event shape and alert/timeline
+  projection expectations for WebView, anti-debug, anti-tamper, integrity drift,
+  service-worker persistence, suspicious network, and behavior anomaly cases,
+  not live ingestion, browser-extension packaging, physical Android/iOS
+  collection, native collector behavior, or store release readiness.
 - Agent-rush ML-1, ML-4, ML-5, and ML-6 reports are dry-run contracts with
   `quality_gate.status=not_run`.
 - ML-3 production gap remains blocked until `ml-prod-candidate-v1` model,

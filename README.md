@@ -38,11 +38,15 @@ fixture, while the local checkpoint WIN-TEMPLATE probe still records one
 false-positive candidate on a non-malware high-entropy control.
 
 Mobile/App Guard validation boundary: `fixtures/app_guard_rasp_replay_v1.json`
-adds metadata-only protected WebView/RASP replay fixtures. They validate App
-Guard event shape plus expected alert/timeline projection, including active
-signals, privacy markers, server fanout topics, and "must not 500" contract
-expectations. They do not claim live backend persistence, physical-device
-collection, or store readiness.
+adds metadata-only protected WebView/RASP replay fixtures, and
+`fixtures/browser_guard_rasp_replay_v1.json` adds direct Browser Guard/Web SDK
+replay fixtures for anti-debug, anti-tamper, integrity drift, service-worker
+persistence, suspicious network, and behavior anomaly scenarios. They validate
+event shape plus expected alert/timeline projection, including active signals,
+privacy markers, server fanout topics, and "must not 500" contract
+expectations. They do not claim live backend persistence, browser-extension
+packaging, native Android/iOS collector behavior, physical-device collection, or
+store readiness.
 
 See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the standalone
 mirror layout and artifact policy, and [PROBE_CATALOG.md](./PROBE_CATALOG.md)

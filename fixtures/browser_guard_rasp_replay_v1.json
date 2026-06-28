@@ -1,0 +1,574 @@
+{
+  "schema": "tamandua.detection_validation.app_guard_rasp_replay/v1",
+  "schema_version": 1,
+  "fixture_id": "browser-guard-rasp-replay-v1",
+  "description": "Metadata-only Browser Guard/Web SDK replay fixtures derived from the audited RASP browser taxonomy.",
+  "claim_boundary": "Offline browser replay contract only. These fixtures validate Browser Guard/Web SDK event shape and expected alert/timeline projection; they do not prove live backend ingestion, browser-extension packaging, physical-device collection, native Android/iOS collector behavior, or store release readiness.",
+  "fixtures": [
+    {
+      "id": "browser-guard-anti-debug-warn",
+      "input": {
+        "schema": "tamandua.app_guard.event/v1",
+        "event_id": "evt_browser_guard_20260628_rasp_0001",
+        "timestamp": "2026-06-28T06:20:00Z",
+        "event_type": "debugger_detected",
+        "severity": "medium",
+        "platform": "android",
+        "app": {
+          "package_or_bundle_id": "com.example.wallet",
+          "display_name": "Example Wallet WebView",
+          "version": "2.2.0",
+          "build": "220"
+        },
+        "device": {
+          "device_id": "browser-guard-device-001",
+          "model": "Pixel 8",
+          "manufacturer": "Google",
+          "os_version": "15",
+          "managed": false,
+          "mdm_provider": "none"
+        },
+        "session": {
+          "session_id": "browser-session-001",
+          "user_id_hash": "sha256:a9a0116e3020f7b7a5df032aa8f5e4bb77d9257b62cd77c8e655118d54b8f625",
+          "workflow": "login"
+        },
+        "risk": {
+          "score": 45,
+          "decision": "warn",
+          "reasons": [
+            "debugger_detected"
+          ]
+        },
+        "evidence": {
+          "collector": "protected-webview",
+          "source": "rasp_browser_guard_replay_20260628",
+          "privacy_mode": "metadata_only",
+          "active_signals": [
+            {
+              "name": "debugger_detected",
+              "weight": 45
+            }
+          ],
+          "signal_count": 1,
+          "tamper": {
+            "surface": "browser_runtime",
+            "indicator": "debugger_timing_anomaly",
+            "hooked_api": "devtools",
+            "content_sampled": false
+          }
+        }
+      },
+      "expected": {
+        "alert": {
+          "source": "mobile_app_guard",
+          "server_source": "app_guard",
+          "severity": "medium",
+          "detection_rule": "debugger_detected",
+          "recommended_action": null,
+          "metadata_fields": [
+            "app",
+            "device",
+            "session",
+            "risk",
+            "evidence.active_signals"
+          ]
+        },
+        "timeline": {
+          "type": "app_guard_event",
+          "source": "mobile_app_guard",
+          "title_contains": "Debugger Detected",
+          "must_preserve_active_signals": true,
+          "must_preserve_privacy_mode": true
+        },
+        "server": {
+          "required_pubsub_topics": [
+            "app_guard:event",
+            "mobile:app_guard_event",
+            "security:app_guard"
+          ],
+          "required_channel_events": [
+            "events:all",
+            "events:<device_db_id>"
+          ],
+          "must_not_500": true
+        }
+      }
+    },
+    {
+      "id": "browser-guard-anti-tamper-block",
+      "input": {
+        "schema": "tamandua.app_guard.event/v1",
+        "event_id": "evt_browser_guard_20260628_rasp_0002",
+        "timestamp": "2026-06-28T06:21:00Z",
+        "event_type": "browser_tamper_detected",
+        "severity": "high",
+        "platform": "android",
+        "app": {
+          "package_or_bundle_id": "com.example.wallet",
+          "display_name": "Example Wallet WebView",
+          "version": "2.2.0",
+          "build": "220"
+        },
+        "device": {
+          "device_id": "browser-guard-device-002",
+          "model": "Pixel 8",
+          "manufacturer": "Google",
+          "os_version": "15",
+          "managed": false,
+          "mdm_provider": "none"
+        },
+        "session": {
+          "session_id": "browser-session-002",
+          "user_id_hash": "sha256:698e7efad21c57ddab46ed83d36a9134770db3bf16fd94439e10c062cf1af7b1",
+          "workflow": "withdrawal",
+          "transaction_id_hash": "sha256:a2fb0adfb91ad9e86e02fb206c7d2f036978ba9c5fca9c0dd6d7989e024b097f"
+        },
+        "risk": {
+          "score": 82,
+          "decision": "block",
+          "reasons": [
+            "browser_tamper_detected",
+            "integrity_snapshot_changed"
+          ]
+        },
+        "evidence": {
+          "collector": "protected-webview",
+          "source": "rasp_browser_guard_replay_20260628",
+          "privacy_mode": "metadata_only",
+          "active_signals": [
+            {
+              "name": "browser_tamper_detected",
+              "weight": 52
+            },
+            {
+              "name": "integrity_snapshot_changed",
+              "weight": 30
+            }
+          ],
+          "signal_count": 2,
+          "tamper": {
+            "surface": "browser_runtime",
+            "indicator": "protected_function_replaced",
+            "hooked_api": "fetch",
+            "content_sampled": false
+          }
+        }
+      },
+      "expected": {
+        "alert": {
+          "source": "mobile_app_guard",
+          "server_source": "app_guard",
+          "severity": "high",
+          "detection_rule": "browser_tamper_detected",
+          "recommended_action": "block_mobile_workflow",
+          "metadata_fields": [
+            "app",
+            "device",
+            "session",
+            "risk",
+            "evidence.active_signals"
+          ]
+        },
+        "timeline": {
+          "type": "app_guard_event",
+          "source": "mobile_app_guard",
+          "title_contains": "Browser Tamper Detected",
+          "must_preserve_active_signals": true,
+          "must_preserve_privacy_mode": true
+        },
+        "server": {
+          "required_pubsub_topics": [
+            "app_guard:event",
+            "mobile:app_guard_event",
+            "security:app_guard"
+          ],
+          "required_channel_events": [
+            "events:all",
+            "events:<device_db_id>"
+          ],
+          "must_not_500": true
+        }
+      }
+    },
+    {
+      "id": "browser-guard-integrity-drift-observe",
+      "input": {
+        "schema": "tamandua.app_guard.event/v1",
+        "event_id": "evt_browser_guard_20260628_rasp_0003",
+        "timestamp": "2026-06-28T06:22:00Z",
+        "event_type": "integrity_snapshot_changed",
+        "severity": "low",
+        "platform": "ios",
+        "app": {
+          "package_or_bundle_id": "com.example.wallet.ios",
+          "display_name": "Example Wallet WKWebView",
+          "version": "2.2.0",
+          "build": "220"
+        },
+        "device": {
+          "device_id": "browser-guard-device-003",
+          "model": "iPhone 15",
+          "manufacturer": "Apple",
+          "os_version": "18",
+          "managed": false,
+          "mdm_provider": "none"
+        },
+        "session": {
+          "session_id": "browser-session-003",
+          "user_id_hash": "sha256:2ac769e5505987b0762beaa46f366edc696a4eb53c1d856a2ac17490b8e93a91",
+          "workflow": "portfolio_view"
+        },
+        "risk": {
+          "score": 28,
+          "decision": "observe",
+          "reasons": [
+            "integrity_snapshot_changed"
+          ]
+        },
+        "evidence": {
+          "collector": "protected-webview",
+          "source": "rasp_browser_guard_replay_20260628",
+          "privacy_mode": "metadata_only",
+          "active_signals": [
+            {
+              "name": "integrity_snapshot_changed",
+              "weight": 28
+            }
+          ],
+          "signal_count": 1,
+          "tamper": {
+            "surface": "sdk_integrity",
+            "indicator": "descriptor_drift",
+            "hooked_api": "RASPUnified",
+            "content_sampled": false
+          }
+        }
+      },
+      "expected": {
+        "alert": {
+          "source": "mobile_app_guard",
+          "server_source": "app_guard",
+          "severity": "low",
+          "detection_rule": "integrity_snapshot_changed",
+          "recommended_action": null,
+          "metadata_fields": [
+            "app",
+            "device",
+            "session",
+            "risk",
+            "evidence.active_signals"
+          ]
+        },
+        "timeline": {
+          "type": "app_guard_event",
+          "source": "mobile_app_guard",
+          "title_contains": "Integrity Snapshot Changed",
+          "must_preserve_active_signals": true,
+          "must_preserve_privacy_mode": true
+        },
+        "server": {
+          "required_pubsub_topics": [
+            "app_guard:event",
+            "mobile:app_guard_event",
+            "security:app_guard"
+          ],
+          "required_channel_events": [
+            "events:all",
+            "events:<device_db_id>"
+          ],
+          "must_not_500": true
+        }
+      }
+    },
+    {
+      "id": "browser-guard-service-worker-persistence-step-up",
+      "input": {
+        "schema": "tamandua.app_guard.event/v1",
+        "event_id": "evt_browser_guard_20260628_rasp_0004",
+        "timestamp": "2026-06-28T06:23:00Z",
+        "event_type": "browser_tamper_detected",
+        "severity": "high",
+        "platform": "android",
+        "app": {
+          "package_or_bundle_id": "com.example.wallet",
+          "display_name": "Example Wallet WebView",
+          "version": "2.2.0",
+          "build": "220"
+        },
+        "device": {
+          "device_id": "browser-guard-device-004",
+          "model": "Pixel 8",
+          "manufacturer": "Google",
+          "os_version": "15",
+          "managed": false,
+          "mdm_provider": "none"
+        },
+        "session": {
+          "session_id": "browser-session-004",
+          "user_id_hash": "sha256:6ff58bbf689a93d87a3d3e320d63d4b6a645d4b2d26d7f8461e44386170ef84b",
+          "workflow": "embedded_checkout"
+        },
+        "risk": {
+          "score": 70,
+          "decision": "step_up",
+          "reasons": [
+            "browser_tamper_detected",
+            "network_exfiltration_suspected"
+          ]
+        },
+        "evidence": {
+          "collector": "protected-webview",
+          "source": "rasp_browser_guard_replay_20260628",
+          "privacy_mode": "metadata_only",
+          "active_signals": [
+            {
+              "name": "browser_tamper_detected",
+              "weight": 35
+            },
+            {
+              "name": "network_exfiltration_suspected",
+              "weight": 35
+            }
+          ],
+          "signal_count": 2,
+          "tamper": {
+            "surface": "service_worker",
+            "indicator": "unexpected_persistent_worker",
+            "hooked_api": "navigator.serviceWorker",
+            "content_sampled": false
+          },
+          "network": {
+            "scheme": "https",
+            "host_hash": "sha256:27bb3c9c4df9b2c9ff64b124c0b46b0d5634baca3ab449d2df83f2c6ee03d21c",
+            "destination_category": "unexpected_worker_scope",
+            "request_count": 2,
+            "duration_ms": 740
+          }
+        }
+      },
+      "expected": {
+        "alert": {
+          "source": "mobile_app_guard",
+          "server_source": "app_guard",
+          "severity": "high",
+          "detection_rule": "browser_tamper_detected",
+          "recommended_action": "step_up_auth",
+          "metadata_fields": [
+            "app",
+            "device",
+            "session",
+            "risk",
+            "evidence.active_signals"
+          ]
+        },
+        "timeline": {
+          "type": "app_guard_event",
+          "source": "mobile_app_guard",
+          "title_contains": "Browser Tamper Detected",
+          "must_preserve_active_signals": true,
+          "must_preserve_privacy_mode": true
+        },
+        "server": {
+          "required_pubsub_topics": [
+            "app_guard:event",
+            "mobile:app_guard_event",
+            "security:app_guard"
+          ],
+          "required_channel_events": [
+            "events:all",
+            "events:<device_db_id>"
+          ],
+          "must_not_500": true
+        }
+      }
+    },
+    {
+      "id": "browser-guard-suspicious-network-step-up",
+      "input": {
+        "schema": "tamandua.app_guard.event/v1",
+        "event_id": "evt_browser_guard_20260628_rasp_0005",
+        "timestamp": "2026-06-28T06:24:00Z",
+        "event_type": "network_exfiltration_suspected",
+        "severity": "high",
+        "platform": "ios",
+        "app": {
+          "package_or_bundle_id": "com.example.wallet.ios",
+          "display_name": "Example Wallet WKWebView",
+          "version": "2.2.0",
+          "build": "220"
+        },
+        "device": {
+          "device_id": "browser-guard-device-005",
+          "model": "iPhone 15",
+          "manufacturer": "Apple",
+          "os_version": "18",
+          "managed": false,
+          "mdm_provider": "none"
+        },
+        "session": {
+          "session_id": "browser-session-005",
+          "user_id_hash": "sha256:ef3ae58f0b1dcc22262f6ff968a6b55d957d8a449833414b7d4102a0552e68a4",
+          "workflow": "seed_backup"
+        },
+        "risk": {
+          "score": 76,
+          "decision": "step_up",
+          "reasons": [
+            "network_exfiltration_suspected"
+          ]
+        },
+        "evidence": {
+          "collector": "protected-webview",
+          "source": "rasp_browser_guard_replay_20260628",
+          "privacy_mode": "metadata_only",
+          "active_signals": [
+            {
+              "name": "network_exfiltration_suspected",
+              "weight": 76
+            }
+          ],
+          "signal_count": 1,
+          "network": {
+            "scheme": "https",
+            "host_hash": "sha256:be1d4b6876109f7794f5a7b71b2a845ec3c616fa3b7d301e34c4a79d8f7d0454",
+            "destination_category": "newly_seen_domain",
+            "request_count": 5,
+            "duration_ms": 2120
+          }
+        }
+      },
+      "expected": {
+        "alert": {
+          "source": "mobile_app_guard",
+          "server_source": "app_guard",
+          "severity": "high",
+          "detection_rule": "network_exfiltration_suspected",
+          "recommended_action": "step_up_auth",
+          "metadata_fields": [
+            "app",
+            "device",
+            "session",
+            "risk",
+            "evidence.active_signals"
+          ]
+        },
+        "timeline": {
+          "type": "app_guard_event",
+          "source": "mobile_app_guard",
+          "title_contains": "Network Exfiltration Suspected",
+          "must_preserve_active_signals": true,
+          "must_preserve_privacy_mode": true
+        },
+        "server": {
+          "required_pubsub_topics": [
+            "app_guard:event",
+            "mobile:app_guard_event",
+            "security:app_guard"
+          ],
+          "required_channel_events": [
+            "events:all",
+            "events:<device_db_id>"
+          ],
+          "must_not_500": true
+        }
+      }
+    },
+    {
+      "id": "browser-guard-behavior-anomaly-kill-session",
+      "input": {
+        "schema": "tamandua.app_guard.event/v1",
+        "event_id": "evt_browser_guard_20260628_rasp_0006",
+        "timestamp": "2026-06-28T06:25:00Z",
+        "event_type": "behavior_anomaly_detected",
+        "severity": "critical",
+        "platform": "android",
+        "app": {
+          "package_or_bundle_id": "com.example.wallet",
+          "display_name": "Example Wallet WebView",
+          "version": "2.2.0",
+          "build": "220"
+        },
+        "device": {
+          "device_id": "browser-guard-device-006",
+          "model": "Pixel 8",
+          "manufacturer": "Google",
+          "os_version": "15",
+          "managed": false,
+          "mdm_provider": "none"
+        },
+        "session": {
+          "session_id": "browser-session-006",
+          "user_id_hash": "sha256:89d38bf8f3b78570f8424f227d7b67bfd3372e8dc8867af0e02f8c71af7b842f",
+          "workflow": "withdrawal",
+          "transaction_id_hash": "sha256:8c6c359da4fd764d395d965046332315a848b6a66884d2c86b7d5d602c7430f8"
+        },
+        "risk": {
+          "score": 95,
+          "decision": "kill_session",
+          "reasons": [
+            "behavior_anomaly_detected",
+            "automation_detected"
+          ]
+        },
+        "evidence": {
+          "collector": "protected-webview",
+          "source": "rasp_browser_guard_replay_20260628",
+          "privacy_mode": "metadata_only",
+          "active_signals": [
+            {
+              "name": "behavior_anomaly_detected",
+              "weight": 60
+            },
+            {
+              "name": "automation_detected",
+              "weight": 35
+            }
+          ],
+          "signal_count": 2,
+          "tamper": {
+            "surface": "behavior_model",
+            "indicator": "synthetic_interaction_sequence",
+            "hooked_api": "input_dispatch",
+            "content_sampled": false
+          }
+        }
+      },
+      "expected": {
+        "alert": {
+          "source": "mobile_app_guard",
+          "server_source": "app_guard",
+          "severity": "critical",
+          "detection_rule": "behavior_anomaly_detected",
+          "recommended_action": "kill_session",
+          "metadata_fields": [
+            "app",
+            "device",
+            "session",
+            "risk",
+            "evidence.active_signals"
+          ]
+        },
+        "timeline": {
+          "type": "app_guard_event",
+          "source": "mobile_app_guard",
+          "title_contains": "Behavior Anomaly Detected",
+          "must_preserve_active_signals": true,
+          "must_preserve_privacy_mode": true
+        },
+        "server": {
+          "required_pubsub_topics": [
+            "app_guard:event",
+            "mobile:app_guard_event",
+            "security:app_guard"
+          ],
+          "required_channel_events": [
+            "events:all",
+            "events:<device_db_id>"
+          ],
+          "must_not_500": true
+        }
+      }
+    }
+  ]
+}
