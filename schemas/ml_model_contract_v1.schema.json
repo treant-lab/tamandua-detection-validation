@@ -168,7 +168,15 @@
       "properties": {
         "malicious_threshold": {"type": "number", "minimum": 0, "maximum": 1},
         "malicious_rule": {"const": "predicted_index_not_0_and_confidence_gte_threshold"},
-        "observe_before_block": {"const": true}
+        "observe_before_block": {"const": true},
+        "threshold_source": {
+          "enum": ["template_default", "ml1_threshold_calibration"]
+        },
+        "threshold_target_max_fpr": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 1
+        }
       }
     },
     "runtime": {
