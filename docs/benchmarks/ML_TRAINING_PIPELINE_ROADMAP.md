@@ -500,15 +500,19 @@ Latest post-403 VirusShare fallback operator-route and mirror hold refresh:
 
 - Current mirror state is captured by the latest `ml_mirror_publication_audit`
   artifact under `docs/benchmarks/runs/`.
-- `tamandua-server` and `tamandua-detection-validation` are published and clean
-  in that audit.
+- `tamandua-server` is published and clean in that audit. The
+  `tamandua-detection-validation` remote is published at `c6d162b`; local
+  staging is prepared at `d2650c8` after the ML roadmap test snapshot guard
+  sync, but remote update is intentionally pending because the push dry-run
+  reports a diverged snapshot that would require an explicit `--force`
+  publication decision.
 - `tamandua-ml` is clean locally, remote remains `empty`, and publication
   remains `hold_do_not_push`.
 - Most recent mirror publication state at this roadmap refresh:
-  `tamandua-detection-validation` is published at
-  `7a5b15e Update-ML-fallback-validation-contracts`; `tamandua-ml` is staged
-  locally at `16d7c84 Stage-post-403-VirusShare-fallback-gate` and remains
-  HOLD with remote `empty`.
+  `tamandua-detection-validation` is locally staged at
+  `d2650c8 Sync ML roadmap test snapshot guard`, with remote `origin/main` at
+  `c6d162b Fix validation guard path resolution`; `tamandua-ml` remains staged
+  locally and on HOLD, with publication skipped by the mirror manifest.
 - The refreshed Wave 1 post-lab-root guarded packet is now the command source
   of truth for acquisition:
   `docs/benchmarks/runs/20260621T-ml-wave1-guarded-run-command-packet-post-lab-root.json`.
