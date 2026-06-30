@@ -165,7 +165,7 @@ document disagrees with generated JSON contracts, the generated contracts win.
   `docs/benchmarks/runs/20260621T-ml-mirror-publication-post-lab-root-sync.json`.
   It validates `jsonschema+built-in` and records the current split state after
   the allowed mirrors were pushed: 8/9 mirrors are clean and push-ready,
-  `tamandua-ml` staging is clean at local snapshot `c294885` with 731 tracked
+  `tamandua-ml` staging is clean at local snapshot `8219957` with 800 tracked
   files, the ML remote remains empty by policy, and publication remains
   `hold_do_not_push` because `manifest_hold_active` and
   `ml_experimental_release_gate_active` are still true.

@@ -13,7 +13,7 @@ except ImportError:
 TOOLS = ROOT / "tools" / "detection_validation"
 sys.path.insert(0, str(TOOLS))
 
-from ml_public_claims_guard import DEFAULT_PUBLIC_FILES, validate_public_claims  # noqa: E402
+from ml_public_claims_guard import DEFAULT_PUBLIC_FILES, default_public_claim_files, validate_public_claims  # noqa: E402
 
 
 def test_public_claims_guard_rejects_ml_powered_overclaim(tmp_path: Path) -> None:
@@ -63,3 +63,19 @@ def test_public_claims_guard_includes_ml_training_pipeline_roadmap() -> None:
 
     assert roadmap in DEFAULT_PUBLIC_FILES
     validate_public_claims([roadmap])
+
+
+def test_public_claims_guard_filters_missing_defaults_in_standalone(monkeypatch: object, tmp_path: Path) -> None:
+    present = tmp_path / "README.md"
+    missing = tmp_path / "docs" / "KNOWN_PRODUCTION_GAPS.md"
+    present.write_text(
+        "Tamandua includes Malware-SMELL inspired scoring. "
+        "Current artifacts are validation-ready and production validation pending.",
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr("ml_public_claims_guard.DEFAULT_PUBLIC_FILES", [present, missing])
+    monkeypatch.setattr("ml_public_claims_guard.is_standalone", lambda: True)
+
+    assert default_public_claim_files() == [present]
+    validate_public_claims(default_public_claim_files())

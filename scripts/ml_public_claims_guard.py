@@ -129,6 +129,14 @@ def validate_public_claims(paths: list[Path]) -> None:
     raise SystemExit("\n".join(lines))
 
 
+def default_public_claim_files() -> list[Path]:
+    """Return the default claim surfaces for the current repository layout."""
+
+    if is_standalone():
+        return [path for path in DEFAULT_PUBLIC_FILES if path.exists()]
+    return DEFAULT_PUBLIC_FILES
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -142,7 +150,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
 def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
-    paths = [path if path.is_absolute() else ROOT / path for path in args.path] if args.path else DEFAULT_PUBLIC_FILES
+    paths = (
+        [path if path.is_absolute() else ROOT / path for path in args.path]
+        if args.path
+        else default_public_claim_files()
+    )
     validate_public_claims(paths)
     print(f"validated public ML claim boundaries: {len(paths)} files")
     return 0
