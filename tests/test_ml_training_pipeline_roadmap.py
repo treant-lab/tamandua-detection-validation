@@ -104,7 +104,8 @@ def test_ml_training_pipeline_roadmap_uses_current_post_403_virusshare_next_step
     assert "20260620T2310Z-ml-platform-readiness-after-secret-sanitization.json" in text
     assert "20260620T2310Z-ml-mirror-publication-after-secret-sanitization.json" in text
     assert "20260621T-ml-mirror-publication-post-lab-root-sync.json" in text
-    assert "tamandua-ml` staging is clean at local snapshot `c294885` with 731 tracked" in text
+    assert "`tamandua-ml` staging is clean at local snapshot `8219957` with 800 tracked" in text
+    assert "`221ccdd` with 731 tracked files" in text
     assert "20260620T2320Z-ml-next-action-secret-readiness.json" in text
     assert "20260621T-ml-wave1-source-decision-post-malwarebazaar-403.json" in text
     assert "20260621T-ml-next-action-post-malwarebazaar-403-virusshare-lab-root.run.json" in text
