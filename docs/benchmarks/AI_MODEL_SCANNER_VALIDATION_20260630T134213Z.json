@@ -1,0 +1,458 @@
+{
+  "timestamp": "2026-06-30T13:42:10.737617+00:00",
+  "scanner_availability": {
+    "PickleGuard": true,
+    "GGUFGuard": true,
+    "SafetensorsGuard": true,
+    "ONNXGuard": true,
+    "WeightAnalyzer": true,
+    "SpectralAnalyzer": true
+  },
+  "scanner_errors": {},
+  "corpus": {
+    "malicious_count": 11,
+    "clean_count": 3
+  },
+  "samples": [
+    {
+      "name": "pickle_rce.pkl",
+      "type": "malicious",
+      "format": "pickle",
+      "attack": "Code execution via os.system",
+      "technique": "T1059.006",
+      "scanners": {
+        "PickleGuard": {
+          "flagged": true,
+          "score": 0.95,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Weights only load failed. In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.\nPlease file an issue with the following so that we can make `weights_only=True` compatible with your use case: WeightsUnpickler error: Unsupported operand 149\n\nCheck the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html."
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Weights only load failed. In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.\nPlease file an issue with the following so that we can make `weights_only=True` compatible with your use case: WeightsUnpickler error: Unsupported operand 149\n\nCheck the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html."
+        }
+      }
+    },
+    {
+      "name": "gguf_jinja2_injection.gguf",
+      "type": "malicious",
+      "format": "gguf",
+      "attack": "CVE-2024-34359 template injection",
+      "technique": "T1059",
+      "scanners": {
+        "GGUFGuard": {
+          "flagged": true,
+          "score": 0.9981,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "prompt_injection.gguf",
+      "type": "malicious",
+      "format": "gguf",
+      "attack": "Embedded jailbreak prompts",
+      "technique": "T1566",
+      "scanners": {
+        "GGUFGuard": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "safetensors_anomalous_weights.safetensors",
+      "type": "malicious",
+      "format": "safetensors",
+      "attack": "Anomalous weight distributions",
+      "technique": "T1027",
+      "scanners": {
+        "SafetensorsGuard": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "steganography_hidden_data.safetensors",
+      "type": "malicious",
+      "format": "safetensors",
+      "attack": "Hidden data in weight LSBs",
+      "technique": "T1027.001",
+      "scanners": {
+        "SafetensorsGuard": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "compression_bomb.safetensors",
+      "type": "malicious",
+      "format": "safetensors",
+      "attack": "DoS via size mismatch",
+      "technique": "T1499.004",
+      "scanners": {
+        "SafetensorsGuard": {
+          "flagged": true,
+          "score": 0.95,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Error while deserializing header: MetadataIncompleteBuffer"
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Error while deserializing header: MetadataIncompleteBuffer"
+        }
+      }
+    },
+    {
+      "name": "format_confusion.safetensors",
+      "type": "malicious",
+      "format": "safetensors",
+      "attack": "Pickle disguised as safetensors",
+      "technique": "T1036.008",
+      "scanners": {
+        "SafetensorsGuard": {
+          "flagged": true,
+          "score": 0.85,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Error while deserializing header: HeaderTooLarge"
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Error while deserializing header: HeaderTooLarge"
+        }
+      }
+    },
+    {
+      "name": "anomaly_sample.safetensors",
+      "type": "malicious",
+      "format": "safetensors",
+      "attack": "Extra keys, unusual structure",
+      "technique": "T1027",
+      "scanners": {
+        "SafetensorsGuard": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": true,
+          "score": 0.5639466545631389,
+          "error": null
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "onnx_external_refs.onnx",
+      "type": "malicious",
+      "format": "onnx",
+      "attack": "External data reference",
+      "technique": "T1105",
+      "scanners": {
+        "ONNXGuard": {
+          "flagged": true,
+          "score": 0.9978,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Data of TensorProto ( tensor name: weight) should be stored in /tmp/malicious_weights.bin, but it doesn't exist or is not accessible."
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Data of TensorProto ( tensor name: weight) should be stored in /tmp/malicious_weights.bin, but it doesn't exist or is not accessible."
+        }
+      }
+    },
+    {
+      "name": "config_injection/model.safetensors",
+      "type": "malicious",
+      "format": "safetensors",
+      "attack": "Malicious config.json",
+      "technique": "T1059",
+      "scanners": {
+        "SafetensorsGuard": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "lora_injection/adapter_model.safetensors",
+      "type": "malicious",
+      "format": "safetensors",
+      "attack": "Malicious LoRA adapter",
+      "technique": "T1195.002",
+      "scanners": {
+        "SafetensorsGuard": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": true,
+          "score": 0.5490711982334193,
+          "error": null
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "baseline_pickle.pkl",
+      "type": "clean",
+      "format": "pickle",
+      "scanners": {
+        "PickleGuard": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Weights only load failed. In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.\nPlease file an issue with the following so that we can make `weights_only=True` compatible with your use case: WeightsUnpickler error: Unsupported operand 149\n\nCheck the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html."
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": null,
+          "error": "Failed to extract weights: Weights only load failed. In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.\nPlease file an issue with the following so that we can make `weights_only=True` compatible with your use case: WeightsUnpickler error: Unsupported operand 149\n\nCheck the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html."
+        }
+      }
+    },
+    {
+      "name": "baseline_safetensors.safetensors",
+      "type": "clean",
+      "format": "safetensors",
+      "scanners": {
+        "SafetensorsGuard": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        }
+      }
+    },
+    {
+      "name": "baseline_onnx.onnx",
+      "type": "clean",
+      "format": "onnx",
+      "scanners": {
+        "ONNXGuard": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "WeightAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        },
+        "SpectralAnalyzer": {
+          "flagged": false,
+          "score": 0.0,
+          "error": null
+        }
+      }
+    }
+  ],
+  "metrics": {
+    "PickleGuard": {
+      "tp": 1,
+      "tn": 1,
+      "fp": 0,
+      "fn": 0,
+      "tpr": 1.0,
+      "fpr": 0.0,
+      "precision": 1.0,
+      "accuracy": 1.0,
+      "errors": 0
+    },
+    "WeightAnalyzer": {
+      "tp": 2,
+      "tn": 2,
+      "fp": 0,
+      "fn": 3,
+      "tpr": 0.4,
+      "fpr": 0.0,
+      "precision": 1.0,
+      "accuracy": 0.5714285714285714,
+      "errors": 5
+    },
+    "SpectralAnalyzer": {
+      "tp": 0,
+      "tn": 2,
+      "fp": 0,
+      "fn": 5,
+      "tpr": 0.0,
+      "fpr": 0.0,
+      "precision": 0.0,
+      "accuracy": 0.2857142857142857,
+      "errors": 5
+    },
+    "GGUFGuard": {
+      "tp": 1,
+      "tn": 0,
+      "fp": 0,
+      "fn": 1,
+      "tpr": 0.5,
+      "fpr": 0.0,
+      "precision": 1.0,
+      "accuracy": 0.5,
+      "errors": 0
+    },
+    "SafetensorsGuard": {
+      "tp": 2,
+      "tn": 1,
+      "fp": 0,
+      "fn": 5,
+      "tpr": 0.2857142857142857,
+      "fpr": 0.0,
+      "precision": 1.0,
+      "accuracy": 0.375,
+      "errors": 0
+    },
+    "ONNXGuard": {
+      "tp": 1,
+      "tn": 1,
+      "fp": 0,
+      "fn": 0,
+      "tpr": 1.0,
+      "fpr": 0.0,
+      "precision": 1.0,
+      "accuracy": 1.0,
+      "errors": 0
+    }
+  },
+  "format_breakdown": {
+    "PickleGuard": {
+      "pickle": {
+        "tp": 1,
+        "tn": 1,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "GGUFGuard": {
+      "gguf": {
+        "tp": 1,
+        "tn": 0,
+        "fp": 0,
+        "fn": 1
+      }
+    },
+    "SafetensorsGuard": {
+      "safetensors": {
+        "tp": 2,
+        "tn": 1,
+        "fp": 0,
+        "fn": 5
+      }
+    },
+    "WeightAnalyzer": {
+      "safetensors": {
+        "tp": 2,
+        "tn": 1,
+        "fp": 0,
+        "fn": 3
+      },
+      "onnx": {
+        "tp": 0,
+        "tn": 1,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "SpectralAnalyzer": {
+      "safetensors": {
+        "tp": 0,
+        "tn": 1,
+        "fp": 0,
+        "fn": 5
+      },
+      "onnx": {
+        "tp": 0,
+        "tn": 1,
+        "fp": 0,
+        "fn": 0
+      }
+    },
+    "ONNXGuard": {
+      "onnx": {
+        "tp": 1,
+        "tn": 1,
+        "fp": 0,
+        "fn": 0
+      }
+    }
+  }
+}
