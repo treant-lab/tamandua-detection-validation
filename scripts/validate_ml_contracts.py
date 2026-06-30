@@ -16,7 +16,15 @@ from typing import Any
 try:
     from root_resolver import ROOT, RUNS_DIR, is_standalone
 except ImportError:
-    ROOT = Path(__file__).resolve().parents[2]
+    script_path = Path(__file__).resolve()
+    ROOT = next(
+        (
+            parent
+            for parent in script_path.parents
+            if (parent / "schemas").exists() and (parent / "apps").exists() and (parent / "tools").exists()
+        ),
+        script_path.parents[2],
+    )
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
 DEFAULT_DATASET_MANIFEST = ROOT / "docs/apps/tamandua_ml/examples/ml_dataset_manifest_smoke_v1.json"

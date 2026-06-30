@@ -243,7 +243,7 @@ def valid_audit() -> dict:
             "public_claim_evidence_boundary",
             "ML-0",
             "Public claim boundary guard evidence complete",
-            ["tools/detection_validation/ml_public_claims_guard.py"],
+            ["tools/detection_validation/scripts/ml_public_claims_guard.py"],
         ),
     ]
     completion_items = [

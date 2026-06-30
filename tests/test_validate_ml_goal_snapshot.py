@@ -131,14 +131,14 @@ def valid_goal_snapshot() -> dict:
             "phase_state": "evidence_exists",
             "execute_guard_env": "",
             "pending_targets": [],
-            "required_evidence": ["tools/detection_validation/ml_public_claims_guard.py"],
+            "required_evidence": ["tools/detection_validation/scripts/ml_public_claims_guard.py"],
             "missing_or_unusable_evidence": [],
             "platform_status": "proven",
             "platform_blockers": [],
             "evidence_state": "proven",
             "evidence": [
                 {
-                    "ref": "tools/detection_validation/ml_public_claims_guard.py",
+                    "ref": "tools/detection_validation/scripts/ml_public_claims_guard.py",
                     "type": "file",
                     "present": True,
                     "usable": True,
