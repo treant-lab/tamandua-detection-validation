@@ -1,0 +1,639 @@
+{
+  "api_version": "tamandua.io/ml-mirror-publication-audit/v1",
+  "components": [
+    {
+      "artifact_policy": {},
+      "build_deferred": false,
+      "build_note": "",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "f22978d",
+      "name": "tamandua-agent",
+      "publication_blockers": [],
+      "publication_decision": "ready_to_push",
+      "push_ready": true,
+      "remote": {
+        "detail": "origin_has_content",
+        "head": "f22978d7",
+        "state": "has_content"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-agent",
+      "tracked_files": 499,
+      "wave": 1
+    },
+    {
+      "artifact_policy": {},
+      "build_deferred": false,
+      "build_note": "",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "ba505bf",
+      "name": "tamandua-core",
+      "publication_blockers": [],
+      "publication_decision": "ready_to_push",
+      "push_ready": true,
+      "remote": {
+        "detail": "origin_has_content",
+        "head": "ba505bfc",
+        "state": "has_content"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-core",
+      "tracked_files": 46,
+      "wave": 0
+    },
+    {
+      "artifact_policy": {},
+      "build_deferred": false,
+      "build_note": "",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "23f5ec6",
+      "name": "tamandua-ctl",
+      "publication_blockers": [],
+      "publication_decision": "ready_to_push",
+      "push_ready": true,
+      "remote": {
+        "detail": "origin_has_content",
+        "head": "23f5ec67",
+        "state": "has_content"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-ctl",
+      "tracked_files": 23,
+      "wave": 2
+    },
+    {
+      "artifact_policy": {},
+      "build_deferred": true,
+      "build_note": "Tauri build deferred to CI: needs frontend dist + fetched agent binary",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "2f7a111",
+      "name": "tamandua-gui",
+      "publication_blockers": [],
+      "publication_decision": "ready_to_push",
+      "push_ready": true,
+      "remote": {
+        "detail": "origin_has_content",
+        "head": "2f7a111e",
+        "state": "has_content"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-gui",
+      "tracked_files": 258,
+      "wave": 2
+    },
+    {
+      "artifact_policy": {},
+      "build_deferred": true,
+      "build_note": "",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "92d57e3",
+      "name": "tamandua-browser-extension",
+      "publication_blockers": [],
+      "publication_decision": "ready_to_push",
+      "push_ready": true,
+      "remote": {
+        "detail": "origin_has_content",
+        "head": "92d57e3b",
+        "state": "has_content"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-browser-extension",
+      "tracked_files": 43,
+      "wave": 1
+    },
+    {
+      "artifact_policy": {},
+      "build_deferred": true,
+      "build_note": "Elixir/rustler build deferred to CI Linux runner (pg/redis/rabbitmq services; bcrypt nif)",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "df4a519",
+      "name": "tamandua-server",
+      "publication_blockers": [],
+      "publication_decision": "ready_to_push",
+      "push_ready": true,
+      "remote": {
+        "detail": "origin_has_content",
+        "head": "df4a519e",
+        "state": "has_content"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-server",
+      "tracked_files": 2489,
+      "wave": 3
+    },
+    {
+      "artifact_policy": {},
+      "build_deferred": true,
+      "build_note": "Standalone via scripts/root_resolver.py; set TAMANDUA_ROOT for external deployment",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "b842a2b",
+      "name": "tamandua-detection-validation",
+      "publication_blockers": [],
+      "publication_decision": "ready_to_push",
+      "push_ready": true,
+      "remote": {
+        "detail": "origin_has_content",
+        "head": "b842a2b9",
+        "state": "has_content"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-detection-validation",
+      "tracked_files": 514,
+      "wave": 4
+    },
+    {
+      "artifact_policy": {
+        "current_bootstrap_artifacts": {
+          "encoder.pt": "exclude: 113 MB bootstrap checkpoint, no held-out validation",
+          "markers.pkl": "exclude from source mirror; release artifact only after benchmark gate",
+          "metadata.json": "allowed metadata, must retain bootstrap caveat",
+          "reference_embeddings.npz": "exclude from source mirror; release artifact only after benchmark gate",
+          "static_latent_probe.pkl": "exclude from source mirror; benchmark evidence artifact only"
+        },
+        "exclude_from_source_mirror": [
+          "*.pt",
+          "*.pth",
+          "models/*.pkl",
+          "models/*.npz",
+          "checkpoints/**",
+          "data/**"
+        ],
+        "release_artifact_policy": "Trained weights, markers, and reference embeddings may ship only as signed release artifacts after Wave 1/ML-1 benchmark gates and model-card evidence are green.",
+        "ship_in_source_mirror": [
+          "metadata.json",
+          "sample fixtures",
+          "model contracts",
+          "benchmark reports",
+          "source code"
+        ],
+        "source_mirror_policy": "metadata_and_code_only",
+        "status": "resolved"
+      },
+      "build_deferred": false,
+      "build_note": "Standalone validation is metadata/dry-run only: mirror publication audit, benchmark report contracts, ML-3 agent production-gap audit, and VX Underground inventory contracts. Experimental sequence heads remain UNTRAINED (501) and external wrappers stay fenced.",
+      "clearance_criteria": [
+        {
+          "evidence": "Experimental label: sequence heads untrained, external wrappers dormant, and platform readiness audit not complete",
+          "id": "ml_manifest_hold_removed",
+          "passed": false
+        },
+        {
+          "evidence": "{\"cleared\": false, \"completion_state\": \"partial_evidence\", \"goal_missing_requirements\": 9, \"latest_platform_readiness_audit\": \"docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.json\", \"missing_requirement_ids\": [\"wave1_governed_acquisition\", \"wave1_sanitized_manifest\", \"ml1_model_quality\", \"ml1_model_contract_and_card\", \"ml2_pytorch_onnx_parity\", \"ml3_agent_onnx_parity\", \"ml4_service_benchmark\", \"ml5_tamandua_replay\", \"ml6_cross_time_holdout\"], \"next_unproven_execute_guard_env\": \"TAMANDUA_ALLOW_ML_REAL_ACQUISITION\", \"next_unproven_requirement_id\": \"wave1_governed_acquisition\", \"next_unproven_requirement_phase\": \"01-wave1-manifest-publication\", \"production_candidate_ready\": false, \"proven\": 1, \"readiness_audit_exists\": true, \"status\": \"active\", \"total_requirements\": 10}",
+          "id": "ml_experimental_release_gate_cleared",
+          "passed": false
+        },
+        {
+          "evidence": "clean",
+          "id": "ml_staging_clean",
+          "passed": true
+        },
+        {
+          "evidence": "{\"current_bootstrap_artifacts\": {\"encoder.pt\": \"exclude: 113 MB bootstrap checkpoint, no held-out validation\", \"markers.pkl\": \"exclude from source mirror; release artifact only after benchmark gate\", \"metadata.json\": \"allowed metadata, must retain bootstrap caveat\", \"reference_embeddings.npz\": \"exclude from source mirror; release artifact only after benchmark gate\", \"static_latent_probe.pkl\": \"exclude from source mirror; benchmark evidence artifact only\"}, \"exclude_from_source_mirror\": [\"*.pt\", \"*.pth\", \"models/*.pkl\", \"models/*.npz\", \"checkpoints/**\", \"data/**\"], \"release_artifact_policy\": \"Trained weights, markers, and reference embeddings may ship only as signed release artifacts after Wave 1/ML-1 benchmark gates and model-card evidence are green.\", \"ship_in_source_mirror\": [\"metadata.json\", \"sample fixtures\", \"model contracts\", \"benchmark reports\", \"source code\"], \"source_mirror_policy\": \"metadata_and_code_only\", \"status\": \"resolved\"}",
+          "id": "ml_artifact_policy_resolved",
+          "passed": true
+        },
+        {
+          "evidence": "Standalone validation is metadata/dry-run only: mirror publication audit, benchmark report contracts, ML-3 agent production-gap audit, and VX Underground inventory contracts. Experimental sequence heads remain UNTRAINED (501) and external wrappers stay fenced.",
+          "id": "ml_standalone_validation_defined",
+          "passed": true
+        },
+        {
+          "evidence": "{\"reason\": \"Do not push the empty tamandua-ml remote until the experimental release gate clears, model-card evidence is current, and the first public source-mirror publish is explicitly approved.\", \"required_before_approval\": [\"experimental_hold_removed\", \"model_card_current\", \"benchmark_gate_evidence_current\", \"first_public_source_mirror_publish_approved\"], \"status\": \"deferred\"}",
+          "id": "ml_initial_publication_decision_recorded",
+          "passed": true
+        }
+      ],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {
+        "current_evidence_summary": "20260621T post-WIN-TEMPLATE gate threading audit: production_candidate_ready=false, completion_state=partial_evidence, proven=1/10, incomplete=1/10, missing=8/10, evidence=5 present / 11 missing / 4 unusable, next_unproven_requirement=wave1_governed_acquisition, next_unblock_actions=9.",
+        "latest_platform_readiness_audit": "docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.json",
+        "required_completion_state": "complete",
+        "required_production_candidate_ready": true,
+        "status": "active"
+      },
+      "experimental_release_gate_evidence": {
+        "cleared": false,
+        "completion_requirements": [
+          {
+            "lane": "Wave 1",
+            "requirement_id": "wave1_governed_acquisition",
+            "status": "incomplete",
+            "title": "Current governed source acquisition completed in isolated lab"
+          },
+          {
+            "lane": "Wave 1",
+            "requirement_id": "wave1_sanitized_manifest",
+            "status": "missing",
+            "title": "Sanitized production candidate dataset manifest published"
+          },
+          {
+            "lane": "ML-1",
+            "requirement_id": "ml1_model_quality",
+            "status": "missing",
+            "title": "Standalone model quality benchmark completed against production candidate dataset"
+          },
+          {
+            "lane": "ML-1",
+            "requirement_id": "ml1_model_contract_and_card",
+            "status": "missing",
+            "title": "Candidate model contract and model card generated from ML-1 evidence"
+          },
+          {
+            "lane": "ML-2",
+            "requirement_id": "ml2_pytorch_onnx_parity",
+            "status": "missing",
+            "title": "PyTorch versus ONNX parity benchmark completed"
+          },
+          {
+            "lane": "ML-3",
+            "requirement_id": "ml3_agent_onnx_parity",
+            "status": "missing",
+            "title": "Agent-side ONNX parity benchmark completed with Rust agent evidence"
+          },
+          {
+            "lane": "ML-4",
+            "requirement_id": "ml4_service_benchmark",
+            "status": "missing",
+            "title": "Live FastAPI ML service benchmark completed"
+          },
+          {
+            "lane": "ML-5",
+            "requirement_id": "ml5_tamandua_replay",
+            "status": "missing",
+            "title": "Full Tamandua replay benchmark completed with ML candidate linked"
+          },
+          {
+            "lane": "ML-6",
+            "requirement_id": "ml6_cross_time_holdout",
+            "status": "missing",
+            "title": "Cross-time holdout benchmark completed against governed holdout"
+          },
+          {
+            "lane": "ML-0",
+            "requirement_id": "public_claim_evidence_boundary",
+            "status": "proven",
+            "title": "Public ML claims remain bounded until all ML-1..ML-6 evidence is proven"
+          }
+        ],
+        "completion_state": "partial_evidence",
+        "goal_missing_requirements": 9,
+        "latest_platform_readiness_audit": "docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.json",
+        "missing_requirement_ids": [
+          "wave1_governed_acquisition",
+          "wave1_sanitized_manifest",
+          "ml1_model_quality",
+          "ml1_model_contract_and_card",
+          "ml2_pytorch_onnx_parity",
+          "ml3_agent_onnx_parity",
+          "ml4_service_benchmark",
+          "ml5_tamandua_replay",
+          "ml6_cross_time_holdout"
+        ],
+        "next_unproven_execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+        "next_unproven_requirement_id": "wave1_governed_acquisition",
+        "next_unproven_requirement_phase": "01-wave1-manifest-publication",
+        "production_candidate_ready": false,
+        "proven": 1,
+        "readiness_audit_exists": true,
+        "status": "active",
+        "total_requirements": 10
+      },
+      "git_repo": true,
+      "hold": true,
+      "hold_reason": "Experimental label: sequence heads untrained, external wrappers dormant, and platform readiness audit not complete",
+      "initial_publication_decision": {
+        "reason": "Do not push the empty tamandua-ml remote until the experimental release gate clears, model-card evidence is current, and the first public source-mirror publish is explicitly approved.",
+        "required_before_approval": [
+          "experimental_hold_removed",
+          "model_card_current",
+          "benchmark_gate_evidence_current",
+          "first_public_source_mirror_publish_approved"
+        ],
+        "status": "deferred"
+      },
+      "local_head": "7406397",
+      "name": "tamandua-ml",
+      "publication_blockers": [
+        "manifest_hold_active",
+        "ml_experimental_release_gate_active"
+      ],
+      "publication_decision": "hold_do_not_push",
+      "push_ready": false,
+      "remote": {
+        "detail": "origin_has_content",
+        "head": "218d612f",
+        "state": "has_content"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-ml",
+      "tracked_files": 801,
+      "wave": 5
+    },
+    {
+      "artifact_policy": {},
+      "build_deferred": false,
+      "build_note": "Requires Node/npm and Expo tooling; EAS/store release remains gated by target env and credentials",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "b61a683",
+      "name": "tamandua-mobile-app",
+      "publication_blockers": [
+        "remote_missing_or_unreachable"
+      ],
+      "publication_decision": "not_ready",
+      "push_ready": false,
+      "remote": {
+        "detail": "origin_missing_or_unreachable",
+        "head": "",
+        "state": "missing"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-mobile-app",
+      "tracked_files": 206,
+      "wave": 2
+    },
+    {
+      "artifact_policy": {},
+      "build_deferred": false,
+      "build_note": "Android sample APK install/launch evidence is covered locally/CI; iOS Xcode, signed-event, live-ingestion, and mirror publication remain release-gated",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "07b4508",
+      "name": "tamandua-mobile-sdk",
+      "publication_blockers": [
+        "remote_missing_or_unreachable"
+      ],
+      "publication_decision": "not_ready",
+      "push_ready": false,
+      "remote": {
+        "detail": "origin_missing_or_unreachable",
+        "head": "",
+        "state": "missing"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-mobile-sdk",
+      "tracked_files": 114,
+      "wave": 2
+    },
+    {
+      "artifact_policy": {},
+      "build_deferred": true,
+      "build_note": "",
+      "clearance_criteria": [],
+      "dirty_count": 0,
+      "dirty_top_levels": [],
+      "experimental_release_gate": {},
+      "experimental_release_gate_evidence": {},
+      "git_repo": true,
+      "hold": false,
+      "hold_reason": "",
+      "initial_publication_decision": {},
+      "local_head": "05f4150",
+      "name": "tamandua-community",
+      "publication_blockers": [],
+      "publication_decision": "ready_to_push",
+      "push_ready": true,
+      "remote": {
+        "detail": "origin_has_content",
+        "head": "05f41506",
+        "state": "has_content"
+      },
+      "staging_exists": true,
+      "staging_path": "D:\\treant\\mirrors-staging\\tamandua-community",
+      "tracked_files": 40,
+      "wave": 1
+    }
+  ],
+  "kind": "MLMirrorPublicationAudit",
+  "metadata": {
+    "claim_boundary": "No-push mirror publication audit only. Does not sync, commit, push, tag, publish releases, run acquisition, train models, or run benchmarks.",
+    "created_by": "tamandua-ml-mirror-publication-audit",
+    "generated_at": "2026-07-01T01:32:34.407651+00:00",
+    "report_id": "20260630T-ml-mirror-publication-audit-post-threshold-sync"
+  },
+  "source": {
+    "component_count": 11,
+    "manifest": "D:\\treant\\tamandua\\tools\\mirror_deploy\\mirror_manifest.json",
+    "staging_root": "D:\\treant\\mirrors-staging"
+  },
+  "summary": {
+    "component_count": 11,
+    "dirty_components": [],
+    "held_components": [
+      "tamandua-ml"
+    ],
+    "push_ready_components": [
+      "tamandua-agent",
+      "tamandua-core",
+      "tamandua-ctl",
+      "tamandua-gui",
+      "tamandua-browser-extension",
+      "tamandua-server",
+      "tamandua-detection-validation",
+      "tamandua-community"
+    ],
+    "push_ready_count": 8,
+    "recommended_next_action": "keep_tamandua_ml_mirror_on_hold_until_experimental_release_gate_clears",
+    "remote_empty_components": [],
+    "tamandua_ml_clearance_criteria": [
+      {
+        "evidence": "Experimental label: sequence heads untrained, external wrappers dormant, and platform readiness audit not complete",
+        "id": "ml_manifest_hold_removed",
+        "passed": false
+      },
+      {
+        "evidence": "{\"cleared\": false, \"completion_state\": \"partial_evidence\", \"goal_missing_requirements\": 9, \"latest_platform_readiness_audit\": \"docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.json\", \"missing_requirement_ids\": [\"wave1_governed_acquisition\", \"wave1_sanitized_manifest\", \"ml1_model_quality\", \"ml1_model_contract_and_card\", \"ml2_pytorch_onnx_parity\", \"ml3_agent_onnx_parity\", \"ml4_service_benchmark\", \"ml5_tamandua_replay\", \"ml6_cross_time_holdout\"], \"next_unproven_execute_guard_env\": \"TAMANDUA_ALLOW_ML_REAL_ACQUISITION\", \"next_unproven_requirement_id\": \"wave1_governed_acquisition\", \"next_unproven_requirement_phase\": \"01-wave1-manifest-publication\", \"production_candidate_ready\": false, \"proven\": 1, \"readiness_audit_exists\": true, \"status\": \"active\", \"total_requirements\": 10}",
+        "id": "ml_experimental_release_gate_cleared",
+        "passed": false
+      },
+      {
+        "evidence": "clean",
+        "id": "ml_staging_clean",
+        "passed": true
+      },
+      {
+        "evidence": "{\"current_bootstrap_artifacts\": {\"encoder.pt\": \"exclude: 113 MB bootstrap checkpoint, no held-out validation\", \"markers.pkl\": \"exclude from source mirror; release artifact only after benchmark gate\", \"metadata.json\": \"allowed metadata, must retain bootstrap caveat\", \"reference_embeddings.npz\": \"exclude from source mirror; release artifact only after benchmark gate\", \"static_latent_probe.pkl\": \"exclude from source mirror; benchmark evidence artifact only\"}, \"exclude_from_source_mirror\": [\"*.pt\", \"*.pth\", \"models/*.pkl\", \"models/*.npz\", \"checkpoints/**\", \"data/**\"], \"release_artifact_policy\": \"Trained weights, markers, and reference embeddings may ship only as signed release artifacts after Wave 1/ML-1 benchmark gates and model-card evidence are green.\", \"ship_in_source_mirror\": [\"metadata.json\", \"sample fixtures\", \"model contracts\", \"benchmark reports\", \"source code\"], \"source_mirror_policy\": \"metadata_and_code_only\", \"status\": \"resolved\"}",
+        "id": "ml_artifact_policy_resolved",
+        "passed": true
+      },
+      {
+        "evidence": "Standalone validation is metadata/dry-run only: mirror publication audit, benchmark report contracts, ML-3 agent production-gap audit, and VX Underground inventory contracts. Experimental sequence heads remain UNTRAINED (501) and external wrappers stay fenced.",
+        "id": "ml_standalone_validation_defined",
+        "passed": true
+      },
+      {
+        "evidence": "{\"reason\": \"Do not push the empty tamandua-ml remote until the experimental release gate clears, model-card evidence is current, and the first public source-mirror publish is explicitly approved.\", \"required_before_approval\": [\"experimental_hold_removed\", \"model_card_current\", \"benchmark_gate_evidence_current\", \"first_public_source_mirror_publish_approved\"], \"status\": \"deferred\"}",
+        "id": "ml_initial_publication_decision_recorded",
+        "passed": true
+      }
+    ],
+    "tamandua_ml_dirty_count": 0,
+    "tamandua_ml_experimental_release_gate_evidence": {
+      "cleared": false,
+      "completion_requirements": [
+        {
+          "lane": "Wave 1",
+          "requirement_id": "wave1_governed_acquisition",
+          "status": "incomplete",
+          "title": "Current governed source acquisition completed in isolated lab"
+        },
+        {
+          "lane": "Wave 1",
+          "requirement_id": "wave1_sanitized_manifest",
+          "status": "missing",
+          "title": "Sanitized production candidate dataset manifest published"
+        },
+        {
+          "lane": "ML-1",
+          "requirement_id": "ml1_model_quality",
+          "status": "missing",
+          "title": "Standalone model quality benchmark completed against production candidate dataset"
+        },
+        {
+          "lane": "ML-1",
+          "requirement_id": "ml1_model_contract_and_card",
+          "status": "missing",
+          "title": "Candidate model contract and model card generated from ML-1 evidence"
+        },
+        {
+          "lane": "ML-2",
+          "requirement_id": "ml2_pytorch_onnx_parity",
+          "status": "missing",
+          "title": "PyTorch versus ONNX parity benchmark completed"
+        },
+        {
+          "lane": "ML-3",
+          "requirement_id": "ml3_agent_onnx_parity",
+          "status": "missing",
+          "title": "Agent-side ONNX parity benchmark completed with Rust agent evidence"
+        },
+        {
+          "lane": "ML-4",
+          "requirement_id": "ml4_service_benchmark",
+          "status": "missing",
+          "title": "Live FastAPI ML service benchmark completed"
+        },
+        {
+          "lane": "ML-5",
+          "requirement_id": "ml5_tamandua_replay",
+          "status": "missing",
+          "title": "Full Tamandua replay benchmark completed with ML candidate linked"
+        },
+        {
+          "lane": "ML-6",
+          "requirement_id": "ml6_cross_time_holdout",
+          "status": "missing",
+          "title": "Cross-time holdout benchmark completed against governed holdout"
+        },
+        {
+          "lane": "ML-0",
+          "requirement_id": "public_claim_evidence_boundary",
+          "status": "proven",
+          "title": "Public ML claims remain bounded until all ML-1..ML-6 evidence is proven"
+        }
+      ],
+      "completion_state": "partial_evidence",
+      "goal_missing_requirements": 9,
+      "latest_platform_readiness_audit": "docs/benchmarks/runs/20260621T-ml-platform-readiness-post-win-template-gate-threading.json",
+      "missing_requirement_ids": [
+        "wave1_governed_acquisition",
+        "wave1_sanitized_manifest",
+        "ml1_model_quality",
+        "ml1_model_contract_and_card",
+        "ml2_pytorch_onnx_parity",
+        "ml3_agent_onnx_parity",
+        "ml4_service_benchmark",
+        "ml5_tamandua_replay",
+        "ml6_cross_time_holdout"
+      ],
+      "next_unproven_execute_guard_env": "TAMANDUA_ALLOW_ML_REAL_ACQUISITION",
+      "next_unproven_requirement_id": "wave1_governed_acquisition",
+      "next_unproven_requirement_phase": "01-wave1-manifest-publication",
+      "production_candidate_ready": false,
+      "proven": 1,
+      "readiness_audit_exists": true,
+      "status": "active",
+      "total_requirements": 10
+    },
+    "tamandua_ml_hold": true,
+    "tamandua_ml_present": true,
+    "tamandua_ml_publication_blockers": [
+      "manifest_hold_active",
+      "ml_experimental_release_gate_active"
+    ],
+    "tamandua_ml_publication_decision": "hold_do_not_push",
+    "tamandua_ml_publication_ready": false,
+    "tamandua_ml_remote_state": "has_content"
+  }
+}

@@ -26,8 +26,9 @@ head without changing the publication decision.
 
 - `tamandua-server`: published and clean in the mirror audit.
 - `tamandua-detection-validation`: published and clean in the mirror audit.
-- `tamandua-ml`: hold remains active; remote is still empty; staging is clean
-  locally in the mirror audit and must not be pushed as a public mirror.
+- `tamandua-ml`: hold remains active; remote has prior content; staging is clean
+  locally in the mirror audit and must not be advanced while the experimental
+  release gate remains active.
 
 ## Evidence Anchors
 
@@ -38,6 +39,8 @@ Use these artifacts as the current authority for ML state:
 - Mirror publication audit: `docs/benchmarks/runs/20260621T-ml-mirror-publication-post-lab-root-sync.json`
 - Post-organization mirror publication audit:
   `docs/benchmarks/runs/20260622T-ml-mirror-publication-audit-post-detection-validation-organization.json`
+- Post-threshold-sync mirror publication audit:
+  `docs/benchmarks/runs/20260630T-ml-mirror-publication-audit-post-threshold-sync.json`
 - Post-organization goal snapshot:
   `docs/benchmarks/runs/20260622T-ml-goal-snapshot-post-detection-validation-organization.json`
 - Post-organization execution status:
