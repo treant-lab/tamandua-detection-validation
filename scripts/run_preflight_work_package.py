@@ -16,7 +16,13 @@ except ImportError:  # pragma: no cover - optional local convenience
     def load_dotenv(*_args, **_kwargs) -> bool:
         return False
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+# This module lives at tools/detection_validation/scripts/ in the organized
+# layout (or tools/detection_validation/ in older layouts); resolve the repo
+# root in a layout-aware way so paths never collapse onto tools/.
+_SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = (
+    _SCRIPT_DIR.parents[2] if _SCRIPT_DIR.name == "scripts" else _SCRIPT_DIR.parents[1]
+)
 RUNS_DIR = REPO_ROOT / "docs" / "benchmarks" / "runs"
 PROFILE_ID = "validation-execution-preflight-probe"
 DISPATCH_RESULTS_PROFILE_ID = "validation-dispatch-results-probe"
@@ -6480,6 +6486,13 @@ def render_dispatch_prelaunch_validation(
     lines.extend(
         [
             "if ($PrelaunchFailures.Count -gt 0) {",
+            # Write-Error records are line-wrapped by the PowerShell 5.1 host
+            # formatter at console width, which can split a failure message at
+            # arbitrary points (dependent on temp-path length). Emit each
+            # failure raw to stderr first so callers can match full messages.
+            "  foreach ($PrelaunchFailure in $PrelaunchFailures) {",
+            "    [Console]::Error.WriteLine('[prelaunch-failure] ' + $PrelaunchFailure)",
+            "  }",
             "  Write-Error ('Dispatch prelaunch validation failed: ' + ($PrelaunchFailures -join ', '))",
             "  exit 1",
             "}",

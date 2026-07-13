@@ -1,0 +1,179 @@
+{
+  "api_version": "tamandua.io/governed-fp-fn-corpus-gate/v1",
+  "kind": "GovernedFpFnCorpusGate",
+  "generated_at": "2026-07-07T17:00:00Z",
+  "gate_status": "hold",
+  "evidence_class": "bootstrap_local",
+  "external_claim_allowed": false,
+  "claim_boundary": "Internal governed FP/FN corpus gate only. The current evidence is a local bootstrap calibration slice and does not authorize external claims, production false-positive rates, malware detection quality, vendor parity, or live protection claims until governed holdout or production telemetry evidence is attached.",
+  "corpus_lineage": {
+    "goodware": {
+      "source_class": "local_bootstrap",
+      "lineage_status": "bootstrap_local",
+      "dataset_id": "local-bootstrap-goodware-fp-20260630",
+      "provenance_status": "local_bootstrap_not_governed",
+      "license_status": "local_internal_only",
+      "collection_method": "local bootstrap calibration manifest; not governed holdout",
+      "manifest_refs": [
+        "docs/benchmarks/runs/20260630T-local-bootstrap-goodware-fp-manifest.json"
+      ],
+      "hash_manifest_ref": "docs/benchmarks/runs/20260630T-local-bootstrap-goodware-fp-manifest.json",
+      "label_review_required": true,
+      "prohibited_actions": [
+        "no_dataset_download_performed",
+        "no_unreviewed_goodware_labels",
+        "no_public_claim_from_bootstrap_slice"
+      ]
+    },
+    "malware": {
+      "source_class": "local_bootstrap",
+      "lineage_status": "bootstrap_local",
+      "dataset_id": "local-bootstrap-malware-fn-20260630",
+      "provenance_status": "local_bootstrap_not_governed",
+      "license_status": "local_internal_only",
+      "collection_method": "local bootstrap calibration manifest; not governed malware holdout",
+      "manifest_refs": [
+        "docs/benchmarks/runs/20260630T-local-bootstrap-goodware-fp-manifest.json"
+      ],
+      "hash_manifest_ref": "docs/benchmarks/runs/20260630T-local-bootstrap-goodware-fp-manifest.json",
+      "label_review_required": true,
+      "prohibited_actions": [
+        "no_dataset_download_performed",
+        "no_unreviewed_malware_labels",
+        "no_public_claim_from_bootstrap_slice"
+      ]
+    }
+  },
+  "label_review": {
+    "goodware": {
+      "status": "pending_governed_review",
+      "review_required_for_public_metrics": true,
+      "review_complete": false,
+      "review_artifact_ref": "governed_goodware_label_review_not_attached"
+    },
+    "malware": {
+      "status": "pending_governed_review",
+      "review_required_for_public_metrics": true,
+      "review_complete": false,
+      "review_artifact_ref": "governed_malware_label_review_not_attached"
+    }
+  },
+  "sample_accounting": {
+    "goodware_samples": 100,
+    "malware_samples": 100,
+    "minimum_goodware_samples": 100,
+    "minimum_malware_samples": 100,
+    "promotion_minimum_goodware_samples": 1000,
+    "promotion_minimum_malware_samples": 1000,
+    "sample_count_source": "docs/benchmarks/ALERT_FP_EVIDENCE_AUDIT_20260706.md#current-measurements",
+    "dedupe_key": "sha256"
+  },
+  "dedupe": {
+    "key": "sha256",
+    "status": "local_bootstrap_deduped_not_governed",
+    "required_for_public_metrics": true,
+    "duplicate_count": 0,
+    "unique_goodware_samples": 100,
+    "unique_malware_samples": 100,
+    "dedupe_report_ref": "docs/benchmarks/ALERT_FP_EVIDENCE_AUDIT_20260706.md#current-measurements"
+  },
+  "thresholds": {
+    "score_threshold": 0.6866175091269453,
+    "score_orientation": "inverted_selected",
+    "threshold_source": "20260701T-local-bootstrap-goodware-fp-ml1-calibrated",
+    "threshold_record_id": "20260701T-local-bootstrap-goodware-fp-ml1-calibrated",
+    "threshold_record_digest_material": "threshold_record_id=20260701T-local-bootstrap-goodware-fp-ml1-calibrated;score_threshold=0.6866175091269453;score_orientation=inverted_selected",
+    "threshold_record_sha256": "b2ad31881f778bfa38ee2feccc6cafaee3854f3865a49db6f7572169a68371c9",
+    "threshold_locked": true,
+    "threshold_change_requires_new_gate": true,
+    "mutation_policy": "immutable_requires_new_gate_artifact"
+  },
+  "outcomes": {
+    "false_positives": 0,
+    "false_negatives": 0,
+    "fpr": 0.0,
+    "fnr": 0.0,
+    "maximum_false_positives": 0,
+    "maximum_false_negatives": 0,
+    "maximum_fpr": 0.0,
+    "maximum_fnr": 0.0,
+    "outcome_source": "docs/benchmarks/ALERT_FP_EVIDENCE_AUDIT_20260706.md#current-measurements"
+  },
+  "confidence_intervals": {
+    "fpr": {
+      "status": "not_computed_bootstrap_public_claim_blocked",
+      "required_for_public_claim": true,
+      "method_placeholder": "wilson_or_exact_binomial_to_be_computed_on_governed_holdout_or_production_telemetry",
+      "lower": null,
+      "upper": null
+    },
+    "fnr": {
+      "status": "not_computed_bootstrap_public_claim_blocked",
+      "required_for_public_claim": true,
+      "method_placeholder": "wilson_or_exact_binomial_to_be_computed_on_governed_holdout_or_production_telemetry",
+      "lower": null,
+      "upper": null
+    }
+  },
+  "retained_critical_scenarios": {
+    "scenario_count": 22,
+    "minimum_scenario_count": 22,
+    "retention_rate": 1.0,
+    "minimum_retention_rate": 1.0,
+    "scenario_sources": [
+      "tools/detection_validation/fixtures/windows_false_positive_replay_v1.json",
+      "tools/detection_validation/fixtures/macos_false_positive_replay_v1.json"
+    ],
+    "required_scenario_families": [
+      "ntdll_lsass_or_cross_process_memory",
+      "etw_or_amsi_tamper",
+      "critical_attack_counterpart_retention"
+    ]
+  },
+  "claim_promotion_requirements": {
+    "minimum_required_evidence_class": "governed_holdout",
+    "live_or_governed_evidence_required": true,
+    "public_metric_names": [
+      "fpr",
+      "fnr"
+    ],
+    "public_fpr_fnr_requires_evidence_class": [
+      "governed_holdout",
+      "production_telemetry"
+    ],
+    "public_metric_claims_blocked_without_minimum_sample_size": true,
+    "public_metric_claims_blocked_without_reviewed_labels": true,
+    "public_metric_claims_blocked_without_dedupe": true,
+    "public_metric_claims_blocked_without_confidence_intervals": true,
+    "public_metric_claims_blocked_without_dataset_provenance": true,
+    "public_metric_claims_blocked_without_threshold_immutability": true,
+    "required_artifacts": [
+      "governed_goodware_manifest_with_hashes_license_and_lineage",
+      "governed_malware_holdout_manifest_with_source_lineage_and_label_review",
+      "deduplicated_sample_count_report",
+      "locked_threshold_and_score_orientation_record",
+      "computed_fpr_fnr_confidence_interval_report",
+      "end_to_end_agent_server_alert_feed_proof",
+      "retained_critical_scenario_replay_report",
+      "reviewed_fpr_fnr_summary_with_blocked_external_claim_status"
+    ],
+    "satisfied_artifacts": [
+      "local_bootstrap_sample_count",
+      "local_bootstrap_threshold_record",
+      "retained_critical_fixture_count"
+    ],
+    "blocked_claims": [
+      "production false-positive rate",
+      "production malware false-negative rate",
+      "malware detection quality",
+      "vendor parity",
+      "live protection efficacy"
+    ]
+  },
+  "source_artifacts": [
+    "docs/benchmarks/ALERT_FP_EVIDENCE_AUDIT_20260706.md",
+    "docs/benchmarks/AI_ML_DETECTION_PARALLEL_EXECUTION_20260630.md",
+    "tools/detection_validation/fixtures/windows_false_positive_replay_v1.json",
+    "tools/detection_validation/fixtures/macos_false_positive_replay_v1.json"
+  ]
+}

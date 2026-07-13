@@ -16,7 +16,8 @@ from urllib.parse import urlparse
 try:
     from root_resolver import ROOT, RUNS_DIR, is_standalone
 except ImportError:
-    ROOT = Path(__file__).resolve().parents[2]
+    _SCRIPT_DIR = Path(__file__).resolve().parent
+    ROOT = _SCRIPT_DIR.parents[2] if _SCRIPT_DIR.name == "scripts" else _SCRIPT_DIR.parents[1]
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"

@@ -1,0 +1,319 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/governed_fp_fn_corpus_gate_v1.schema.json",
+  "title": "Tamandua Governed FP/FN Corpus Gate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "generated_at",
+    "gate_status",
+    "evidence_class",
+    "external_claim_allowed",
+    "claim_boundary",
+    "corpus_lineage",
+    "label_review",
+    "sample_accounting",
+    "dedupe",
+    "thresholds",
+    "outcomes",
+    "confidence_intervals",
+    "retained_critical_scenarios",
+    "claim_promotion_requirements",
+    "source_artifacts"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/governed-fp-fn-corpus-gate/v1"},
+    "kind": {"const": "GovernedFpFnCorpusGate"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "gate_status": {"enum": ["hold", "not_claim_ready", "governed_pass"]},
+    "evidence_class": {
+      "enum": ["bootstrap_local", "governed_plan", "governed_holdout", "production_telemetry"]
+    },
+    "external_claim_allowed": {"const": false},
+    "claim_boundary": {"type": "string", "minLength": 80},
+    "corpus_lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goodware", "malware"],
+      "properties": {
+        "goodware": {"$ref": "#/$defs/lineage_entry"},
+        "malware": {"$ref": "#/$defs/lineage_entry"}
+      }
+    },
+    "label_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goodware", "malware"],
+      "properties": {
+        "goodware": {"$ref": "#/$defs/label_review_entry"},
+        "malware": {"$ref": "#/$defs/label_review_entry"}
+      }
+    },
+    "sample_accounting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goodware_samples",
+        "malware_samples",
+        "minimum_goodware_samples",
+        "minimum_malware_samples",
+        "promotion_minimum_goodware_samples",
+        "promotion_minimum_malware_samples",
+        "sample_count_source",
+        "dedupe_key"
+      ],
+      "properties": {
+        "goodware_samples": {"type": "integer", "minimum": 0},
+        "malware_samples": {"type": "integer", "minimum": 0},
+        "minimum_goodware_samples": {"type": "integer", "minimum": 1},
+        "minimum_malware_samples": {"type": "integer", "minimum": 1},
+        "promotion_minimum_goodware_samples": {"type": "integer", "minimum": 1000},
+        "promotion_minimum_malware_samples": {"type": "integer", "minimum": 1000},
+        "sample_count_source": {"type": "string", "minLength": 1},
+        "dedupe_key": {"type": "string", "minLength": 1}
+      }
+    },
+    "dedupe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "status",
+        "required_for_public_metrics",
+        "duplicate_count",
+        "unique_goodware_samples",
+        "unique_malware_samples",
+        "dedupe_report_ref"
+      ],
+      "properties": {
+        "key": {"const": "sha256"},
+        "status": {"enum": ["local_bootstrap_deduped_not_governed", "governed_deduped"]},
+        "required_for_public_metrics": {"const": true},
+        "duplicate_count": {"type": "integer", "minimum": 0},
+        "unique_goodware_samples": {"type": "integer", "minimum": 0},
+        "unique_malware_samples": {"type": "integer", "minimum": 0},
+        "dedupe_report_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "score_threshold",
+        "score_orientation",
+        "threshold_source",
+        "threshold_record_id",
+        "threshold_record_digest_material",
+        "threshold_record_sha256",
+        "threshold_locked",
+        "threshold_change_requires_new_gate",
+        "mutation_policy"
+      ],
+      "properties": {
+        "score_threshold": {"type": "number"},
+        "score_orientation": {"enum": ["normal", "inverted_selected"]},
+        "threshold_source": {"type": "string", "minLength": 1},
+        "threshold_record_id": {"type": "string", "minLength": 1},
+        "threshold_record_digest_material": {"type": "string", "minLength": 1},
+        "threshold_record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "threshold_locked": {"type": "boolean"},
+        "threshold_change_requires_new_gate": {"const": true},
+        "mutation_policy": {"const": "immutable_requires_new_gate_artifact"}
+      }
+    },
+    "outcomes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "false_positives",
+        "false_negatives",
+        "fpr",
+        "fnr",
+        "maximum_false_positives",
+        "maximum_false_negatives",
+        "maximum_fpr",
+        "maximum_fnr",
+        "outcome_source"
+      ],
+      "properties": {
+        "false_positives": {"type": "integer", "minimum": 0},
+        "false_negatives": {"type": "integer", "minimum": 0},
+        "fpr": {"type": "number", "minimum": 0},
+        "fnr": {"type": "number", "minimum": 0},
+        "maximum_false_positives": {"type": "integer", "minimum": 0},
+        "maximum_false_negatives": {"type": "integer", "minimum": 0},
+        "maximum_fpr": {"type": "number", "minimum": 0},
+        "maximum_fnr": {"type": "number", "minimum": 0},
+        "outcome_source": {"type": "string", "minLength": 1}
+      }
+    },
+    "confidence_intervals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fpr", "fnr"],
+      "properties": {
+        "fpr": {"$ref": "#/$defs/confidence_interval_placeholder"},
+        "fnr": {"$ref": "#/$defs/confidence_interval_placeholder"}
+      }
+    },
+    "retained_critical_scenarios": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scenario_count",
+        "minimum_scenario_count",
+        "retention_rate",
+        "minimum_retention_rate",
+        "scenario_sources",
+        "required_scenario_families"
+      ],
+      "properties": {
+        "scenario_count": {"type": "integer", "minimum": 0},
+        "minimum_scenario_count": {"type": "integer", "minimum": 1},
+        "retention_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "minimum_retention_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "scenario_sources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "required_scenario_families": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "claim_promotion_requirements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum_required_evidence_class",
+        "live_or_governed_evidence_required",
+        "public_metric_names",
+        "public_fpr_fnr_requires_evidence_class",
+        "public_metric_claims_blocked_without_minimum_sample_size",
+        "public_metric_claims_blocked_without_reviewed_labels",
+        "public_metric_claims_blocked_without_dedupe",
+        "public_metric_claims_blocked_without_confidence_intervals",
+        "public_metric_claims_blocked_without_dataset_provenance",
+        "public_metric_claims_blocked_without_threshold_immutability",
+        "required_artifacts",
+        "satisfied_artifacts",
+        "blocked_claims"
+      ],
+      "properties": {
+        "minimum_required_evidence_class": {"enum": ["governed_holdout", "production_telemetry"]},
+        "live_or_governed_evidence_required": {"const": true},
+        "public_metric_names": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"enum": ["fpr", "fnr"]},
+          "uniqueItems": true
+        },
+        "public_fpr_fnr_requires_evidence_class": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": {"enum": ["governed_holdout", "production_telemetry"]},
+          "uniqueItems": true
+        },
+        "public_metric_claims_blocked_without_minimum_sample_size": {"const": true},
+        "public_metric_claims_blocked_without_reviewed_labels": {"const": true},
+        "public_metric_claims_blocked_without_dedupe": {"const": true},
+        "public_metric_claims_blocked_without_confidence_intervals": {"const": true},
+        "public_metric_claims_blocked_without_dataset_provenance": {"const": true},
+        "public_metric_claims_blocked_without_threshold_immutability": {"const": true},
+        "required_artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "satisfied_artifacts": {
+          "type": "array",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "blocked_claims": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "source_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "$defs": {
+    "lineage_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_class",
+        "lineage_status",
+        "dataset_id",
+        "provenance_status",
+        "license_status",
+        "collection_method",
+        "manifest_refs",
+        "hash_manifest_ref",
+        "label_review_required",
+        "prohibited_actions"
+      ],
+      "properties": {
+        "source_class": {"enum": ["local_bootstrap", "governed_external", "production_telemetry"]},
+        "lineage_status": {"enum": ["bootstrap_local", "governed_pending", "governed_recorded"]},
+        "dataset_id": {"type": "string", "minLength": 1},
+        "provenance_status": {
+          "enum": ["local_bootstrap_not_governed", "governed_recorded", "production_telemetry_recorded"]
+        },
+        "license_status": {
+          "enum": ["local_internal_only", "governed_redistribution_review_pending", "governed_reviewed"]
+        },
+        "collection_method": {"type": "string", "minLength": 1},
+        "manifest_refs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "hash_manifest_ref": {"type": "string", "minLength": 1},
+        "label_review_required": {"const": true},
+        "prohibited_actions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "label_review_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "review_required_for_public_metrics", "review_complete", "review_artifact_ref"],
+      "properties": {
+        "status": {"enum": ["pending_governed_review", "reviewed_governed"]},
+        "review_required_for_public_metrics": {"const": true},
+        "review_complete": {"type": "boolean"},
+        "review_artifact_ref": {"type": "string", "minLength": 1}
+      }
+    },
+    "confidence_interval_placeholder": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "required_for_public_claim", "method_placeholder", "lower", "upper"],
+      "properties": {
+        "status": {
+          "enum": ["not_computed_bootstrap_public_claim_blocked", "computed_governed"]
+        },
+        "required_for_public_claim": {"const": true},
+        "method_placeholder": {"type": "string", "minLength": 1},
+        "lower": {"type": ["number", "null"], "minimum": 0},
+        "upper": {"type": ["number", "null"], "minimum": 0}
+      }
+    }
+  }
+}

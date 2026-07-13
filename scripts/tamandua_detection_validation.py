@@ -37,7 +37,8 @@ try:
     from root_resolver import ROOT, RUNS_DIR, is_standalone
 except ImportError:
     # Fallback for direct execution without root_resolver
-    ROOT = Path(__file__).resolve().parents[2]
+    _SCRIPT_DIR = Path(__file__).resolve().parent
+    ROOT = _SCRIPT_DIR.parents[2] if _SCRIPT_DIR.name == "scripts" else _SCRIPT_DIR.parents[1]
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
 
@@ -2687,6 +2688,7 @@ from (
     title,
     1::int as count,
     coalesce(updated_at, inserted_at) as last_at,
+    source_event_id::text,
     event_ids,
     contributing_events,
     process_chain,
@@ -2694,6 +2696,7 @@ from (
     mitre_techniques,
     storyline_id,
     evidence,
+    raw_event,
     detection_metadata
   from alerts
   where agent_id = '{agent_id}'
@@ -3714,6 +3717,116 @@ def alert_context_gaps(alerts: list[dict[str, Any]], test: dict[str, Any]) -> li
     return gaps
 
 
+def non_empty(value: Any) -> bool:
+    if value is None:
+        return False
+    if isinstance(value, str):
+        return value.strip() != ""
+    if isinstance(value, (list, tuple, set, dict)):
+        return len(value) > 0
+    return True
+
+
+def alert_evidence_quality(alert: dict[str, Any]) -> dict[str, Any]:
+    has_explicit_quality = "evidence_quality" in alert or "evidenceQuality" in alert
+    explicit = alert.get("evidence_quality") or alert.get("evidenceQuality")
+    if isinstance(explicit, dict) and (
+        explicit.get("quality")
+        or "benchmark_eligible" in explicit
+        or "benchmarkEligible" in explicit
+    ):
+        if not explicit.get("quality"):
+            explicit = {**explicit, "quality": "malformed"}
+        return explicit
+    if has_explicit_quality:
+        return {"quality": "malformed", "benchmark_eligible": False, "checks": {}}
+
+    evidence = alert.get("evidence") if isinstance(alert.get("evidence"), dict) else {}
+    raw_event = alert.get("raw_event") if isinstance(alert.get("raw_event"), dict) else {}
+    detection_metadata = (
+        alert.get("detection_metadata") if isinstance(alert.get("detection_metadata"), dict) else {}
+    )
+    has_source = non_empty(alert.get("source_event_id"))
+    has_event_ids = sequence_len(alert.get("event_ids")) > 0
+    has_contributing_events = sequence_len(alert.get("contributing_events")) > 0
+    has_evidence = non_empty(evidence)
+    has_raw_event = non_empty(raw_event)
+    has_detection = non_empty(evidence.get("detection")) or non_empty(detection_metadata)
+
+    if has_source and has_evidence and (has_raw_event or has_event_ids):
+        quality = "direct"
+        benchmark_eligible = True
+    elif has_source and has_evidence and has_contributing_events:
+        quality = "correlated"
+        benchmark_eligible = True
+    elif has_source and has_evidence:
+        quality = "correlated"
+        benchmark_eligible = True
+    elif has_evidence and has_detection:
+        quality = "derived"
+        benchmark_eligible = False
+    elif has_raw_event:
+        quality = "synthetic"
+        benchmark_eligible = False
+    else:
+        quality = "missing"
+        benchmark_eligible = False
+
+    return {
+        "quality": quality,
+        "claimable": quality in {"direct", "correlated", "derived"},
+        "benchmark_eligible": benchmark_eligible,
+        "checks": {
+            "source_event": has_source,
+            "linked_events": has_event_ids,
+            "contributing_events": has_contributing_events,
+            "evidence_bundle": has_evidence,
+            "raw_event": has_raw_event,
+            "detection": has_detection,
+        },
+    }
+
+
+def evidence_benchmark_eligible(quality: dict[str, Any]) -> Any:
+    if "benchmark_eligible" in quality:
+        value = quality.get("benchmark_eligible")
+    elif "benchmarkEligible" in quality:
+        value = quality.get("benchmarkEligible")
+    else:
+        return None
+
+    return value if isinstance(value, bool) else False
+
+
+def has_malformed_benchmark_flag(quality: dict[str, Any]) -> bool:
+    if "benchmark_eligible" in quality:
+        return not isinstance(quality.get("benchmark_eligible"), bool)
+    if "benchmarkEligible" in quality:
+        return not isinstance(quality.get("benchmarkEligible"), bool)
+    return False
+
+
+def alert_evidence_quality_gaps(alerts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    gaps: list[dict[str, Any]] = []
+    for alert in alerts:
+        quality = alert_evidence_quality(alert)
+        quality_name = str(quality.get("quality") or "").lower()
+        benchmark_eligible = evidence_benchmark_eligible(quality)
+        if has_malformed_benchmark_flag(quality):
+            quality_name = "malformed"
+        if quality_name in {"synthetic", "missing", "malformed"} or benchmark_eligible is False:
+            gaps.append(
+                {
+                    "id": alert.get("id"),
+                    "title": alert.get("title"),
+                    "quality": quality_name or "unknown",
+                    "benchmark_eligible": bool(benchmark_eligible),
+                    "checks": quality.get("checks") or {},
+                }
+            )
+    return gaps
+
+
 FIELD_ALIASES: dict[str, list[str]] = {
     "agent_id": ["agent_id"],
     "hostname": ["hostname", "host", "computer_name", "device_name"],
@@ -4178,6 +4291,7 @@ def score_test(
         ],
     )
     investigable_alert_gaps = alert_context_gaps(matched_alert_rows, test)
+    unclaimable_alert_evidence_quality = alert_evidence_quality_gaps(matched_alert_rows)
     correlation_score = score_expected_correlations(
         expected_correlations,
         event_rows,
@@ -4318,6 +4432,7 @@ def score_test(
         or missing_values
         or correlation_score["missing_expected_correlations"]
         or investigable_alert_gaps
+        or unclaimable_alert_evidence_quality
     ):
         status = "partial" if observed_expected else "missed"
     else:
@@ -4365,6 +4480,7 @@ def score_test(
         "observed_expected_alerts": observed_alerts,
         "missing_expected_alerts": missing_alerts,
         "investigable_alert_gaps": investigable_alert_gaps,
+        "unclaimable_alert_evidence_quality": unclaimable_alert_evidence_quality,
         "missing_expected_telemetry": missing,
         "missing_strict_expected_telemetry": telemetry_state["missing_strict_expected_telemetry"],
         "expected_high_or_critical_alerts": expected_critical_or_high_alerts,
@@ -4388,6 +4504,7 @@ def score_test(
             "detection_coverage": "weak" if missing_detections else "ok",
             "alert_coverage": "weak" if missing_alerts else "ok",
             "alert_context": "weak" if investigable_alert_gaps else "ok",
+            "alert_provenance": "weak" if unclaimable_alert_evidence_quality else "ok",
             "driver_raw_coverage": "weak" if missing_driver_raw else "ok",
             "field_coverage": "weak" if missing_fields else "ok",
             "value_coverage": "weak" if missing_values else "ok",
@@ -4692,6 +4809,8 @@ def evaluate_gates(report: dict[str, Any], args: argparse.Namespace) -> dict[str
         failures.append("missing_expected_values")
     if int(summary.get("investigable_alert_gaps") or 0) > 0:
         failures.append("investigable_alert_gaps")
+    if int(summary.get("unclaimable_alert_evidence_quality") or 0) > 0:
+        failures.append("unclaimable_alert_evidence_quality")
     if int(summary.get("missing_expected_correlations") or 0) > 0:
         failures.append("missing_expected_correlations")
     if args.max_driver_channel_drops >= 0:
@@ -4834,6 +4953,7 @@ def benchmark_scorecard(report: dict[str, Any]) -> dict[str, Any]:
     missing_alerts = int(summary.get("missing_expected_alerts") or 0)
     missing_correlations = int(summary.get("missing_expected_correlations") or 0)
     alert_gaps = int(summary.get("investigable_alert_gaps") or 0)
+    unclaimable_alert_evidence = int(summary.get("unclaimable_alert_evidence_quality") or 0)
     noise = int(summary.get("unexpected_high_or_critical_events") or 0) + int(
         summary.get("unexpected_high_or_critical_alerts") or 0
     )
@@ -4854,9 +4974,9 @@ def benchmark_scorecard(report: dict[str, Any]) -> dict[str, Any]:
         0.0,
         1.0 - ratio(missing_detections + missing_alerts, max(tests, 1)),
     )
-    context_quality = 1.0 if (alert_gaps + missing_correlations) == 0 else max(
+    context_quality = 1.0 if (alert_gaps + unclaimable_alert_evidence + missing_correlations) == 0 else max(
         0.0,
-        1.0 - ratio(alert_gaps + missing_correlations, max(tests, 1)),
+        1.0 - ratio(alert_gaps + unclaimable_alert_evidence + missing_correlations, max(tests, 1)),
     )
     noise_quality = 1.0 if (noise + unknown) == 0 else 0.0
     driver_quality = 1.0 if (driver_drops + driver_missing) == 0 else 0.0
@@ -4946,6 +5066,7 @@ def benchmark_scorecard(report: dict[str, Any]) -> dict[str, Any]:
                 ("missing_expected_alerts", missing_alerts > 0),
                 ("missing_expected_correlations", missing_correlations > 0),
                 ("investigable_alert_gaps", alert_gaps > 0),
+                ("unclaimable_alert_evidence_quality", unclaimable_alert_evidence > 0),
                 ("unexpected_high_critical_or_unknown_noise", noise + unknown > 0),
                 ("driver_missing_or_drops", driver_missing + driver_drops > 0),
                 ("missing_server_evidence", server_evidence_gap > 0),
@@ -5133,7 +5254,11 @@ def gap_category(item: dict[str, Any]) -> str:
         return "response-audit"
     if score.get("missing_expected_detections") or score.get("missing_expected_alerts"):
         return "detector"
-    if score.get("missing_expected_correlations") or score.get("investigable_alert_gaps"):
+    if (
+        score.get("missing_expected_correlations")
+        or score.get("investigable_alert_gaps")
+        or score.get("unclaimable_alert_evidence_quality")
+    ):
         return "alert-quality"
     if score.get("unknown_source_events") or score.get("unexpected_high_or_critical_events") or score.get(
         "unexpected_high_or_critical_alerts"
@@ -5334,6 +5459,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"- Missing expected values: `{totals.get('missing_expected_values', 0)}`",
             f"- Missing expected correlations: `{totals.get('missing_expected_correlations', 0)}`",
             f"- Investigable alert gaps: `{totals.get('investigable_alert_gaps', 0)}`",
+            f"- Unclaimable alert evidence quality: `{totals.get('unclaimable_alert_evidence_quality', 0)}`",
             f"- Gate: `{'pass' if (report.get('quality_gate') or {}).get('passed', True) else 'fail'}`",
             "",
             "## Scorecard",
@@ -5344,8 +5470,8 @@ def render_markdown(report: dict[str, Any]) -> str:
             "",
             "## Results",
             "",
-            "| Test | Executor | Status | Coverage | Missing telemetry | Missing fields | Missing driver raw | Missing detections | Missing alerts | Missing correlations | Alert context gaps | Driver drops | Unknown source events | Unexpected high/critical events | Unexpected high/critical alerts | Excluded setup alerts |",
-            "|------|----------|--------|----------|-------------------|----------------|--------------------|--------------------|----------------|----------------------|--------------------|--------------|-----------------------|---------------------------------|---------------------------------|-----------------------|",
+            "| Test | Executor | Status | Coverage | Missing telemetry | Missing fields | Missing driver raw | Missing detections | Missing alerts | Missing correlations | Alert context gaps | Unclaimable evidence | Driver drops | Unknown source events | Unexpected high/critical events | Unexpected high/critical alerts | Excluded setup alerts |",
+            "|------|----------|--------|----------|-------------------|----------------|--------------------|--------------------|----------------|----------------------|--------------------|----------------------|--------------|-----------------------|---------------------------------|---------------------------------|-----------------------|",
         ]
     )
 
@@ -5358,6 +5484,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         missing_alerts = ", ".join(score.get("missing_expected_alerts") or [])
         missing_correlations = ", ".join(score.get("missing_expected_correlations") or [])
         alert_context_gaps = len(score.get("investigable_alert_gaps") or [])
+        unclaimable_evidence = len(score.get("unclaimable_alert_evidence_quality") or [])
         unknown_events = int(score.get("unknown_source_event_count") or 0)
         noisy_events = int(score.get("unexpected_high_or_critical_event_count") or 0)
         noisy_alerts = len(score.get("unexpected_high_or_critical_alerts") or [])
@@ -5382,7 +5509,7 @@ def render_markdown(report: dict[str, Any]) -> str:
             f"`{missing_driver or '-'}` | "
             f"`{missing_detections or '-'}` | `{missing_alerts or '-'}` | "
             f"`{missing_correlations or '-'}` | "
-            f"`{alert_context_gaps}` | `{driver_drops}` | `{unknown_events}` | `{noisy_events}` | `{noisy_alerts}` | `{excluded_setup_alerts}` |"
+            f"`{alert_context_gaps}` | `{unclaimable_evidence}` | `{driver_drops}` | `{unknown_events}` | `{noisy_events}` | `{noisy_alerts}` | `{excluded_setup_alerts}` |"
         )
 
     actionable_gaps = (report.get("summary") or {}).get("actionable_gaps") or []
@@ -5405,6 +5532,7 @@ def render_markdown(report: dict[str, Any]) -> str:
                 "missing_expected_alerts",
                 "missing_expected_correlations",
                 "missing_expected_driver_raw_event_types",
+                "unclaimable_alert_evidence_quality",
             ]:
                 values = gap.get(key) or []
                 if values:
@@ -5766,6 +5894,7 @@ def summarize_tests(tests: list[dict[str, Any]]) -> dict[str, int]:
         "missing_expected_alerts": 0,
         "missing_expected_correlations": 0,
         "investigable_alert_gaps": 0,
+        "unclaimable_alert_evidence_quality": 0,
         "missing_expected_driver_raw_events": 0,
         "driver_channel_drops": 0,
         "driver_kernel_drops": 0,
@@ -5811,6 +5940,7 @@ def summarize_tests(tests: list[dict[str, Any]]) -> dict[str, int]:
                     "missing_expected_values": score.get("missing_expected_values") or [],
                     "missing_expected_detections": score.get("missing_expected_detections") or [],
                     "missing_expected_alerts": score.get("missing_expected_alerts") or [],
+                    "unclaimable_alert_evidence_quality": score.get("unclaimable_alert_evidence_quality") or [],
                     "missing_expected_correlations": score.get("missing_expected_correlations") or [],
                     "missing_expected_driver_raw_event_types": score.get("missing_expected_driver_raw_event_types") or [],
                     "fallback_used": bool(test.get("fallback_used")),
@@ -5835,6 +5965,7 @@ def summarize_tests(tests: list[dict[str, Any]]) -> dict[str, int]:
         summary["missing_expected_alerts"] += len(score.get("missing_expected_alerts") or [])
         summary["missing_expected_correlations"] += len(score.get("missing_expected_correlations") or [])
         summary["investigable_alert_gaps"] += len(score.get("investigable_alert_gaps") or [])
+        summary["unclaimable_alert_evidence_quality"] += len(score.get("unclaimable_alert_evidence_quality") or [])
         summary["missing_expected_driver_raw_events"] += len(score.get("missing_expected_driver_raw_event_types") or [])
         summary["driver_channel_drops"] += int(score.get("driver_channel_drops_delta") or 0)
         summary["driver_kernel_drops"] += int(score.get("driver_kernel_drops_delta") or 0)

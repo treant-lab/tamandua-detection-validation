@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "profile_id": "proxmox-virtualization-host-readiness-probe",
+  "name": "Proxmox Virtualization Host Readiness Probe",
+  "description": "Read-only Proxmox API probe that validates virtualization host inventory readiness: API authentication, cluster resource inventory, node status, guest inventory, and storage inventory. It does not execute QGA commands or mutate guests.",
+  "platform": "proxmox",
+  "collector": "proxmox",
+  "capability": "virtualization_host",
+  "event_type": "virtualization_host_inventory",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\scripts\\proxmox_virtualization_host_readiness_probe.py",
+    "timeout_seconds": 90,
+    "runtime_effect": "read_only_proxmox_api_inventory_no_guest_mutation",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "proxmox_virtualization_host_readiness",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Read-only Proxmox API inventory readiness only. Passing this profile means the configured Proxmox API credentials can enumerate host, node, guest, and storage inventory for bounded lab readiness. It is not production validated. It does not execute QGA commands, mutate guests, prove endpoint telemetry, prove detection coverage, or establish production virtualization posture.",
+  "tests": [
+    {
+      "id": "proxmox-api-authenticated",
+      "name": "Proxmox API accepts configured credentials",
+      "executor": "proxmox_virtualization_host_readiness_probe",
+      "expected_telemetry": ["virtualization_host_inventory"],
+      "expected_fields": ["status", "authenticated"]
+    },
+    {
+      "id": "proxmox-cluster-resources-readable",
+      "name": "Cluster resource inventory is readable",
+      "executor": "proxmox_virtualization_host_readiness_probe",
+      "expected_telemetry": ["virtualization_host_inventory"],
+      "expected_fields": ["resource_count", "node_count"]
+    },
+    {
+      "id": "proxmox-node-inventory-readable",
+      "name": "Node inventory exposes at least one online node",
+      "executor": "proxmox_virtualization_host_readiness_probe",
+      "expected_telemetry": ["virtualization_host_inventory"],
+      "expected_fields": ["node_count", "online_node_count", "nodes"]
+    },
+    {
+      "id": "proxmox-node-status-readable",
+      "name": "Online node status exposes CPU, memory, and uptime fields",
+      "executor": "proxmox_virtualization_host_readiness_probe",
+      "expected_telemetry": ["virtualization_host_inventory"],
+      "expected_fields": ["cpu", "memory", "uptime"]
+    },
+    {
+      "id": "proxmox-guest-inventory-readable",
+      "name": "Virtual machine or container inventory is readable",
+      "executor": "proxmox_virtualization_host_readiness_probe",
+      "expected_telemetry": ["virtualization_host_inventory"],
+      "expected_fields": ["qemu_count", "lxc_count", "guest_inventory"]
+    },
+    {
+      "id": "proxmox-storage-inventory-readable",
+      "name": "Storage inventory is readable for discovered nodes",
+      "executor": "proxmox_virtualization_host_readiness_probe",
+      "expected_telemetry": ["virtualization_host_inventory"],
+      "expected_fields": ["storage"]
+    }
+  ]
+}

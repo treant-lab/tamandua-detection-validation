@@ -1,0 +1,126 @@
+{
+  "api_version": "tamandua.io/threat-benchmark-taxonomy-mapping/v1",
+  "kind": "ThreatBenchmarkTaxonomyMapping",
+  "metadata": {
+    "mapping_id": "threat-benchmark-taxonomy-mapping-20260705",
+    "created_at": "2026-07-05T00:00:00Z",
+    "created_by": "tamandua-benchmark-contract",
+    "git_commit": "03314539",
+    "evidence_class": "synthetic_profile_scoped_taxonomy_mapping"
+  },
+  "claim_boundary": "Metadata-only taxonomy mapping for future validation planning. It does not contain raw malware, execute exploits, replay live attacker traffic, measure TPR/FPR, or prove production detection quality.",
+  "taxonomy": [
+    {
+      "threat_category": "malware",
+      "benchmark_intent": "Map file/model malware detection work to benchmark lanes without promoting local bootstrap or parity smoke into production claims.",
+      "mapped_validation_surfaces": [
+        {
+          "surface": "ML malware classifier benchmark",
+          "artifact_ref": "docs/benchmarks/AI_ML_DETECTION_PARALLEL_EXECUTION_20260630.md",
+          "evidence_label": "profile_scoped",
+          "scope_note": "Local calibrated bootstrap and ONNX parity evidence are profile-scoped and do not establish field malware detection quality."
+        },
+        {
+          "surface": "ML report contract",
+          "artifact_ref": "schemas/ml_benchmark_report_v1.schema.json",
+          "evidence_label": "synthetic",
+          "scope_note": "Schema validates benchmark report shape and guardrails, not real sample lineage or production classifier performance."
+        }
+      ],
+      "evidence_state": "synthetic_profile_scoped",
+      "claim_status": "not_production_validated",
+      "missing_requirements": [
+        "Governed malware/goodware corpus with reproducible lineage and sample counts",
+        "Holdout metrics with FPR/FNR, score orientation, threshold source, and artifact hashes",
+        "Agent/server alert path evidence from non-synthetic detections"
+      ],
+      "future_validation_gate": "Require governed dataset manifest plus ML-1 through ML-3 reports before publishing malware detection quality claims."
+    },
+    {
+      "threat_category": "spyware_stealer",
+      "benchmark_intent": "Track commercial-spyware and credential-stealer behaviors separately from generic malware so future validation can test collection, exfiltration, persistence, and privacy-preserving signals.",
+      "mapped_validation_surfaces": [
+        {
+          "surface": "RASP/browser replay fixtures",
+          "artifact_ref": "tools/detection_validation/fixtures/browser_guard_rasp_replay_v1.json",
+          "evidence_label": "synthetic",
+          "scope_note": "Replay fixtures include metadata-only tamper and exfiltration-shaped signals, not observed spyware or stealer samples."
+        }
+      ],
+      "evidence_state": "synthetic_profile_scoped",
+      "claim_status": "not_production_validated",
+      "missing_requirements": [
+        "Benign and malicious credential-access scenarios with consented lab instrumentation",
+        "Negative controls for password managers, browser sync, and enterprise DLP agents",
+        "Evidence that collector privacy mode preserves required fields without collecting secrets"
+      ],
+      "future_validation_gate": "Require lab replay plus benign-control false-positive review before claiming spyware or stealer coverage."
+    },
+    {
+      "threat_category": "zero_day_behavior",
+      "benchmark_intent": "Reserve a benchmark bucket for unknown-exploit behavior without implying detection of undisclosed vulnerabilities.",
+      "mapped_validation_surfaces": [
+        {
+          "surface": "Technique and behavior coverage planning",
+          "artifact_ref": "docs/benchmarks/COMPARATIVE_BENCHMARK_POSITIONING.md",
+          "evidence_label": "missing",
+          "scope_note": "Existing coverage positioning distinguishes runtime evidence from rule content but does not prove unknown-exploit detection."
+        }
+      ],
+      "evidence_state": "missing",
+      "claim_status": "taxonomy_mapping_only",
+      "missing_requirements": [
+        "Behavior-only scenarios that do not depend on known CVE labels",
+        "Runtime collector evidence for exploit-like process, memory, network, or persistence chains",
+        "False-positive controls showing benign crash, updater, and automation activity are not over-promoted"
+      ],
+      "future_validation_gate": "Require behavior-chain replay with runtime evidence and FP controls; never present this as zero-day exploit prevention."
+    },
+    {
+      "threat_category": "one_day_exploit",
+      "benchmark_intent": "Separate known-CVE exploit delivery and post-exploitation behavior from generic malware and zero-day language.",
+      "mapped_validation_surfaces": [
+        {
+          "surface": "External rule execution planning",
+          "artifact_ref": "docs/benchmarks/EXTERNAL_RULE_EXECUTION_PLAN.md",
+          "evidence_label": "missing",
+          "scope_note": "Planning artifacts can define expected event contracts, but current mapping has no CVE-scoped exploit replay evidence."
+        }
+      ],
+      "evidence_state": "missing",
+      "claim_status": "taxonomy_mapping_only",
+      "missing_requirements": [
+        "CVE-scoped lab scenario with patched/unpatched or simulated-vulnerable target lineage",
+        "Exploit delivery, exploitation, and post-exploitation phases separated in expected results",
+        "Benign scanner and vulnerability-management controls to measure false positives"
+      ],
+      "future_validation_gate": "Require CVE-scoped replay package and negative controls before claiming one-day exploit coverage."
+    },
+    {
+      "threat_category": "im_exploit_delivery",
+      "benchmark_intent": "Track instant-messaging delivery as an ingress vector without claiming exploitation or messaging-platform protection.",
+      "mapped_validation_surfaces": [
+        {
+          "surface": "App/browser guard replay shape",
+          "artifact_ref": "tools/detection_validation/fixtures/app_guard_rasp_replay_v1.json",
+          "evidence_label": "synthetic",
+          "scope_note": "Existing replay shape can model app/web risk metadata, but it is not real IM traffic, attachment analysis, or platform integration evidence."
+        }
+      ],
+      "evidence_state": "synthetic_profile_scoped",
+      "claim_status": "not_production_validated",
+      "missing_requirements": [
+        "Sanitized IM-message or attachment-delivery fixture with sender, link, attachment, and user-action metadata",
+        "Controls for benign links, enterprise chat integrations, and expected preview fetches",
+        "Runtime evidence that delivery context reaches alert/timeline without collecting message contents"
+      ],
+      "future_validation_gate": "Require metadata-only IM delivery replay and benign controls before claiming IM exploit-delivery coverage."
+    }
+  ],
+  "summary": {
+    "total_categories": 5,
+    "synthetic_profile_scoped_categories": 3,
+    "missing_categories": 2,
+    "production_validated_categories": 0
+  }
+}

@@ -16,7 +16,7 @@
   "source_artifact_hashes": {
     "wave1_acceptance_checklist": {
       "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260604T-ml-wave1-acceptance-checklist.json",
-      "sha256": "cb62a73acdcc4e04c219828e221b58c2ef570f2df116e3f7eeb3cac3f5c3c63f"
+      "sha256": "7849c50d1173915f4a2dcf6c032eb0c3eb0bbd1d1e3b092cb8dbb90eb784c324"
     },
     "wave3_ml5_readiness": {
       "path": "D:\\treant\\tamandua\\docs\\benchmarks\\runs\\20260621T-ml-wave3-ml5-readiness-post-win-template-gate-threading.json",
@@ -93,8 +93,7 @@
       "missing_required_evidence": 11,
       "unusable_present_required_evidence": 4,
       "by_status": {
-        "blocked_artifact": 3,
-        "invalid_content": 1,
+        "blocked_artifact": 4,
         "missing": 11,
         "usable": 1
       }

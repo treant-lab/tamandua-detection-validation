@@ -18,9 +18,9 @@
 
 ## Claim Boundary
 
-This scorecard is a small-corpus validation snapshot and is not
-production-ready performance evidence. It can support scanner smoke/regression
-tracking only.
+This scorecard is a small-corpus validation snapshot and is
+not production-ready performance evidence. It can support scanner
+smoke/regression tracking only.
 
 WeightAnalyzer and SpectralAnalyzer coverage remains limited by weight
 extraction behavior on adversarial or unsupported samples. PyTorch pickle

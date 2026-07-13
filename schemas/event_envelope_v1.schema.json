@@ -25,7 +25,7 @@
         "tenant_id": {"type": "string", "minLength": 1},
         "agent_id": {"type": "string", "minLength": 1},
         "hostname": {"type": "string"},
-        "platform": {"enum": ["windows", "linux", "macos"]},
+        "platform": {"enum": ["windows", "linux", "macos", "android", "ios"]},
         "collector_id": {"type": "string", "pattern": "^[a-z0-9_.-]{2,128}$"},
         "event_type": {"type": "string", "pattern": "^[a-z0-9_.-]{2,128}$"},
         "severity_hint": {"enum": ["info", "low", "medium", "high", "critical"]},
@@ -49,6 +49,37 @@
         "network": {"type": "object"},
         "dns": {"type": "object"},
         "registry": {"type": "object"},
+        "identity": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["provider", "source_event_id"],
+          "properties": {
+            "provider": {"const": "windows_security_event_log"},
+            "source_event_id": {
+              "oneOf": [
+                {"enum": [4624, 4625, 4648, 4672, 4769]},
+                {"enum": ["4624", "4625", "4648", "4672", "4769"]}
+              ]
+            },
+            "subject": {"type": "string"},
+            "subject_account": {"type": "string"},
+            "subject_domain": {"type": "string"},
+            "subject_sid": {"type": ["string", "null"]},
+            "target": {"type": ["string", "null"]},
+            "target_account": {"type": ["string", "null"]},
+            "target_domain": {"type": ["string", "null"]},
+            "target_sid": {"type": ["string", "null"]},
+            "baseline_key": {"type": "string"},
+            "logon_type": {"type": ["integer", "null"]},
+            "logon_type_name": {"type": ["string", "null"]},
+            "auth_package": {"type": ["string", "null"]},
+            "service_name": {"type": ["string", "null"]},
+            "failure_reason": {"type": ["string", "null"]},
+            "failure_status": {"type": ["string", "null"]},
+            "failure_substatus": {"type": ["string", "null"]},
+            "risk_indicators": {"type": "array", "items": {"type": "string"}}
+          }
+        },
         "user": {"type": "object"},
         "host": {"type": "object"},
         "labels": {"type": "array", "items": {"type": "string"}},

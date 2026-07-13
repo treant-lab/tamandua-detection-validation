@@ -12,7 +12,8 @@ from pathlib import Path
 try:
     from root_resolver import ROOT
 except ImportError:
-    ROOT = Path(__file__).resolve().parents[2]
+    _SCRIPT_DIR = Path(__file__).resolve().parent
+    ROOT = _SCRIPT_DIR.parents[2] if _SCRIPT_DIR.name == "scripts" else _SCRIPT_DIR.parents[1]
 
 sys.path.insert(0, str(ROOT / "tools" / "detection_validation"))
 import windows_proxmox_qga_readiness_probe as qga  # noqa: E402

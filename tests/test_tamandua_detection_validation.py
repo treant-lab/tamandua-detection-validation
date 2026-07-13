@@ -30,7 +30,12 @@ validation = importlib.util.module_from_spec(SPEC)
 assert SPEC.loader is not None
 sys.modules[SPEC.name] = validation
 SPEC.loader.exec_module(validation)
-REPO_ROOT = MODULE_PATH.parents[2]
+# Repo root must be derived from this test file's fixed location
+# (tools/detection_validation/tests/), not from MODULE_PATH: the validation
+# module moved from tools/detection_validation/ into scripts/, which made
+# MODULE_PATH.parents[2] resolve to tools/ and duplicated path segments
+# (e.g. tools/tools/...).
+REPO_ROOT = DETECTION_VALIDATION_ROOT.parents[1]
 
 MACOS_ARTIFACT_PREFLIGHT_MODULE_PATH = module_path(
     "macos_release_artifact_preflight.py"
@@ -493,7 +498,9 @@ def test_macos_p0_smoke_runner_gates_on_backend_readiness():
     assert "Diagnostic Findings" in script
     assert "health_healthy/EndpointSecurity/System Extension/FDA" in script
     assert "tamandua_detection_validation.py" in script
-    assert "20260618T094143Z-macos-backend-readiness-probe" in runbook
+    # Pin tracks the latest backend readiness probe run cited by the runbook
+    # (currently the 0/4 gate-fail regression artifact of 2026-06-19).
+    assert "20260619T035011Z-macos-backend-readiness-probe" in runbook
     assert "-BootstrapReadinessReport .\\macos-bootstrap-readiness.json" in runbook
     assert "TAMANDUA_MACOS_BOOTSTRAP_READINESS_REPORT" in runbook
     assert "refuses product-readiness smoke execution without" in runbook
@@ -754,9 +761,16 @@ def test_deploy_agent_page_does_not_promote_macos_standalone_no_driver_install()
     macos_command_block = page.split("macos: `", 1)[1].split("`,\n      linux:", 1)[0]
 
     assert "macOS product installer is not published on this server yet." in macos_command_block
-    assert "signed and notarized Tamandua EDR DMG/Cask release" in macos_command_block
+    # Wording tracks commit 8df7817c ("Align macOS deploy UI with signed
+    # runtime requirement"), which removed the standalone-binary promotion
+    # entirely and replaced the FDA prompt copy with the Gatekeeper gate.
+    assert "signed and notarized Tamandua EDR DMG/Cask" in macos_command_block
     assert "EndpointSecurity System Extension" in macos_command_block
-    assert "Full Disk Access" in macos_command_block
+    assert "pass Gatekeeper" in macos_command_block
+    assert (
+        "Do not use /downloads/agents/tamandua-agent-macos-arm64 as product evidence."
+        in macos_command_block
+    )
     assert "tamandua-agent-macos-universal" not in macos_command_block
     assert "--no-driver" not in macos_command_block
     assert "macosUniversal: nil" in inertia
@@ -929,7 +943,7 @@ def test_windows_release_assets_use_release_tag_names_for_package_publishers():
 
 
 def test_macos_backend_readiness_live_response_diagnostics_are_opt_in():
-    script = (REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py").read_text(
+    script = (module_path("macos_backend_readiness_probe.py")).read_text(
         encoding="utf-8"
     )
 
@@ -967,8 +981,8 @@ def test_macos_backend_readiness_live_response_diagnostics_are_opt_in():
 
 
 def test_macos_backend_readiness_default_disables_live_response_diagnostics():
-    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_for_test", module_path)
+    probe_module_path = module_path("macos_backend_readiness_probe.py")
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_for_test", probe_module_path)
     diagnostics = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = diagnostics
@@ -987,8 +1001,8 @@ def test_macos_backend_readiness_default_disables_live_response_diagnostics():
 
 
 def test_macos_backend_live_response_timeout_is_bounded(monkeypatch):
-    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_timeout_for_test", module_path)
+    probe_module_path = module_path("macos_backend_readiness_probe.py")
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_timeout_for_test", probe_module_path)
     diagnostics = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = diagnostics
@@ -1020,8 +1034,8 @@ def test_macos_backend_live_response_timeout_is_bounded(monkeypatch):
 
 
 def test_macos_backend_readiness_summarizes_live_response_findings():
-    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_findings_for_test", module_path)
+    probe_module_path = module_path("macos_backend_readiness_probe.py")
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_findings_for_test", probe_module_path)
     diagnostics = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = diagnostics
@@ -1058,8 +1072,8 @@ def test_macos_backend_readiness_summarizes_live_response_findings():
 
 
 def test_macos_backend_readiness_summarizes_combined_live_response_sections():
-    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_combined_for_test", module_path)
+    probe_module_path = module_path("macos_backend_readiness_probe.py")
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_combined_for_test", probe_module_path)
     diagnostics = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = diagnostics
@@ -1104,8 +1118,8 @@ __TAMANDUA_DIAG_SPCTL_END__
 
 
 def test_macos_backend_readiness_ignores_live_response_banner_for_sysext():
-    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_sysext_banner_for_test", module_path)
+    probe_module_path = module_path("macos_backend_readiness_probe.py")
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_sysext_banner_for_test", probe_module_path)
     diagnostics = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = diagnostics
@@ -1133,8 +1147,8 @@ def test_macos_backend_readiness_ignores_live_response_banner_for_sysext():
 
 
 def test_macos_backend_readiness_does_not_infer_missing_findings_from_unconfirmed_dispatch():
-    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_unconfirmed_for_test", module_path)
+    probe_module_path = module_path("macos_backend_readiness_probe.py")
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_unconfirmed_for_test", probe_module_path)
     diagnostics = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = diagnostics
@@ -1173,8 +1187,8 @@ def test_macos_backend_readiness_does_not_infer_missing_findings_from_unconfirme
 
 
 def test_macos_backend_readiness_refines_next_action_from_diagnostics():
-    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_action_for_test", module_path)
+    probe_module_path = module_path("macos_backend_readiness_probe.py")
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_action_for_test", probe_module_path)
     diagnostics = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = diagnostics
@@ -1210,8 +1224,8 @@ def test_macos_backend_readiness_refines_next_action_from_diagnostics():
 
 
 def test_macos_backend_readiness_can_attach_bootstrap_report(tmp_path):
-    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_bootstrap_for_test", module_path)
+    probe_module_path = module_path("macos_backend_readiness_probe.py")
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_bootstrap_for_test", probe_module_path)
     diagnostics = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = diagnostics
@@ -1229,8 +1243,8 @@ def test_macos_backend_readiness_can_attach_bootstrap_report(tmp_path):
 
 
 def test_macos_backend_readiness_bootstrap_report_missing_or_invalid(tmp_path):
-    module_path = REPO_ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_bootstrap_error_for_test", module_path)
+    probe_module_path = module_path("macos_backend_readiness_probe.py")
+    spec = importlib.util.spec_from_file_location("macos_backend_readiness_probe_bootstrap_error_for_test", probe_module_path)
     diagnostics = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     sys.modules[spec.name] = diagnostics
@@ -16859,14 +16873,17 @@ def test_status_consistency_flags_stale_pass_roadmap_blocker_phrases():
 
 
 def test_status_consistency_preserves_current_macos_backend_handoff():
+    # The fresh fixture must cite EXPECTED_MACOS_BACKEND_RUN from
+    # validation_status_consistency.py (currently 20260619T035011Z); the stale
+    # fixture cites a superseded probe run plus stale-marker phrasing.
     current = (
-        "20260618T175420Z-macos-backend-readiness-probe sees the Mac online with fresh heartbeat "
+        f"{consistency.EXPECTED_MACOS_BACKEND_RUN} sees the Mac online with fresh heartbeat "
         "and reported endpoint telemetry. EndpointSecurity is unavailable / the endpoint sensor is not loaded. "
         "Deploy with com.apple.developer.endpoint-security.client and "
         "com.apple.developer.system-extension.install. Gatekeeper rejects `/opt/tamandua/tamandua-agent`."
     )
     stale = (
-        "20260618T094143Z-macos-backend-readiness-probe says the Mac is online with fresh heartbeat "
+        "20260618T175420Z-macos-backend-readiness-probe says the Mac is online with fresh heartbeat "
         "and reported endpoint telemetry. EndpointSecurity is unavailable / the endpoint sensor is not loaded. "
         "Deploy after the Developer ID/EndpointSecurity entitlement is ready. "
         "Gatekeeper rejects `/opt/tamandua/tamandua-agent`."
@@ -22867,7 +22884,7 @@ def test_atomic_t1047_latest_source_artifact_prefers_precondition_payload(tmp_pa
 
 def test_macos_p0_smoke_wrapper_exposes_output_dir_and_local_target():
     script = (
-        Path(__file__).resolve().parents[2]
+        REPO_ROOT
         / "deploy"
         / "scripts"
         / "proxmox"
@@ -23830,6 +23847,22 @@ def test_windows_readiness_probes_write_to_explicit_output_dir(tmp_path, monkeyp
         windows_lab_readiness,
         "run_ctl",
         lambda _ctl_path, _server: {"ok": True, "payload": {"data": []}, "command": "tamandua-ctl"},
+    )
+    # This test only verifies that explicit --output-dir is honored; it must not
+    # exercise the lab. Without these mocks, main() loads .env credentials and
+    # issues real HTTP(S) requests: maybe_admin_fallback -> admin_web_agents
+    # (server admin API, mocked ctl payload has no agents so the fallback always
+    # fires) and proxmox_vm_status (Proxmox API with verify=False, the source of
+    # the InsecureRequestWarning seen in unit runs).
+    monkeypatch.setattr(
+        windows_lab_readiness,
+        "admin_web_agents",
+        lambda _server: {"ok": False, "error": "network_mocked_out_in_unit_test", "source": "admin_web"},
+    )
+    monkeypatch.setattr(
+        windows_lab_readiness,
+        "proxmox_vm_status",
+        lambda: {"ok": False, "error": "network_mocked_out_in_unit_test"},
     )
     monkeypatch.setattr(
         sys,

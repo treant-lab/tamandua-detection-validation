@@ -176,6 +176,9 @@
           "type": ["number", "null"],
           "minimum": 0,
           "maximum": 1
+        },
+        "threshold_score_orientation": {
+          "enum": ["as_is", "inverted"]
         }
       }
     },

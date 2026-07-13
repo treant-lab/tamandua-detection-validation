@@ -97,7 +97,10 @@ def test_validate_ml_next_gate_authorization_packet_accepts_secret_readiness_pat
     data = json.loads(CANONICAL.read_text(encoding="utf-8"))
 
     assert mode == "jsonschema+built-in"
-    assert data["authorized_for_guarded_execution"] is True
+    # Wave 1 guarded-execution gate is currently closed: the packet honestly
+    # records master_handoff_ready_for_lab_operator=false, so it must not
+    # claim authorization. The built-in validator enforces this consistency.
+    assert data["authorized_for_guarded_execution"] is False
 
 
 def test_next_gate_markdown_prints_virusshare_secret_placeholder() -> None:
@@ -312,7 +315,7 @@ def test_validate_ml_next_gate_authorization_packet_rejects_next_unproven_requir
 
 def test_validate_ml_next_gate_authorization_packet_rejects_wave1_transcript_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_status_summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = True
+    data["source_status_summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = False
     drifted = tmp_path / "20260604T-ml-next-gate-authorization-packet.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

@@ -1282,6 +1282,8 @@ def validate_model_contract(data: dict[str, Any], path: Path) -> None:
     threshold = decision["malicious_threshold"]
     if not isinstance(threshold, (int, float)) or threshold < 0 or threshold > 1:
         raise ContractError(f"{path}.decision.malicious_threshold: must be between 0 and 1")
+    if "threshold_score_orientation" in decision and decision["threshold_score_orientation"] not in {"as_is", "inverted"}:
+        raise ContractError(f"{path}.decision.threshold_score_orientation: must be as_is or inverted")
     if decision["observe_before_block"] is not True:
         raise ContractError(f"{path}.decision.observe_before_block: must be true")
 
@@ -1359,6 +1361,15 @@ def validate_agent_parity_fixture(data: dict[str, Any], path: Path) -> None:
     labels = require_array(output_spec.get("labels"), f"{path}.output.labels")
     if labels != CANONICAL_LABELS:
         raise ContractError(f"{path}.output.labels: must match canonical label order")
+
+    decision = data.get("decision")
+    if isinstance(decision, dict):
+        threshold = decision.get("malicious_threshold")
+        if not isinstance(threshold, (int, float)) or threshold < 0 or threshold > 1:
+            raise ContractError(f"{path}.decision.malicious_threshold: must be between 0 and 1")
+        orientation = decision.get("threshold_score_orientation", "as_is")
+        if orientation not in {"as_is", "inverted"}:
+            raise ContractError(f"{path}.decision.threshold_score_orientation: must be as_is or inverted")
 
     samples = require_array(data["samples"], f"{path}.samples")
     if not samples:
@@ -9926,6 +9937,21 @@ def validate_wave1_operator_handoff_index(data: dict[str, Any], path: Path) -> N
                     and bool(manifest_publish_summary["acquisition_transcript_valid"]) is False
                     and "wave1_acquisition_transcript_invalid" in [str(item) for item in acquisition_receipt.get("blockers", [])]
                     and "wave1_acquisition_transcript_invalid" in [str(item) for item in manifest_publish_receipt.get("blockers", [])]
+                )
+                # Third legitimate waiting state: a real guarded acquisition
+                # attempt transcript is recorded and contract-valid, but the
+                # guarded command failed to execute (returncode != 0), so both
+                # receipts still block on the execute-failed blocker while
+                # waiting for real (successful) acquisition evidence.
+                or (
+                    bool(acquisition_receipt_summary["acquisition_transcript_present"]) is True
+                    and bool(acquisition_receipt_summary["acquisition_transcript_valid"]) is True
+                    and acquisition_receipt_summary.get("acquisition_transcript_execute_succeeded") is False
+                    and bool(manifest_publish_summary["acquisition_transcript_present"]) is True
+                    and bool(manifest_publish_summary["acquisition_transcript_valid"]) is True
+                    and manifest_publish_summary.get("acquisition_transcript_execute_succeeded") is False
+                    and "wave1_acquisition_transcript_execute_failed" in [str(item) for item in acquisition_receipt.get("blockers", [])]
+                    and "wave1_acquisition_transcript_execute_failed" in [str(item) for item in manifest_publish_receipt.get("blockers", [])]
                 )
             )
         ),
@@ -23246,6 +23272,14 @@ def validate_ml_dvc_pipeline(path: Path) -> None:
         if snippet in commands:
             raise ContractError(f"{path}.stages.cmd: DVC pipeline must not include real acquisition/publication path: {snippet}")
 
+    contract_deps = set(require_array(stages["validate_ml_contracts"].get("deps", []), f"{path}.stages.validate_ml_contracts.deps"))
+    if "../../tools/detection_validation/scripts/validate_ml_contracts.py" not in contract_deps:
+        raise ContractError(f"{path}.stages.validate_ml_contracts.deps: missing validator implementation")
+    if "../../schemas/ml_model_contract_v1.schema.json" not in contract_deps:
+        raise ContractError(f"{path}.stages.validate_ml_contracts.deps: missing model contract schema")
+    if "../../docs/apps/tamandua_ml/examples/ml_model_contract_malware_smell_onnx_v1.json" not in contract_deps:
+        raise ContractError(f"{path}.stages.validate_ml_contracts.deps: missing model contract fixture")
+
     allowed_missing_deps = {
         "data/production",
         "data/production/train",
@@ -23270,12 +23304,6 @@ def validate_ml_dvc_pipeline(path: Path) -> None:
             dep_path = (root / dep).resolve()
             if not dep_path.exists():
                 raise ContractError(f"{path}.stages.{stage_name}.deps: dependency does not exist: {dep}")
-
-    contract_deps = set(require_array(stages["validate_ml_contracts"].get("deps", []), f"{path}.stages.validate_ml_contracts.deps"))
-    if "../../schemas/ml_model_contract_v1.schema.json" not in contract_deps:
-        raise ContractError(f"{path}.stages.validate_ml_contracts.deps: missing model contract schema")
-    if "../../docs/apps/tamandua_ml/examples/ml_model_contract_malware_smell_onnx_v1.json" not in contract_deps:
-        raise ContractError(f"{path}.stages.validate_ml_contracts.deps: missing model contract fixture")
 
     train_cmd = str(stages["train"].get("cmd", ""))
     for required_arg in (

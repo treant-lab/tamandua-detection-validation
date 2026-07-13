@@ -1,0 +1,349 @@
+{
+  "api_version": "tamandua.io/benchmark-claim-maturity-matrix/v1",
+  "kind": "BenchmarkClaimMaturityMatrix",
+  "generated_at": "2026-07-07T16:00:00Z",
+  "claim_boundary": "Internal benchmark maturity matrix only. It separates synthetic contracts, local/bootstrap evidence, and live missing evidence before any public comparison against Elastic, Wazuh, Appdome, Verimatrix, or Guardcore. It does not authorize vendor parity, production malware accuracy, or mobile shielding efficacy claims.",
+  "status_labels": [
+    "local",
+    "synthetic",
+    "live missing"
+  ],
+  "evidence_types": [
+    "smoke_local",
+    "synthetic_parity",
+    "governed_holdout",
+    "production_telemetry"
+  ],
+  "gates": [
+    {
+      "id": "goodware_fp",
+      "status": "local",
+      "evidence_tier": "bootstrap_local",
+      "evidence_type": "smoke_local",
+      "external_claim_allowed": false,
+      "promotion_evidence": {
+        "claim_target": "production_false_positive_rate",
+        "current_evidence_class": "bootstrap_local",
+        "current_evidence_type": "smoke_local",
+        "live_proof_required": true,
+        "minimum_required_tier": "production_telemetry",
+        "minimum_required_evidence_type": "production_telemetry",
+        "required_live_artifacts": [
+          "24h_multi_agent_fp_soak_with_agent_count_and_observation_window",
+          "large_clean_goodware_corpus_manifest_with_hashes",
+          "analyst_reviewed_false_positive_dataset_and_reproduction_status"
+        ],
+        "satisfied_live_artifacts": [],
+        "missing_evidence": [
+          "large_clean_goodware_corpus_manifest_with_hashes",
+          "24h_multi_agent_fp_soak_with_agent_count_and_observation_window",
+          "analyst_reviewed_false_positive_dataset_and_reproduction_status"
+        ],
+        "next_evidence_step": "Run a governed clean-corpus soak with agent count, observation window, hashes, and analyst FP review.",
+        "promotion_blocked_reason": "The current 100-sample bootstrap slice cannot support a production false-positive rate without clean-corpus and telemetry evidence."
+      },
+      "required_for_stronger_claim": [
+        "large_clean_goodware_corpus",
+        "24h_multi_agent_fp_soak",
+        "analyst_reviewed_false_positive_dataset"
+      ],
+      "metrics": {
+        "goodware_samples": 100,
+        "false_positives": 0,
+        "fpr": 0.0,
+        "threshold": 0.6866175091269453,
+        "score_orientation": "inverted_selected",
+        "minimum_goodware_samples": 100,
+        "maximum_false_positives": 0
+      },
+      "source_artifacts": [
+        "docs/benchmarks/ALERT_FP_EVIDENCE_AUDIT_20260706.md#current-measurements"
+      ],
+      "claim_boundary": "Local bootstrap goodware slice reports 0 FP on 100 samples; this is not a production false-positive rate."
+    },
+    {
+      "id": "malware_fn",
+      "status": "local",
+      "evidence_tier": "bootstrap_local",
+      "evidence_type": "smoke_local",
+      "external_claim_allowed": false,
+      "promotion_evidence": {
+        "claim_target": "governed_malware_false_negative_rate",
+        "current_evidence_class": "bootstrap_local",
+        "current_evidence_type": "smoke_local",
+        "live_proof_required": true,
+        "minimum_required_tier": "governed_holdout",
+        "minimum_required_evidence_type": "governed_holdout",
+        "required_live_artifacts": [
+          "governed_malware_holdout_manifest_with_lineage",
+          "agent_onnx_runtime_parity_report",
+          "end_to_end_alert_feed_proof_for_holdout_detections"
+        ],
+        "satisfied_live_artifacts": [],
+        "missing_evidence": [
+          "governed_malware_holdout_manifest_with_lineage",
+          "agent_onnx_runtime_parity_report",
+          "end_to_end_alert_feed_proof_for_holdout_detections"
+        ],
+        "next_evidence_step": "Build and run a governed malware holdout packet with lineage, ONNX parity, and alert-feed proof.",
+        "promotion_blocked_reason": "The current 100-sample local malware slice cannot support a governed false-negative rate without holdout and end-to-end alert evidence."
+      },
+      "required_for_stronger_claim": [
+        "governed_malware_holdout",
+        "agent_onnx_runtime_parity",
+        "end_to_end_alert_feed_proof"
+      ],
+      "metrics": {
+        "malware_samples": 100,
+        "false_negatives": 0,
+        "fnr": 0.0,
+        "threshold": 0.6866175091269453,
+        "score_orientation": "inverted_selected",
+        "minimum_malware_samples": 100,
+        "maximum_false_negatives": 0
+      },
+      "source_artifacts": [
+        "docs/benchmarks/ALERT_FP_EVIDENCE_AUDIT_20260706.md#current-measurements"
+      ],
+      "claim_boundary": "Local bootstrap malware slice reports 0 FN on 100 samples; governed malware detection quality is still unproven."
+    },
+    {
+      "id": "mobile_shielding_synthetic_vs_physical",
+      "status": "synthetic",
+      "evidence_tier": "synthetic_replay_contract",
+      "evidence_type": "synthetic_parity",
+      "external_claim_allowed": false,
+      "promotion_evidence": {
+        "claim_target": "physical_mobile_shielding",
+        "current_evidence_class": "synthetic_replay_contract",
+        "current_evidence_type": "synthetic_parity",
+        "live_proof_required": true,
+        "minimum_required_tier": "physical_device_lab",
+        "minimum_required_evidence_type": "governed_holdout",
+        "required_live_artifacts": [
+          "physical_device_collection_packet",
+          "live_signed_app_guard_ingestion_and_duplicate_replay_rejection",
+          "governed_physical_attack_lab_positive_and_goodware_negative_cases",
+          "ios_native_build_and_xcframework_binding_evidence"
+        ],
+        "satisfied_live_artifacts": [],
+        "missing_evidence": [
+          "physical_device_collection_packet",
+          "live_signed_app_guard_ingestion_and_duplicate_replay_rejection",
+          "governed_physical_attack_lab_positive_and_goodware_negative_cases",
+          "ios_native_build_and_xcframework_binding_evidence"
+        ],
+        "next_evidence_step": "Collect a governed physical-device packet with signed ingestion, anti-replay, attack positives, and goodware negatives.",
+        "promotion_blocked_reason": "Synthetic replay proves event contracts only; physical shielding claims require governed device and attack-lab evidence."
+      },
+      "required_for_stronger_claim": [
+        "live_signed_app_guard_ingestion",
+        "live_duplicate_signed_request_rejection",
+        "physical_device_collection_packet",
+        "ios_native_build_evidence",
+        "ios_xcframework_binding_evidence",
+        "governed_physical_attack_lab_evidence"
+      ],
+      "metrics": {
+        "synthetic_fixture_count": 11,
+        "goodware_false_positive_fixtures": 2,
+        "physical_device_smoke_collected": false,
+        "governed_physical_attack_lab_collected": false,
+        "shielding_claim_allowed": false
+      },
+      "source_artifacts": [
+        "tools/detection_validation/fixtures/mobile_app_guard_aggressive_replay_v1.json",
+        "tools/detection_validation/scripts/mobile_app_guard_benchmark_gate.py"
+      ],
+      "claim_boundary": "Synthetic replay validates App Guard event contracts and goodware guardrails only; physical device and attack-lab evidence are live missing."
+    },
+    {
+      "id": "endpoint_parity",
+      "status": "live missing",
+      "evidence_tier": "selected_live_smoke",
+      "evidence_type": "smoke_local",
+      "external_claim_allowed": false,
+      "promotion_evidence": {
+        "claim_target": "cross_platform_endpoint_parity",
+        "current_evidence_class": "selected_live_smoke",
+        "current_evidence_type": "smoke_local",
+        "live_proof_required": true,
+        "minimum_required_tier": "selected_live_smoke",
+        "minimum_required_evidence_type": "governed_holdout",
+        "required_live_artifacts": [
+          "stable_windows_lab_identity",
+          "linux_ebpf_lsm_live_runner_proof",
+          "fresh_macos_backend_readiness_and_detection_proof",
+          "mobile_live_ingestion_and_device_evidence",
+          "cross_platform_detection_latency_report"
+        ],
+        "satisfied_live_artifacts": [],
+        "missing_evidence": [
+          "stable_windows_lab_identity",
+          "linux_ebpf_lsm_live_runner_proof",
+          "fresh_macos_backend_readiness_and_detection_proof",
+          "mobile_live_ingestion_and_device_evidence",
+          "cross_platform_detection_latency_report"
+        ],
+        "next_evidence_step": "Run a governed cross-platform parity lane with stable identities, per-platform proof, and latency capture.",
+        "promotion_blocked_reason": "Selected platform smoke evidence exists, but cross-platform parity needs fresh live proof and latency evidence across all claimed platforms."
+      },
+      "required_for_stronger_claim": [
+        "stable_windows_lab_identity",
+        "linux_ebpf_lsm_probe_on_linux_runner",
+        "macos_backend_fresh_readiness",
+        "mobile_live_ingestion_and_device_evidence",
+        "cross_platform_detection_latency"
+      ],
+      "metrics": {
+        "parity_claim_allowed": false,
+        "windows_identity_blocked": true,
+        "linux_kernel_sensor_live_missing": true,
+        "macos_fresh_live_missing": true,
+        "mobile_runtime_protection_live_missing": true
+      },
+      "source_artifacts": [
+        "docs/benchmarks/CROSS_PLATFORM_PARITY_WORK_QUEUE.md",
+        "docs/operations/MATURITY_EXECUTION_BOARD_20260707.md#hard-blockers"
+      ],
+      "claim_boundary": "Endpoint parity is not claimable; selected platform gates exist, but cross-platform live parity and latency evidence are missing."
+    }
+  ],
+  "competitor_matrix": [
+    {
+      "vendor": "Elastic",
+      "category": "endpoint detection content and telemetry depth",
+      "tamandua_status": "local",
+      "evidence_type": "smoke_local",
+      "external_claim_allowed": false,
+      "live_parity_evidence": {
+        "current_evidence_type": "smoke_local",
+        "minimum_required_evidence_type": "production_telemetry",
+        "live_proof_required": true,
+        "required_artifacts": [
+          "live_detection_depth_matrix_against_elastic_analog",
+          "per_detection_latency_report",
+          "third_party_or_governed_eval_packet"
+        ],
+        "satisfied_artifacts": [],
+        "missing_evidence": [
+          "live_detection_depth_matrix_against_elastic_analog",
+          "per_detection_latency_report",
+          "third_party_or_governed_eval_packet"
+        ],
+        "next_evidence_step": "Capture governed live detection depth and latency, then attach an independent or equivalent eval packet.",
+        "blocked_claim": "Elastic parity is blocked until Tamandua has governed live detection depth, latency, and independent or equivalent eval evidence."
+      },
+      "claim_boundary": "Tamandua has local/offline detection content mapping and selected live evidence, not Elastic parity.",
+      "gap_to_close": "Promote rule-content-only techniques to live/replay evidence and capture latency."
+    },
+    {
+      "vendor": "Wazuh",
+      "category": "open endpoint SIEM/XDR style coverage",
+      "tamandua_status": "local",
+      "evidence_type": "smoke_local",
+      "external_claim_allowed": false,
+      "live_parity_evidence": {
+        "current_evidence_type": "smoke_local",
+        "minimum_required_evidence_type": "production_telemetry",
+        "live_proof_required": true,
+        "required_artifacts": [
+          "cross_platform_fleet_scale_live_run",
+          "tenant_safety_and_operational_integration_packet",
+          "wazuh_replacement_readiness_gap_review"
+        ],
+        "satisfied_artifacts": [],
+        "missing_evidence": [
+          "cross_platform_fleet_scale_live_run",
+          "tenant_safety_and_operational_integration_packet",
+          "wazuh_replacement_readiness_gap_review"
+        ],
+        "next_evidence_step": "Run a cross-platform fleet-scale lane with tenant-safety proof and an operational replacement gap review.",
+        "blocked_claim": "Wazuh replacement readiness is blocked until live fleet scale, tenant safety, and operational integration evidence exist."
+      },
+      "claim_boundary": "Tamandua can map some external-rule semantics, but Wazuh replacement readiness is not proven.",
+      "gap_to_close": "Complete cross-platform runtime evidence, fleet scale, tenant safety, and operational integrations."
+    },
+    {
+      "vendor": "Appdome",
+      "category": "mobile app shielding and no-code protection",
+      "tamandua_status": "synthetic",
+      "evidence_type": "synthetic_parity",
+      "external_claim_allowed": false,
+      "live_parity_evidence": {
+        "current_evidence_type": "synthetic_parity",
+        "minimum_required_evidence_type": "governed_holdout",
+        "live_proof_required": true,
+        "required_artifacts": [
+          "physical_android_ios_device_lab_packet",
+          "signed_backend_ingestion_and_anti_replay_evidence",
+          "no_code_shielding_scope_boundary_review"
+        ],
+        "satisfied_artifacts": [],
+        "missing_evidence": [
+          "physical_android_ios_device_lab_packet",
+          "signed_backend_ingestion_and_anti_replay_evidence",
+          "no_code_shielding_scope_boundary_review"
+        ],
+        "next_evidence_step": "Attach governed Android/iOS physical-device evidence, signed ingestion, anti-replay, and no-code scope boundaries.",
+        "blocked_claim": "Appdome parity is blocked because current evidence is synthetic App Guard contract coverage, not physical no-code shielding proof."
+      },
+      "claim_boundary": "Tamandua App Guard has synthetic event contracts; no-code shielding and attack-lab protection are live missing.",
+      "gap_to_close": "Attach physical device collection, live signed ingestion, anti-replay, iOS build, and governed attack-lab evidence."
+    },
+    {
+      "vendor": "Verimatrix",
+      "category": "mobile application protection and runtime defense",
+      "tamandua_status": "synthetic",
+      "evidence_type": "synthetic_parity",
+      "external_claim_allowed": false,
+      "live_parity_evidence": {
+        "current_evidence_type": "synthetic_parity",
+        "minimum_required_evidence_type": "governed_holdout",
+        "live_proof_required": true,
+        "required_artifacts": [
+          "governed_runtime_mobile_protection_lab_packet",
+          "positive_and_goodware_negative_device_cases",
+          "tamper_hook_repack_pinning_bypass_evidence"
+        ],
+        "satisfied_artifacts": [],
+        "missing_evidence": [
+          "governed_runtime_mobile_protection_lab_packet",
+          "positive_and_goodware_negative_device_cases",
+          "tamper_hook_repack_pinning_bypass_evidence"
+        ],
+        "next_evidence_step": "Run governed runtime mobile protection cases with positive attacks, goodware negatives, and telemetry proof.",
+        "blocked_claim": "Verimatrix parity is blocked until governed runtime mobile protection cases prove device behavior, prevention, and telemetry."
+      },
+      "claim_boundary": "Tamandua does not claim Verimatrix parity; current evidence is SDK/replay contract level only.",
+      "gap_to_close": "Prove runtime protection on governed physical devices with reproducible prevention and telemetry evidence."
+    },
+    {
+      "vendor": "Guardcore",
+      "category": "endpoint runtime protection and managed detection posture",
+      "tamandua_status": "live missing",
+      "evidence_type": "smoke_local",
+      "external_claim_allowed": false,
+      "live_parity_evidence": {
+        "current_evidence_type": "smoke_local",
+        "minimum_required_evidence_type": "production_telemetry",
+        "live_proof_required": true,
+        "required_artifacts": [
+          "governed_endpoint_runtime_protection_matrix",
+          "multi_agent_production_telemetry_packet",
+          "managed_detection_workflow_gap_review"
+        ],
+        "satisfied_artifacts": [],
+        "missing_evidence": [
+          "governed_endpoint_runtime_protection_matrix",
+          "multi_agent_production_telemetry_packet",
+          "managed_detection_workflow_gap_review"
+        ],
+        "next_evidence_step": "Capture governed endpoint runtime protection and production telemetry before any Guardcore-facing parity wording.",
+        "blocked_claim": "Guardcore parity is blocked until governed endpoint runtime protection, production telemetry, and managed workflow evidence exist."
+      },
+      "claim_boundary": "Tamandua has no Guardcore parity claim; current endpoint evidence is below governed holdout and production telemetry.",
+      "gap_to_close": "Attach governed endpoint runtime protection evidence, multi-agent telemetry, and managed detection workflow review."
+    }
+  ]
+}

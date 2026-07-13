@@ -15,6 +15,9 @@ positive rate, or release approval for `tamandua-ml`.
 | ML scanner/unit lane | `python -m pytest apps/tamandua_ml/tests/test_scanner.py apps/tamandua_ml/tests/test_supply_chain_scanner.py apps/tamandua_ml/tests/test_trojai_benchmark.py apps/tamandua_ml/tests/test_model_fingerprinting.py -q --no-cov` | 73 passed | Unit/regression coverage only |
 | ML-1 / ONNX contract lane | `python -m pytest apps/tamandua_ml/tests/test_ml1_model_benchmark.py apps/tamandua_ml/tests/test_export_onnx_metadata.py apps/tamandua_ml/tests/test_generate_model_contract.py -q --no-cov` | 17 passed | Contract readiness only |
 | AI model scanner harness | `python apps/tamandua_ml/scripts/validate_model_scanners.py` | generated `AI_MODEL_SCANNER_VALIDATION_20260630T134213Z.json` | Small defused corpus only |
+| ML-1 local calibrated FP/FN baseline | `apps\tamandua_ml\scripts\ml1_model_benchmark.py --dataset-manifest docs\benchmarks\runs\20260630T-local-bootstrap-goodware-fp-manifest.json --calibrate-threshold-max-fpr 0.0` | 100 goodware / 0 FP; 100 malware / 0 FN; orientation `inverted`, threshold `0.6866175091269453` | Local bootstrap evidence only; proves this slice can be separated after calibration, not production detection quality |
+| Agent ONNX orientation handoff | `cargo check --manifest-path apps\tamandua_agent\Cargo.toml --no-default-features --features onnx --bin ml_onnx_scan --bin ml_agent_onnx_parity` | Agent scanner, CLI reports, and ML-3 fixture loader propagate `threshold_score_orientation` from sidecar/contract | Implementation readiness only; still requires actual ONNX/agent parity run on governed samples |
+| ML-3 orientation report guard | `python -m pytest apps\tamandua_ml\tests\test_ml3_agent_parity_report.py apps\tamandua_ml\tests\test_build_agent_parity_fixture.py tools\detection_validation\tests\test_validate_ml_benchmark_report.py -q -o addopts=` | 24 passed; ML-3 report now fails Rust parity when result orientation does not match fixture orientation | Contract guard only; does not replace the actual Rust ONNX parity run |
 | ML mirror gate | `python tools/mirror_deploy/deploy.py verify tamandua-ml` | 13 passed, links OK | Mirror remains HOLD |
 | Detection-validation mirror gate | `python tools/mirror_deploy/deploy.py verify tamandua-detection-validation` | links/assets OK | Build deferred by design |
 | Public ML claims guard | `python tools/detection_validation/scripts/ml_public_claims_guard.py` | 15 files validated | Claim wording only |
@@ -35,6 +38,16 @@ positive rate, or release approval for `tamandua-ml`.
 - `tamandua-ml` remains on HOLD.
 - Current KNN ONNX malware smoke detects malware but has unacceptable goodware
   false positives (`22/25` in the 2026-06-25 smoke).
+- The fixed-threshold 2026-06-30 local ML-1 baseline flipped the failure mode:
+  `0/100` goodware false positives, but `100/100` malware false negatives.
+  The calibrated rerun `20260701T-local-bootstrap-goodware-fp-ml1-calibrated`
+  detects `100/100` malware with `0/100` goodware FP by selecting inverted score
+  orientation and threshold `0.6866175091269453`. Treat this as local
+  calibration evidence only until the governed ML-1..ML-6 chain runs.
+- Agent ONNX execution must use the same orientation before thresholding. The
+  agent-side scanner and ML-3 fixture path now carry `threshold_score_orientation`,
+  so the next parity run must prove Python/ONNX/Rust verdict agreement with the
+  calibrated sidecar.
 - Wave 1 governed acquisition is blocked by missing usable malware-source
   secret/access on the current route.
 - AI model scanner evidence is limited to `11` malicious and `3` clean defused

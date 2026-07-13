@@ -44,7 +44,8 @@ from pathlib import Path
 try:
     from root_resolver import ROOT, is_standalone, get_component_path
 except ImportError:
-    ROOT = Path(__file__).resolve().parents[2]
+    _SCRIPT_DIR = Path(__file__).resolve().parent
+    ROOT = _SCRIPT_DIR.parents[2] if _SCRIPT_DIR.name == "scripts" else _SCRIPT_DIR.parents[1]
     is_standalone = lambda: False
     get_component_path = lambda p: ROOT / p
 

@@ -17,7 +17,8 @@ from typing import Any
 try:
     from root_resolver import ROOT, RUNS_DIR, is_standalone
 except ImportError:
-    ROOT = Path(__file__).resolve().parents[2]
+    _SCRIPT_DIR = Path(__file__).resolve().parent
+    ROOT = _SCRIPT_DIR.parents[2] if _SCRIPT_DIR.name == "scripts" else _SCRIPT_DIR.parents[1]
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
 DEFAULT_FIXTURE_DIR = ROOT / "fixtures" if is_standalone() else ROOT / "tools" / "detection_validation" / "fixtures"
@@ -42,6 +43,22 @@ VALID_CONTRACT_GAPS = {
 }
 APP_GUARD_REPLAY_SCHEMA = "tamandua.detection_validation.app_guard_rasp_replay/v1"
 APP_GUARD_EVENT_SCHEMA = "tamandua.app_guard.event/v1"
+NON_REPLAY_FIXTURE_API_VERSIONS = {
+    "tamandua.io/governed-fp-fn-corpus-gate/v1",
+    "tamandua.io/benchmark-claim-maturity-matrix/v1",
+    "tamandua.io/threat-benchmark-taxonomy-mapping/v1",
+}
+NON_REPLAY_FIXTURE_IDS = {
+    "wazuh-posture-inventory-compliance-gap-v1",
+}
+BENCHMARK_CLAIM_MATURITY_API_VERSION = "tamandua.io/benchmark-claim-maturity-matrix/v1"
+BENCHMARK_CLAIM_MATURITY_GATES = {
+    "goodware_fp",
+    "malware_fn",
+    "mobile_shielding_synthetic_vs_physical",
+    "endpoint_parity",
+}
+BENCHMARK_CLAIM_MATURITY_VENDORS = {"Elastic", "Wazuh", "Appdome", "Verimatrix"}
 APP_GUARD_EVENT_TYPES = {
     "debugger_detected",
     "root_detected",
@@ -90,6 +107,14 @@ def validate_fixture_file(path: Path) -> list[str]:
 
     if data.get("schema") == APP_GUARD_REPLAY_SCHEMA:
         return validate_app_guard_rasp_replay_file(path, data)
+
+    if data.get("api_version") == BENCHMARK_CLAIM_MATURITY_API_VERSION:
+        return validate_benchmark_claim_maturity_fixture(path, data)
+
+    if data.get("api_version") in NON_REPLAY_FIXTURE_API_VERSIONS:
+        return []
+    if data.get("fixture_id") in NON_REPLAY_FIXTURE_IDS:
+        return []
 
     if data.get("schema_version") != 1:
         errors.append(f"{path}: schema_version must be 1")
@@ -140,6 +165,74 @@ def validate_fixture_file(path: Path) -> list[str]:
     return errors
 
 
+def validate_benchmark_claim_maturity_fixture(path: Path, data: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    if data.get("kind") != "BenchmarkClaimMaturityMatrix":
+        errors.append(f"{path}: kind must be BenchmarkClaimMaturityMatrix")
+    if set(data.get("status_labels", [])) != {"local", "synthetic", "live missing"}:
+        errors.append(f"{path}: status_labels must be local/synthetic/live missing")
+
+    gates = data.get("gates")
+    if not isinstance(gates, list):
+        return errors + [f"{path}: gates must be a list"]
+    gate_ids = {gate.get("id") for gate in gates if isinstance(gate, dict)}
+    missing_gates = sorted(BENCHMARK_CLAIM_MATURITY_GATES - gate_ids)
+    if missing_gates:
+        errors.append(f"{path}: benchmark maturity matrix missing gates {missing_gates}")
+    for gate in gates:
+        if not isinstance(gate, dict):
+            errors.append(f"{path}: gate must be an object")
+            continue
+        gate_id = gate.get("id", "<unknown>")
+        if gate.get("external_claim_allowed") is not False:
+            errors.append(f"{path}: gate {gate_id} external_claim_allowed must be false")
+        if gate.get("status") not in {"local", "synthetic", "live missing"}:
+            errors.append(f"{path}: gate {gate_id} status must be local, synthetic, or live missing")
+        if not isinstance(gate.get("metrics"), dict):
+            errors.append(f"{path}: gate {gate_id} metrics must be an object")
+        if not isinstance(gate.get("source_artifacts"), list) or not gate["source_artifacts"]:
+            errors.append(f"{path}: gate {gate_id} source_artifacts must be non-empty")
+        promotion = gate.get("promotion_evidence")
+        if not isinstance(promotion, dict):
+            errors.append(f"{path}: gate {gate_id} promotion_evidence must be an object")
+        else:
+            if promotion.get("live_proof_required") is not True:
+                errors.append(f"{path}: gate {gate_id} promotion_evidence.live_proof_required must be true")
+            if not isinstance(promotion.get("required_live_artifacts"), list) or not promotion["required_live_artifacts"]:
+                errors.append(f"{path}: gate {gate_id} promotion_evidence.required_live_artifacts must be non-empty")
+            if not isinstance(promotion.get("satisfied_live_artifacts"), list):
+                errors.append(f"{path}: gate {gate_id} promotion_evidence.satisfied_live_artifacts must be a list")
+
+    competitor_matrix = data.get("competitor_matrix")
+    if not isinstance(competitor_matrix, list):
+        return errors + [f"{path}: competitor_matrix must be a list"]
+    vendors = {row.get("vendor") for row in competitor_matrix if isinstance(row, dict)}
+    missing_vendors = sorted(BENCHMARK_CLAIM_MATURITY_VENDORS - vendors)
+    if missing_vendors:
+        errors.append(f"{path}: competitor_matrix missing vendors {missing_vendors}")
+    for row in competitor_matrix:
+        if not isinstance(row, dict):
+            errors.append(f"{path}: competitor_matrix rows must be objects")
+            continue
+        vendor = row.get("vendor", "<unknown>")
+        if row.get("external_claim_allowed") is not False:
+            errors.append(f"{path}: competitor_matrix.{vendor}.external_claim_allowed must be false")
+        if row.get("tamandua_status") not in {"local", "synthetic", "live missing"}:
+            errors.append(f"{path}: competitor_matrix.{vendor}.tamandua_status must be local, synthetic, or live missing")
+        live_parity = row.get("live_parity_evidence")
+        if not isinstance(live_parity, dict):
+            errors.append(f"{path}: competitor_matrix.{vendor}.live_parity_evidence must be an object")
+        else:
+            if live_parity.get("live_proof_required") is not True:
+                errors.append(f"{path}: competitor_matrix.{vendor}.live_parity_evidence.live_proof_required must be true")
+            if not isinstance(live_parity.get("required_artifacts"), list) or not live_parity["required_artifacts"]:
+                errors.append(f"{path}: competitor_matrix.{vendor}.live_parity_evidence.required_artifacts must be non-empty")
+            if not isinstance(live_parity.get("satisfied_artifacts"), list):
+                errors.append(f"{path}: competitor_matrix.{vendor}.live_parity_evidence.satisfied_artifacts must be a list")
+
+    return errors
+
+
 def validate_app_guard_rasp_replay_file(path: Path, data: dict[str, Any]) -> list[str]:
     errors: list[str] = []
     fixtures = data.get("fixtures")
@@ -149,6 +242,34 @@ def validate_app_guard_rasp_replay_file(path: Path, data: dict[str, Any]) -> lis
         errors.append(f"{path}: fixture_id is required")
     if not data.get("claim_boundary"):
         errors.append(f"{path}: claim_boundary is required")
+    gate = data.get("benchmark_gate")
+    if isinstance(gate, dict):
+        boundary = gate.get("evidence_boundary")
+        if boundary is not None:
+            if not isinstance(boundary, dict):
+                errors.append(f"{path}: benchmark_gate.evidence_boundary must be an object")
+            else:
+                if boundary.get("fixture_evidence_class") != "synthetic_replay_contract":
+                    errors.append(f"{path}: benchmark_gate.evidence_boundary.fixture_evidence_class must be synthetic_replay_contract")
+                if boundary.get("local_fixture_claimable") is not True:
+                    errors.append(f"{path}: benchmark_gate.evidence_boundary.local_fixture_claimable must be true")
+                if boundary.get("live_signed_ingestion_claimable") is not False:
+                    errors.append(f"{path}: benchmark_gate.evidence_boundary.live_signed_ingestion_claimable must be false")
+                if boundary.get("live_anti_replay_claimable") is not False:
+                    errors.append(f"{path}: benchmark_gate.evidence_boundary.live_anti_replay_claimable must be false")
+                release_requires = set(boundary.get("release_claim_requires", []))
+                required_release = {
+                    "live_signed_app_guard_ingestion",
+                    "live_duplicate_signed_request_rejection",
+                    "physical_device_collection_packet",
+                    "ios_native_build_evidence",
+                    "ios_xcframework_binding_evidence",
+                    "governed_physical_attack_lab_evidence",
+                }
+                if not required_release.issubset(release_requires):
+                    errors.append(
+                        f"{path}: benchmark_gate.evidence_boundary.release_claim_requires must include {sorted(required_release)}"
+                    )
     if not isinstance(fixtures, list) or not fixtures:
         errors.append(f"{path}: fixtures must be a non-empty list")
         return errors

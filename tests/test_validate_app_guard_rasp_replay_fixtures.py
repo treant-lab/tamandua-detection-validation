@@ -3,6 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from inprocess_gate_cli import run_cli_in_process
+
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "validate_replay_fixtures.py"
@@ -11,20 +13,18 @@ BROWSER_FIXTURE = ROOT / "fixtures" / "browser_guard_rasp_replay_v1.json"
 
 
 def test_app_guard_rasp_replay_fixture_validates():
-    completed = subprocess.run(
-        [sys.executable, str(SCRIPT), "--fixture-dir", str(FIXTURE.parent)],
-        cwd=ROOT,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=False,
-    )
+    # In-process invocation: same exit-code/stdout contract, no process spawn.
+    # (The script resolves paths from __file__, not cwd, so cwd is irrelevant
+    # for the explicit --fixture-dir form exercised here.)
+    completed = run_cli_in_process(SCRIPT, ["--fixture-dir", str(FIXTURE.parent)])
 
     assert completed.returncode == 0, completed.stdout + completed.stderr
     assert "validated" in completed.stdout
 
 
 def test_default_replay_fixture_dir_validates_from_repo_root():
+    # Kept as a true subprocess smoke test: covers the real CLI entrypoint
+    # with no arguments (default fixture-dir resolution).
     completed = subprocess.run(
         [sys.executable, str(SCRIPT)],
         cwd=ROOT,

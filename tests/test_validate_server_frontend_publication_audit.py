@@ -9,7 +9,9 @@ import pytest
 
 
 VALIDATION_ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(VALIDATION_ROOT))
+sys.path.insert(0, str(ROOT))
 
 from validate_ml_contracts import (  # noqa: E402
     SERVER_FRONTEND_PUBLICATION_AUDIT_SCHEMA,
@@ -17,6 +19,7 @@ from validate_ml_contracts import (  # noqa: E402
     validate_contract,
     validate_server_frontend_publication_audit,
 )
+from tools.mirror_deploy import server_frontend_publication_audit  # noqa: E402
 
 
 def valid_audit() -> dict:
@@ -71,6 +74,60 @@ def test_validate_server_frontend_publication_audit_accepts_contract(tmp_path: P
     )
 
     assert mode in {"jsonschema+built-in", "built-in"}
+
+
+def test_server_frontend_publication_audit_cli_writes_temp_outputs_without_real_endpoint(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    manifest = tmp_path / "apps" / "tamandua_server" / "priv" / "static" / "assets" / "manifest.json"
+    manifest.parent.mkdir(parents=True)
+    manifest.write_text(
+        json.dumps({"src/main.tsx": {"file": "js/main-local.js", "css": ["css/main-local.css"]}}),
+        encoding="utf-8",
+    )
+    output = tmp_path / "tmp" / "server_frontend_publication_audit.json"
+    markdown_output = tmp_path / "tmp" / "nested" / "server_frontend_publication_audit.md"
+
+    def fake_fetch_text(url: str, timeout: float) -> tuple[int | None, str, str]:
+        if url.endswith("/health/live"):
+            return 200, '{"status":"alive"}', ""
+        if url.endswith("/assets/manifest.json"):
+            return (
+                200,
+                json.dumps({"src/main.tsx": {"file": "js/main-remote.js", "css": ["css/main-local.css"]}}),
+                "",
+            )
+        return None, "", "unexpected URL"
+
+    monkeypatch.setattr(server_frontend_publication_audit, "fetch_text", fake_fetch_text)
+    monkeypatch.setattr(server_frontend_publication_audit, "host_ips", lambda hostname: ["127.0.0.1"])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "server_frontend_publication_audit.py",
+            "--endpoint",
+            "http://127.0.0.1:4000",
+            "--local-manifest",
+            str(manifest),
+            "--output",
+            str(output),
+            "--markdown-output",
+            str(markdown_output),
+            "--report-id",
+            "test_server_frontend_publication_audit_temp",
+        ],
+    )
+
+    assert server_frontend_publication_audit.main() == 0
+    assert output.exists()
+    assert markdown_output.exists()
+    assert server_frontend_publication_audit.DEFAULT_OUTPUT.parent.name == ".tmp"
+    assert server_frontend_publication_audit.DEFAULT_MARKDOWN.parent.name == ".tmp"
+    validate_server_frontend_publication_audit(
+        json.loads(output.read_text(encoding="utf-8")),
+        Path("memory://server-frontend-publication-audit.json"),
+    )
 
 
 def test_validate_server_frontend_publication_audit_rejects_same_bundle_drift() -> None:

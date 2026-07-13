@@ -38,6 +38,11 @@ def valid_dry_run() -> dict:
             "vx_inventory": "docs/benchmarks/runs/ml-vx-inthewild-inventory.json",
             "malware_bazaar_auth_key_env": "TAMANDUA_MALWAREBAZAAR_AUTH_KEY",
             "malware_bazaar_auth_key_present": False,
+            "use_virusshare_fallback": False,
+            "virusshare_api_key_env": "VIRUSSHARE_API_KEY",
+            "virusshare_api_key_present": False,
+            "virusshare_archive_range": None,
+            "virusshare_count_per_archive": 500,
         },
         "safety_gates": {
             "requires_isolated_lab": True,

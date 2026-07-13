@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/response_action_safety_probe_v1.schema.json",
+  "title": "Tamandua Response Action Safety Probe",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "api_version",
+    "kind",
+    "execute",
+    "profile_id",
+    "safety_contract",
+    "static_matrix",
+    "tests",
+    "summary",
+    "quality_gate",
+    "claim_boundary"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "tamandua.io/response-action-safety-probe/v1"
+    },
+    "kind": {
+      "const": "ResponseActionSafetyProbe"
+    },
+    "execute": {
+      "const": false
+    },
+    "profile_id": {
+      "const": "response-action-safety-probe"
+    },
+    "safety_contract": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "capabilities",
+        "host_only_actions",
+        "host_platforms",
+        "unsupported_platforms",
+        "destructive_actions_executed",
+        "host_os_mutated",
+        "mobile_host_boundary"
+      ],
+      "properties": {
+        "capabilities": {
+          "type": "array",
+          "contains": {"const": "dry_run"}
+        },
+        "host_only_actions": {
+          "type": "array",
+          "items": {
+            "enum": ["kill_process", "quarantine_file", "isolate_network"]
+          }
+        },
+        "host_platforms": {
+          "type": "array",
+          "items": {
+            "enum": ["windows", "linux", "macos"]
+          }
+        },
+        "unsupported_platforms": {
+          "type": "array",
+          "items": {
+            "enum": ["android", "ios", "browser", "mobile"]
+          }
+        },
+        "destructive_actions_executed": {
+          "const": false
+        },
+        "host_os_mutated": {
+          "const": false
+        },
+        "mobile_host_boundary": {
+          "type": "string",
+          "minLength": 20
+        }
+      }
+    },
+    "static_matrix": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["platform", "action", "default_mode", "requires_rbac", "requires_reason", "requires_audit", "status", "runtime_effect"],
+        "properties": {
+          "platform": {"type": "string"},
+          "action": {"enum": ["kill_process", "quarantine_file", "isolate_network"]},
+          "default_mode": {"enum": ["dry_run", "disabled"]},
+          "requires_rbac": {"const": true},
+          "requires_reason": {"const": true},
+          "requires_audit": {"const": true},
+          "status": {"enum": ["host_only_supported", "unsupported_platform"]},
+          "runtime_effect": {"const": "none_probe_only"}
+        }
+      }
+    },
+    "tests": {
+      "type": "array",
+      "minItems": 1
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["tests", "covered", "missed", "category_coverage"]
+    },
+    "quality_gate": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["passed", "thresholds"],
+      "properties": {
+        "thresholds": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "allow_destructive_actions": {"const": false},
+            "require_live_endpoint_execution": {"const": false}
+          }
+        }
+      }
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 20
+    }
+  }
+}

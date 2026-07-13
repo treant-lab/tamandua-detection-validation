@@ -1,0 +1,200 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/mobile_app_guard_benchmark_replay_v1.schema.json",
+  "title": "Tamandua Mobile App Guard Benchmark Replay v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema",
+    "schema_version",
+    "fixture_id",
+    "claim_boundary",
+    "benchmark_gate",
+    "fixtures"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tamandua.detection_validation.app_guard_rasp_replay/v1"
+    },
+    "schema_version": {
+      "const": 1
+    },
+    "fixture_id": {
+      "const": "mobile-app-guard-aggressive-replay-v1"
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 80
+    },
+    "benchmark_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_class",
+        "required_categories",
+        "minimum_total_fixtures",
+        "minimum_goodware_fixtures",
+        "allowed_claim_statuses",
+        "public_claim",
+        "evidence_boundary"
+      ],
+      "properties": {
+        "evidence_class": {
+          "const": "synthetic_replay_contract"
+        },
+        "required_categories": {
+          "type": "array",
+          "minItems": 10,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "magisk_zygisk",
+              "frida_attach_spawn",
+              "debugger",
+              "hook_framework",
+              "webview_browser_tamper",
+              "apk_repack_integrity",
+              "cert_pinning_bypass",
+              "doh_exfiltration",
+              "spyware_like_behavior",
+              "goodware_false_positive"
+            ]
+          }
+        },
+        "minimum_total_fixtures": {
+          "type": "integer",
+          "minimum": 10
+        },
+        "minimum_goodware_fixtures": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "allowed_claim_statuses": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "implemented_contract",
+              "roadmap_device_evidence_required"
+            ]
+          }
+        },
+        "public_claim": {
+          "type": "string",
+          "minLength": 40
+        },
+        "evidence_boundary": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fixture_evidence_class",
+            "local_fixture_claimable",
+            "live_signed_ingestion_claimable",
+            "live_anti_replay_claimable",
+            "release_claim_requires",
+            "non_claims"
+          ],
+          "properties": {
+            "fixture_evidence_class": {
+              "const": "synthetic_replay_contract"
+            },
+            "local_fixture_claimable": {
+              "const": true
+            },
+            "live_signed_ingestion_claimable": {
+              "const": false
+            },
+            "live_anti_replay_claimable": {
+              "const": false
+            },
+            "release_claim_requires": {
+              "type": "array",
+              "minItems": 6,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "live_signed_app_guard_ingestion",
+                  "live_duplicate_signed_request_rejection",
+                  "physical_device_collection_packet",
+                  "ios_native_build_evidence",
+                  "ios_xcframework_binding_evidence",
+                  "governed_physical_attack_lab_evidence"
+                ]
+              }
+            },
+            "non_claims": {
+              "type": "array",
+              "minItems": 7,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "live backend ingestion",
+                  "live anti-replay",
+                  "physical-device collection",
+                  "iOS native build",
+                  "iOS XCFramework",
+                  "physical attack-lab protection evidence",
+                  "production malware accuracy"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 10,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "id",
+          "benchmark_category",
+          "claim_status",
+          "validation_label",
+          "input",
+          "expected"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "benchmark_category": {
+            "enum": [
+              "magisk_zygisk",
+              "frida_attach_spawn",
+              "debugger",
+              "hook_framework",
+              "webview_browser_tamper",
+              "apk_repack_integrity",
+              "cert_pinning_bypass",
+              "doh_exfiltration",
+              "spyware_like_behavior",
+              "goodware_false_positive"
+            ]
+          },
+          "claim_status": {
+            "enum": [
+              "implemented_contract",
+              "roadmap_device_evidence_required"
+            ]
+          },
+          "validation_label": {
+            "type": "string",
+            "pattern": "^synthetic"
+          },
+          "input": {
+            "type": "object"
+          },
+          "expected": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

@@ -126,10 +126,10 @@ def test_validate_wave1_operator_handoff_index_rejects_source_status_summary_dri
 
 def test_validate_wave1_operator_handoff_index_rejects_intake_transcript_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["summary"]["intake_transcript_contract_validation"] = "jsonschema+built-in"
-    data["summary"]["intake_transcript_contract_valid"] = True
-    data["source_status_summary"]["intake_transcript_contract_validation"] = "jsonschema+built-in"
-    data["source_status_summary"]["intake_transcript_contract_valid"] = True
+    data["summary"]["intake_transcript_contract_validation"] = "missing"
+    data["summary"]["intake_transcript_contract_valid"] = False
+    data["source_status_summary"]["intake_transcript_contract_validation"] = "missing"
+    data["source_status_summary"]["intake_transcript_contract_valid"] = False
     drifted = tmp_path / "20260604T-ml-wave1-operator-handoff-index.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

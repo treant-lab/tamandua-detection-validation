@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/benchmark_claim_maturity_matrix_v1.schema.json",
+  "title": "Tamandua Benchmark Claim Maturity Matrix v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "generated_at",
+    "claim_boundary",
+    "status_labels",
+    "gates",
+    "competitor_matrix"
+  ],
+  "properties": {
+    "api_version": {"const": "tamandua.io/benchmark-claim-maturity-matrix/v1"},
+    "kind": {"const": "BenchmarkClaimMaturityMatrix"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "claim_boundary": {"type": "string", "minLength": 80},
+    "status_labels": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {"enum": ["local", "synthetic", "live missing"]}
+    },
+    "gates": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "status",
+          "evidence_tier",
+          "external_claim_allowed",
+          "promotion_evidence",
+          "required_for_stronger_claim",
+          "metrics",
+          "source_artifacts",
+          "claim_boundary"
+        ],
+        "properties": {
+          "id": {
+            "enum": [
+              "goodware_fp",
+              "malware_fn",
+              "mobile_shielding_synthetic_vs_physical",
+              "endpoint_parity"
+            ]
+          },
+          "status": {"enum": ["local", "synthetic", "live missing"]},
+          "evidence_tier": {
+            "enum": [
+              "offline_fixture",
+              "synthetic_replay_contract",
+              "bootstrap_local",
+              "selected_live_smoke",
+              "governed_holdout",
+              "production_telemetry"
+            ]
+          },
+          "external_claim_allowed": {"const": false},
+          "promotion_evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "claim_target",
+              "current_evidence_class",
+              "live_proof_required",
+              "minimum_required_tier",
+              "required_live_artifacts",
+              "satisfied_live_artifacts",
+              "promotion_blocked_reason"
+            ],
+            "properties": {
+              "claim_target": {
+                "enum": [
+                  "production_false_positive_rate",
+                  "governed_malware_false_negative_rate",
+                  "physical_mobile_shielding",
+                  "cross_platform_endpoint_parity"
+                ]
+              },
+              "current_evidence_class": {
+                "enum": [
+                  "offline_fixture",
+                  "synthetic_replay_contract",
+                  "bootstrap_local",
+                  "selected_live_smoke",
+                  "governed_holdout",
+                  "production_telemetry"
+                ]
+              },
+              "live_proof_required": {"const": true},
+              "minimum_required_tier": {
+                "enum": [
+                  "selected_live_smoke",
+                  "governed_holdout",
+                  "production_telemetry",
+                  "physical_device_lab"
+                ]
+              },
+              "required_live_artifacts": {
+                "type": "array",
+                "minItems": 1,
+                "items": {"type": "string", "minLength": 1}
+              },
+              "satisfied_live_artifacts": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1}
+              },
+              "promotion_blocked_reason": {"type": "string", "minLength": 40}
+            }
+          },
+          "required_for_stronger_claim": {
+            "type": "array",
+            "items": {"type": "string", "minLength": 1}
+          },
+          "metrics": {"type": "object"},
+          "source_artifacts": {
+            "type": "array",
+            "minItems": 1,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "claim_boundary": {"type": "string", "minLength": 40}
+        }
+      }
+    },
+    "competitor_matrix": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "vendor",
+          "category",
+          "tamandua_status",
+          "external_claim_allowed",
+          "live_parity_evidence",
+          "claim_boundary",
+          "gap_to_close"
+        ],
+        "properties": {
+          "vendor": {"enum": ["Elastic", "Wazuh", "Appdome", "Verimatrix"]},
+          "category": {"type": "string", "minLength": 1},
+          "tamandua_status": {"enum": ["local", "synthetic", "live missing"]},
+          "external_claim_allowed": {"const": false},
+          "live_parity_evidence": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "live_proof_required",
+              "required_artifacts",
+              "satisfied_artifacts",
+              "blocked_claim"
+            ],
+            "properties": {
+              "live_proof_required": {"const": true},
+              "required_artifacts": {
+                "type": "array",
+                "minItems": 1,
+                "items": {"type": "string", "minLength": 1}
+              },
+              "satisfied_artifacts": {
+                "type": "array",
+                "items": {"type": "string", "minLength": 1}
+              },
+              "blocked_claim": {"type": "string", "minLength": 40}
+            }
+          },
+          "claim_boundary": {"type": "string", "minLength": 40},
+          "gap_to_close": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

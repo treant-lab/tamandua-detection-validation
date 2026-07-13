@@ -178,7 +178,7 @@ def test_validate_wave1_guarded_run_command_packet_rejects_execution_blocker_dri
 
 def test_validate_wave1_guarded_run_command_packet_rejects_wave1_publish_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_status_summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = True
+    data["source_status_summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = False
     drifted = tmp_path / "20260604T-ml-wave1-guarded-run-command-packet.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

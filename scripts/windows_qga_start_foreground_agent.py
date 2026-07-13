@@ -17,7 +17,8 @@ from typing import Any
 try:
     from root_resolver import ROOT
 except ImportError:
-    ROOT = Path(__file__).resolve().parents[2]
+    _SCRIPT_DIR = Path(__file__).resolve().parent
+    ROOT = _SCRIPT_DIR.parents[2] if _SCRIPT_DIR.name == "scripts" else _SCRIPT_DIR.parents[1]
 
 sys.path.insert(0, str(ROOT / "tools" / "detection_validation"))
 import windows_proxmox_qga_readiness_probe as qga  # noqa: E402
@@ -184,6 +185,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     exe = f"{root}\\tamandua-agent.exe"
     out_log = f"{root}\\agent.out.log"
     err_log = f"{root}\\agent.err.log"
+    tls_skip_verify_arg = " --tls-skip-verify" if args.tls_skip_verify else ""
 
     def run_step(name: str, raw_input: str) -> dict[str, Any]:
         result = guest_exec(session, args, "@echo off\r\n" + raw_input + "\r\nexit /b 0\r\n")
@@ -225,7 +227,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "install",
             "\r\n".join(
                 [
-                    f'"{exe}" install --token "{installation_token}" --server "{server_ws}" --enrollment-url "{enrollment_url}" --no-driver >"{out_log}" 2>"{err_log}"',
+                    f'"{exe}" install --token "{installation_token}" --server "{server_ws}" --enrollment-url "{enrollment_url}" --no-driver{tls_skip_verify_arg} >"{out_log}" 2>"{err_log}"',
                 ]
             ),
         ),
@@ -308,6 +310,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--qga-retry-attempts", type=int, default=3)
     parser.add_argument("--qga-exec-start-attempts", type=int, default=3)
     parser.add_argument("--qga-retry-sleep-seconds", type=float, default=2.0)
+    parser.add_argument(
+        "--tls-skip-verify",
+        action="store_true",
+        help="Pass --tls-skip-verify to the Windows agent installer for lab/dev endpoints.",
+    )
     parser.add_argument("--output-dir", default=str(DEFAULT_OUTPUT))
     return parser.parse_args()
 

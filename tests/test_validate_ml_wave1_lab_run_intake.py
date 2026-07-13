@@ -79,8 +79,8 @@ def test_validate_wave1_lab_run_intake_rejects_source_artifact_path_drift(tmp_pa
 
 def test_validate_wave1_lab_run_intake_rejects_absent_transcript_hash(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_artifact_hashes"]["transcript"]["exists"] = True
-    data["source_artifact_hashes"]["transcript"]["sha256"] = "0" * 64
+    data["source_artifact_hashes"]["transcript"]["exists"] = False
+    data["source_artifact_hashes"]["transcript"]["sha256"] = None
     drifted = tmp_path / "20260604T-ml-wave1-lab-run-intake.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

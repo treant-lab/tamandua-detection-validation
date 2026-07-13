@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "fixture_id": "ai-network-visibility-consumer-v1",
+  "description": "Synthetic consumer-contract fixtures for AI evidence and degraded network visibility fields.",
+  "evidence_class": "synthetic_parity",
+  "claim_boundary": "Consumer rendering fixture only; it does not demonstrate packet capture, TLS interception, payload inspection, certificate collection, detection performance, or production efficacy.",
+  "fixtures": [
+    {
+      "id": "passive-connection-table-degraded",
+      "event_type": "network_connect",
+      "input": {
+        "metadata": {
+          "ai_network_risk": "proxy_or_doh_plus_ai_provider",
+          "ai_evidence_limit": "metadata_only_no_payload_or_bind_proof",
+          "network_visibility_state": "degraded",
+          "tls_fingerprints_available": false,
+          "certificate_visibility": "unavailable"
+        }
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": false,
+        "fp_reason": null,
+        "show_degraded_visibility": true,
+        "show_tls_fingerprint_claim": false,
+        "show_certificate_claim": false
+      }
+    },
+    {
+      "id": "packet-source-explicitly-available",
+      "event_type": "network_fingerprint",
+      "input": {
+        "metadata": {
+          "network_visibility_state": "full",
+          "tls_fingerprints_available": true,
+          "certificate_visibility": "available"
+        }
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": false,
+        "fp_reason": null,
+        "show_degraded_visibility": false,
+        "show_tls_fingerprint_claim": true,
+        "show_certificate_claim": true
+      }
+    },
+    {
+      "id": "artifact-redacted-evidence",
+      "event_type": "ai_discovery",
+      "input": {
+        "payload": {
+          "artifact_type": "mcp_config",
+          "redacted_preview": "tools: [redacted]",
+          "matched_patterns": ["approval_bypass"],
+          "risk_indicators": ["unsigned_source"]
+        }
+      },
+      "expected": {
+        "alert_severity": "medium",
+        "severity_adjusted": false,
+        "fp_reason": null,
+        "preserve_artifact_fields": true
+      }
+    }
+  ]
+}

@@ -55,6 +55,7 @@ def test_ml_dvc_pipeline_uses_existing_scripts_and_contracts() -> None:
             assert dep_path.exists(), f"{stage_name} dep does not exist: {dep}"
 
     contract_deps = set(stages["validate_ml_contracts"]["deps"])
+    assert "../../tools/detection_validation/scripts/validate_ml_contracts.py" in contract_deps
     assert "../../schemas/ml_model_contract_v1.schema.json" in contract_deps
     assert "../../docs/apps/tamandua_ml/examples/ml_model_contract_malware_smell_onnx_v1.json" in contract_deps
 
@@ -88,6 +89,22 @@ def test_ml_dvc_pipeline_validator_rejects_real_acquisition_command(tmp_path: Pa
         assert "real acquisition/publication path" in str(exc)
     else:
         raise AssertionError("expected DVC pipeline acquisition path to fail")
+
+
+def test_ml_dvc_pipeline_validator_requires_implementation_dependency(tmp_path: Path) -> None:
+    data = load_dvc_pipeline()
+    data["stages"]["validate_ml_contracts"]["deps"].remove(
+        "../../tools/detection_validation/scripts/validate_ml_contracts.py"
+    )
+    pipeline = tmp_path / "dvc.yaml"
+    pipeline.write_text(yaml.safe_dump(data), encoding="utf-8")
+
+    try:
+        validate_ml_dvc_pipeline(pipeline)
+    except ContractError as exc:
+        assert "missing validator implementation" in str(exc)
+    else:
+        raise AssertionError("expected missing validator implementation dependency to fail")
 
 
 def test_ml_dvc_pipeline_train_export_commands_match_current_cli() -> None:

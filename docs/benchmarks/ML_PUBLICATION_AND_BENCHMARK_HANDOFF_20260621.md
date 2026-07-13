@@ -26,8 +26,9 @@ head without changing the publication decision.
 
 - `tamandua-server`: published and clean in the mirror audit.
 - `tamandua-detection-validation`: published and clean in the mirror audit.
-- `tamandua-ml`: hold remains active; remote is still empty; staging is clean
-  locally in the mirror audit and must not be pushed as a public mirror.
+- `tamandua-ml`: hold remains active; remote has prior content; staging is clean
+  locally in the mirror audit and must not be advanced while the experimental
+  release gate remains active.
 
 ## Evidence Anchors
 
@@ -38,6 +39,8 @@ Use these artifacts as the current authority for ML state:
 - Mirror publication audit: `docs/benchmarks/runs/20260621T-ml-mirror-publication-post-lab-root-sync.json`
 - Post-organization mirror publication audit:
   `docs/benchmarks/runs/20260622T-ml-mirror-publication-audit-post-detection-validation-organization.json`
+- Post-threshold-sync mirror publication audit:
+  `docs/benchmarks/runs/20260630T-ml-mirror-publication-audit-post-threshold-sync.json`
 - Post-organization goal snapshot:
   `docs/benchmarks/runs/20260622T-ml-goal-snapshot-post-detection-validation-organization.json`
 - Post-organization execution status:
@@ -102,6 +105,23 @@ export produced 25/25 malware detections locally and detected the staged
 However, the same local smoke showed 22/25 goodware false positives. That means
 the export/integration path is viable, while the current bootstrap checkpoint is
 not production-ready.
+
+The follow-up local ML-1 goodware FP baseline
+`docs/benchmarks/runs/20260630T-local-bootstrap-goodware-fp-ml1-baseline.*`
+shows the opposite failure mode on a 200-sample local bootstrap manifest:
+`0/100` goodware false positives (`FPR=0.0`) and `100/100` malware false
+negatives (`FNR=1.0`). That is useful as a low-noise/threshold baseline, but it
+is not a detection candidate and must not be used for public effectiveness
+claims.
+
+The calibrated rerun
+`docs/benchmarks/runs/20260701T-local-bootstrap-goodware-fp-ml1-calibrated.*`
+fixes that local threshold/orientation issue on the same manifest: `100/100`
+malware detections, `0/100` goodware false positives, `FPR=0.0`, `FNR=0.0`,
+selected score orientation `inverted`, and threshold `0.6866175091269453`.
+This is still local bootstrap evidence only; it does not replace governed
+acquisition, model-card, ONNX parity, Rust agent parity, service benchmark,
+ML-5 replay, or ML-6 holdout evidence.
 
 The next proof is no longer "can the agent-side ONNX path detect anything"; it
 is now "can a retrained/calibrated candidate create a Tamandua ML alert end to

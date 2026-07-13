@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/threat_benchmark_taxonomy_mapping_v1.schema.json",
+  "title": "Tamandua Threat Benchmark Taxonomy Mapping v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "metadata",
+    "claim_boundary",
+    "taxonomy",
+    "summary"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "tamandua.io/threat-benchmark-taxonomy-mapping/v1"
+    },
+    "kind": {
+      "const": "ThreatBenchmarkTaxonomyMapping"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mapping_id",
+        "created_at",
+        "created_by",
+        "git_commit",
+        "evidence_class"
+      ],
+      "properties": {
+        "mapping_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": "string",
+          "minLength": 1
+        },
+        "git_commit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence_class": {
+          "const": "synthetic_profile_scoped_taxonomy_mapping"
+        }
+      }
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 40
+    },
+    "taxonomy": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "threat_category",
+          "benchmark_intent",
+          "mapped_validation_surfaces",
+          "evidence_state",
+          "claim_status",
+          "missing_requirements",
+          "future_validation_gate"
+        ],
+        "properties": {
+          "threat_category": {
+            "enum": [
+              "malware",
+              "spyware_stealer",
+              "zero_day_behavior",
+              "one_day_exploit",
+              "im_exploit_delivery"
+            ]
+          },
+          "benchmark_intent": {
+            "type": "string",
+            "minLength": 10
+          },
+          "mapped_validation_surfaces": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "surface",
+                "artifact_ref",
+                "evidence_label",
+                "scope_note"
+              ],
+              "properties": {
+                "surface": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "artifact_ref": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "evidence_label": {
+                  "enum": [
+                    "synthetic",
+                    "profile_scoped",
+                    "missing"
+                  ]
+                },
+                "scope_note": {
+                  "type": "string",
+                  "minLength": 20
+                }
+              }
+            }
+          },
+          "evidence_state": {
+            "enum": [
+              "synthetic_profile_scoped",
+              "missing"
+            ]
+          },
+          "claim_status": {
+            "enum": [
+              "taxonomy_mapping_only",
+              "not_production_validated"
+            ]
+          },
+          "missing_requirements": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 10
+            }
+          },
+          "future_validation_gate": {
+            "type": "string",
+            "minLength": 20
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "evidence_state": {
+                  "const": "missing"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "missing_requirements": {
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_categories",
+        "synthetic_profile_scoped_categories",
+        "missing_categories",
+        "production_validated_categories"
+      ],
+      "properties": {
+        "total_categories": {
+          "const": 5
+        },
+        "synthetic_profile_scoped_categories": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "missing_categories": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "production_validated_categories": {
+          "const": 0
+        }
+      }
+    }
+  }
+}

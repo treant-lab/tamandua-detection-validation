@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/plugin_manifest_v1.schema.json",
+  "title": "Tamandua Plugin Marketplace Manifest v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "plugin_type",
+    "api_version",
+    "checksum_sha256"
+  ],
+  "properties": {
+    "plugin_type": {
+      "type": "string",
+      "enum": ["collector", "analyzer", "response"]
+    },
+    "api_version": {
+      "type": "string",
+      "enum": ["v1"]
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*)(\\.(0|[1-9][0-9]*|[0-9A-Za-z-]*[A-Za-z-][0-9A-Za-z-]*))*))?(\\+[0-9A-Za-z-]+(\\.[0-9A-Za-z-]+)*)?$"
+    },
+    "homepage_url": {
+      "type": "string",
+      "pattern": "^https://(\\[[0-9A-Fa-f:.]+\\]|[^\\s/@?#:]+)(:[0-9]+)?([/?#][^\\s]*)?$"
+    },
+    "repository_url": {
+      "type": "string",
+      "pattern": "^https://(\\[[0-9A-Fa-f:.]+\\]|[^\\s/@?#:]+)(:[0-9]+)?([/?#][^\\s]*)?$"
+    },
+    "documentation_url": {
+      "type": "string",
+      "pattern": "^https://(\\[[0-9A-Fa-f:.]+\\]|[^\\s/@?#:]+)(:[0-9]+)?([/?#][^\\s]*)?$"
+    },
+    "wasm_url": {
+      "type": "string",
+      "pattern": "^https://(\\[[0-9A-Fa-f:.]+\\]|[^\\s/@?#:]+)(:[0-9]+)?([/?#][^\\s]*)?$"
+    },
+    "signature_url": {
+      "type": "string",
+      "pattern": "^https://(\\[[0-9A-Fa-f:.]+\\]|[^\\s/@?#:]+)(:[0-9]+)?([/?#][^\\s]*)?$"
+    },
+    "public_key": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "license": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "checksum_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "required_capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "alerts:read",
+          "artifacts:read",
+          "detections:read",
+          "detections:write",
+          "endpoint:read",
+          "events:read",
+          "files:read",
+          "network:read",
+          "response:propose",
+          "telemetry:read"
+        ]
+      },
+      "uniqueItems": true,
+      "default": []
+    }
+  }
+}

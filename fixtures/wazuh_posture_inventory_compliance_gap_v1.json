@@ -1,0 +1,300 @@
+{
+  "schema_version": 1,
+  "fixture_id": "wazuh-posture-inventory-compliance-gap-v1",
+  "vendor_context": "Wazuh",
+  "evidence_class": "synthetic_contract",
+  "status_label": "live missing",
+  "claim_boundary": "Synthetic posture/inventory/compliance contract only. It maps required evidence shapes for Wazuh-style operational breadth but does not prove live endpoint inventory, vulnerability detection, compliance scoring, license audit completeness, FIM coverage, SIEM delivery, or Wazuh replacement readiness.",
+  "required_capabilities": [
+    "software_inventory",
+    "license_inventory",
+    "vulnerability_mapping",
+    "compliance_posture",
+    "configuration_posture",
+    "fim_baseline",
+    "fleet_freshness"
+  ],
+  "required_common_fields": [
+    "tenant_id",
+    "agent_id",
+    "host_id",
+    "hostname",
+    "platform",
+    "collected_at",
+    "schema_version",
+    "evidence_id",
+    "source_collector",
+    "freshness_status"
+  ],
+  "live_artifact_bridge": {
+    "schema_name": "tamandua.wazuh_posture_live_artifact_bridge",
+    "schema_version": 1,
+    "status": "future_artifact_bridge",
+    "external_claim_allowed": false,
+    "freshness_thresholds": {
+      "max_inventory_age_seconds": 86400,
+      "max_fleet_last_seen_age_seconds": 900,
+      "stale_after_seconds": 86400,
+      "critical_after_seconds": 172800
+    },
+    "artifact_refs": [
+      {
+        "id": "future-live-endpoint-inventory-v1",
+        "artifact_type": "live_endpoint_inventory",
+        "schema_name": "tamandua.endpoint.inventory.v1",
+        "schema_version": 1,
+        "evidence_class": "live_endpoint",
+        "status": "future_required",
+        "satisfied": false,
+        "external_claim_allowed": false,
+        "blocked_claim_reason": "No live endpoint inventory artifact is attached to this synthetic contract."
+      },
+      {
+        "id": "future-multi-agent-fleet-freshness-v1",
+        "artifact_type": "multi_agent_fleet_freshness",
+        "schema_name": "tamandua.fleet.freshness.v1",
+        "schema_version": 1,
+        "evidence_class": "fleet_api",
+        "status": "future_required",
+        "satisfied": false,
+        "external_claim_allowed": false,
+        "blocked_claim_reason": "No authenticated multi-agent freshness artifact proves fleet coverage or inventory age."
+      },
+      {
+        "id": "future-license-exception-negative-cases-v1",
+        "artifact_type": "license_exception_negative_cases",
+        "schema_name": "tamandua.license.exception_negative_cases.v1",
+        "schema_version": 1,
+        "evidence_class": "governed_holdout",
+        "status": "future_required",
+        "satisfied": false,
+        "external_claim_allowed": false,
+        "blocked_claim_reason": "License exception handling has only synthetic negative cases, not governed holdout evidence."
+      },
+      {
+        "id": "future-governed-cve-cpe-matching-v1",
+        "artifact_type": "governed_cve_cpe_matching",
+        "schema_name": "tamandua.vulnerability.cve_cpe_matching.v1",
+        "schema_version": 1,
+        "evidence_class": "governed_holdout",
+        "status": "future_required",
+        "satisfied": false,
+        "external_claim_allowed": false,
+        "blocked_claim_reason": "No governed CVE/CPE artifact proves vulnerability matching precision or negative handling."
+      },
+      {
+        "id": "future-per-control-compliance-v1",
+        "artifact_type": "per_control_compliance",
+        "schema_name": "tamandua.compliance.per_control_evidence.v1",
+        "schema_version": 1,
+        "evidence_class": "live_endpoint",
+        "status": "future_required",
+        "satisfied": false,
+        "external_claim_allowed": false,
+        "blocked_claim_reason": "No live per-control compliance artifact proves scoring, exceptions, or platform support."
+      },
+      {
+        "id": "future-unsupported-collector-state-v1",
+        "artifact_type": "unsupported_collector_state",
+        "schema_name": "tamandua.collector.unsupported_state.v1",
+        "schema_version": 1,
+        "evidence_class": "fleet_api",
+        "status": "future_required",
+        "satisfied": false,
+        "external_claim_allowed": false,
+        "blocked_claim_reason": "Unsupported, degraded, and collection-error collector states are modeled but not proven by fleet evidence."
+      }
+    ],
+    "unsupported_collector_states": [
+      {
+        "state": "unsupported",
+        "operator_status": "collector_not_supported_on_platform",
+        "blocks_claims": true
+      },
+      {
+        "state": "degraded",
+        "operator_status": "collector_partial_or_stale",
+        "blocks_claims": true
+      },
+      {
+        "state": "collection_error",
+        "operator_status": "collector_failed_with_error",
+        "blocks_claims": true
+      }
+    ]
+  },
+  "controls": [
+    {
+      "id": "wazuh-software-inventory-normalized",
+      "capability": "software_inventory",
+      "required_fields": [
+        "software.name",
+        "software.version",
+        "software.vendor",
+        "software.install_path",
+        "software.package_manager",
+        "software.cpe"
+      ],
+      "accepted_evidence_classes": [
+        "live_endpoint",
+        "fleet_api"
+      ],
+      "current_evidence_class": "synthetic_contract",
+      "gap_classification": "normalization",
+      "remaining_gap": "Software inventory has a declared shape, but no live fleet artifact proves normalized package/application rows with CPE coverage."
+    },
+    {
+      "id": "wazuh-license-inventory-attribution",
+      "capability": "license_inventory",
+      "required_fields": [
+        "software.name",
+        "software.version",
+        "license.name",
+        "license.source",
+        "license.confidence",
+        "license.exception"
+      ],
+      "accepted_evidence_classes": [
+        "live_endpoint",
+        "governed_holdout"
+      ],
+      "current_evidence_class": "synthetic_contract",
+      "gap_classification": "normalization",
+      "remaining_gap": "License posture is not proven until package attribution, confidence, and exception handling are backed by live or governed evidence."
+    },
+    {
+      "id": "wazuh-vulnerability-cve-linkage",
+      "capability": "vulnerability_mapping",
+      "required_fields": [
+        "software.cpe",
+        "vulnerability.cve",
+        "vulnerability.severity",
+        "vulnerability.source",
+        "vulnerability.fixed_version",
+        "vulnerability.match_confidence"
+      ],
+      "accepted_evidence_classes": [
+        "live_endpoint",
+        "governed_holdout"
+      ],
+      "current_evidence_class": "synthetic_contract",
+      "gap_classification": "integration",
+      "remaining_gap": "No governed CVE/CPE matching artifact proves vulnerability mapping accuracy or false-positive handling."
+    },
+    {
+      "id": "wazuh-compliance-control-evidence",
+      "capability": "compliance_posture",
+      "required_fields": [
+        "control.framework",
+        "control.id",
+        "control.title",
+        "control.status",
+        "control.evidence",
+        "control.exception"
+      ],
+      "accepted_evidence_classes": [
+        "live_endpoint",
+        "governed_holdout"
+      ],
+      "current_evidence_class": "synthetic_contract",
+      "gap_classification": "claim-boundary",
+      "remaining_gap": "Compliance scoring must remain unclaimed until per-control live evidence, exceptions, and negative cases exist."
+    },
+    {
+      "id": "wazuh-configuration-posture-drift",
+      "capability": "configuration_posture",
+      "required_fields": [
+        "configuration.path",
+        "configuration.key",
+        "configuration.expected",
+        "configuration.observed",
+        "configuration.status",
+        "configuration.policy_version"
+      ],
+      "accepted_evidence_classes": [
+        "live_endpoint",
+        "fleet_api"
+      ],
+      "current_evidence_class": "synthetic_contract",
+      "gap_classification": "collector",
+      "remaining_gap": "No live configuration baseline/drift artifact proves policy versioning or platform-specific unsupported states."
+    },
+    {
+      "id": "wazuh-fim-baseline-change-contract",
+      "capability": "fim_baseline",
+      "required_fields": [
+        "fim.path",
+        "fim.sha256",
+        "fim.owner",
+        "fim.baseline_id",
+        "fim.change_type",
+        "fim.detected_at"
+      ],
+      "accepted_evidence_classes": [
+        "live_endpoint",
+        "replay"
+      ],
+      "current_evidence_class": "synthetic_contract",
+      "gap_classification": "collector",
+      "remaining_gap": "FIM-style breadth is not proven until baseline and change artifacts are collected from live or replayed endpoint evidence."
+    },
+    {
+      "id": "wazuh-fleet-freshness-and-unsupported-state",
+      "capability": "fleet_freshness",
+      "required_fields": [
+        "fleet.last_seen",
+        "fleet.inventory_age_seconds",
+        "fleet.online_state",
+        "fleet.unsupported_collectors",
+        "fleet.degraded_collectors",
+        "fleet.collection_errors"
+      ],
+      "accepted_evidence_classes": [
+        "fleet_api",
+        "live_endpoint"
+      ],
+      "current_evidence_class": "synthetic_contract",
+      "gap_classification": "fleet-coverage",
+      "remaining_gap": "Fleet freshness must be proven through authenticated multi-agent inventory before operational Wazuh-style coverage can be claimed."
+    }
+  ],
+  "promotion_requirements": [
+    "live_endpoint_inventory_artifact",
+    "multi_agent_fleet_freshness_artifact",
+    "negative_license_exception_cases",
+    "governed_cve_cpe_matching_artifact",
+    "per_control_compliance_evidence",
+    "unsupported_collector_state_artifact"
+  ],
+  "license_exception_negative_cases": [
+    {
+      "id": "license-exception-unapproved-gpl-override",
+      "current_evidence_class": "synthetic_contract",
+      "accepted_evidence_classes": [
+        "live_endpoint",
+        "governed_holdout"
+      ],
+      "expected_outcome": "rejected",
+      "satisfied": false,
+      "blocked_claim_reason": "The gate has no governed negative artifact proving an unapproved copyleft override is rejected."
+    },
+    {
+      "id": "license-exception-unknown-license-source",
+      "current_evidence_class": "synthetic_contract",
+      "accepted_evidence_classes": [
+        "live_endpoint",
+        "governed_holdout"
+      ],
+      "expected_outcome": "needs_review",
+      "satisfied": false,
+      "blocked_claim_reason": "The gate has no live or governed artifact proving unknown license attribution is routed to review."
+    }
+  ],
+  "blocked_claims": [
+    "Wazuh replacement readiness",
+    "production compliance scoring",
+    "complete software license audit",
+    "complete vulnerability coverage",
+    "fleet-wide posture coverage"
+  ]
+}

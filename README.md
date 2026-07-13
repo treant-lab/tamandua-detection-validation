@@ -29,6 +29,13 @@ ML validation boundary: current ML artifacts are validation-ready only,
 not production-trained, and production validation remains pending through the
 ML-1..ML-6 gates.
 
+Governed FP/FN corpus boundary: `scripts/governed_fp_fn_corpus_gate.py` validates
+the goodware/malware corpus hold artifact. It requires lineage, sample counts,
+locked threshold/orientation, FPR/FNR arithmetic, retained-critical scenario
+coverage, and explicit blocked external claims. A pass means the hold is honest;
+it does not promote local bootstrap numbers to production false-positive rate,
+malware false-negative rate, vendor parity, or live protection claims.
+
 Latest WIN-TEMPLATE status: the production mTLS path was restored and
 `5622e06b-81ae-4f33-85e1-0f7fcae090ef` reached `online` through the server.
 `20260622T-agent-bound-win-template-live-response-smoke` passed as an
@@ -38,15 +45,22 @@ fixture, while the local checkpoint WIN-TEMPLATE probe still records one
 false-positive candidate on a non-malware high-entropy control.
 
 Mobile/App Guard validation boundary: `fixtures/app_guard_rasp_replay_v1.json`
-adds metadata-only protected WebView/RASP replay fixtures, and
+adds metadata-only protected WebView/RASP replay fixtures,
 `fixtures/browser_guard_rasp_replay_v1.json` adds direct Browser Guard/Web SDK
-replay fixtures for anti-debug, anti-tamper, integrity drift, service-worker
-persistence, suspicious network, and behavior anomaly scenarios. They validate
-event shape plus expected alert/timeline projection, including active signals,
-privacy markers, server fanout topics, and "must not 500" contract
-expectations. They do not claim live backend persistence, browser-extension
-packaging, native Android/iOS collector behavior, physical-device collection, or
-store readiness.
+replay fixtures, and
+`fixtures/mobile_app_guard_aggressive_replay_v1.json` adds aggressive benchmark
+coverage for Magisk/Zygisk, Frida attach/spawn, debugger, hook frameworks,
+WebView/browser tamper, APK repack/integrity, cert pinning bypass, DoH/exfil,
+spyware-like behavior, and goodware FP gates. They validate event shape plus
+expected alert/timeline projection, including active signals, privacy markers,
+server fanout topics, "must not 500" contract expectations, and honest
+implemented/roadmap labels. They do not claim live backend persistence,
+live signed ingestion, live anti-replay enforcement, browser-extension
+packaging, native Android/iOS collector behavior, iOS native/XCFramework
+release readiness, physical-device collection, governed attack-lab protection,
+SDK shielding efficacy, store readiness, or production malware accuracy. Treat
+fixture and local smoke passes as non-claims unless separate live, iOS, and
+lab/device evidence packets are present.
 
 See [REPOSITORY_STRUCTURE.md](./REPOSITORY_STRUCTURE.md) for the standalone
 mirror layout and artifact policy, and [PROBE_CATALOG.md](./PROBE_CATALOG.md)
@@ -81,7 +95,27 @@ Validate replay fixtures, including App Guard/RASP:
 
 ```bash
 python scripts/validate_replay_fixtures.py
+python scripts/mobile_app_guard_benchmark_gate.py
+python scripts/mobile_sdk_temp_hygiene.py --staged
+python scripts/mobile_sdk_temp_hygiene.py --tracked
 ```
+
+`mobile_app_guard_benchmark_gate.py` fails when the fixture boundary drops
+required live, iOS, physical-device, or governed-lab evidence requirements.
+`mobile_sdk_temp_hygiene.py --staged` blocks newly staged temp, env/secret
+backup, and sensitive log artifacts; `--tracked` allows the explicit legacy
+tracked exceptions while continuing to report non-exempt paths.
+
+Validate the static Plugins/BOF/dynamic module boundary:
+
+```bash
+python scripts/plugins_bof_static_readiness_probe.py
+```
+
+This gate is source/docs only. A pass means plugin runtime, BOF loader, and
+dynamic collector work remains explicitly design-dormant or lab-scoped; it does
+not prove runtime execution, WASM sandbox safety, BOF prevention/removal, or
+production policy enablement.
 
 ## Validate ML Contracts
 

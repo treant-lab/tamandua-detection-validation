@@ -24,12 +24,27 @@ from typing import Any
 try:
     from root_resolver import ROOT, RUNS_DIR, is_standalone
 except ImportError:
-    ROOT = Path(__file__).resolve().parents[2]
+    _SCRIPT_DIR = Path(__file__).resolve().parent
+    ROOT = _SCRIPT_DIR.parents[2] if _SCRIPT_DIR.name == "scripts" else _SCRIPT_DIR.parents[1]
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
 GENERATED_DIR = ROOT / "docs" / "benchmarks" / "generated"
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 GITIGNORE = ROOT / ".gitignore"
+DETECTION_VALIDATION_DIR = ROOT / "tools" / "detection_validation"
+
+
+def dv_script_path(name: str) -> Path:
+    """Resolve a detection_validation script across repository layouts.
+
+    Prefers the organized ``tools/detection_validation/scripts/`` layout and
+    falls back to the legacy flat ``tools/detection_validation/`` layout so
+    mirrors that predate the reorganization keep working.
+    """
+    organized = DETECTION_VALIDATION_DIR / "scripts" / name
+    if organized.exists():
+        return organized
+    return DETECTION_VALIDATION_DIR / name
 EXPECTED_OFFICIAL_PREFLIGHT_SOURCE = (
     "docs/benchmarks/runs/20260614T023138Z-validation-execution-preflight-probe.json"
 )
@@ -241,13 +256,13 @@ PROFILE_ATOMIC_T1047_CAPABILITY = "atomic-t1047-lab-capability-probe"
 PROFILE_WINDOWS_QGA_READINESS = "windows-proxmox-qga-readiness-probe"
 PROFILE_LINUX_EBPF_READINESS = "linux-ebpf-readiness-probe"
 MIN_SCORECARD_CONSISTENCY_CHECKS = 360
-EXPECTED_WINDOWS_LAB_RUN = "20260615T032902Z-windows-lab-execution-readiness-probe"
-EXPECTED_WINDOWS_CONNECTION_STABILITY_RUN = "20260615T185235Z-windows-agent-connection-stability-probe"
-EXPECTED_MACOS_BACKEND_RUN = "20260618T175420Z-macos-backend-readiness-probe"
+EXPECTED_WINDOWS_LAB_RUN = "20260707T182520Z-windows-lab-execution-readiness-probe"
+EXPECTED_WINDOWS_CONNECTION_STABILITY_RUN = "20260619T144548Z-windows-agent-connection-stability-probe"
+EXPECTED_MACOS_BACKEND_RUN = "20260619T035011Z-macos-backend-readiness-probe"
 EXPECTED_ATOMIC_T1047_RUN = "20260615T224540Z-atomic-t1047-lab-capability-probe"
-EXPECTED_WINDOWS_QGA_AGGREGATE_PASS_RUN = "20260617T042820Z-windows-proxmox-qga-readiness-probe"
-EXPECTED_WINDOWS_QGA_LATEST_RAW_RUN = "20260617T042820Z-windows-proxmox-qga-readiness-probe"
-EXPECTED_WINDOWS_QGA_LATEST_RAW_FAIL_RUN = "20260617T042448Z-windows-proxmox-qga-readiness-probe"
+EXPECTED_WINDOWS_QGA_AGGREGATE_PASS_RUN = "20260625T095543Z-windows-proxmox-qga-readiness-probe"
+EXPECTED_WINDOWS_QGA_LATEST_RAW_RUN = "20260625T095543Z-windows-proxmox-qga-readiness-probe"
+EXPECTED_WINDOWS_QGA_LATEST_RAW_FAIL_RUN = "20260625T042718Z-windows-proxmox-qga-readiness-probe"
 EXPECTED_LINUX_EBPF_RUN = "20260603T180022Z-linux-ebpf-readiness-probe"
 EXPECTED_CLOSURE_EXCLUDED_ROADMAPS = {
     "O": "generated_scorecard_automation_not_product_gate",
@@ -396,9 +411,9 @@ MACOS_LOCAL_BUILD_DOC = ROOT / "docs" / "deployment" / "MACOS_LOCAL_BUILD.md"
 CI_SIGNED_INSTALLER_EVIDENCE_DOC = ROOT / "docs" / "deployment" / "CI_AND_SIGNED_INSTALLER_EVIDENCE.md"
 KNOWN_PRODUCTION_GAPS_DOC = ROOT / "docs" / "KNOWN_PRODUCTION_GAPS.md"
 TAMANDUA_GUI_README = ROOT / "apps" / "tamandua_gui" / "README.md"
-REFRESH_AUTHORITY_SCRIPT = ROOT / "tools" / "detection_validation" / "refresh_validation_authority.py"
-MACOS_BACKEND_READINESS_PROBE = ROOT / "tools" / "detection_validation" / "macos_backend_readiness_probe.py"
-MACOS_RELEASE_ARTIFACT_PREFLIGHT = ROOT / "tools" / "detection_validation" / "macos_release_artifact_preflight.py"
+REFRESH_AUTHORITY_SCRIPT = dv_script_path("refresh_validation_authority.py")
+MACOS_BACKEND_READINESS_PROBE = dv_script_path("macos_backend_readiness_probe.py")
+MACOS_RELEASE_ARTIFACT_PREFLIGHT = dv_script_path("macos_release_artifact_preflight.py")
 MACOS_RELEASE_ARTIFACT_PREFLIGHT_SCHEMA = (
     ROOT / "docs" / "benchmarks" / "macos_release_artifact_preflight.schema.json"
 )
@@ -9574,7 +9589,7 @@ def build_payload(
     macos_backend_source = rel(macos_backend_path)
     macos_release_artifact_source = rel(macos_release_artifact_path)
     consistency_source = rel(consistency_path)
-    preflight_work_package_path = ROOT / "tools" / "detection_validation" / "run_preflight_work_package.py"
+    preflight_work_package_path = dv_script_path("run_preflight_work_package.py")
     preflight_work_package_text = load_text(preflight_work_package_path)
 
     check(checks, "closure latest run_id present", bool(closure_run), True, [scorecard_source])
@@ -9609,6 +9624,8 @@ def build_payload(
     check(checks, "Linux eBPF readiness latest run_id present", bool(linux_ebpf_run), True, [scorecard_source])
     for source in PROXY_SAFE_URLOPEN_FILES:
         source_path = ROOT / source
+        if not source_path.exists():
+            source_path = dv_script_path(Path(source).name)
         text = load_text(source_path) if source_path.exists() else ""
         check(
             checks,
@@ -9619,6 +9636,8 @@ def build_payload(
         )
     for source in PROXY_SAFE_REQUESTS_SESSION_FILES:
         source_path = ROOT / source
+        if not source_path.exists():
+            source_path = dv_script_path(Path(source).name)
         text = load_text(source_path) if source_path.exists() else ""
         check(
             checks,
@@ -11757,8 +11776,10 @@ def build_payload(
         True,
         [rel(MACOS_P0_SMOKE_RUNNER)],
     )
-    validation_harness_text = load_text(ROOT / "tools" / "detection_validation" / "tamandua_detection_validation.py")
-    merge_reports_text = load_text(ROOT / "tools" / "detection_validation" / "merge_tamandua_validation_reports.py")
+    validation_harness_path = dv_script_path("tamandua_detection_validation.py")
+    merge_reports_path = dv_script_path("merge_tamandua_validation_reports.py")
+    validation_harness_text = load_text(validation_harness_path)
+    merge_reports_text = load_text(merge_reports_path)
     for marker in [
         'if lane == "diagnostic-only":',
         'failures.append("diagnostic_only_lane")',
@@ -11770,7 +11791,7 @@ def build_payload(
             f"tools/detection_validation/tamandua_detection_validation.py blocks diagnostic-only product claims marker {marker}",
             validation_harness_text,
             marker,
-            ROOT / "tools" / "detection_validation" / "tamandua_detection_validation.py",
+            validation_harness_path,
         )
     for marker in [
         '"source_benchmark_lanes"',
@@ -11782,7 +11803,7 @@ def build_payload(
             f"tools/detection_validation/merge_tamandua_validation_reports.py preserves diagnostic source lane marker {marker}",
             merge_reports_text,
             marker,
-            ROOT / "tools" / "detection_validation" / "merge_tamandua_validation_reports.py",
+            merge_reports_path,
         )
     macos_backend_probe_text = load_text(MACOS_BACKEND_READINESS_PROBE)
     for marker in [

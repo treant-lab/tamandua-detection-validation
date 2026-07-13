@@ -102,6 +102,9 @@ def test_validate_wave1_post_acquisition_go_no_go_summary_rejects_transcript_con
     for check in data["checks"]:
         if check["name"] == "transcript_contract_valid_for_manifest_publish":
             check["passed"] = True
+    passed_checks = sum(1 for check in data["checks"] if check["passed"])
+    data["source_status_summary"]["passed_checks"] = passed_checks
+    data["source_status_summary"]["failed_checks"] = len(data["checks"]) - passed_checks
     drifted = tmp_path / "20260604T-ml-wave1-post-acquisition-go-no-go-summary.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

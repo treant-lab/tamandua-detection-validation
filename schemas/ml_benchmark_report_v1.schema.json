@@ -82,7 +82,9 @@
             "input_name": {"type": "string"},
             "shape": {"type": "array", "items": {"type": ["integer", "string"]}},
             "preprocessing": {"type": "string"},
-            "threshold": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+            "threshold": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "threshold_score_orientation": {"enum": ["as_is", "inverted"]},
+            "threshold_source": {"type": ["string", "null"]}
           }
         }
       }
@@ -143,6 +145,32 @@
         "latency_ms_p99": {"type": ["number", "null"], "minimum": 0},
         "throughput_per_second": {"type": ["number", "null"], "minimum": 0},
         "memory_mb_peak": {"type": ["number", "null"], "minimum": 0},
+        "threshold_calibration": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": {
+            "status": {"enum": ["selected", "not_available"]},
+            "reason": {"type": "string"},
+            "selected_threshold": {"type": "number", "minimum": 0, "maximum": 1},
+            "selected_score_orientation": {"enum": ["as_is", "inverted"]},
+            "target_max_fpr": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+            "metrics_at_threshold": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "accuracy": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+                "precision": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+                "recall": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+                "f1": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+                "false_positive_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+                "false_negative_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1}
+              }
+            },
+            "candidate_count": {"type": "integer", "minimum": 0},
+            "scored_prediction_count": {"type": "integer", "minimum": 0},
+            "warnings": {"type": "array", "items": {"type": "string"}}
+          }
+        },
         "ml_contribution": {
           "type": "object",
           "additionalProperties": false,

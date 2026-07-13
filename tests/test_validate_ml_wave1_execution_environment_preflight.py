@@ -120,12 +120,12 @@ def test_validate_wave1_execution_environment_preflight_rejects_runtime_data_roo
 
 def test_validate_wave1_execution_environment_preflight_rejects_transcript_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_status_summary"]["transcript_contract_validation_before_run"] = "jsonschema+built-in"
-    data["source_status_summary"]["transcript_contract_valid_before_run"] = True
-    data["source_status_summary"]["transcript_contract_missing_before_run"] = False
+    data["source_status_summary"]["transcript_contract_validation_before_run"] = "missing"
+    data["source_status_summary"]["transcript_contract_valid_before_run"] = False
+    data["source_status_summary"]["transcript_contract_missing_before_run"] = True
     for check in data["checks"]:
         if check["name"] == "transcript_contract_missing_before_run":
-            check["passed"] = False
+            check["passed"] = True
             break
     passed_checks = sum(1 for check in data["checks"] if check["passed"])
     data["source_status_summary"]["passed_checks"] = passed_checks
@@ -155,7 +155,7 @@ def test_validate_wave1_execution_environment_preflight_rejects_goal_snapshot_an
 
 def test_validate_wave1_execution_environment_preflight_rejects_wave1_publish_contract_drift(tmp_path: Path) -> None:
     data = copy.deepcopy(json.loads(CANONICAL.read_text(encoding="utf-8")))
-    data["source_status_summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = True
+    data["source_status_summary"]["wave1_transcript_contract_valid_for_manifest_publish"] = False
     drifted = tmp_path / "20260604T-ml-wave1-execution-environment-preflight.json"
     drifted.write_text(json.dumps(data), encoding="utf-8")
 

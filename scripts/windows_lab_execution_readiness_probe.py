@@ -25,7 +25,8 @@ import requests
 try:
     from root_resolver import ROOT, RUNS_DIR, is_standalone
 except ImportError:
-    ROOT = Path(__file__).resolve().parents[2]
+    _SCRIPT_DIR = Path(__file__).resolve().parent
+    ROOT = _SCRIPT_DIR.parents[2] if _SCRIPT_DIR.name == "scripts" else _SCRIPT_DIR.parents[1]
     RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
     is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
@@ -392,7 +393,7 @@ def build_tests(
     tests = [
         test_result(
             "windows-lab-target-present",
-            "WIN-TEMPLATE target is present in authenticated inventory",
+            f"{expected_hostname} target is present in authenticated inventory",
             target is not None,
             {
                 "ctl_ok": bool(ctl.get("ok")),
@@ -406,35 +407,35 @@ def build_tests(
         ),
         test_result(
             "windows-lab-target-online",
-            "WIN-TEMPLATE target is online with a fresh backend state",
+            f"{expected_hostname} target is online with a fresh backend state",
             bool(target) and status(target) == "online",
             {"target": target_summary},
             "infra",
         ),
         test_result(
             "windows-lab-target-health-acceptable",
-            "WIN-TEMPLATE target health is healthy or degraded, not critical/offline",
+            f"{expected_hostname} target health is healthy or degraded, not critical/offline",
             bool(target) and health(target) in {"healthy", "degraded"},
             {"target": target_summary},
             "agent-health",
         ),
         test_result(
             "windows-lab-target-live-response-ready",
-            "WIN-TEMPLATE target reports live response runtime readiness",
+            f"{expected_hostname} target reports live response runtime readiness",
             live_ready,
             {"target": target_summary},
             "runner",
         ),
         test_result(
             "windows-lab-target-endpoint-telemetry-ready",
-            "WIN-TEMPLATE target reports endpoint telemetry runtime readiness",
+            f"{expected_hostname} target reports endpoint telemetry runtime readiness",
             endpoint_ready,
             {"target": target_summary},
             "collector",
         ),
         test_result(
             "windows-lab-target-load-safe-for-broad-runs",
-            "WIN-TEMPLATE target load is safe for broad shards",
+            f"{expected_hostname} target load is safe for broad shards",
             bool(target) and cpu_ready and not driver_not_loaded,
             {
                 "target": target_summary,
@@ -487,7 +488,7 @@ def windows_next_action(target: dict[str, Any] | None, blockers: list[str], expe
             "target_hostname": expected_hostname,
             "target_agent_id": None,
             "missing_readiness": ["target_inventory_row"],
-            "action": "Reconnect or enroll WIN-TEMPLATE so it appears in authenticated backend inventory, then rerun the readiness probe.",
+            "action": f"Reconnect or enroll {expected_hostname} so it appears in authenticated backend inventory, then rerun the readiness probe.",
         }
     missing = []
     if "infra" in blockers:
@@ -500,7 +501,7 @@ def windows_next_action(target: dict[str, Any] | None, blockers: list[str], expe
         missing.append("endpoint_telemetry_reported")
     if missing:
         action = (
-            "Bring WIN-TEMPLATE online, wait for a fresh healthy/degraded heartbeat, "
+            f"Bring {target.get('hostname') or expected_hostname} online, wait for a fresh healthy/degraded heartbeat, "
             "verify live_response and endpoint_telemetry capabilities, then rerun the readiness and connection-stability probes."
         )
     else:
