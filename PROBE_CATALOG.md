@@ -30,6 +30,17 @@ helper, or test family is added.
 | `scripts/plugins_bof_static_readiness_probe.py` | Static Plugins/BOF/dynamic module boundary gate; verifies the lane remains design-dormant/lab and does not claim runtime execution readiness. |
 | `scripts/posture_inventory_compliance_readiness_gate.py` | Synthetic Wazuh-style posture/inventory/compliance contract gate for software, license, CVE, compliance, config, FIM, and fleet freshness evidence boundaries. |
 
+## Root Compatibility Wrappers
+
+The root is intentionally small. New executable code belongs under `scripts/`;
+the root keeps only repository metadata, docs, and compatibility entry points
+that preserve older operator commands.
+
+| File | Status |
+| --- | --- |
+| `validate_ml_contracts.py` | Compatibility wrapper that delegates to `scripts/validate_ml_contracts.py`. Keep until generated handoffs and external operator docs stop invoking the root path. |
+| `readiness_probe_linter.py` | Compatibility wrapper that delegates to `scripts/readiness_probe_linter.py`. Keep until generated handoffs and external operator docs stop invoking the root path. |
+
 ## Platform Probes
 
 | Domain | Representative files |
@@ -68,7 +79,8 @@ helper, or test family is added.
 ## Publication Rules
 
 - Keep Python entry points under `scripts/` and pytest modules under `tests/`;
-  do not add new loose `.py` files at repository root.
+  do not add new loose `.py` files at repository root. Root Python files are
+  compatibility exceptions only and must delegate to documented functionality.
 - Put durable fixtures under `fixtures/`, repeatable execution profiles under
   `profiles/`, roadmap shards under `roadmaps/`, and schemas under `schemas/`.
 - Do not commit generated `runs/`, `generated/`, cache, bytecode, secrets, raw

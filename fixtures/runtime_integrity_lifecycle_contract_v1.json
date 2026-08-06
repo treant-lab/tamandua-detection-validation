@@ -1,0 +1,258 @@
+{
+  "api_version": "tamandua.io/runtime-integrity-lifecycle-contract/v1",
+  "fixture_id": "runtime-integrity-lifecycle-contract-v1",
+  "description": "Deterministic local replay of the runtime_integrity collector lifecycle and severity contract.",
+  "evidence_class": "synthetic_contract",
+  "execution_scope": "local",
+  "external_claim_allowed": false,
+  "claim_boundary": "Synthetic local contract replay only. It does not prove live-host collection, resistance to bypass, detection efficacy, production readiness, or parity with any vendor.",
+  "source_contract": "apps/tamandua_agent/src/collectors/runtime_integrity.rs",
+  "platform_contract": {
+    "supported_platforms": [
+      "linux",
+      "macos",
+      "windows"
+    ],
+    "required_states": [
+      "supported",
+      "degraded",
+      "unsupported"
+    ],
+    "unsupported_behavior": "explicit_state_with_no_findings_and_non_empty_limitations"
+  },
+  "privacy_contract": {
+    "evidence_shape": "metadata_only",
+    "forbid_paths": true,
+    "forbid_addresses": true
+  },
+  "scenarios": [
+    {
+      "id": "healthy-baseline-is-silent",
+      "initial_previous": null,
+      "observations": [
+        {
+          "evidence": {
+            "platform": "linux",
+            "state": "supported",
+            "findings": [],
+            "limitations": [
+              "point-in-time userspace observation"
+            ]
+          },
+          "expected_event": null
+        }
+      ]
+    },
+    {
+      "id": "finding-change-duplicate-and-recovery",
+      "initial_previous": {
+        "platform": "windows",
+        "state": "supported",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation"
+        ]
+      },
+      "observations": [
+        {
+          "evidence": {
+            "platform": "windows",
+            "state": "supported",
+            "findings": [
+              {
+                "kind": "writable_executable_mapping",
+                "evidence": "writable and executable mapping observed"
+              }
+            ],
+            "limitations": [
+              "legitimate JIT use is possible"
+            ]
+          },
+          "expected_event": {
+            "transition": "finding_detected",
+            "severity": "medium"
+          }
+        },
+        {
+          "evidence": {
+            "platform": "windows",
+            "state": "supported",
+            "findings": [
+              {
+                "kind": "writable_executable_mapping",
+                "evidence": "writable and executable mapping observed"
+              }
+            ],
+            "limitations": [
+              "legitimate JIT use is possible"
+            ]
+          },
+          "expected_event": null
+        },
+        {
+          "evidence": {
+            "platform": "windows",
+            "state": "supported",
+            "findings": [
+              {
+                "kind": "writable_executable_mapping",
+                "evidence": "writable and executable mapping observed"
+              },
+              {
+                "kind": "debugger_or_tracer_attached",
+                "evidence": "debugger API reported an attached debugger"
+              }
+            ],
+            "limitations": [
+              "advisory process signals"
+            ]
+          },
+          "expected_event": {
+            "transition": "finding_changed",
+            "severity": "high"
+          }
+        },
+        {
+          "evidence": {
+            "platform": "windows",
+            "state": "supported",
+            "findings": [],
+            "limitations": [
+              "point-in-time userspace observation"
+            ]
+          },
+          "expected_event": {
+            "transition": "recovered",
+            "severity": "info"
+          }
+        },
+        {
+          "evidence": {
+            "platform": "windows",
+            "state": "supported",
+            "findings": [],
+            "limitations": [
+              "point-in-time userspace observation"
+            ]
+          },
+          "expected_event": null
+        }
+      ]
+    },
+    {
+      "id": "instrumentation-is-high-context",
+      "initial_previous": null,
+      "observations": [
+        {
+          "evidence": {
+            "platform": "macos",
+            "state": "supported",
+            "findings": [
+              {
+                "kind": "instrumentation_library_loaded",
+                "evidence": "loaded image basename matched instrumentation marker"
+              }
+            ],
+            "limitations": [
+              "loaded-image metadata is advisory"
+            ]
+          },
+          "expected_event": {
+            "transition": "finding_detected",
+            "severity": "high"
+          }
+        }
+      ]
+    },
+    {
+      "id": "debugger-alone-is-medium-context",
+      "initial_previous": null,
+      "observations": [
+        {
+          "evidence": {
+            "platform": "linux",
+            "state": "supported",
+            "findings": [
+              {
+                "kind": "debugger_or_tracer_attached",
+                "evidence": "process status metadata reported an attached tracer"
+              }
+            ],
+            "limitations": [
+              "process metadata is advisory"
+            ]
+          },
+          "expected_event": {
+            "transition": "finding_detected",
+            "severity": "medium"
+          }
+        }
+      ]
+    },
+    {
+      "id": "degraded-duplicate-and-recovery",
+      "initial_previous": null,
+      "observations": [
+        {
+          "evidence": {
+            "platform": "linux",
+            "state": "degraded",
+            "findings": [],
+            "limitations": [
+              "process metadata unavailable"
+            ]
+          },
+          "expected_event": {
+            "transition": "collector_degraded",
+            "severity": "low"
+          }
+        },
+        {
+          "evidence": {
+            "platform": "linux",
+            "state": "degraded",
+            "findings": [],
+            "limitations": [
+              "process metadata unavailable"
+            ]
+          },
+          "expected_event": null
+        },
+        {
+          "evidence": {
+            "platform": "linux",
+            "state": "supported",
+            "findings": [],
+            "limitations": [
+              "point-in-time userspace observation"
+            ]
+          },
+          "expected_event": {
+            "transition": "recovered",
+            "severity": "info"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unsupported-platform-is-explicit",
+      "initial_previous": null,
+      "observations": [
+        {
+          "evidence": {
+            "platform": "other",
+            "state": "unsupported",
+            "findings": [],
+            "limitations": [
+              "collector is unsupported on this platform"
+            ]
+          },
+          "expected_event": {
+            "transition": "collector_degraded",
+            "severity": "low"
+          }
+        }
+      ]
+    }
+  ]
+}

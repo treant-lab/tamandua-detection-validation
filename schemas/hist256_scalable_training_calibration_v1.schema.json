@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/hist256_scalable_training_calibration_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "evidence_class", "used_splits", "holdout_opened", "promotion_eligible", "enforcement_allowed", "feature_contract_id", "calibration_id", "selected_threshold", "score_orientation", "training_lineage_sha256", "calibration_lineage_sha256", "inputs", "runtime", "sample_count", "calibration_metrics", "artifact_sha256", "claim_boundary", "evidence_sha256"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/hist256-scalable-training-calibration/v1"},
+    "kind": {"const": "Hist256ScalableTrainingCalibrationEvidence"},
+    "evidence_class": {"enum": ["scalable_bootstrap_calibration", "bootstrap_shadow_calibration"]},
+    "shadow_only": {"type": "boolean"},
+    "used_splits": {"const": ["train", "calibration"]},
+    "holdout_opened": {"const": false},
+    "promotion_eligible": {"const": false},
+    "enforcement_allowed": {"const": false},
+    "feature_contract_id": {"const": "tamandua.byte-histogram-256.v1"},
+    "calibration_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "selected_threshold": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "score_orientation": {"const": "higher_is_more_malicious"},
+    "training_lineage_sha256": {"$ref": "#/$defs/sha256"},
+    "calibration_lineage_sha256": {"$ref": "#/$defs/sha256"},
+    "artifact_sha256": {"$ref": "#/$defs/sha256"},
+    "evidence_sha256": {"$ref": "#/$defs/sha256"},
+    "inputs": {
+      "type": "object",
+      "required": ["training_bundle_descriptor_sha256", "calibration_bundle_descriptor_sha256", "training_membership_sha256", "calibration_membership_sha256", "config_sha256"],
+      "properties": {
+        "training_bundle_descriptor_sha256": {"$ref": "#/$defs/sha256"},
+        "calibration_bundle_descriptor_sha256": {"$ref": "#/$defs/sha256"},
+        "training_membership_sha256": {"$ref": "#/$defs/sha256"},
+        "calibration_membership_sha256": {"$ref": "#/$defs/sha256"},
+        "config_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "additionalProperties": false
+    },
+    "runtime": {
+      "type": "object", "required": ["lightgbm_version", "seed", "storage"],
+      "properties": {
+        "lightgbm_version": {"const": "4.5.0"},
+        "seed": {"type": "integer"},
+        "storage": {"const": "numpy_npy_memmap"}
+      },
+      "additionalProperties": false
+    },
+    "sample_count": {
+      "type": "object",
+      "required": ["train", "calibration", "train_goodware", "train_malware", "calibration_goodware", "calibration_malware"],
+      "properties": {
+        "train": {"type": "integer", "minimum": 10000},
+        "calibration": {"type": "integer", "minimum": 2000},
+        "train_goodware": {"type": "integer", "minimum": 5000},
+        "train_malware": {"type": "integer", "minimum": 5000},
+        "calibration_goodware": {"type": "integer", "minimum": 1000},
+        "calibration_malware": {"type": "integer", "minimum": 1000}
+      },
+      "additionalProperties": false
+    },
+    "calibration_metrics": {
+      "type": "object", "required": ["tp", "tn", "fp", "fn", "fpr", "recall"],
+      "properties": {
+        "tp": {"type": "integer", "minimum": 0}, "tn": {"type": "integer", "minimum": 0},
+        "fp": {"type": "integer", "minimum": 0}, "fn": {"type": "integer", "minimum": 0},
+        "fpr": {"type": "number", "minimum": 0, "maximum": 1},
+        "recall": {"type": "number", "minimum": 0, "maximum": 1}
+      },
+      "additionalProperties": false
+    },
+    "claim_boundary": {"type": "string", "minLength": 1}
+  },
+  "allOf": [
+    {"if": {"properties": {"evidence_class": {"const": "scalable_bootstrap_calibration"}}}, "then": {"properties": {"sample_count": {"properties": {"train": {"minimum": 100000}, "calibration": {"minimum": 11000}, "calibration_goodware": {"minimum": 10000}}}}}},
+    {"if": {"properties": {"evidence_class": {"const": "bootstrap_shadow_calibration"}}}, "then": {"required": ["shadow_only"], "properties": {"shadow_only": {"const": true}}}}
+  ],
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "additionalProperties": false
+}

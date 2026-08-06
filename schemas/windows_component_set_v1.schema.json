@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.security/schemas/windows_component_set_v1.schema.json",
+  "title": "Tamandua Windows component set v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "sku",
+    "source_sha",
+    "cargo_version",
+    "release_version",
+    "target",
+    "profile",
+    "protocol_version",
+    "policy_hash_algorithm",
+    "components"
+  ],
+  "properties": {
+    "schema_version": { "const": "tamandua.windows_component_set/v1" },
+    "sku": { "enum": ["AgentOnly", "BrokerEnabled"] },
+    "source_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "cargo_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$" },
+    "release_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$" },
+    "target": { "const": "x86_64-pc-windows-msvc" },
+    "profile": { "enum": ["debug", "release", "release-hardened"] },
+    "protocol_version": { "const": "tamandua.session_broker/v2" },
+    "policy_hash_algorithm": { "const": "screen_capture_policy_hash_sha256_lexical_v2" },
+    "components": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "sha256", "size"],
+        "properties": {
+          "name": { "enum": ["tamandua-agent.exe", "tamandua-session-broker.exe"] },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "size": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "sku": { "const": "AgentOnly" } } },
+      "then": {
+        "properties": {
+          "components": {
+            "minItems": 1,
+            "maxItems": 1,
+            "prefixItems": [
+              { "properties": { "name": { "const": "tamandua-agent.exe" } } }
+            ],
+            "items": false
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "sku": { "const": "BrokerEnabled" } } },
+      "then": {
+        "properties": {
+          "components": {
+            "minItems": 2,
+            "maxItems": 2,
+            "prefixItems": [
+              { "properties": { "name": { "const": "tamandua-agent.exe" } } },
+              { "properties": { "name": { "const": "tamandua-session-broker.exe" } } }
+            ],
+            "items": false
+          }
+        }
+      }
+    }
+  ]
+}

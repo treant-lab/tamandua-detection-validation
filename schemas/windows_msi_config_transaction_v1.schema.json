@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.treantlab.org/schemas/windows_msi_config_transaction_v1.schema.json",
+  "title": "Tamandua Windows MSI redacted configuration transaction evidence v1",
+  "description": "Closed public-evidence contract. Paths and configuration/authentication material are represented only by categorical values or SHA-256 digests; raw paths, URLs, organization identifiers, tokens, keys, certificates, configuration content, and exception text are not admitted.",
+  "$comment": "recovery_required remains an internal transaction state and is deliberately excluded from public evidence until a verified emitter and reconciler exist.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "transition_id",
+    "activation",
+    "outcome",
+    "config_path_sha256",
+    "prior_sha256",
+    "desired_sha256",
+    "prior_present",
+    "auth_mode",
+    "failure_code"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "tamandua.windows_msi_config_transaction/v1"
+    },
+    "transition_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "activation": {
+      "const": "fresh"
+    },
+    "outcome": {
+      "enum": [
+        "preserved_verified",
+        "initialized_verified",
+        "rolled_back_verified"
+      ]
+    },
+    "config_path_sha256": {
+      "$ref": "#/$defs/nullable_sha256"
+    },
+    "prior_sha256": {
+      "$ref": "#/$defs/nullable_sha256"
+    },
+    "desired_sha256": {
+      "$ref": "#/$defs/nullable_sha256"
+    },
+    "prior_present": {
+      "type": "boolean"
+    },
+    "auth_mode": {
+      "const": "none"
+    },
+    "failure_code": {
+      "type": "null"
+    }
+  },
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "nullable_sha256": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/sha256"}
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"prior_present": {"const": true}}},
+      "then": {"properties": {"prior_sha256": {"$ref": "#/$defs/sha256"}}},
+      "else": {"properties": {"prior_sha256": {"type": "null"}}}
+    },
+    {
+      "if": {"properties": {"outcome": {"const": "initialized_verified"}}},
+      "then": {
+        "properties": {
+          "activation": {"const": "fresh"},
+          "prior_present": {"const": false},
+          "prior_sha256": {"type": "null"},
+          "config_path_sha256": {"$ref": "#/$defs/sha256"},
+          "desired_sha256": {"$ref": "#/$defs/sha256"},
+          "failure_code": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"outcome": {"const": "preserved_verified"}}},
+      "then": {
+        "$comment": "Consumers additionally enforce prior_sha256 == desired_sha256; equality between sibling values is not expressible in portable JSON Schema 2020-12.",
+        "properties": {
+          "activation": {"const": "fresh"},
+          "prior_present": {"const": true},
+          "prior_sha256": {"$ref": "#/$defs/sha256"},
+          "desired_sha256": {"$ref": "#/$defs/sha256"},
+          "config_path_sha256": {"$ref": "#/$defs/sha256"},
+          "failure_code": {"type": "null"}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"outcome": {"const": "rolled_back_verified"}}},
+      "then": {
+        "properties": {
+          "config_path_sha256": {"$ref": "#/$defs/sha256"},
+          "desired_sha256": {"$ref": "#/$defs/sha256"},
+          "failure_code": {"type": "null"}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"prior_present": {"const": false}}},
+            "then": {
+              "properties": {
+                "activation": {"const": "fresh"},
+                "prior_sha256": {"type": "null"}
+              }
+            },
+            "else": false
+          }
+        ]
+      }
+    }
+  ]
+}

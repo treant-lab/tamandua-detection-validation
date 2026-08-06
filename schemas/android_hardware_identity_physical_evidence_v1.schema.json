@@ -1,0 +1,307 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://tamandua.dev/schemas/android_hardware_identity_physical_evidence_v1.schema.json",
+  "title": "Android Hardware Identity Governed Physical Evidence v1",
+  "description": "Closed offline contract for reviewing a separately collected physical-device matrix. Validation never executes collection and never proves a hardware-global identifier.",
+  "oneOf": [
+    { "$ref": "#/$defs/sanitizedFixture" },
+    { "$ref": "#/$defs/governedEvidence" }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "physical_device_validated",
+        "hardware_attestation_validated",
+        "real_fleet_uniqueness_validated",
+        "clone_detection_validated",
+        "bindings_independently_verified",
+        "hardware_global_guid_validated",
+        "vendor_parity",
+        "product_ready",
+        "production_ready",
+        "external_claim_allowed"
+      ],
+      "properties": {
+        "physical_device_validated": { "const": false },
+        "hardware_attestation_validated": { "const": false },
+        "real_fleet_uniqueness_validated": { "const": false },
+        "clone_detection_validated": { "const": false },
+        "bindings_independently_verified": { "const": false },
+        "hardware_global_guid_validated": { "const": false },
+        "vendor_parity": { "const": false },
+        "product_ready": { "const": false },
+        "production_ready": { "const": false },
+        "external_claim_allowed": { "const": false }
+      }
+    },
+    "privacy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "aggregate_only",
+        "ordinal_scopes_only",
+        "raw_identifiers_absent",
+        "raw_cryptographic_material_absent",
+        "forbidden_data_classes"
+      ],
+      "properties": {
+        "aggregate_only": { "const": true },
+        "ordinal_scopes_only": { "const": true },
+        "raw_identifiers_absent": { "const": true },
+        "raw_cryptographic_material_absent": { "const": true },
+        "forbidden_data_classes": {
+          "const": [
+            "android_id",
+            "imei",
+            "mac_address",
+            "sim_identifier",
+            "hardware_serial",
+            "nonce",
+            "signature",
+            "token"
+          ]
+        }
+      }
+    },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["apk", "backend", "trust_root"],
+      "properties": {
+        "apk": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "source_bytes_sha256",
+            "installed_bytes_sha256",
+            "signer_certificate_sha256",
+            "version_code"
+          ],
+          "properties": {
+            "source_bytes_sha256": { "$ref": "#/$defs/sha256" },
+            "installed_bytes_sha256": { "$ref": "#/$defs/sha256" },
+            "signer_certificate_sha256": { "$ref": "#/$defs/sha256" },
+            "version_code": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          }
+        },
+        "backend": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "service_artifact_sha256",
+            "identity_policy_sha256",
+            "tenant_policy_sha256"
+          ],
+          "properties": {
+            "service_artifact_sha256": { "$ref": "#/$defs/sha256" },
+            "identity_policy_sha256": { "$ref": "#/$defs/sha256" },
+            "tenant_policy_sha256": { "$ref": "#/$defs/sha256" }
+          }
+        },
+        "trust_root": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "root_set_sha256",
+            "verification_policy_sha256",
+            "verifier_artifact_sha256"
+          ],
+          "properties": {
+            "root_set_sha256": { "$ref": "#/$defs/sha256" },
+            "verification_policy_sha256": { "$ref": "#/$defs/sha256" },
+            "verifier_artifact_sha256": { "$ref": "#/$defs/sha256" }
+          }
+        }
+      }
+    },
+    "collectionManifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "manifest_class",
+        "collection_plan_manifest_sha256",
+        "collector_artifact_sha256",
+        "collection_policy_sha256",
+        "authorization_receipt_sha256",
+        "device_matrix_receipt_sha256",
+        "scenario_matrix_receipt_sha256"
+      ],
+      "properties": {
+        "schema": {
+          "const": "tamandua.android.hardware_identity.collection_manifest/v1"
+        },
+        "manifest_class": {
+          "enum": ["sanitized_non_executed", "submitted_unverified"]
+        },
+        "collection_plan_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "collector_artifact_sha256": { "$ref": "#/$defs/sha256" },
+        "collection_policy_sha256": { "$ref": "#/$defs/sha256" },
+        "authorization_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "device_matrix_receipt_sha256": { "$ref": "#/$defs/sha256" },
+        "scenario_matrix_receipt_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline",
+        "reboot",
+        "os_update",
+        "app_update",
+        "clear_data",
+        "uninstall_reinstall"
+      ],
+      "properties": {
+        "baseline": { "enum": ["observed", "not_executed"] },
+        "reboot": { "enum": ["stable", "unexpected_change", "not_executed"] },
+        "os_update": {
+          "enum": ["stable", "unexpected_change", "not_executed"]
+        },
+        "app_update": {
+          "enum": ["stable", "unexpected_change", "not_executed"]
+        },
+        "clear_data": {
+          "enum": ["expected_loss", "unexpected_persistence", "not_executed"]
+        },
+        "uninstall_reinstall": {
+          "enum": ["expected_loss", "unexpected_persistence", "not_executed"]
+        }
+      }
+    },
+    "deviceObservation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["device_ordinal", "hardware_security_class", "lifecycle"],
+      "properties": {
+        "device_ordinal": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "hardware_security_class": {
+          "enum": ["strongbox", "tee", "software", "unavailable"]
+        },
+        "lifecycle": { "$ref": "#/$defs/lifecycle" }
+      }
+    },
+    "scenarioResults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cross_tenant_unlinkability",
+        "cross_device_distinction",
+        "replay_attempt",
+        "stale_evidence",
+        "clone_attempt",
+        "authorized_rebind",
+        "unauthorized_rebind"
+      ],
+      "properties": {
+        "cross_tenant_unlinkability": {
+          "enum": ["unlinkable", "linkable_hold", "not_executed"]
+        },
+        "cross_device_distinction": {
+          "enum": ["distinct", "collision_hold", "not_executed"]
+        },
+        "replay_attempt": {
+          "enum": ["rejected", "accepted_hold", "not_executed"]
+        },
+        "stale_evidence": {
+          "enum": ["rejected", "accepted_hold", "not_executed"]
+        },
+        "clone_attempt": {
+          "enum": ["suspected_hold", "missed_hold", "not_executed"]
+        },
+        "authorized_rebind": {
+          "enum": ["accepted", "rejected_hold", "not_executed"]
+        },
+        "unauthorized_rebind": {
+          "enum": ["rejected", "accepted_hold", "not_executed"]
+        }
+      }
+    },
+    "sanitizedFixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "platform",
+        "evidence_class",
+        "executed",
+        "decision",
+        "binding_kind",
+        "privacy",
+        "bindings",
+        "collection_manifest",
+        "device_observations",
+        "scenario_results",
+        "claims"
+      ],
+      "properties": {
+        "schema": {
+          "const": "tamandua.android.hardware_identity.physical_evidence/v1"
+        },
+        "platform": { "const": "android" },
+        "evidence_class": { "const": "sanitized_non_executed_fixture" },
+        "executed": { "const": false },
+        "decision": { "const": "hold" },
+        "binding_kind": { "const": "sanitized_placeholders" },
+        "privacy": { "$ref": "#/$defs/privacy" },
+        "bindings": { "$ref": "#/$defs/bindings" },
+        "collection_manifest": { "$ref": "#/$defs/collectionManifest" },
+        "device_observations": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "$ref": "#/$defs/deviceObservation" }
+        },
+        "scenario_results": { "$ref": "#/$defs/scenarioResults" },
+        "claims": { "$ref": "#/$defs/claims" }
+      }
+    },
+    "governedEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "platform",
+        "evidence_class",
+        "executed",
+        "decision",
+        "binding_kind",
+        "privacy",
+        "bindings",
+        "collection_manifest",
+        "device_observations",
+        "scenario_results",
+        "claims"
+      ],
+      "properties": {
+        "schema": {
+          "const": "tamandua.android.hardware_identity.physical_evidence/v1"
+        },
+        "platform": { "const": "android" },
+        "evidence_class": { "const": "unverified_physical_lab_submission" },
+        "executed": { "const": true },
+        "decision": { "const": "hold" },
+        "binding_kind": { "const": "submitted_digest_claims_unverified" },
+        "privacy": { "$ref": "#/$defs/privacy" },
+        "bindings": { "$ref": "#/$defs/bindings" },
+        "collection_manifest": { "$ref": "#/$defs/collectionManifest" },
+        "device_observations": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 64,
+          "items": { "$ref": "#/$defs/deviceObservation" }
+        },
+        "scenario_results": { "$ref": "#/$defs/scenarioResults" },
+        "claims": { "$ref": "#/$defs/claims" }
+      }
+    }
+  }
+}

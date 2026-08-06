@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/android_hardware_identity_production_root_custodian_handoff_v1.schema.json",
+  "title": "Android hardware identity production-root public-only custodian handoff",
+  "oneOf": [
+    {"$ref": "#/$defs/request"}, {"$ref": "#/$defs/handoff"},
+    {"$ref": "#/$defs/response"}, {"$ref": "#/$defs/report"}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "priorBundle": {"const": {"prior_bundle_payload_sha256": null, "prior_trust_epoch": 0, "state": "bootstrap_absent"}},
+    "time": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "raw32": {"type": "string", "pattern": "^[A-Za-z0-9+/]{43}=$"},
+    "raw44": {"type": "string", "pattern": "^[A-Za-z0-9+/]{59}=$"},
+    "raw64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$"},
+    "bindings": {
+      "type": "object", "additionalProperties": false,
+      "required": ["loop158_runner_schema_sha256", "loop158_runner_source_sha256", "loop159_verifier_schema_sha256", "loop159_verifier_source_sha256"],
+      "properties": {
+        "loop158_runner_schema_sha256": {"$ref": "#/$defs/sha256"}, "loop158_runner_source_sha256": {"$ref": "#/$defs/sha256"},
+        "loop159_verifier_schema_sha256": {"$ref": "#/$defs/sha256"}, "loop159_verifier_source_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "assignments": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authorizer_custodian_assignment_sha256", "authorizer_witness_assignment_sha256", "coordinator_custodian_assignment_sha256", "coordinator_witness_assignment_sha256"],
+      "properties": {
+        "authorizer_custodian_assignment_sha256": {"$ref": "#/$defs/sha256"}, "authorizer_witness_assignment_sha256": {"$ref": "#/$defs/sha256"},
+        "coordinator_custodian_assignment_sha256": {"$ref": "#/$defs/sha256"}, "coordinator_witness_assignment_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "constraints": {
+      "const": {
+        "algorithm": "Ed25519", "canonical_base64_required": true, "canonical_edwards_encoding_required": true,
+        "derived_fingerprint": "sha256_spki_der", "derived_kid": "ed25519-sha256-<first-24-fingerprint-hex>",
+        "nonzero_public_key_required": true,
+        "normative_test_root_fingerprints_forbidden": ["06e3fd8fda29bb60ab59557de61edb0aecdb231134be30e75b455f8e1b792fa9", "deb2ded39dc26fce0e6085b6fc34bf6b5941913bbfe2ea614113cff9e004c170"],
+        "pairwise_role_separation_required": true, "prime_order_subgroup_required": true, "raw_public_key_bytes": 32,
+        "spki_der_bytes": 44, "spki_der_prefix_hex": "302a300506032b6570032100"
+      }
+    },
+    "falseClaims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ceremony_independence_verified", "current_revocation_proven", "custodian_identity_verified", "execution_authorized", "external_claim_allowed", "fencing_enforced", "freshness_proven", "hsm_backing_verified", "live_lease_proven", "physical_device_validated", "private_material_absence_proven", "product_ready", "production_pins_activated", "production_pins_imported", "production_ready", "production_root_authenticity_proven", "replay_protection_proven", "trust_epoch_rollback_protected", "verimatrix_parity"],
+      "properties": {
+        "ceremony_independence_verified": {"const": false}, "current_revocation_proven": {"const": false}, "custodian_identity_verified": {"const": false},
+        "execution_authorized": {"const": false}, "external_claim_allowed": {"const": false}, "fencing_enforced": {"const": false}, "freshness_proven": {"const": false},
+        "hsm_backing_verified": {"const": false}, "live_lease_proven": {"const": false}, "physical_device_validated": {"const": false}, "private_material_absence_proven": {"const": false},
+        "product_ready": {"const": false}, "production_pins_activated": {"const": false}, "production_pins_imported": {"const": false}, "production_ready": {"const": false},
+        "production_root_authenticity_proven": {"const": false}, "replay_protection_proven": {"const": false}, "trust_epoch_rollback_protected": {"const": false}, "verimatrix_parity": {"const": false}
+      }
+    },
+    "enrollmentBody": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ceremony_nonce_sha256", "custodian_assignment_sha256", "prior_bundle_state", "product_bindings_sha256", "purpose", "request_core_sha256", "request_id_sha256", "requested_trust_epoch", "role", "witness_assignment_sha256"],
+      "properties": {
+        "ceremony_nonce_sha256": {"$ref": "#/$defs/sha256"}, "custodian_assignment_sha256": {"$ref": "#/$defs/sha256"}, "prior_bundle_state": {"const": "bootstrap_absent"}, "product_bindings_sha256": {"$ref": "#/$defs/sha256"},
+        "purpose": {"enum": ["enroll_physical_runner_authorizer_public_root", "enroll_coordinator_lease_snapshot_issuer_public_root"]},
+        "request_core_sha256": {"$ref": "#/$defs/sha256"}, "request_id_sha256": {"$ref": "#/$defs/sha256"}, "requested_trust_epoch": {"type": "integer", "minimum": 1},
+        "role": {"enum": ["physical_runner_authorizer", "coordinator_lease_snapshot_issuer"]}, "witness_assignment_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "requestRole": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "domain", "enrollment_body", "enrollment_message_base64", "enrollment_message_sha256", "role"],
+      "properties": {
+        "algorithm": {"const": "Ed25519"}, "domain": {"enum": ["tamandua.android_hardware_identity.production_physical_runner_authorizer/v1", "tamandua.android_hardware_identity.production_coordinator_lease_snapshot_issuer/v1"]},
+        "enrollment_body": {"$ref": "#/$defs/enrollmentBody"}, "enrollment_message_base64": {"type": "string", "minLength": 100}, "enrollment_message_sha256": {"$ref": "#/$defs/sha256"},
+        "role": {"enum": ["physical_runner_authorizer", "coordinator_lease_snapshot_issuer"]}
+      }
+    },
+    "request": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ceremony_nonce_sha256", "claims", "evidence_class", "key_constraints", "phase", "prior_bundle", "product_bindings", "profile", "request_core_sha256", "request_id_sha256", "request_payload_sha256", "requested_trust_epoch", "roles", "schema", "separation_of_duty"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.production_root_provisioning_request/v1"}, "evidence_class": {"const": "local_offline_public_root_custodian_request_contract"},
+        "phase": {"const": "phase1_enrollment_request"}, "profile": {"const": "production_candidate_public_only_hold"}, "request_id_sha256": {"$ref": "#/$defs/sha256"},
+        "ceremony_nonce_sha256": {"$ref": "#/$defs/sha256"}, "requested_trust_epoch": {"const": 1}, "prior_bundle": {"$ref": "#/$defs/priorBundle"}, "product_bindings": {"$ref": "#/$defs/bindings"},
+        "separation_of_duty": {"$ref": "#/$defs/assignments"}, "key_constraints": {"$ref": "#/$defs/constraints"}, "claims": {"$ref": "#/$defs/falseClaims"},
+        "request_core_sha256": {"$ref": "#/$defs/sha256"}, "request_payload_sha256": {"$ref": "#/$defs/sha256"},
+        "roles": {"type": "array", "minItems": 2, "maxItems": 2, "items": false, "prefixItems": [
+          {"allOf": [{"$ref": "#/$defs/requestRole"}, {"properties": {"role": {"const": "physical_runner_authorizer"}, "domain": {"const": "tamandua.android_hardware_identity.production_physical_runner_authorizer/v1"}, "enrollment_body": {"properties": {"role": {"const": "physical_runner_authorizer"}, "purpose": {"const": "enroll_physical_runner_authorizer_public_root"}}}}}]},
+          {"allOf": [{"$ref": "#/$defs/requestRole"}, {"properties": {"role": {"const": "coordinator_lease_snapshot_issuer"}, "domain": {"const": "tamandua.android_hardware_identity.production_coordinator_lease_snapshot_issuer/v1"}, "enrollment_body": {"properties": {"role": {"const": "coordinator_lease_snapshot_issuer"}, "purpose": {"const": "enroll_coordinator_lease_snapshot_issuer_public_root"}}}}}]}
+        ]}
+      }
+    },
+    "zeroMetrics": {"const": {"acceptance_signature_verified_count": 0, "activated_pin_count": 0, "candidate_public_root_count": 0, "challenge_signature_verified_count": 0, "imported_pin_count": 0, "independently_verified_receipt_count": 0, "response_count": 0}},
+    "handoffRole": {
+      "type": "object", "additionalProperties": false,
+      "required": ["action_performed", "algorithm", "display_only_argv", "domain", "enrollment_message_base64", "enrollment_message_sha256", "role"],
+      "properties": {"action_performed": {"const": false}, "algorithm": {"const": "Ed25519"}, "display_only_argv": {"type": "array", "minItems": 6, "maxItems": 6, "items": {"type": "string"}}, "domain": {"type": "string"}, "enrollment_message_base64": {"type": "string"}, "enrollment_message_sha256": {"$ref": "#/$defs/sha256"}, "role": {"type": "string"}}
+    },
+    "custodyFalse": {"const": {"custodian_person_verified": false, "custody_process_verified": false, "hsm_backing_declared": false, "independent_witness_verified": false, "private_material_absence_proven": false}},
+    "handoff": {
+      "type": "object", "additionalProperties": false,
+      "required": ["claims", "custody_declarations", "decision", "evidence_class", "handoff_payload_sha256", "key_constraints", "metrics", "phase", "phase2", "prior_bundle", "product_bindings", "product_bindings_sha256", "request_payload_sha256", "requested_trust_epoch", "roles", "schema"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.production_root_custodian_handoff/v1"}, "evidence_class": {"const": "local_offline_public_only_custodian_handoff_pending"},
+        "phase": {"const": "phase1_handoff_pending_external_response"}, "decision": {"const": "hold_response_absent"}, "request_payload_sha256": {"$ref": "#/$defs/sha256"},
+        "requested_trust_epoch": {"const": 1}, "prior_bundle": {"$ref": "#/$defs/priorBundle"}, "product_bindings": {"$ref": "#/$defs/bindings"}, "product_bindings_sha256": {"$ref": "#/$defs/sha256"},
+        "key_constraints": {"$ref": "#/$defs/constraints"}, "roles": {"type": "array", "minItems": 2, "maxItems": 2, "items": false, "prefixItems": [
+          {"allOf": [{"$ref": "#/$defs/handoffRole"}, {"properties": {"role": {"const": "physical_runner_authorizer"}, "domain": {"const": "tamandua.android_hardware_identity.production_physical_runner_authorizer/v1"}}}]},
+          {"allOf": [{"$ref": "#/$defs/handoffRole"}, {"properties": {"role": {"const": "coordinator_lease_snapshot_issuer"}, "domain": {"const": "tamandua.android_hardware_identity.production_coordinator_lease_snapshot_issuer/v1"}}}]}
+        ]},
+        "phase2": {"const": {"automatic_activation": false, "automatic_import": false, "automatic_pin_propagation": false, "candidate_bundle_payload_sha256": null, "candidate_bundle_required": true, "construction_authorized": false, "exact_product_bindings_required": true, "response_present": false, "response_validation_attempted": false}},
+        "custody_declarations": {"$ref": "#/$defs/custodyFalse"}, "metrics": {"$ref": "#/$defs/zeroMetrics"}, "claims": {"$ref": "#/$defs/falseClaims"}, "handoff_payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "receiptDeclarations": {"type": "object", "additionalProperties": false, "required": ["custodian_identity_receipt_sha256", "custody_policy_receipt_sha256", "independent_witness_receipt_sha256", "key_generation_ceremony_receipt_sha256", "provenance_receipt_sha256"], "properties": {"custodian_identity_receipt_sha256": {"$ref": "#/$defs/sha256"}, "custody_policy_receipt_sha256": {"$ref": "#/$defs/sha256"}, "independent_witness_receipt_sha256": {"$ref": "#/$defs/sha256"}, "key_generation_ceremony_receipt_sha256": {"$ref": "#/$defs/sha256"}, "provenance_receipt_sha256": {"$ref": "#/$defs/sha256"}}},
+    "responseAuthority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["acceptance_signature_base64", "algorithm", "challenge_signature_base64", "custody_declarations", "domain", "fingerprint_sha256", "key_epoch", "kid", "not_after", "not_before", "raw_public_key_base64", "receipt_declarations", "role", "spki_der_base64", "status"],
+      "properties": {
+        "acceptance_signature_base64": {"$ref": "#/$defs/raw64"}, "algorithm": {"const": "Ed25519"}, "challenge_signature_base64": {"$ref": "#/$defs/raw64"},
+        "custody_declarations": {"const": {"custodian_person_verified": false, "custody_process_verified": false, "hsm_backing_verified": false, "independent_witness_verified": false, "private_material_absence_proven": false}},
+        "domain": {"type": "string"}, "fingerprint_sha256": {"$ref": "#/$defs/sha256"}, "key_epoch": {"type": "integer", "minimum": 1}, "kid": {"type": "string", "pattern": "^ed25519-sha256-[a-f0-9]{24}$"},
+        "not_after": {"$ref": "#/$defs/time"}, "not_before": {"$ref": "#/$defs/time"}, "raw_public_key_base64": {"$ref": "#/$defs/raw32"}, "receipt_declarations": {"$ref": "#/$defs/receiptDeclarations"},
+        "role": {"type": "string"}, "spki_der_base64": {"$ref": "#/$defs/raw44"}, "status": {"const": "provisioning_candidate_unactivated"}
+      }
+    },
+    "response": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authorities", "candidate_bundle_payload_sha256", "prior_bundle", "product_bindings", "request_payload_sha256", "requested_trust_epoch", "response_core_sha256", "response_payload_sha256", "schema"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.production_root_custodian_response/v1"}, "request_payload_sha256": {"$ref": "#/$defs/sha256"}, "requested_trust_epoch": {"const": 1}, "prior_bundle": {"$ref": "#/$defs/priorBundle"},
+        "product_bindings": {"$ref": "#/$defs/bindings"}, "candidate_bundle_payload_sha256": {"$ref": "#/$defs/sha256"}, "response_core_sha256": {"$ref": "#/$defs/sha256"}, "response_payload_sha256": {"$ref": "#/$defs/sha256"},
+        "authorities": {"type": "array", "minItems": 2, "maxItems": 2, "items": false, "prefixItems": [
+          {"allOf": [{"$ref": "#/$defs/responseAuthority"}, {"properties": {"role": {"const": "physical_runner_authorizer"}, "domain": {"const": "tamandua.android_hardware_identity.production_physical_runner_authorizer/v1"}}}]},
+          {"allOf": [{"$ref": "#/$defs/responseAuthority"}, {"properties": {"role": {"const": "coordinator_lease_snapshot_issuer"}, "domain": {"const": "tamandua.android_hardware_identity.production_coordinator_lease_snapshot_issuer/v1"}}}]}
+        ]}
+      }
+    },
+    "reportMetrics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["acceptance_signature_verified_count", "activated_pin_count", "candidate_public_root_count", "challenge_signature_verified_count", "imported_pin_count", "independently_verified_receipt_count", "response_count"],
+      "properties": {
+        "acceptance_signature_verified_count": {"type": "integer", "minimum": 0, "maximum": 2}, "activated_pin_count": {"const": 0},
+        "candidate_public_root_count": {"type": "integer", "minimum": 0, "maximum": 2}, "challenge_signature_verified_count": {"type": "integer", "minimum": 0, "maximum": 2},
+        "imported_pin_count": {"const": 0}, "independently_verified_receipt_count": {"const": 0}, "response_count": {"type": "integer", "minimum": 0, "maximum": 1}
+      }
+    },
+    "report": {
+      "type": "object", "additionalProperties": false,
+      "required": ["automatic_activation", "automatic_import", "automatic_pin_propagation", "candidate_bundle_payload_sha256", "claims", "custody_declarations", "decision", "evidence_class", "metrics", "phase2_constructed_from_exact_bindings", "prior_bundle", "product_bindings_sha256", "report_payload_sha256", "request_payload_sha256", "requested_trust_epoch", "response_cryptographic_self_consistency_verified", "response_present", "schema"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.production_root_response_verification/v1"}, "evidence_class": {"const": "local_offline_public_only_custodian_response_verification"},
+        "decision": {"enum": ["hold_response_absent", "hold_response_invalid", "public_root_candidates_verified_hold"]}, "request_payload_sha256": {"$ref": "#/$defs/sha256"}, "requested_trust_epoch": {"const": 1}, "prior_bundle": {"$ref": "#/$defs/priorBundle"},
+        "product_bindings_sha256": {"$ref": "#/$defs/sha256"}, "response_present": {"type": "boolean"}, "response_cryptographic_self_consistency_verified": {"type": "boolean"},
+        "candidate_bundle_payload_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}, "phase2_constructed_from_exact_bindings": {"type": "boolean"},
+        "automatic_import": {"const": false}, "automatic_activation": {"const": false}, "automatic_pin_propagation": {"const": false},
+        "custody_declarations": {"const": {"custodian_person_verified": false, "custody_process_verified": false, "hsm_backing_verified": false, "independent_witness_verified": false, "private_material_absence_proven": false}},
+        "metrics": {"$ref": "#/$defs/reportMetrics"}, "claims": {"$ref": "#/$defs/falseClaims"}, "report_payload_sha256": {"$ref": "#/$defs/sha256"}
+      },
+      "allOf": [
+        {"if": {"properties": {"decision": {"const": "hold_response_absent"}}}, "then": {"properties": {"response_present": {"const": false}, "response_cryptographic_self_consistency_verified": {"const": false}, "candidate_bundle_payload_sha256": {"type": "null"}, "phase2_constructed_from_exact_bindings": {"const": false}, "metrics": {"$ref": "#/$defs/zeroMetrics"}}}},
+        {"if": {"properties": {"decision": {"const": "hold_response_invalid"}}}, "then": {"properties": {"response_present": {"const": true}, "response_cryptographic_self_consistency_verified": {"const": false}, "candidate_bundle_payload_sha256": {"type": "null"}, "phase2_constructed_from_exact_bindings": {"const": false}, "metrics": {"$ref": "#/$defs/zeroMetrics"}}}},
+        {"if": {"properties": {"decision": {"const": "public_root_candidates_verified_hold"}}}, "then": {"properties": {"response_present": {"const": true}, "response_cryptographic_self_consistency_verified": {"const": true}, "candidate_bundle_payload_sha256": {"$ref": "#/$defs/sha256"}, "phase2_constructed_from_exact_bindings": {"const": true}, "metrics": {"const": {"acceptance_signature_verified_count": 2, "activated_pin_count": 0, "candidate_public_root_count": 2, "challenge_signature_verified_count": 2, "imported_pin_count": 0, "independently_verified_receipt_count": 0, "response_count": 1}}}}}
+      ]
+    }
+  }
+}

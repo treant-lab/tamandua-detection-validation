@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/anti_cheat_game_vertical_slice_report_v1.schema.json",
+  "title": "Tamandua Game Vertical Slice Synthetic Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "report_id", "fixture_sha256", "telemetry_schema_sha256", "replay_schema_sha256", "report_schema_sha256", "gate_source_sha256", "policy_digest", "evidence_class", "counts", "synthetic_upper_bound_contract", "strata", "gates", "claims"],
+  "properties": {
+    "schema": {"const": "tamandua.anti_cheat.game_vertical_slice_report/v1"},
+    "report_id": {"$ref": "#/$defs/digest"},
+    "fixture_sha256": {"$ref": "#/$defs/digest"},
+    "telemetry_schema_sha256": {"$ref": "#/$defs/digest"},
+    "replay_schema_sha256": {"$ref": "#/$defs/digest"},
+    "report_schema_sha256": {"$ref": "#/$defs/digest"},
+    "gate_source_sha256": {"$ref": "#/$defs/digest"},
+    "policy_digest": {"$ref": "#/$defs/digest"},
+    "evidence_class": {"const": "synthetic_contract"},
+    "counts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["total", "within_constraints", "constraint_violation", "inconclusive"],
+      "properties": {
+        "total": {"const": 1896}, "within_constraints": {"const": 1795},
+        "constraint_violation": {"const": 100}, "inconclusive": {"const": 1}
+      }
+    },
+    "synthetic_upper_bound_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["method", "confidence_ppm", "zero_failure_sample_count", "upper_bound_ppm", "production_fpr_claimable"],
+      "properties": {
+        "method": {"const": "clopper_pearson_one_sided"},
+        "confidence_ppm": {"const": 950000},
+        "zero_failure_sample_count": {"const": 598},
+        "upper_bound_ppm": {"const": 4998},
+        "production_fpr_claimable": {"const": false}
+      }
+    },
+    "strata": {
+      "type": "array", "minItems": 6, "maxItems": 6,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["name", "total", "within_constraints", "constraint_violation", "inconclusive", "synthetic_one_sided_upper_bound_ppm"],
+        "properties": {
+          "name": {"enum": ["vanilla", "approved_mod", "approved_accessibility", "authorized_teleport", "speed_violation", "gap_inconclusive"]},
+          "total": {"type": "integer", "minimum": 1},
+          "within_constraints": {"type": "integer", "minimum": 0},
+          "constraint_violation": {"type": "integer", "minimum": 0},
+          "inconclusive": {"type": "integer", "minimum": 0},
+          "synthetic_one_sided_upper_bound_ppm": {"type": ["integer", "null"], "minimum": 0, "maximum": 1000000}
+        }
+      }
+    },
+    "gates": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schemas_valid", "fixed_point_only", "server_authoritative_only", "identity_scope_closed", "privacy_closed", "extensions_non_suspicious", "deterministic"],
+      "properties": {
+        "schemas_valid": {"const": true}, "fixed_point_only": {"const": true},
+        "server_authoritative_only": {"const": true}, "identity_scope_closed": {"const": true},
+        "privacy_closed": {"const": true}, "extensions_non_suspicious": {"const": true},
+        "deterministic": {"const": true}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["production_fpr_validated", "live_server_validated", "enforcement_authorized", "external_claim_allowed"],
+      "properties": {
+        "production_fpr_validated": {"const": false}, "live_server_validated": {"const": false},
+        "enforcement_authorized": {"const": false}, "external_claim_allowed": {"const": false}
+      }
+    }
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}

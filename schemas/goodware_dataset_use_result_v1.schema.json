@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/goodware_dataset_use_result_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "evidence_class", "review_package_sha256", "owner_attestation_sha256", "owner_authority", "review_id", "attested_at", "provenance_uri", "scope", "usage_status", "dataset_use_gate_passes", "ready_for_governed_training", "blockers", "legal_license_conclusion", "redistribution_approval", "execution", "claim_boundary", "records"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/goodware-dataset-use-result/v1"},
+    "kind": {"const": "GoodwareDatasetUseResult"},
+    "evidence_class": {"const": "owner_exact_scope_dataset_use_attestation"},
+    "review_package_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "owner_attestation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "owner_authority": {"type": "string", "minLength": 1},
+    "review_id": {"type": "string", "minLength": 1},
+    "attested_at": {"type": "string", "format": "date-time"},
+    "provenance_uri": {"type": "string", "minLength": 1},
+    "scope": {"type": "object", "required": ["member_count", "canonical_membership_sha256"]},
+    "usage_status": {"const": "approved_for_ml_training"},
+    "dataset_use_gate_passes": {"const": true},
+    "ready_for_governed_training": {"const": false},
+    "blockers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}},
+    "legal_license_conclusion": {"const": false},
+    "redistribution_approval": {"const": false},
+    "execution": {"type": "object", "required": ["mode", "uses_network", "modifies_source_package", "concludes_legal_license"], "properties": {"mode": {"const": "offline_read_only"}, "uses_network": {"const": false}, "modifies_source_package": {"const": false}, "concludes_legal_license": {"const": false}}, "additionalProperties": false},
+    "claim_boundary": {"type": "object"},
+    "records": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["sha256", "usage_status", "dataset_use_review_id", "dataset_use_provenance_uri", "dataset_use_attestation_sha256", "dataset_use_package_sha256", "dataset_use_membership_sha256", "legal_license_status"], "properties": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "usage_status": {"const": "approved_for_ml_training"}, "dataset_use_review_id": {"type": "string", "minLength": 1}, "dataset_use_provenance_uri": {"type": "string", "minLength": 1}, "dataset_use_attestation_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "dataset_use_package_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "dataset_use_membership_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "legal_license_status": {"const": "not_determined_by_this_attestation"}}, "additionalProperties": true}}
+  },
+  "additionalProperties": false
+}

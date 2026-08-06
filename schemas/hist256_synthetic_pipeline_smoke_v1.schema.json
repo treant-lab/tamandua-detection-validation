@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/hist256_synthetic_pipeline_smoke_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "evidence_class", "status", "real_runtime", "stages", "pins", "readiness_blockers", "commands", "may_promote", "may_enforce", "may_publish_efficacy_claim", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/hist256-synthetic-pipeline-smoke/v1"},
+    "kind": {"const": "Hist256SyntheticPipelineSmoke"},
+    "evidence_class": {"const": "synthetic_pipeline_smoke"},
+    "status": {"const": "completed_blocked_as_required"},
+    "real_runtime": {
+      "type": "object", "additionalProperties": false,
+      "required": ["lightgbm_version", "required_version", "governed_trainer_status"],
+      "properties": {
+        "lightgbm_version": {"type": "string", "minLength": 1},
+        "required_version": {"const": "4.5.0"},
+        "governed_trainer_status": {"enum": ["blocked_runtime_version_mismatch", "available_not_used_by_synthetic_branch"]}
+      }
+    },
+    "stages": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bytes_to_lineage", "matrix_converter", "scalable_trainer", "lightgbm_guard", "freeze", "holdout", "holdout_sample_gate_met", "readiness"],
+      "properties": {
+        "bytes_to_lineage": {"const": "synthetic_pass"},
+        "matrix_converter": {"const": "synthetic_pass"},
+        "scalable_trainer": {"const": "fake_contract_pass_minima_overridden_in_harness_only"},
+        "lightgbm_guard": {"const": "clean"},
+        "freeze": {"const": "synthetic_pass"},
+        "holdout": {"const": "governed_holdout_below_sample_gate"},
+        "holdout_sample_gate_met": {"const": false},
+        "readiness": {"const": "blocked"}
+      }
+    },
+    "pins": {
+      "type": "object", "additionalProperties": false,
+      "required": ["artifact_sha256", "freeze_manifest_sha256", "holdout_evidence_sha256", "feature_contract_sha256"],
+      "properties": {
+        "artifact_sha256": {"$ref": "#/$defs/sha256"}, "freeze_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "holdout_evidence_sha256": {"$ref": "#/$defs/sha256"}, "feature_contract_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "readiness_blockers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "commands": {"type": "array", "minItems": 2, "items": {"type": "string", "minLength": 1}},
+    "may_promote": {"const": false}, "may_enforce": {"const": false}, "may_publish_efficacy_claim": {"const": false},
+    "claim_boundary": {"type": "string", "minLength": 120}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "additionalProperties": false
+}

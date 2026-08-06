@@ -1,0 +1,89 @@
+{
+  "schema": "tamandua.runtime-rx-page-integrity-lab/v1",
+  "evidence_class": "synthetic_lab",
+  "external_claim_allowed": false,
+  "claims": {
+    "lab": true,
+    "synthetic": true,
+    "production_ready": false,
+    "vendor_parity": false
+  },
+  "page_size_bytes": 32,
+  "cost_budget": {
+    "metric": "page_bytes_compared_per_scan",
+    "max_pages": 4,
+    "max_bytes": 128,
+    "fixture_pages": 2,
+    "fixture_bytes": 64
+  },
+  "cases": [
+    {
+      "id": "rx-restored-malicious-drift",
+      "scenario": "rx_restored_malicious_drift",
+      "description": "A synthetic executable page differs after a write-to-RX lifecycle outside any relocation allowance.",
+      "state": "supported",
+      "baseline_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "current_hex": "00010203040506070809ff0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "relocation_allowlist": [],
+      "limitations": [],
+      "expected": {
+        "outcome": "finding",
+        "drift_offsets": [
+          10
+        ]
+      }
+    },
+    {
+      "id": "benign-relocation-masked",
+      "scenario": "benign_relocation",
+      "description": "A deterministic loader relocation differs only inside one explicitly allowed byte range.",
+      "state": "supported",
+      "baseline_hex": "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "current_hex": "00010203aa05060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+      "relocation_allowlist": [
+        {
+          "offset": 4,
+          "length": 1,
+          "reason": "relocation"
+        }
+      ],
+      "limitations": [],
+      "expected": {
+        "outcome": "clean",
+        "drift_offsets": []
+      }
+    },
+    {
+      "id": "jit-no-stable-baseline",
+      "scenario": "jit_no_stable_baseline",
+      "description": "A synthetic JIT region has no stable file-backed baseline and is not classified as clean.",
+      "state": "unsupported",
+      "baseline_hex": null,
+      "current_hex": null,
+      "relocation_allowlist": [],
+      "limitations": [
+        "jit_region_has_no_stable_baseline"
+      ],
+      "expected": {
+        "outcome": "unsupported",
+        "drift_offsets": []
+      }
+    },
+    {
+      "id": "execute-only-unreadable",
+      "scenario": "execute_only_unreadable",
+      "description": "An execute-only synthetic page cannot be read and must degrade instead of reporting clean.",
+      "state": "degraded",
+      "baseline_hex": null,
+      "current_hex": null,
+      "relocation_allowlist": [],
+      "limitations": [
+        "executable_page_unreadable"
+      ],
+      "expected": {
+        "outcome": "degraded",
+        "drift_offsets": []
+      }
+    }
+  ]
+}

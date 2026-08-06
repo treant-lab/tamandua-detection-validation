@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.ai/schemas/decision_engine_authority_receipt_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "verified", "function_count"],
+  "properties": {
+    "contract": {"const": "tamandua.decision-engine-authority-receipt.v1"},
+    "verified": {"const": true},
+    "function_count": {"const": 2}
+  }
+}

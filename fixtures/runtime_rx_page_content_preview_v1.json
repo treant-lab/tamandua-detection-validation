@@ -1,0 +1,350 @@
+{
+  "api_version": "tamandua.io/runtime-rx-page-content-preview-contract/v1",
+  "fixture_id": "runtime-rx-page-content-preview-v1",
+  "description": "Deterministic synthetic smoke model for the default-off Linux self-image RX page-content Preview contract.",
+  "evidence_class": "synthetic_smoke",
+  "execution_scope": "local_synthetic",
+  "external_claim_allowed": false,
+  "fpr_claim_allowed": false,
+  "performance_claim_allowed": false,
+  "vendor_parity_claimed": false,
+  "claim_boundary": "Synthetic local contract smoke model only. The modeled baseline expects a local root-protected config plus startup-held fd; this fixture did not execute or prove either protection or startup-FD behavior. It does not prove live-host detection, benign FPR, fleet performance, production readiness, or parity with any vendor.",
+  "runtime_schema": "tamandua.runtime_integrity/v2",
+  "privacy_mutation_fields": [
+    "path",
+    "pid",
+    "virtual_address",
+    "va",
+    "rva",
+    "offset",
+    "dev",
+    "inode",
+    "build_id",
+    "raw_bytes",
+    "page_hash",
+    "drift_offsets"
+  ],
+  "scenarios": [
+    {
+      "id": "default-off-disabled",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "supported",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_disabled"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": false,
+          "status": "disabled",
+          "baseline_source": "none",
+          "eligible_pages": 0,
+          "compared_pages": 0,
+          "excluded_relocation_pages": 0,
+          "unstable_pages": 0,
+          "bytes_read": 0,
+          "elapsed_us": 0,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": false,
+          "budget_state": "within_budget"
+        }
+      }
+    },
+    {
+      "id": "bounded-round-robin-partial",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "supported",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_anonymous_jit_out_of_scope"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": true,
+          "status": "partial",
+          "baseline_source": "protected_config_sha256_startup_fd",
+          "eligible_pages": 32,
+          "compared_pages": 16,
+          "excluded_relocation_pages": 3,
+          "unstable_pages": 1,
+          "bytes_read": 65536,
+          "elapsed_us": 8500,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": false,
+          "budget_state": "within_budget"
+        }
+      }
+    },
+    {
+      "id": "full-sweep-clean",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "supported",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_anonymous_jit_out_of_scope"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": true,
+          "status": "clean",
+          "baseline_source": "protected_config_sha256_startup_fd",
+          "eligible_pages": 4,
+          "compared_pages": 4,
+          "excluded_relocation_pages": 2,
+          "unstable_pages": 0,
+          "bytes_read": 16384,
+          "elapsed_us": 4200,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": true,
+          "budget_state": "within_budget"
+        }
+      }
+    },
+    {
+      "id": "controlled-page-mismatch",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "supported",
+        "findings": [
+          {
+            "kind": "file_backed_executable_page_drift",
+            "evidence": "file-backed executable page content differed from the protected startup baseline"
+          }
+        ],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_anonymous_jit_out_of_scope"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": true,
+          "status": "mismatch",
+          "baseline_source": "protected_config_sha256_startup_fd",
+          "eligible_pages": 4,
+          "compared_pages": 2,
+          "excluded_relocation_pages": 2,
+          "unstable_pages": 0,
+          "bytes_read": 8192,
+          "elapsed_us": 2800,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": false,
+          "budget_state": "within_budget"
+        }
+      }
+    },
+    {
+      "id": "backing-deleted-degraded",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "degraded",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_anonymous_jit_out_of_scope",
+          "rx_page_content_backing_deleted"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": true,
+          "status": "degraded",
+          "baseline_source": "protected_config_sha256_startup_fd",
+          "eligible_pages": 0,
+          "compared_pages": 0,
+          "excluded_relocation_pages": 0,
+          "unstable_pages": 0,
+          "bytes_read": 0,
+          "elapsed_us": 900,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": false,
+          "budget_state": "within_budget"
+        }
+      }
+    },
+    {
+      "id": "backing-replaced-degraded",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "degraded",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_anonymous_jit_out_of_scope",
+          "rx_page_content_backing_replaced"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": true,
+          "status": "degraded",
+          "baseline_source": "protected_config_sha256_startup_fd",
+          "eligible_pages": 0,
+          "compared_pages": 0,
+          "excluded_relocation_pages": 0,
+          "unstable_pages": 0,
+          "bytes_read": 0,
+          "elapsed_us": 950,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": false,
+          "budget_state": "within_budget"
+        }
+      }
+    },
+    {
+      "id": "execute-only-degraded",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "degraded",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_anonymous_jit_out_of_scope",
+          "rx_page_content_execute_only"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": true,
+          "status": "degraded",
+          "baseline_source": "protected_config_sha256_startup_fd",
+          "eligible_pages": 1,
+          "compared_pages": 0,
+          "excluded_relocation_pages": 0,
+          "unstable_pages": 0,
+          "bytes_read": 0,
+          "elapsed_us": 1100,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": false,
+          "budget_state": "within_budget"
+        }
+      }
+    },
+    {
+      "id": "relocation-unsupported-degraded",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "degraded",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_anonymous_jit_out_of_scope",
+          "rx_page_content_relocation_unsupported"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": true,
+          "status": "degraded",
+          "baseline_source": "protected_config_sha256_startup_fd",
+          "eligible_pages": 0,
+          "compared_pages": 0,
+          "excluded_relocation_pages": 0,
+          "unstable_pages": 0,
+          "bytes_read": 0,
+          "elapsed_us": 1300,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": false,
+          "budget_state": "within_budget"
+        }
+      }
+    },
+    {
+      "id": "budget-exceeded-degraded",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "degraded",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_anonymous_jit_out_of_scope",
+          "rx_page_content_budget_exceeded"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": true,
+          "status": "degraded",
+          "baseline_source": "protected_config_sha256_startup_fd",
+          "eligible_pages": 32,
+          "compared_pages": 16,
+          "excluded_relocation_pages": 2,
+          "unstable_pages": 0,
+          "bytes_read": 65536,
+          "elapsed_us": 12000,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": false,
+          "budget_state": "exceeded"
+        }
+      }
+    },
+    {
+      "id": "elf-unsupported",
+      "evidence": {
+        "schema": "tamandua.runtime_integrity/v2",
+        "provenance": "platform_collector",
+        "platform": "linux",
+        "state": "degraded",
+        "findings": [],
+        "limitations": [
+          "point-in-time userspace observation of the current process only",
+          "rx_page_content_anonymous_jit_out_of_scope",
+          "rx_page_content_elf_unsupported"
+        ],
+        "page_content": {
+          "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v1",
+          "maturity": "preview",
+          "mode": "observe_only",
+          "enabled": true,
+          "status": "unsupported",
+          "baseline_source": "protected_config_sha256_startup_fd",
+          "eligible_pages": 0,
+          "compared_pages": 0,
+          "excluded_relocation_pages": 0,
+          "unstable_pages": 0,
+          "bytes_read": 0,
+          "elapsed_us": 500,
+          "budget_limit_us": 10000,
+          "full_sweep_completed": false,
+          "budget_state": "within_budget"
+        }
+      }
+    }
+  ]
+}

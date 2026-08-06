@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/authority_bootstrap_receipt_v1.schema.json",
+  "title": "Tamandua authority bootstrap verification receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_sha", "verification_sql_sha256", "bootstrap_sql_sha256", "verified_at", "inputs", "result"],
+  "properties": {
+    "schema_version": {"const": "tamandua.authority-bootstrap-receipt.v1"},
+    "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "verification_sql_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "bootstrap_sql_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "verified_at": {"type": "string", "format": "date-time"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_login", "runtime_login", "migrator_login", "owner_role", "executor_role", "function_signature"],
+      "properties": {
+        "authority_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "runtime_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "migrator_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "owner_role": {"const": "tamandua_authority_retention_owner"},
+        "executor_role": {"const": "tamandua_authority_retention_executor"},
+        "function_signature": {"const": "public.authority_screen_evidence_retention_due_organization_ids(timestamp with time zone,integer)"}
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verified"],
+      "properties": {
+        "verified": {"type": "boolean"},
+        "server_version_num": {"type": "integer", "minimum": 160000},
+        "database": {"type": "string", "minLength": 1, "maxLength": 63},
+        "system_identifier": {"type": "string", "pattern": "^[0-9]+$"},
+        "bootstrap_session_role": {"type": "string", "minLength": 1, "maxLength": 63},
+        "error": {"type": "string", "maxLength": 512}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"result": {"properties": {"verified": {"const": true}}}}},
+      "then": {"properties": {"result": {"required": ["verified", "server_version_num", "database", "system_identifier", "bootstrap_session_role"]}}},
+      "else": {"properties": {"result": {"required": ["verified", "error"]}}}
+    }
+  ]
+}

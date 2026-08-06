@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ml_dataset_manifest_v2.schema.json",
+  "title": "Tamandua governed ML dataset manifest v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "ready_for_training", "blockers", "dataset_snapshot_sha256", "inputs", "policy", "counts", "claim_boundary", "samples", "rejections"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-dataset-manifest/v2"},
+    "kind": {"const": "MLDatasetManifest"},
+    "evidence_class": {"const": "governed_version_pinned_dataset_snapshot"},
+    "ready_for_training": {"type": "boolean"},
+    "blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "dataset_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+    "inputs": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["name", "sha256"], "properties": {"name": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}}},
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["accepted_target_per_class", "holdout_target_per_class", "validation_assignment", "holdout_temporal_rule", "holdout_excluded_from_training", "requires_post_copy_verification", "requires_version_pinned_objects", "requires_explicit_provenance", "requires_group_disjoint_splits", "requires_train_before_validation", "requires_accepted_before_holdout"],
+      "properties": {
+        "accepted_target_per_class": {"type": "integer", "minimum": 1},
+        "holdout_target_per_class": {"type": "integer", "minimum": 1},
+        "validation_assignment": {"const": "explicit_receipt_temporal_grouped"},
+        "holdout_temporal_rule": {"const": "accepted_max_before_holdout_min_per_label"},
+        "holdout_excluded_from_training": {"const": true},
+        "requires_post_copy_verification": {"const": true},
+        "requires_version_pinned_objects": {"const": true},
+        "requires_explicit_provenance": {"const": true},
+        "requires_group_disjoint_splits": {"const": true},
+        "requires_train_before_validation": {"const": true},
+        "requires_accepted_before_holdout": {"const": true}
+      }
+    },
+    "counts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["accepted", "holdout", "splits", "rejected_receipts"],
+      "properties": {
+        "accepted": {"$ref": "#/$defs/classCounts"},
+        "holdout": {"$ref": "#/$defs/classCounts"},
+        "splits": {"type": "object", "additionalProperties": false, "required": ["train", "validation", "holdout"], "properties": {"train": {"$ref": "#/$defs/classCounts"}, "validation": {"$ref": "#/$defs/classCounts"}, "holdout": {"$ref": "#/$defs/classCounts"}}},
+        "rejected_receipts": {"type": "integer", "minimum": 0}
+      }
+    },
+    "claim_boundary": {
+      "type": "object", "additionalProperties": false, "required": ["supports", "does_not_support"],
+      "properties": {"supports": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}, "does_not_support": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}}
+    },
+    "samples": {"type": "array", "items": {"$ref": "#/$defs/sample"}},
+    "rejections": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "classCounts": {"type": "object", "additionalProperties": false, "required": ["goodware", "malware"], "properties": {"goodware": {"type": "integer", "minimum": 0}, "malware": {"type": "integer", "minimum": 0}}},
+    "sample": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sample_id", "sha256", "size_bytes", "label", "split", "source_id", "source_evidence_sha256", "leakage_group_id", "observed_at", "storage_ref", "version_id", "checksum_sha256", "curation_manifest_sha256", "promotion_manifest_sha256", "post_copy_verified"],
+      "properties": {
+        "sample_id": {"$ref": "#/$defs/sha256"}, "sha256": {"$ref": "#/$defs/sha256"}, "size_bytes": {"type": "integer", "minimum": 1},
+        "label": {"enum": ["goodware", "malware"]}, "split": {"enum": ["train", "validation", "holdout"]},
+        "source_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{1,127}$"}, "source_evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "leakage_group_id": {"type": "string", "minLength": 1, "maxLength": 256}, "observed_at": {"type": "string", "format": "date-time"},
+        "storage_ref": {"type": "string", "pattern": "^s3://[^/]+/.+"}, "version_id": {"type": "string", "minLength": 1}, "checksum_sha256": {"$ref": "#/$defs/sha256"},
+        "curation_manifest_sha256": {"$ref": "#/$defs/sha256"}, "promotion_manifest_sha256": {"$ref": "#/$defs/sha256"}, "post_copy_verified": {"const": true}
+      }
+    }
+  }
+}

@@ -1,0 +1,65 @@
+{
+  "fixture_schema": "tamandua.mobile.signed-posture.golden-vector/v1",
+  "validation_scope": {
+    "status": "frozen-local-contract",
+    "runtime": "node",
+    "golden_vector_frozen": true,
+    "authority": false,
+    "external_claim_allowed": false,
+    "cross_language_validated": false,
+    "native_android_signer_validated": false,
+    "server_controller_validated": false,
+    "durable_replay_validated": false,
+    "hardware_attestation_validated": false,
+    "vendor_parity_claimed": false
+  },
+  "posture": {
+    "schema": "tamandua.mobile.endpoint-posture/v1",
+    "observed_at": "2026-07-16T12:02:00.000Z",
+    "source": "android_foreground_online",
+    "risk_score": 42,
+    "security_checks": {
+      "app_integrity_violation": false,
+      "debugger_detected": false,
+      "developer_mode": false,
+      "adb_enabled": false,
+      "emulator_detected": false,
+      "frida_detected": false,
+      "hook_framework_detected": false,
+      "native_hook_detected": false,
+      "root_detected": false,
+      "runtime_memory_tamper_detected": false,
+      "code_signature_baseline_configured": false,
+      "code_signature_drift_detected": false
+    }
+  },
+  "envelope": {
+    "protocol": "tamandua.mobile.endpoint-telemetry/v1",
+    "message_type": "endpoint_posture",
+    "message_version": "1",
+    "organization_id": "org_123",
+    "installation_id": "tmnd-11111111222233334444555555555555",
+    "platform": "android",
+    "device_key_id": "tmdk_v1_TdQmy7kD9ZKRBTohGUEKUIidcF8HbzkKVASJhEINW2k",
+    "key_scope_id": "tmdks_v1_lK9zyy8xUG18diYDsguucLfIOmnO13JKB8_2eAsmwMs",
+    "request_id": "018f3f4e-7b2d-7a91-b5c6-3d2e1f0a9b8c",
+    "challenge_id": "028f3f4e-7b2d-7a91-b5c6-3d2e1f0a9b8c",
+    "nonce": "BQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQU",
+    "posture_sha256": "ahg00IA2LIwH4VhbDKXG7LsyVX07UblHT13QUMX1wAo",
+    "algorithm": "ecdsa-p256-sha256",
+    "issued_at": "2026-07-16T12:00:00.000Z",
+    "expires_at": "2026-07-16T12:05:00.000Z",
+    "external_claim_allowed": false,
+    "hardware_attestation_verified": false,
+    "verification_state": "locally_signed_server_verification_required",
+    "signed_payload_sha256": "FI0K-UrPLIvOfNA7_yCcS7Pp4Se4d2nabfGsYrjL0l4",
+    "signature": "MEUCIQDG-05fifWiU_hBunvBd_SdIVzAtO9LvuQW-oRV86tcoAIgavsHmU4TLqWhdsiRP_knhHuADakGvK2mETdLpCeSyLg"
+  },
+  "canonical_posture_payload": "schema=dGFtYW5kdWEubW9iaWxlLmVuZHBvaW50LXBvc3R1cmUvdjE\nobserved_at=MjAyNi0wNy0xNlQxMjowMjowMC4wMDBa\nsource=YW5kcm9pZF9mb3JlZ3JvdW5kX29ubGluZQ\nrisk_score=NDI\nsecurity_check.app_integrity_violation=ZmFsc2U\nsecurity_check.debugger_detected=ZmFsc2U\nsecurity_check.developer_mode=ZmFsc2U\nsecurity_check.adb_enabled=ZmFsc2U\nsecurity_check.emulator_detected=ZmFsc2U\nsecurity_check.frida_detected=ZmFsc2U\nsecurity_check.hook_framework_detected=ZmFsc2U\nsecurity_check.native_hook_detected=ZmFsc2U\nsecurity_check.root_detected=ZmFsc2U\nsecurity_check.runtime_memory_tamper_detected=ZmFsc2U\nsecurity_check.code_signature_baseline_configured=ZmFsc2U\nsecurity_check.code_signature_drift_detected=ZmFsc2U",
+  "canonical_payload": "protocol=dGFtYW5kdWEubW9iaWxlLmVuZHBvaW50LXRlbGVtZXRyeS92MQ\nmessage_type=ZW5kcG9pbnRfcG9zdHVyZQ\nmessage_version=MQ\norganization_id=b3JnXzEyMw\ninstallation_id=dG1uZC0xMTExMTExMTIyMjIzMzMzNDQ0NDU1NTU1NTU1NTU1NQ\nplatform=YW5kcm9pZA\ndevice_key_id=dG1ka192MV9UZFFteTdrRDlaS1JCVG9oR1VFS1VJaWRjRjhIYnprS1ZBU0poRUlOVzJr\nkey_scope_id=dG1ka3NfdjFfbEs5enl5OHhVRzE4ZGlZRHNndXVjTGZJT21uTzEzSktCOF8yZUFzbXdNcw\nrequest_id=MDE4ZjNmNGUtN2IyZC03YTkxLWI1YzYtM2QyZTFmMGE5Yjhj\nchallenge_id=MDI4ZjNmNGUtN2IyZC03YTkxLWI1YzYtM2QyZTFmMGE5Yjhj\nnonce=QlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVUZCUVVGQlFVRkJRVQ\nposture_sha256=YWhnMDBJQTJMSXdINFZoYkRLWEc3THN5VlgwN1VibEhUMTNRVU1YMXdBbw\nalgorithm=ZWNkc2EtcDI1Ni1zaGEyNTY\nissued_at=MjAyNi0wNy0xNlQxMjowMDowMC4wMDBa\nexpires_at=MjAyNi0wNy0xNlQxMjowNTowMC4wMDBa",
+  "public_key": {
+    "format": "spki-der-base64url",
+    "curve": "P-256",
+    "value": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE0rmmOGp9b5Goi1RAKYRKDKzuRH8s8_wMSWxS_v5nEqIV-eylJRq1FFe4V6m0pbS_3RO-CuKZ11MlQfZsNDDE5A"
+  }
+}

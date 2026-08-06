@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-07-15T00:00:00Z",
+  "data": [
+    {
+      "agentId": "lab-linux-endpoint-001",
+      "hostname": "linux-lab-001",
+      "osType": "linux",
+      "windowHours": 24,
+      "lastTelemetryAt": "2026-07-15T00:00:12Z",
+      "lastHeartbeatAt": "2026-07-15T00:00:15Z",
+      "heartbeatState": "online",
+      "healthStatus": {
+        "status": "healthy",
+        "reasons": [],
+        "metrics": {
+          "clock_synchronized": true
+        }
+      },
+      "sources": [
+        {
+          "source": "process",
+          "status": "healthy",
+          "eventCount": 42,
+          "lastSeen": "2026-07-15T00:00:12Z"
+        }
+      ],
+      "receivingSources": [
+        "process"
+      ],
+      "missingSources": []
+    },
+    {
+      "agentId": "lab-windows-endpoint-001",
+      "hostname": "windows-lab-001",
+      "osType": "windows",
+      "windowHours": 24,
+      "lastTelemetryAt": "2026-07-15T00:00:18Z",
+      "lastHeartbeatAt": "2026-07-15T00:00:19Z",
+      "heartbeatState": "online",
+      "healthStatus": {
+        "status": "healthy",
+        "reasons": [],
+        "metrics": {
+          "clock_skew_ms": 1200
+        }
+      },
+      "sources": [
+        {
+          "source": "network",
+          "status": "healthy",
+          "count": 17,
+          "last_seen": "2026-07-15T00:00:18Z"
+        }
+      ],
+      "receivingSources": [
+        "network"
+      ],
+      "missingSources": []
+    }
+  ]
+}

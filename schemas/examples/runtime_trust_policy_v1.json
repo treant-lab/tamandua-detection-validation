@@ -1,0 +1,37 @@
+{
+  "schema": "tamandua.runtime_trust.policy/v1",
+  "policy_id": "tamandua.mobile.high_risk_workflow",
+  "policy_version": "1.0.0-synthetic",
+  "profile": "mobile_app_guard",
+  "mode": "observe",
+  "issued_at": "2026-07-17T12:00:00Z",
+  "expires_at": "2026-08-17T12:00:00Z",
+  "detector_bundle": {
+    "bundle_id": "tamandua.mobile.app_guard.default",
+    "bundle_version": "1",
+    "digest": "4edca67514f753c2ed047e4e5ba833f4f0bf922843ac4073ebcc784db1fd3a9f"
+  },
+  "workflows": [
+    {
+      "workflow": "withdrawal",
+      "default_decision": "observe",
+      "thresholds": {
+        "warn": 40,
+        "step_up": 60,
+        "block": 90
+      }
+    }
+  ],
+  "capability_behavior": {
+    "on_degraded": "observe",
+    "on_unsupported": "abstain",
+    "on_missing_signal": "abstain"
+  },
+  "rollback": {
+    "previous_policy_version": "0.9.0-synthetic",
+    "kill_switch_id": "tamandua.mobile.app_guard.global",
+    "max_activation_seconds": 300
+  },
+  "signature_status": "unsigned_synthetic",
+  "external_claim_allowed": false
+}

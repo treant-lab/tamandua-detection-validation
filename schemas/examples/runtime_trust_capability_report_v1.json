@@ -1,0 +1,29 @@
+{
+  "adapter_id": "tamandua.desktop.windows.v1",
+  "adapter_version": "1",
+  "state": "degraded",
+  "missing_capabilities": [
+    "physical_lab_evidence"
+  ],
+  "degraded_reasons": [
+    "source_validation_does_not_establish_physical_runtime_coverage"
+  ],
+  "capabilities": [
+    {
+      "capability_id": "loaded_module_observation",
+      "state": "supported",
+      "evidence_status": "source_validated",
+      "limitations": [
+        "synthetic_contract_only"
+      ]
+    },
+    {
+      "capability_id": "kernel_tamper_prevention",
+      "state": "unsupported",
+      "evidence_status": "unsupported",
+      "limitations": [
+        "no_kernel_component"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "profile_id": "linux-kernel-visibility-readiness",
+  "name": "Linux Kernel Visibility Readiness Gate",
+  "description": "Snapshot-driven gate for aggressive Linux visibility activation. It classifies eBPF/auditd/kernel visibility as active, degraded, or unavailable from a capability snapshot and config intent.",
+  "platform": "linux",
+  "benchmark_lane": "claim-boundary",
+  "execution": {
+    "type": "local_fixture_gate",
+    "command": "python tools\\detection_validation\\scripts\\linux_kernel_visibility_gate.py --snapshot <snapshot.json> --config <config.json>",
+    "timeout_seconds": 30,
+    "runtime_effect": "read_only_fixture_classification",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "linux_kernel_visibility_readiness",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0
+  },
+  "claim_boundary": "Passing this gate means the supplied snapshot and config intent satisfy readiness checks for aggressive Linux visibility. It does not load eBPF programs, does not verify auditd rule installation, and does not prove production telemetry.",
+  "required_snapshot_fields": [
+    "kernel.release",
+    "btf.available",
+    "capabilities.is_root or capabilities.cap_bpf + capabilities.cap_perfmon",
+    "config.feature_flags.ebpf or config.ebpf",
+    "config.collectors.ebpf_enabled or config.ebpf_enabled"
+  ],
+  "tests": [
+    {
+      "id": "linux-kernel-minimum-5-8",
+      "name": "Kernel release is >= 5.8",
+      "executor": "linux_kernel_visibility_gate",
+      "expected_telemetry": ["linux_kernel_visibility_readiness"],
+      "expected_fields": ["kernel.release"]
+    },
+    {
+      "id": "linux-btf-available",
+      "name": "BTF is available for CO-RE eBPF programs",
+      "executor": "linux_kernel_visibility_gate",
+      "expected_telemetry": ["linux_kernel_visibility_readiness"],
+      "expected_fields": ["btf.available"]
+    },
+    {
+      "id": "linux-ebpf-privilege",
+      "name": "Host has CAP_BPF and CAP_PERFMON, or root",
+      "executor": "linux_kernel_visibility_gate",
+      "expected_telemetry": ["linux_kernel_visibility_readiness"],
+      "expected_fields": ["capabilities.cap_bpf", "capabilities.cap_perfmon", "capabilities.is_root"]
+    },
+    {
+      "id": "linux-ebpf-config-intent",
+      "name": "Feature flag and config enable eBPF",
+      "executor": "linux_kernel_visibility_gate",
+      "expected_telemetry": ["linux_kernel_visibility_readiness"],
+      "expected_fields": ["config.feature_flags.ebpf", "config.collectors.ebpf_enabled"]
+    },
+    {
+      "id": "linux-auditd-visibility",
+      "name": "auditd config and service are present; missing auditd degrades visibility",
+      "executor": "linux_kernel_visibility_gate",
+      "expected_telemetry": ["linux_kernel_visibility_readiness"],
+      "expected_fields": ["config.collectors.auditd_enabled", "auditd.active"]
+    }
+  ]
+}

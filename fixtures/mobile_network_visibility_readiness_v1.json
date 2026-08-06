@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "fixture_id": "mobile-network-visibility-readiness-v1",
+  "description": "Synthetic Android/iOS network visibility readiness scenarios for classifying app-scoped fallback versus platform network visibility modes.",
+  "evidence_class": "synthetic_contract",
+  "claim_boundary": "Fixture-only gate for readiness classification. It does not prove physical-device collection, store entitlement approval, production packet capture, decrypted payload inspection, or mature mobile NDR detection efficacy.",
+  "minimum_fields": [
+    "platform",
+    "app_installed",
+    "sdk_embedded",
+    "vpnservice_enabled",
+    "network_extension_entitled",
+    "mdm_profile_installed",
+    "per_app_vpn",
+    "dns_visibility",
+    "flow_visibility",
+    "app_process_attribution",
+    "packet_visibility",
+    "user_consent_required"
+  ],
+  "scenarios": [
+    {
+      "id": "android-vpnservice-active",
+      "category": "android_vpnservice_active",
+      "description": "Android local VpnService is active with DNS and flow metadata plus best-effort UID attribution. This is phone-wide metadata readiness, not payload capture.",
+      "capabilities": {
+        "platform": "android",
+        "app_installed": true,
+        "sdk_embedded": false,
+        "vpnservice_enabled": true,
+        "network_extension_entitled": false,
+        "mdm_profile_installed": false,
+        "per_app_vpn": false,
+        "dns_visibility": "dns_metadata",
+        "flow_visibility": "flow_metadata",
+        "app_process_attribution": "vpn_uid_best_effort",
+        "packet_visibility": "packet_metadata",
+        "user_consent_required": true
+      },
+      "expected_mode": "android_vpnservice",
+      "expected_visibility": "phone_wide_metadata"
+    },
+    {
+      "id": "android-app-only-degraded",
+      "category": "android_app_only_degraded",
+      "description": "Android app is installed without VpnService or embedded SDK network hooks. Visibility is limited to protected-app posture/App Guard events.",
+      "capabilities": {
+        "platform": "android",
+        "app_installed": true,
+        "sdk_embedded": false,
+        "vpnservice_enabled": false,
+        "network_extension_entitled": false,
+        "mdm_profile_installed": false,
+        "per_app_vpn": false,
+        "dns_visibility": "none",
+        "flow_visibility": "none",
+        "app_process_attribution": "protected_app_only",
+        "packet_visibility": "none",
+        "user_consent_required": false
+      },
+      "expected_mode": "app_guard_only",
+      "expected_visibility": "degraded_app_scope"
+    },
+    {
+      "id": "ios-network-extension-active",
+      "category": "ios_network_extension_active",
+      "description": "iOS NetworkExtension entitlement is available with DNS and flow metadata. This requires entitlement approval and device validation before public claims.",
+      "capabilities": {
+        "platform": "ios",
+        "app_installed": true,
+        "sdk_embedded": false,
+        "vpnservice_enabled": false,
+        "network_extension_entitled": true,
+        "mdm_profile_installed": false,
+        "per_app_vpn": false,
+        "dns_visibility": "dns_metadata",
+        "flow_visibility": "flow_metadata",
+        "app_process_attribution": "network_extension_app_rule",
+        "packet_visibility": "packet_metadata",
+        "user_consent_required": true
+      },
+      "expected_mode": "ios_network_extension",
+      "expected_visibility": "phone_wide_metadata"
+    },
+    {
+      "id": "ios-app-only-degraded",
+      "category": "ios_app_only_degraded",
+      "description": "iOS app is installed without NetworkExtension entitlement, MDM profile, per-app VPN, or embedded SDK visibility. Network claims must stay app-scoped/degraded.",
+      "capabilities": {
+        "platform": "ios",
+        "app_installed": true,
+        "sdk_embedded": false,
+        "vpnservice_enabled": false,
+        "network_extension_entitled": false,
+        "mdm_profile_installed": false,
+        "per_app_vpn": false,
+        "dns_visibility": "none",
+        "flow_visibility": "none",
+        "app_process_attribution": "protected_app_only",
+        "packet_visibility": "none",
+        "user_consent_required": false
+      },
+      "expected_mode": "app_guard_only",
+      "expected_visibility": "degraded_app_scope"
+    }
+  ]
+}

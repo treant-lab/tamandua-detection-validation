@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/hist256_bootstrap_shadow_candidate_package_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "status", "evidence_class", "candidate_id", "artifacts", "feature_contract", "decision", "evaluation_scope", "calibration_metrics", "gates", "limitations", "reproducibility", "claim_boundary", "promotion_eligible", "enforcement_allowed", "package_sha256"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/hist256-bootstrap-shadow-candidate-package/v1"},
+    "kind": {"const": "Hist256BootstrapShadowCandidatePackage"},
+    "status": {"const": "audited_calibration_only"},
+    "evidence_class": {"const": "bootstrap_shadow_calibration"},
+    "candidate_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "artifacts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["model", "calibration_evidence"],
+      "properties": {
+        "model": {
+          "type": "object", "additionalProperties": false,
+          "required": ["path", "format", "size_bytes", "sha256"],
+          "properties": {
+            "path": {"type": "string", "minLength": 1},
+            "format": {"const": "lightgbm-text-v4"},
+            "size_bytes": {"type": "integer", "minimum": 1},
+            "sha256": {"$ref": "#/$defs/sha256"}
+          }
+        },
+        "calibration_evidence": {
+          "type": "object", "additionalProperties": false,
+          "required": ["path", "api_version", "file_sha256", "evidence_sha256"],
+          "properties": {
+            "path": {"type": "string", "minLength": 1},
+            "api_version": {"const": "tamandua.io/hist256-scalable-training-calibration/v1"},
+            "file_sha256": {"$ref": "#/$defs/sha256"},
+            "evidence_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      }
+    },
+    "feature_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "sha256", "feature_count"],
+      "properties": {
+        "id": {"const": "tamandua.byte-histogram-256.v1"},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "feature_count": {"const": 256}
+      }
+    },
+    "decision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["calibration_id", "selected_threshold", "score_orientation", "lane"],
+      "properties": {
+        "calibration_id": {"type": "string", "minLength": 1},
+        "selected_threshold": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+        "score_orientation": {"const": "higher_is_more_malicious"},
+        "lane": {"const": "calibration_only"}
+      }
+    },
+    "evaluation_scope": {
+      "type": "object", "additionalProperties": false,
+      "required": ["used_splits", "holdout_opened", "sample_count", "efficacy_claim"],
+      "properties": {
+        "used_splits": {"const": ["train", "calibration"]},
+        "holdout_opened": {"const": false},
+        "efficacy_claim": {"const": false},
+        "sample_count": {"type": "object"}
+      }
+    },
+    "calibration_metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tp", "tn", "fp", "fn", "fpr", "recall", "fpr_display", "recall_display"],
+      "properties": {
+        "tp": {"type": "integer", "minimum": 0}, "tn": {"type": "integer", "minimum": 0},
+        "fp": {"type": "integer", "minimum": 0}, "fn": {"type": "integer", "minimum": 0},
+        "fpr": {"type": "number", "minimum": 0, "maximum": 1},
+        "recall": {"type": "number", "minimum": 0, "maximum": 1},
+        "fpr_display": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?%$"},
+        "recall_display": {"type": "string", "pattern": "^[0-9]+(\\.[0-9]+)?%$"}
+      }
+    },
+    "gates": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_schema_valid", "evidence_seal_valid", "model_sha256_valid", "confusion_matrix_consistent", "calibration_only", "holdout_unopened", "promotion_forbidden", "enforcement_forbidden"],
+      "properties": {
+        "source_schema_valid": {"const": true},
+        "evidence_seal_valid": {"const": true},
+        "model_sha256_valid": {"const": true},
+        "confusion_matrix_consistent": {"const": true},
+        "calibration_only": {"const": true},
+        "holdout_unopened": {"const": true},
+        "promotion_forbidden": {"const": true},
+        "enforcement_forbidden": {"const": true}
+      }
+    },
+    "limitations": {"type": "array", "minItems": 4, "uniqueItems": true, "items": {"type": "string", "minLength": 20}},
+    "reproducibility": {
+      "type": "object", "additionalProperties": false,
+      "required": ["generator", "command", "source_schema", "package_schema"],
+      "properties": {
+        "generator": {"const": "apps/tamandua_ml/scripts/package_hist256_bootstrap_shadow_candidate.py"},
+        "command": {"type": "string", "minLength": 100},
+        "source_schema": {"const": "schemas/hist256_scalable_training_calibration_v1.schema.json"},
+        "package_schema": {"const": "schemas/hist256_bootstrap_shadow_candidate_package_v1.schema.json"}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 80},
+    "promotion_eligible": {"const": false},
+    "enforcement_allowed": {"const": false},
+    "package_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}
+}

@@ -1,0 +1,64 @@
+{
+  "schema": "tamandua.runtime_integrity_live_probe_diagnostic_fixture/v1",
+  "evidence_class": "synthetic_smoke",
+  "execution_scope": "local_synthetic",
+  "execute": false,
+  "external_claim_allowed": false,
+  "fpr_claim_allowed": false,
+  "performance_claim_allowed": false,
+  "production_ready_claimed": false,
+  "vendor_parity_claimed": false,
+  "claim_boundary": "Synthetic contract fixtures only; no live probe, efficacy, FPR, performance, production, or vendor-parity claim.",
+  "scenarios": [
+    {
+      "id": "internal-probe-timeout",
+      "diagnostic": {
+        "schema": "tamandua.runtime_integrity_live_probe_diagnostic/v1",
+        "evidence_class": "local_live_probe_failure_diagnostic",
+        "execution_scope": "wsl2_network_isolated",
+        "execute": false,
+        "diagnostic_provenance": "synthetic_fixture",
+        "external_claim_allowed": false,
+        "fpr_claim_allowed": false,
+        "performance_claim_allowed": false,
+        "production_ready_claimed": false,
+        "vendor_parity_claimed": false,
+        "run_id": "synthetic-internal-probe-timeout",
+        "observed_at_utc": "2026-07-17T12:00:00Z",
+        "prior_failure_manifest_sha256": "70f0b15c6387946134946c86be6ddc557a148ba5cf2b98d952eba1469ebca5df",
+        "checkpoint": "probe_execute",
+        "code": "probe_timeout",
+        "process": {"started": true, "exit_observed": false, "exit_code": null, "timed_out": true},
+        "output": {"state": "partial", "bytes": 173, "sha256": "5a61637b9c03cc60d52d588f366c326598bc249754c0910b36f330fe0d14e4bd"},
+        "trace": {"state": "partial", "network_syscall_count": 0, "filesystem_mutation_syscall_count": 0, "strace_sha256": "d6cd41dd48533f30a2358583ce53188476709d39a548a3218d87ef97f6c37bd1", "time_sha256": "93f18742d3dfcc8b0b3f5017e69eea1fd57b4ff465dede410eb0c9cc38319ac3"},
+        "custody": {"artifact_unchanged": true, "config_unchanged": true},
+        "cleanup": {"attempted": true, "completed": true, "temporary_artifacts_remaining": 0, "raw_logs_retained": false}
+      }
+    },
+    {
+      "id": "runner-trace-policy-network",
+      "diagnostic": {
+        "schema": "tamandua.runtime_integrity_live_probe_diagnostic/v1",
+        "evidence_class": "local_live_probe_failure_diagnostic",
+        "execution_scope": "wsl2_network_isolated",
+        "execute": false,
+        "diagnostic_provenance": "synthetic_fixture",
+        "external_claim_allowed": false,
+        "fpr_claim_allowed": false,
+        "performance_claim_allowed": false,
+        "production_ready_claimed": false,
+        "vendor_parity_claimed": false,
+        "run_id": "synthetic-runner-trace-policy",
+        "observed_at_utc": "2026-07-17T12:00:01Z",
+        "prior_failure_manifest_sha256": "70f0b15c6387946134946c86be6ddc557a148ba5cf2b98d952eba1469ebca5df",
+        "checkpoint": "runner_trace_policy",
+        "code": "trace_network_syscall_observed",
+        "process": {"started": true, "exit_observed": true, "exit_code": 0, "timed_out": false},
+        "output": {"state": "complete_valid", "bytes": 4096, "sha256": "d28a61bfe0680e4a71cd2e78d7bdb7b48edfd3a34946bdfe79b5e4637f149d6c"},
+        "trace": {"state": "complete", "network_syscall_count": 1, "filesystem_mutation_syscall_count": 0, "strace_sha256": "bfc862ed655c16ab9ed90e2339d7b1cd93f2972f2a8ab6b57469f27cc5393883", "time_sha256": "559fcb16312ed332a69a33b1bd4c97ebedf6d57f76d095c7fa09756ed4e4402e"},
+        "custody": {"artifact_unchanged": true, "config_unchanged": true},
+        "cleanup": {"attempted": true, "completed": true, "temporary_artifacts_remaining": 0, "raw_logs_retained": false}
+      }
+    }
+  ]
+}

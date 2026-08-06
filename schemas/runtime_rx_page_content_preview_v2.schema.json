@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/runtime_rx_page_content_preview_v2.schema.json",
+  "title": "Tamandua Linux self-image RX page-content Preview evidence v2",
+  "$comment": "Closed synthetic/local contract for the Linux-only tamandua.runtime_integrity/v3 extension and linux_self_file_backed_elf_rx_page_content_preview_v2 capability. Per-tick counters are distinct from committed sweep progress. This contract is not production, performance, FPR, efficacy, or vendor-parity evidence. The server projection identity is tamandua.runtime_integrity_preview/v2.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "provenance", "platform", "state", "findings", "limitations", "page_content"],
+  "properties": {
+    "schema": {"const": "tamandua.runtime_integrity/v3"},
+    "provenance": {"const": "platform_collector"},
+    "platform": {"const": "linux"},
+    "state": {"enum": ["supported", "degraded", "unsupported"]},
+    "findings": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {"oneOf": [{"$ref": "#/$defs/legacyFinding"}, {"$ref": "#/$defs/pageDriftFinding"}]}
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "rx_page_content_anonymous_jit_out_of_scope",
+          "rx_page_content_backing_deleted",
+          "rx_page_content_backing_replaced",
+          "rx_page_content_baseline_mismatch",
+          "rx_page_content_baseline_unavailable",
+          "rx_page_content_bootstrap_budget_exceeded",
+          "rx_page_content_budget_exceeded",
+          "rx_page_content_coverage_limit_exceeded",
+          "rx_page_content_disabled",
+          "rx_page_content_elf_unsupported",
+          "rx_page_content_execute_only",
+          "rx_page_content_identity_race",
+          "rx_page_content_memory_read_unavailable",
+          "rx_page_content_no_eligible_pages",
+          "rx_page_content_relocation_unsupported"
+        ]
+      }
+    },
+    "page_content": {"$ref": "#/$defs/pageContent"}
+  },
+  "$defs": {
+    "legacyFinding": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["kind", "evidence"], "properties": {"kind": {"const": "writable_executable_mapping"}, "evidence": {"const": "current process exposed a writable executable mapping"}}},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "evidence"], "properties": {"kind": {"const": "debugger_or_tracer_attached"}, "evidence": {"const": "current process reported a debugger or tracer attached"}}},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "evidence"], "properties": {"kind": {"const": "instrumentation_library_loaded"}, "evidence": {"const": "current process loaded a known instrumentation library marker"}}}
+      ]
+    },
+    "pageDriftFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "evidence"],
+      "properties": {
+        "kind": {"const": "file_backed_executable_page_drift"},
+        "evidence": {"const": "file-backed executable page content differed from the protected startup baseline"}
+      }
+    },
+    "pageContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability_id", "maturity", "mode", "enabled", "status", "baseline_source",
+        "eligible_pages", "pages_compared_this_tick", "sweep_pages_compared",
+        "excluded_relocation_pages", "unstable_pages_this_tick",
+        "memory_bytes_read_this_tick", "elapsed_us_this_tick", "budget_limit_us",
+        "full_sweep_completed", "budget_state"
+      ],
+      "properties": {
+        "capability_id": {"const": "linux_self_file_backed_elf_rx_page_content_preview_v2"},
+        "maturity": {"const": "preview"},
+        "mode": {"const": "observe_only"},
+        "enabled": {"type": "boolean"},
+        "status": {"enum": ["disabled", "partial", "clean", "mismatch", "degraded", "unsupported"]},
+        "baseline_source": {"enum": ["none", "protected_config_sha256_startup_fd"]},
+        "eligible_pages": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "pages_compared_this_tick": {"type": "integer", "minimum": 0, "maximum": 8},
+        "sweep_pages_compared": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "excluded_relocation_pages": {"type": "integer", "minimum": 0, "maximum": 16384},
+        "unstable_pages_this_tick": {"type": "integer", "minimum": 0, "maximum": 8},
+        "memory_bytes_read_this_tick": {"type": "integer", "minimum": 0, "maximum": 65536, "multipleOf": 4096},
+        "elapsed_us_this_tick": {"type": "integer", "minimum": 0, "maximum": 60000},
+        "budget_limit_us": {"const": 10000},
+        "full_sweep_completed": {"type": "boolean"},
+        "budget_state": {"enum": ["within_budget", "exceeded"]}
+      },
+      "oneOf": [
+        {"properties": {"enabled": {"const": false}, "status": {"const": "disabled"}, "baseline_source": {"const": "none"}, "eligible_pages": {"const": 0}, "pages_compared_this_tick": {"const": 0}, "sweep_pages_compared": {"const": 0}, "excluded_relocation_pages": {"const": 0}, "unstable_pages_this_tick": {"const": 0}, "memory_bytes_read_this_tick": {"const": 0}, "elapsed_us_this_tick": {"const": 0}, "full_sweep_completed": {"const": false}, "budget_state": {"const": "within_budget"}}},
+        {"properties": {"enabled": {"const": true}, "status": {"const": "partial"}, "baseline_source": {"const": "protected_config_sha256_startup_fd"}, "eligible_pages": {"minimum": 1}, "pages_compared_this_tick": {"minimum": 1}, "sweep_pages_compared": {"minimum": 1}, "elapsed_us_this_tick": {"maximum": 10000}, "full_sweep_completed": {"const": false}, "budget_state": {"const": "within_budget"}}},
+        {"properties": {"enabled": {"const": true}, "status": {"const": "clean"}, "baseline_source": {"const": "protected_config_sha256_startup_fd"}, "eligible_pages": {"minimum": 1}, "pages_compared_this_tick": {"minimum": 1}, "sweep_pages_compared": {"minimum": 1}, "unstable_pages_this_tick": {"const": 0}, "elapsed_us_this_tick": {"maximum": 10000}, "full_sweep_completed": {"const": true}, "budget_state": {"const": "within_budget"}}},
+        {"properties": {"enabled": {"const": true}, "status": {"const": "mismatch"}, "baseline_source": {"const": "protected_config_sha256_startup_fd"}, "eligible_pages": {"minimum": 1}, "pages_compared_this_tick": {"minimum": 1}, "sweep_pages_compared": {"minimum": 1}, "elapsed_us_this_tick": {"maximum": 10000}, "budget_state": {"const": "within_budget"}}},
+        {"properties": {"enabled": {"const": true}, "status": {"const": "degraded"}}},
+        {"properties": {"enabled": {"const": true}, "status": {"const": "unsupported"}, "baseline_source": {"const": "none"}, "eligible_pages": {"const": 0}, "pages_compared_this_tick": {"const": 0}, "sweep_pages_compared": {"const": 0}, "excluded_relocation_pages": {"const": 0}, "unstable_pages_this_tick": {"const": 0}, "memory_bytes_read_this_tick": {"const": 0}, "full_sweep_completed": {"const": false}, "budget_state": {"const": "within_budget"}}}
+      ],
+      "allOf": [
+        {
+          "if": {"properties": {"unstable_pages_this_tick": {"minimum": 1}}, "required": ["unstable_pages_this_tick"]},
+          "then": {"properties": {"status": {"const": "degraded"}}}
+        }
+      ]
+    }
+  }
+}

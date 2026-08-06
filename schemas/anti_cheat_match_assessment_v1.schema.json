@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/anti_cheat_match_assessment_v1.schema.json",
+  "title": "Tamandua Anti-Cheat Match Assessment v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "assessment_id", "tenant_scope_digest", "observed_at", "protected_target", "session",
+    "client_adapter", "client_integrity", "server_authority", "score", "decision",
+    "review", "privacy", "evidence_class", "external_claim_allowed", "limitations"
+  ],
+  "properties": {
+    "schema": {"const": "tamandua.anti_cheat.match_assessment/v1"},
+    "assessment_id": {"$ref": "#/$defs/digest"},
+    "tenant_scope_digest": {"$ref": "#/$defs/digest"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "protected_target": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "game_id_digest", "build_id_digest", "manifest_digest"],
+      "properties": {
+        "kind": {"const": "game_client"},
+        "game_id_digest": {"$ref": "#/$defs/digest"},
+        "build_id_digest": {"$ref": "#/$defs/digest"},
+        "manifest_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "session": {
+      "type": "object", "additionalProperties": false,
+      "required": ["match_id_digest", "player_session_id_digest", "player_identity_scope", "player_pseudonym_digest", "server_session_nonce_digest", "sequence", "tick"],
+      "properties": {
+        "match_id_digest": {"$ref": "#/$defs/digest"},
+        "player_session_id_digest": {"$ref": "#/$defs/digest"},
+        "player_identity_scope": {"const": "tenant_match_pseudonym"},
+        "player_pseudonym_digest": {"$ref": "#/$defs/digest"},
+        "server_session_nonce_digest": {"$ref": "#/$defs/digest"},
+        "sequence": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+        "tick": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807}
+      }
+    },
+    "client_adapter": {
+      "type": "object", "additionalProperties": false,
+      "required": ["engine", "state", "frame_impact_measured"],
+      "properties": {
+        "engine": {"const": "unbound"},
+        "state": {"const": "not_integrated"},
+        "frame_impact_measured": {"const": false}
+      }
+    },
+    "client_integrity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["capability_state", "signals"],
+      "properties": {
+        "capability_state": {"enum": ["supported", "degraded", "unsupported", "not_integrated"]},
+        "signals": {"type": "array", "maxItems": 16, "items": {"$ref": "#/$defs/clientSignal"}}
+      }
+    },
+    "server_authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authority_id", "authority_version", "validator_digest", "authentication_state", "window", "corroboration_state", "observations"],
+      "properties": {
+        "authority_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$"},
+        "authority_version": {"$ref": "#/$defs/authorityVersion"},
+        "validator_digest": {"$ref": "#/$defs/digest"},
+        "authentication_state": {"const": "unauthenticated_synthetic"},
+        "window": {
+          "type": "object", "additionalProperties": false,
+          "required": ["start_tick", "end_tick"],
+          "properties": {
+            "start_tick": {"type": "integer", "minimum": 0},
+            "end_tick": {"type": "integer", "minimum": 0}
+          }
+        },
+        "corroboration_state": {"enum": ["corroborated", "not_corroborated", "conflicting", "inconclusive"]},
+        "observations": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"$ref": "#/$defs/serverObservation"}}
+      }
+    },
+    "score": {
+      "type": "object", "additionalProperties": false,
+      "required": ["orientation", "value", "not_probability", "policy_id", "policy_version", "policy_digest", "review_threshold", "reasons", "contributions"],
+      "properties": {
+        "orientation": {"const": "higher_is_more_suspicious"},
+        "value": {"type": "integer", "minimum": 0, "maximum": 100},
+        "not_probability": {"const": true},
+        "policy_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$"},
+        "policy_version": {"$ref": "#/$defs/policyVersion"},
+        "policy_digest": {"$ref": "#/$defs/digest"},
+        "review_threshold": {"type": "integer", "minimum": 1, "maximum": 100},
+        "reasons": {"type": "array", "maxItems": 32, "uniqueItems": true, "items": {"$ref": "#/$defs/reason"}},
+        "contributions": {"type": "array", "maxItems": 32, "items": {"$ref": "#/$defs/contribution"}}
+      }
+    },
+    "decision": {"enum": ["observe", "queue_review", "abstain"]},
+    "review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "human_review_required", "enforcement_authorized", "automatic_sanction", "durable_sanction"],
+      "properties": {
+        "status": {"enum": ["not_queued", "pending"]},
+        "human_review_required": {"const": true},
+        "enforcement_authorized": {"const": false},
+        "automatic_sanction": {"const": false},
+        "durable_sanction": {"const": false}
+      }
+    },
+    "privacy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["metadata_only", "contains_raw_content", "identifier_scope", "excluded_fields"],
+      "properties": {
+        "metadata_only": {"const": true},
+        "contains_raw_content": {"const": false},
+        "identifier_scope": {"const": "tenant_match_only"},
+        "excluded_fields": {
+          "type": "array", "minItems": 9, "maxItems": 16, "uniqueItems": true,
+          "items": {"enum": ["raw_input", "raw_chat", "screen_content", "raw_memory", "ip_address", "device_serial", "credentials", "email", "global_player_identifier"]}
+        }
+      }
+    },
+    "evidence_class": {"enum": ["synthetic_contract", "governed_replay", "governed_pilot", "production_telemetry"]},
+    "external_claim_allowed": {"const": false},
+    "limitations": {
+      "type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true,
+      "items": {"enum": [
+        "synthetic_fixture_only", "client_engine_adapter_not_integrated",
+        "server_authority_unauthenticated", "no_live_server_or_fpr_evidence",
+        "local_integrity_is_not_server_corroboration", "queue_review_is_not_a_sanction",
+        "conflicting_server_evidence_requires_abstention"
+      ]}
+    }
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "authorityVersion": {"type": "string", "maxLength": 96, "pattern": "^auth-v(?:0|[1-9][0-9]{0,5})(?:\\.(?:0|[1-9][0-9]{0,5})){0,3}(?:-[a-z0-9]+(?:[.-][a-z0-9]+)*)?(?:\\+[a-z0-9]+(?:[.-][a-z0-9]+)*)?$"},
+    "policyVersion": {"type": "string", "maxLength": 96, "pattern": "^policy-v(?:0|[1-9][0-9]{0,5})(?:\\.(?:0|[1-9][0-9]{0,5})){0,3}(?:-[a-z0-9]+(?:[.-][a-z0-9]+)*)?(?:\\+[a-z0-9]+(?:[.-][a-z0-9]+)*)?$"},
+    "reason": {"enum": [
+      "client_integrity_anomaly", "server_action_sequence_valid",
+      "server_action_sequence_violation", "server_movement_within_constraints",
+      "server_movement_constraint_violation"
+    ]},
+    "clientSignal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["signal_id", "state", "evidence_strength", "reason_code", "evidence_digest"],
+      "properties": {
+        "signal_id": {"const": "client_runtime_integrity_anomaly"},
+        "state": {"enum": ["observed", "not_observed", "unknown"]},
+        "evidence_strength": {"enum": ["weak", "moderate", "strong", "unknown"]},
+        "reason_code": {"$ref": "#/$defs/reason"},
+        "evidence_digest": {"$ref": "#/$defs/digest"}
+      }
+    },
+    "serverObservation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["observation_id_digest", "detector_family", "outcome", "reason_code", "evidence_digest", "start_tick", "end_tick", "feature_schema"],
+      "properties": {
+        "observation_id_digest": {"$ref": "#/$defs/digest"},
+        "detector_family": {"enum": ["movement", "action", "economy", "temporal", "session_integrity"]},
+        "outcome": {"enum": ["corroborated", "not_corroborated", "inconclusive"]},
+        "reason_code": {"$ref": "#/$defs/reason"},
+        "evidence_digest": {"$ref": "#/$defs/digest"},
+        "start_tick": {"type": "integer", "minimum": 0},
+        "end_tick": {"type": "integer", "minimum": 0},
+        "feature_schema": {"enum": ["tamandua.game.movement_features/v1", "tamandua.game.action_features/v1", "tamandua.game.economy_features/v1", "tamandua.game.temporal_features/v1", "tamandua.game.session_integrity_features/v1"]}
+      }
+    },
+    "contribution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "reason_code", "points", "evidence_digest"],
+      "properties": {
+        "source": {"enum": ["client_integrity", "server_authoritative"]},
+        "reason_code": {"$ref": "#/$defs/reason"},
+        "points": {"type": "integer", "minimum": 1, "maximum": 100},
+        "evidence_digest": {"$ref": "#/$defs/digest"}
+      }
+    }
+  }
+}

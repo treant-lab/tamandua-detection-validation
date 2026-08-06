@@ -1,0 +1,75 @@
+{
+  "schema": "tamandua.runtime-rx-filebacked-elf-linux-contract/v1",
+  "evidence_class": "local_wsl_lab_contract",
+  "external_claim_allowed": false,
+  "production_ready": false,
+  "vendor_parity": false,
+  "page_size_bytes": 4096,
+  "drift_offset": 137,
+  "relocation_policy": "reject_probe_overlap",
+  "cost_budget": {
+    "max_cases": 6,
+    "max_compared_pages": 2,
+    "max_compared_bytes": 8192,
+    "max_case_duration_ms": 1000,
+    "max_comparison_pipeline_duration_ns": 100000000
+  },
+  "cases": [
+    {
+      "scenario": "clean_file_backed_rx",
+      "state": "supported",
+      "outcome": "clean",
+      "backing_state": "original",
+      "limitations": [],
+      "cleanup": "process_exit_discards_private_mapping"
+    },
+    {
+      "scenario": "file_backed_rw_to_rx_drift",
+      "state": "supported",
+      "outcome": "finding",
+      "backing_state": "original",
+      "limitations": [],
+      "cleanup": "process_exit_discards_private_mapping"
+    },
+    {
+      "scenario": "deleted_backing",
+      "state": "degraded",
+      "outcome": "degraded",
+      "backing_state": "deleted",
+      "limitations": [
+        "file_backing_deleted"
+      ],
+      "cleanup": "case_binary_unlinked"
+    },
+    {
+      "scenario": "replaced_backing",
+      "state": "degraded",
+      "outcome": "degraded",
+      "backing_state": "replaced",
+      "limitations": [
+        "file_backing_identity_changed"
+      ],
+      "cleanup": "replacement_removed"
+    },
+    {
+      "scenario": "anonymous_jit_no_baseline",
+      "state": "unsupported",
+      "outcome": "unsupported",
+      "backing_state": "anonymous",
+      "limitations": [
+        "anonymous_executable_has_no_file_baseline"
+      ],
+      "cleanup": "anonymous_mapping_unmapped"
+    },
+    {
+      "scenario": "execute_only_file_backed",
+      "state": "degraded",
+      "outcome": "degraded",
+      "backing_state": "original",
+      "limitations": [
+        "execute_only_policy_refused_dereference"
+      ],
+      "cleanup": "probe_permissions_restored_rx"
+    }
+  ]
+}

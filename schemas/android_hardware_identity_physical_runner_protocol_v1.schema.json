@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.invalid/schemas/android_hardware_identity_physical_runner_protocol_v1.schema.json",
+  "title": "Android physical identity source-only runner authorization protocol v1",
+  "oneOf": [{"$ref": "#/$defs/request"}, {"$ref": "#/$defs/compiled"}],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "time": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "authorization": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authorization_bundle_sha256", "device_lease_bundle_sha256", "expires_at", "issued_at", "lab_authorization_receipt_sha256", "operator_authorization_receipt_sha256", "redaction_policy_sha256", "rollback_authorization_receipt_sha256", "structurally_declared_only"],
+      "properties": {
+        "authorization_bundle_sha256": {"$ref": "#/$defs/sha256"}, "device_lease_bundle_sha256": {"$ref": "#/$defs/sha256"},
+        "expires_at": {"$ref": "#/$defs/time"}, "issued_at": {"$ref": "#/$defs/time"},
+        "lab_authorization_receipt_sha256": {"$ref": "#/$defs/sha256"}, "operator_authorization_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "redaction_policy_sha256": {"$ref": "#/$defs/sha256"}, "rollback_authorization_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "structurally_declared_only": {"const": true}
+      }
+    },
+    "lease": {
+      "type": "object", "additionalProperties": false,
+      "required": ["asset_ordinal", "capability_role", "consume_once_execution_nonce_sha256", "expires_at", "fencing_token", "heartbeat_at", "issued_at", "lease_authority_sha256", "lease_receipt_sha256", "owner_binding_sha256", "state", "target_selector_redacted"],
+      "properties": {
+        "asset_ordinal": {"type": "integer", "minimum": 1, "maximum": 3}, "capability_role": {"enum": ["strongbox", "tee", "unsupported"]},
+        "consume_once_execution_nonce_sha256": {"$ref": "#/$defs/sha256"}, "expires_at": {"$ref": "#/$defs/time"},
+        "fencing_token": {"type": "integer", "minimum": 1}, "heartbeat_at": {"$ref": "#/$defs/time"}, "issued_at": {"$ref": "#/$defs/time"},
+        "lease_authority_sha256": {"$ref": "#/$defs/sha256"}, "lease_receipt_sha256": {"$ref": "#/$defs/sha256"}, "owner_binding_sha256": {"$ref": "#/$defs/sha256"},
+        "state": {"const": "declared_active_unverified"}, "target_selector_redacted": {"const": true}
+      }
+    },
+    "leases": {
+      "type": "array", "minItems": 3, "maxItems": 3, "items": false,
+      "prefixItems": [
+        {"allOf": [{"$ref": "#/$defs/lease"}, {"properties": {"asset_ordinal": {"const": 1}, "capability_role": {"const": "strongbox"}}}]},
+        {"allOf": [{"$ref": "#/$defs/lease"}, {"properties": {"asset_ordinal": {"const": 2}, "capability_role": {"const": "tee"}}}]},
+        {"allOf": [{"$ref": "#/$defs/lease"}, {"properties": {"asset_ordinal": {"const": 3}, "capability_role": {"const": "unsupported"}}}]}
+      ]
+    },
+    "process_contract": {"const": {
+      "executable": "<externally-pinned-adb-binary>", "shell": false, "windows_hide": true, "stdio": ["ignore", "pipe", "pipe"],
+      "argv": ["-s", "<selector-resolved-in-memory-from-active-lease>", "shell", "am", "instrument", "-w", "-e", "approved_plan_sha256", "<bound-plan-sha256>", "-e", "scenario_ordinal", "<01..15>", "-e", "asset_ordinal", "<1..3>", "com.tamandua.edr.test/androidx.test.runner.AndroidJUnitRunner"],
+      "inherit_env": false, "env": {"LANG": "C", "LC_ALL": "C", "TZ": "UTC"}, "cwd": "<fixed-isolated-read-only-run-root>",
+      "attempt_timeout_ms": 120000, "total_timeout_ms": 1800000, "stdout_max_bytes": 65536, "stderr_max_bytes": 16384, "protocol_max_bytes": 65536, "protocol_frames": 1,
+      "cancel_grace_ms": 2000, "force_terminate_grace_ms": 3000, "cleanup_timeout_ms": 10000, "process_tree_containment": "required_external_adapter_not_present"
+    }},
+    "state_contract": {"const": {
+      "initial": "planned_not_executed",
+      "future_states": ["planned", "preconditions_pending", "authorization_pending", "lease_pending", "ready_for_separate_execution", "spawn_requested", "running", "result_pending", "cancelling", "cleanup_pending", "rollback_pending", "succeeded", "failed", "cancelled", "timed_out", "hold"],
+      "future_edges": ["planned>preconditions_pending", "preconditions_pending>authorization_pending", "authorization_pending>lease_pending", "lease_pending>ready_for_separate_execution", "ready_for_separate_execution>spawn_requested", "spawn_requested>running", "running>result_pending", "result_pending>cleanup_pending", "cleanup_pending>succeeded", "spawn_requested>cancelling", "running>cancelling", "result_pending>cancelling", "cancelling>cleanup_pending", "cleanup_pending>rollback_pending", "rollback_pending>hold", "cleanup_pending>failed", "cleanup_pending>cancelled", "cleanup_pending>timed_out"],
+      "retry_requires_new_nonce_and_fresh_lease": true, "cleanup_requires_same_live_fencing": true, "rollback_requires_separate_authorization": true, "exit_zero_insufficient": true
+    }},
+    "scenario": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ordinal", "name", "asset_ordinals", "expected_server_decision", "preconditions", "current_state", "next_transition_authorized", "observation_count"],
+      "properties": {
+        "ordinal": {"type": "integer", "minimum": 1, "maximum": 15},
+        "name": {"enum": ["baseline_key_creation", "reboot_continuity", "app_update_continuity", "os_update_continuity", "clear_data_key_loss_recovery", "uninstall_reinstall_key_loss_recovery", "cross_device_distinction", "cross_tenant_unlinkability", "replay_rejection", "stale_challenge_rejection", "clone_rejection", "authorized_rebind_acceptance", "unauthorized_rebind_rejection", "concurrent_rebind_serialization", "idempotent_retry"]},
+        "asset_ordinals": {"type": "array", "minItems": 1, "maxItems": 2, "uniqueItems": true, "items": {"type": "integer", "minimum": 1, "maximum": 3}},
+        "expected_server_decision": {"enum": ["hold_for_physical_evidence", "explicit_recovery_required", "reject_key_collision", "reject_cross_tenant_linkage", "reject_replay", "reject_stale", "reject_clone", "accept_once_if_fully_authorized", "reject_unauthorized_rebind", "serialize_single_authority", "idempotent_same_receipt_no_second_key"]},
+        "preconditions": {"type": "array", "minItems": 1, "maxItems": 4, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9_]+$"}},
+        "current_state": {"const": "planned_not_executed"}, "next_transition_authorized": {"const": false}, "observation_count": {"const": 0}
+      }
+    },
+    "request": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "approved_plan", "approved_plan_sha256", "matrix_sha256", "collection_packet_sha256", "detached_authority_payload_sha256", "runner_source_sha256", "runner_schema_sha256", "execution_nonce_sha256", "authorization", "leases", "request_payload_sha256"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.physical_runner_request/v1"}, "approved_plan": {"type": "string", "minLength": 2, "maxLength": 65536},
+        "approved_plan_sha256": {"$ref": "#/$defs/sha256"}, "matrix_sha256": {"$ref": "#/$defs/sha256"}, "collection_packet_sha256": {"$ref": "#/$defs/sha256"},
+        "detached_authority_payload_sha256": {"$ref": "#/$defs/sha256"}, "runner_source_sha256": {"$ref": "#/$defs/sha256"}, "runner_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "execution_nonce_sha256": {"$ref": "#/$defs/sha256"}, "authorization": {"$ref": "#/$defs/authorization"}, "leases": {"$ref": "#/$defs/leases"}, "request_payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "compiled": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "evidence_class", "implementation_state", "decision", "enabled", "invocation_authorized", "spawn_authorized", "approved_plan_sha256", "matrix_sha256", "collection_packet_sha256", "detached_authority_payload_sha256", "runner_source_sha256", "runner_schema_sha256", "request_payload_sha256", "execution_nonce_sha256", "authorization", "leases", "process_contract", "state_contract", "scenarios", "unsupported", "cancellation", "rollback", "privacy", "execution", "claims", "compiled_payload_sha256"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.physical_runner_compiled_hold/v1"},
+        "evidence_class": {"const": "local_offline_source_only_runner_authorization_protocol_contract"}, "implementation_state": {"const": "authorization_gated_protocol_defined"}, "decision": {"const": "compiled_hold"},
+        "enabled": {"const": false}, "invocation_authorized": {"const": false}, "spawn_authorized": {"const": false},
+        "approved_plan_sha256": {"$ref": "#/$defs/sha256"}, "matrix_sha256": {"$ref": "#/$defs/sha256"}, "collection_packet_sha256": {"$ref": "#/$defs/sha256"}, "detached_authority_payload_sha256": {"$ref": "#/$defs/sha256"},
+        "runner_source_sha256": {"$ref": "#/$defs/sha256"}, "runner_schema_sha256": {"$ref": "#/$defs/sha256"}, "request_payload_sha256": {"$ref": "#/$defs/sha256"}, "execution_nonce_sha256": {"$ref": "#/$defs/sha256"},
+        "authorization": {"$ref": "#/$defs/authorization"}, "leases": {"$ref": "#/$defs/leases"},
+        "process_contract": {"$ref": "#/$defs/process_contract"}, "state_contract": {"$ref": "#/$defs/state_contract"},
+        "scenarios": {
+          "type": "array", "minItems": 15, "maxItems": 15, "items": false,
+          "prefixItems": [
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 1}, "name": {"const": "baseline_key_creation"}, "asset_ordinals": {"const": [1]}, "expected_server_decision": {"const": "hold_for_physical_evidence"}, "preconditions": {"const": ["approved_baseline_creation"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 2}, "name": {"const": "reboot_continuity"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "hold_for_physical_evidence"}, "preconditions": {"const": ["baseline_receipt"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 3}, "name": {"const": "app_update_continuity"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "hold_for_physical_evidence"}, "preconditions": {"const": ["baseline_receipt"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 4}, "name": {"const": "os_update_continuity"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "hold_for_physical_evidence"}, "preconditions": {"const": ["baseline_receipt"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 5}, "name": {"const": "clear_data_key_loss_recovery"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "explicit_recovery_required"}, "preconditions": {"const": ["baseline_receipt", "backup_receipt", "rollback_receipt", "reenrollment_authorization"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 6}, "name": {"const": "uninstall_reinstall_key_loss_recovery"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "explicit_recovery_required"}, "preconditions": {"const": ["baseline_receipt", "backup_receipt", "rollback_receipt", "reenrollment_authorization"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 7}, "name": {"const": "cross_device_distinction"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "reject_key_collision"}, "preconditions": {"const": ["strongbox_and_tee_baseline_receipts", "distinctness_expectation"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 8}, "name": {"const": "cross_tenant_unlinkability"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "reject_cross_tenant_linkage"}, "preconditions": {"const": ["two_tenant_authorization", "unlinkability_expectation"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 9}, "name": {"const": "replay_rejection"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "reject_replay"}, "preconditions": {"const": ["fresh_proof_fixture_digest", "replay_nonce_digest"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 10}, "name": {"const": "stale_challenge_rejection"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "reject_stale"}, "preconditions": {"const": ["challenge_issue_and_expiry_ordering"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 11}, "name": {"const": "clone_rejection"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "reject_clone"}, "preconditions": {"const": ["clone_fixture_digest_without_key_material"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 12}, "name": {"const": "authorized_rebind_acceptance"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "accept_once_if_fully_authorized"}, "preconditions": {"const": ["rebind_policy_receipt", "old_new_transition_authorization", "backup_receipt", "rollback_receipt"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 13}, "name": {"const": "unauthorized_rebind_rejection"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "reject_unauthorized_rebind"}, "preconditions": {"const": ["harness_authorized", "rebind_authorization_absent"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 14}, "name": {"const": "concurrent_rebind_serialization"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "serialize_single_authority"}, "preconditions": {"const": ["two_attempt_nonces", "serialization_authority", "backup_receipt", "rollback_receipt"]}}}]},
+            {"allOf": [{"$ref": "#/$defs/scenario"}, {"properties": {"ordinal": {"const": 15}, "name": {"const": "idempotent_retry"}, "asset_ordinals": {"const": [1, 2]}, "expected_server_decision": {"const": "idempotent_same_receipt_no_second_key"}, "preconditions": {"const": ["prior_request_and_receipt_digest", "new_execution_nonce"]}}}]}
+          ]
+        },
+        "unsupported": {"type": "object", "additionalProperties": false, "required": ["asset_ordinal", "capability_role", "disposition", "in_scenario_matrix", "operation_count"], "properties": {"asset_ordinal": {"type": "integer", "minimum": 1, "maximum": 3}, "capability_role": {"const": "unsupported"}, "disposition": {"const": "capability_gap_preflight_planned_not_executed"}, "in_scenario_matrix": {"const": false}, "operation_count": {"const": 0}}},
+        "cancellation": {"const": {"before_spawn_operation_count": 0, "post_spawn_requires_process_tree_containment": true, "cleanup_requires_live_same_fencing": true}},
+        "rollback": {"const": {"automatic": false, "separate_authorization_required": true, "lease_revalidation_required": true}},
+        "privacy": {"const": {"asset_ordinals_and_roles_only": true, "target_selector_serial_and_raw_ids_forbidden": true, "raw_key_attestation_and_observations_forbidden": true, "raw_stdout_stderr_forbidden": true, "secrets_and_credentials_forbidden": true, "categorical_expectations_and_sha256_only": true}},
+        "execution": {"const": {"executed": false, "adb_operations": 0, "device_operations": 0, "native_key_operations": 0, "network_operations": 0, "backend_operations": 0}},
+        "claims": {"const": {"physical_device_validated": false, "hardware_attestation_validated": false, "continuity_validated": false, "global_hardware_guid_validated": false, "cross_tenant_unlinkability_validated": false, "product_ready": false, "production_ready": false, "external_claim_allowed": false, "verimatrix_parity": false, "authorization_authenticity_proven": false, "live_lease_proven": false, "fencing_enforced": false, "subprocess_containment_validated": false}}, "compiled_payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "profile_id": "platform-endpoint-health-bundle-probe",
+  "name": "Platform Endpoint Health Bundle Probe",
+  "description": "Builds a live endpoint health bundle from exported Agent API JSON and rejects readiness or synthetic evidence classes.",
+  "platform": "multi",
+  "default_observation_seconds": 0,
+  "benchmark_lane": "platform-visibility",
+  "execution": {
+    "type": "local_probe",
+    "command": "python tools\\detection_validation\\scripts\\platform_endpoint_health_bundle_probe.py <export.json> --output <bundle.json>",
+    "timeout_seconds": 30,
+    "runtime_effect": "read_only_json_transform",
+    "requires_agent": false,
+    "requires_server": false,
+    "requires_database": false
+  },
+  "quality_bar": {
+    "purpose": "platform_endpoint_health_bundle",
+    "requires_persisted_events": false,
+    "requires_driver_health": false,
+    "max_unknown_source_events": 0,
+    "max_unexpected_high_critical": 0,
+    "max_driver_channel_drops": 0,
+    "max_driver_kernel_drops": 0
+  },
+  "claim_boundary": "Live endpoint health bundle generation only. Passing proves recent agent health for listed exported endpoints; it does not prove detection efficacy, packet fidelity, prevention, or fleet-wide coverage.",
+  "tests": [
+    {
+      "id": "platform-endpoint-health-data-sources-export-bundle",
+      "name": "Data sources health export can be converted into a live endpoint health bundle",
+      "executor": "platform_endpoint_health_bundle_probe",
+      "expected_telemetry": [
+        "agent_health_api_export"
+      ],
+      "expected_fields": [
+        "evidence_class",
+        "endpoints",
+        "agent_running",
+        "telemetry_recent",
+        "clock_synchronized"
+      ]
+    },
+    {
+      "id": "platform-endpoint-health-agent-detail-export-bundle",
+      "name": "Agent detail export can be converted into a live endpoint health bundle",
+      "executor": "platform_endpoint_health_bundle_probe",
+      "expected_telemetry": [
+        "agent_detail_export"
+      ],
+      "expected_fields": [
+        "endpoint_id",
+        "platform",
+        "health"
+      ]
+    },
+    {
+      "id": "platform-endpoint-health-rejects-readiness-synthetic",
+      "name": "Readiness and synthetic evidence classes are rejected for live endpoint health",
+      "executor": "platform_endpoint_health_bundle_probe",
+      "expected_telemetry": [
+        "evidence_class_boundary"
+      ],
+      "expected_fields": [
+        "errors",
+        "evidence_class"
+      ]
+    }
+  ]
+}

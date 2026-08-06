@@ -62,9 +62,6 @@ def load_ctl_bearer(remote_config: Path) -> str:
 
 
 def create_installation_token(args: argparse.Namespace) -> str:
-    if args.installation_token:
-        return args.installation_token
-
     remote_config = Path(args.remote_config)
     bearer = load_ctl_bearer(remote_config)
     body = json.dumps(
@@ -94,6 +91,68 @@ def create_installation_token(args: argparse.Namespace) -> str:
     if not isinstance(token, str) or not token:
         raise RuntimeError("installation token creation response did not include a cleartext token")
     return token
+
+
+def guest_exec_program(
+    session: Any,
+    args: argparse.Namespace,
+    command: str,
+    command_args: list[str],
+    stdin_data: str,
+    sensitive_values: tuple[str, ...] = (),
+) -> dict[str, Any]:
+    """Execute a program directly through QGA, keeping stdin out of argv."""
+
+    request_data: list[tuple[str, str]] = [("command", command)]
+    request_data.extend(("command", value) for value in command_args)
+    request_data.append(("input-data", stdin_data))
+    start = qga.request_json_retry(
+        session,
+        args,
+        "POST",
+        f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/exec",
+        max_attempts_override=args.qga_exec_start_attempts,
+        data=request_data,
+    )
+    pid = (((start.get("body") or {}).get("data") or {}) if isinstance(start.get("body"), dict) else {}).get("pid")
+    result: dict[str, Any] = {"start": start, "transport": "proxmox_api_qga_guest_exec_direct"}
+    if not start.get("ok") or pid is None:
+        result.update({"ok": False, "error": "guest_exec_start_failed"})
+        return result
+
+    deadline = time.monotonic() + max(5, args.guest_exec_timeout_seconds)
+    last: dict[str, Any] = {}
+    while time.monotonic() < deadline:
+        time.sleep(1)
+        poll = qga.request_json(
+            session,
+            args,
+            "GET",
+            f"/nodes/{args.proxmox_node}/qemu/{args.vmid}/agent/exec-status",
+            params={"pid": pid},
+        )
+        last = poll
+        data = ((poll.get("body") or {}).get("data") or {}) if isinstance(poll.get("body"), dict) else {}
+        if data.get("exited"):
+            stdout = qga.decode_qga(data.get("out-data"))
+            stderr = qga.decode_qga(data.get("err-data"))
+            for secret in sensitive_values:
+                if secret:
+                    stdout = stdout.replace(secret, "<redacted-installation-token>")
+                    stderr = stderr.replace(secret, "<redacted-installation-token>")
+            result.update(
+                {
+                    "ok": data.get("exitcode") == 0,
+                    "exitcode": data.get("exitcode"),
+                    "stdout": stdout,
+                    "stderr": stderr,
+                    "poll": poll,
+                }
+            )
+            return result
+
+    result.update({"ok": False, "error": "guest_exec_status_timeout", "last_poll": last})
+    return result
 
 
 def build_guest_script(args: argparse.Namespace) -> str:
@@ -162,10 +221,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
     server_ws = args.agent_server_url or f"ws://{args.server_host}:4000/socket/agent"
     enrollment_url = args.enrollment_url or f"http://{args.server_host}:4000"
     agent_url = args.agent_download_url or f"http://{args.server_host}:4000/downloads/agents/tamandua-agent-windows-x64.exe"
-    issued_installation_token = None
     try:
         installation_token = create_installation_token(args)
-        issued_installation_token = args.installation_token is None
     except Exception as error:
         return {
             "api_version": "tamandua.io/windows-qga-start-foreground-agent/v1",
@@ -178,17 +235,37 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 "vmid": str(args.vmid),
                 "server_host": args.server_host,
             },
-            "token_source": "provided" if args.installation_token else "tamandua_ctl_remote_config",
+            "token_source": "tamandua_ctl_remote_config",
             "raw_guest_exec_error": str(error),
         }
     root = "D:\\ProgramData\\Tamandua\\qga-foreground"
     exe = f"{root}\\tamandua-agent.exe"
     out_log = f"{root}\\agent.out.log"
     err_log = f"{root}\\agent.err.log"
-    tls_skip_verify_arg = " --tls-skip-verify" if args.tls_skip_verify else ""
-
     def run_step(name: str, raw_input: str) -> dict[str, Any]:
         result = guest_exec(session, args, "@echo off\r\n" + raw_input + "\r\nexit /b 0\r\n")
+        return {
+            "name": name,
+            "ok": bool(result.get("ok")),
+            "error": result.get("error"),
+            "stdout_tail": str(result.get("stdout", ""))[-2000:],
+            "stderr_tail": str(result.get("stderr", ""))[-2000:],
+        }
+
+    def run_program_step(
+        name: str,
+        command: str,
+        command_args: list[str],
+        stdin_data: str,
+    ) -> dict[str, Any]:
+        result = guest_exec_program(
+            session,
+            args,
+            command,
+            command_args,
+            stdin_data,
+            sensitive_values=(installation_token,),
+        )
         return {
             "name": name,
             "ok": bool(result.get("ok")),
@@ -223,13 +300,20 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
                 ]
             ),
         ),
-        run_step(
+        run_program_step(
             "install",
-            "\r\n".join(
-                [
-                    f'"{exe}" install --token "{installation_token}" --server "{server_ws}" --enrollment-url "{enrollment_url}" --no-driver{tls_skip_verify_arg} >"{out_log}" 2>"{err_log}"',
-                ]
-            ),
+            exe,
+            [
+                "install",
+                "--token-stdin",
+                "--server",
+                server_ws,
+                "--enrollment-url",
+                enrollment_url,
+                "--no-driver",
+                *(["--tls-skip-verify"] if args.tls_skip_verify else []),
+            ],
+            installation_token + "\n",
         ),
         run_step(
             "start",
@@ -257,6 +341,7 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "claim_boundary": (
                 "Installs and starts the Windows agent service for lab validation. "
                 "When no token is provided it creates a one-use installation token from tamandua-ctl credentials. "
+                "The token is delivered as QGA guest-exec stdin and is absent from the guest process argv. "
                 "Does not execute ML detection workloads by itself."
             ),
         },
@@ -276,8 +361,8 @@ def build_report(args: argparse.Namespace) -> dict[str, Any]:
             "stdout_tail": parsed.get("stdout_tail", "")[-2000:],
             "stderr_tail": parsed.get("stderr_tail", "")[-2000:],
         },
-        "token_source": "provided" if args.installation_token else "tamandua_ctl_remote_config",
-        "installation_token_created": issued_installation_token,
+        "token_source": "tamandua_ctl_remote_config",
+        "installation_token_created": True,
         "steps": [
             {
                 **step,
@@ -298,7 +383,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--agent-server-url")
     parser.add_argument("--agent-download-url")
     parser.add_argument("--enrollment-url")
-    parser.add_argument("--installation-token")
     parser.add_argument("--remote-config", default=str(DEFAULT_REMOTE_CONFIG))
     parser.add_argument("--proxmox-host")
     parser.add_argument("--proxmox-user")

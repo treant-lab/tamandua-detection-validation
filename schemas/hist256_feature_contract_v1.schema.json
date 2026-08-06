@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/hist256_feature_contract_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "contract_id", "extractor", "input", "output", "contract_sha256"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/hist256-feature-contract/v1"},
+    "contract_id": {"const": "tamandua.byte-histogram-256.v1"},
+    "extractor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "version", "implementation_sha256"],
+      "properties": {
+        "algorithm": {"const": "count each byte value and divide each count by max(file_length, 1)"},
+        "version": {"const": "v1"},
+        "implementation_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "input": {
+      "type": "object", "additionalProperties": false,
+      "required": ["type", "max_bytes", "empty_file_policy"],
+      "properties": {
+        "type": {"const": "raw_bytes"},
+        "max_bytes": {"const": 50000000},
+        "empty_file_policy": {"const": "256 zero values"}
+      }
+    },
+    "output": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dtype", "shape", "index_order", "range", "normalization"],
+      "properties": {
+        "dtype": {"const": "float64"},
+        "shape": {"const": [1, 256]},
+        "index_order": {"const": "ascending unsigned byte value 0 through 255"},
+        "range": {"const": [0.0, 1.0]},
+        "normalization": {"const": "count[index] / max(file_length, 1)"}
+      }
+    },
+    "contract_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

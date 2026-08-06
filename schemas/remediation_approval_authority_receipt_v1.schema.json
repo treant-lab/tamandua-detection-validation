@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/remediation_approval_authority_receipt_v1.schema.json",
+  "title": "Tamandua remediation approval authority receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "verified", "function_count"],
+  "properties": {
+    "contract": {"const": "tamandua.remediation-approval-authority-receipt.v1"},
+    "verified": {"const": true},
+    "function_count": {"const": 1}
+  }
+}

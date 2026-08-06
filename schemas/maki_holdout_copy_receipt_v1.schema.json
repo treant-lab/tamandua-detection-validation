@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/maki_holdout_copy_receipt_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "operation_id", "authorization_id", "authorization_sha256", "deployment_id", "publisher_owner", "fencing_token", "preflight_packet_sha256", "source", "destination", "outcome", "evidence_class", "execution", "membership", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-holdout-copy-receipt/v1"},
+    "kind": {"const": "MakiHoldoutCopyReceipt"},
+    "operation_id": {"$ref": "#/$defs/sha256"},
+    "authorization_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"},
+    "authorization_sha256": {"$ref": "#/$defs/sha256"},
+    "deployment_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"},
+    "publisher_owner": {"type": "string", "pattern": "^[A-Za-z0-9._:@/-]{1,256}$"},
+    "fencing_token": {"type": "integer", "minimum": 1},
+    "preflight_packet_sha256": {"$ref": "#/$defs/sha256"},
+    "source": {"$ref": "#/$defs/source"},
+    "destination": {"$ref": "#/$defs/destination"},
+    "outcome": {"const": "synthetic_copy_verified"},
+    "evidence_class": {"const": "offline_synthetic"},
+    "execution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["aws_mutation", "live", "uses_network", "body_read", "list", "delete"],
+      "properties": {"aws_mutation": {"const": false}, "live": {"const": false}, "uses_network": {"const": false}, "body_read": {"const": false}, "list": {"const": false}, "delete": {"const": false}}
+    },
+    "membership": {
+      "type": "object", "additionalProperties": false,
+      "required": ["holdout_member", "accepted_member", "training_eligible", "evaluation_eligible"],
+      "properties": {"holdout_member": {"const": false}, "accepted_member": {"const": false}, "training_eligible": {"const": false}, "evaluation_eligible": {"const": false}}
+    },
+    "claim_boundary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["supports", "does_not_support"],
+      "properties": {
+        "supports": {"const": ["offline synthetic copy-contract verification"]},
+        "does_not_support": {"const": ["AWS mutation", "live object existence", "holdout membership or opening", "training or model readiness"]}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bucket", "key", "version_id", "checksum_sha256", "size_bytes"],
+      "properties": {"bucket": {"type": "string", "pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"}, "key": {"type": "string", "minLength": 1, "maxLength": 1024}, "version_id": {"type": "string", "minLength": 1, "maxLength": 1024}, "checksum_sha256": {"$ref": "#/$defs/sha256"}, "size_bytes": {"type": "integer", "minimum": 1, "maximum": 5497558138880}}
+    },
+    "destination": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bucket", "key", "version_id", "checksum_sha256", "size_bytes", "server_side_encryption", "kms_key_arn", "bucket_key_enabled", "expected_bucket_owner", "expected_source_bucket_owner"],
+      "properties": {
+        "bucket": {"type": "string", "pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"}, "key": {"type": "string", "pattern": "^holdout/(goodware|malware)/.+\\.bin$", "maxLength": 1024}, "version_id": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "checksum_sha256": {"$ref": "#/$defs/sha256"}, "size_bytes": {"type": "integer", "minimum": 1, "maximum": 5497558138880},
+        "server_side_encryption": {"const": "aws:kms"}, "kms_key_arn": {"type": "string", "maxLength": 512}, "bucket_key_enabled": {"const": false},
+        "expected_bucket_owner": {"type": "string", "pattern": "^[0-9]{12}$"}, "expected_source_bucket_owner": {"type": "string", "pattern": "^[0-9]{12}$"}
+      }
+    }
+  }
+}

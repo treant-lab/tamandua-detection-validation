@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/hist256_bootstrap_shadow_training_calibration_v1.schema.json",
+  "allOf": [
+    {"$ref": "hist256_scalable_training_calibration_v1.schema.json"},
+    {"type": "object", "required": ["shadow_only"], "properties": {"evidence_class": {"const": "bootstrap_shadow_calibration"}, "shadow_only": {"const": true}}}
+  ]
+}

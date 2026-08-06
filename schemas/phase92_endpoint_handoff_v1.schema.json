@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/phase92_endpoint_handoff_v1.schema.json",
+  "title": "Tamandua Phase 92 endpoint handoff v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_class",
+    "status",
+    "generated_at",
+    "endpoints",
+    "claim_boundary",
+    "external_claim_allowed",
+    "blockers"
+  ],
+  "properties": {
+    "schema_version": {"const": "phase92_endpoint_handoff_v1"},
+    "evidence_class": {"enum": ["deferred", "live_endpoint"]},
+    "status": {"enum": ["deferred", "ready_for_phase93"]},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "endpoints": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["windows", "macos"],
+      "properties": {
+        "windows": {"$ref": "#/$defs/windowsEndpoint"},
+        "macos": {"$ref": "#/$defs/macosEndpoint"}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 40},
+    "external_claim_allowed": {"const": false},
+    "blockers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "$defs": {
+    "sha": {"type": ["string", "null"], "pattern": "^[0-9a-f]{40}$"},
+    "sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "endpointBase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platform",
+        "state",
+        "hostname",
+        "os_build",
+        "architecture",
+        "management_alias",
+        "recovery_method",
+        "source_sha",
+        "artifact_sha256",
+        "agent_id",
+        "latest_heartbeat_at",
+        "identity_observed",
+        "artifact_bound",
+        "service_active",
+        "enrollment_fresh",
+        "telemetry_observed",
+        "phase93_preflight",
+        "stimulus_event_ids",
+        "blockers"
+      ],
+      "properties": {
+        "platform": {"enum": ["windows", "macos"]},
+        "state": {"enum": ["deferred", "ready"]},
+        "hostname": {"type": ["string", "null"], "minLength": 1},
+        "os_build": {"type": ["string", "null"], "minLength": 1},
+        "architecture": {"type": ["string", "null"], "minLength": 1},
+        "management_alias": {"type": ["string", "null"], "minLength": 1},
+        "recovery_method": {"type": ["string", "null"], "minLength": 1},
+        "source_sha": {"$ref": "#/$defs/sha"},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "agent_id": {"type": ["string", "null"], "minLength": 1},
+        "latest_heartbeat_at": {"type": ["string", "null"], "format": "date-time"},
+        "identity_observed": {"type": "boolean"},
+        "artifact_bound": {"type": "boolean"},
+        "service_active": {"type": "boolean"},
+        "enrollment_fresh": {"type": "boolean"},
+        "telemetry_observed": {"type": "boolean"},
+        "phase93_preflight": {"type": "boolean"},
+        "stimulus_event_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "blockers": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "windows_driver_state": {"enum": ["active", "diagnostic_only", "not_observed", null]},
+        "macos_system_extension_active": {"type": ["boolean", "null"]},
+        "macos_gatekeeper_accepted": {"type": ["boolean", "null"]},
+        "macos_required_entitlements_observed": {"type": ["boolean", "null"]},
+        "macos_full_disk_access_approved": {"type": ["boolean", "null"]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"state": {"const": "ready"}}},
+          "then": {
+            "properties": {
+              "hostname": {"type": "string"},
+              "os_build": {"type": "string"},
+              "architecture": {"type": "string"},
+              "management_alias": {"type": "string"},
+              "recovery_method": {"type": "string"},
+              "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+              "artifact_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+              "agent_id": {"type": "string"},
+              "latest_heartbeat_at": {"type": "string", "format": "date-time"},
+              "identity_observed": {"const": true},
+              "artifact_bound": {"const": true},
+              "service_active": {"const": true},
+              "enrollment_fresh": {"const": true},
+              "telemetry_observed": {"const": true},
+              "phase93_preflight": {"const": true},
+              "stimulus_event_ids": {"minItems": 1},
+              "blockers": {"maxItems": 0}
+            }
+          }
+        }
+      ]
+    },
+    "windowsEndpoint": {
+      "allOf": [
+        {"$ref": "#/$defs/endpointBase"},
+        {
+          "properties": {
+            "platform": {"const": "windows"},
+            "macos_system_extension_active": {"const": null},
+            "macos_gatekeeper_accepted": {"const": null},
+            "macos_required_entitlements_observed": {"const": null},
+            "macos_full_disk_access_approved": {"const": null}
+          },
+          "required": [
+            "windows_driver_state",
+            "macos_system_extension_active",
+            "macos_gatekeeper_accepted",
+            "macos_required_entitlements_observed",
+            "macos_full_disk_access_approved"
+          ],
+          "allOf": [
+            {
+              "if": {"properties": {"state": {"const": "ready"}}},
+              "then": {"properties": {"windows_driver_state": {"const": "active"}}}
+            }
+          ]
+        }
+      ]
+    },
+    "macosEndpoint": {
+      "allOf": [
+        {"$ref": "#/$defs/endpointBase"},
+        {
+          "properties": {
+            "platform": {"const": "macos"},
+            "windows_driver_state": {"const": null}
+          },
+          "required": [
+            "windows_driver_state",
+            "macos_system_extension_active",
+            "macos_gatekeeper_accepted",
+            "macos_required_entitlements_observed",
+            "macos_full_disk_access_approved"
+          ],
+          "allOf": [
+            {
+              "if": {"properties": {"state": {"const": "ready"}}},
+              "then": {
+                "properties": {
+                  "macos_system_extension_active": {"const": true},
+                  "macos_gatekeeper_accepted": {"const": true},
+                  "macos_required_entitlements_observed": {"const": true},
+                  "macos_full_disk_access_approved": {"const": true}
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "ready_for_phase93"}}},
+      "then": {
+        "properties": {
+          "evidence_class": {"const": "live_endpoint"},
+          "endpoints": {
+            "properties": {
+              "windows": {"properties": {"state": {"const": "ready"}}},
+              "macos": {"properties": {"state": {"const": "ready"}}}
+            }
+          },
+          "blockers": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "deferred"}}},
+      "then": {"properties": {"evidence_class": {"const": "deferred"}}}
+    }
+  ]
+}

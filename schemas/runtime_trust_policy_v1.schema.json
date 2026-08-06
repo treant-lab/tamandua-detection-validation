@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/runtime_trust_policy_v1.schema.json",
+  "title": "Tamandua Runtime Trust Policy v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "policy_id",
+    "policy_version",
+    "profile",
+    "mode",
+    "issued_at",
+    "expires_at",
+    "detector_bundle",
+    "workflows",
+    "capability_behavior",
+    "rollback",
+    "signature_status",
+    "external_claim_allowed"
+  ],
+  "properties": {
+    "schema": {"const": "tamandua.runtime_trust.policy/v1"},
+    "policy_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$"},
+    "policy_version": {"type": "string", "minLength": 1, "maxLength": 64},
+    "profile": {"enum": ["mobile_app_guard", "desktop_app_guard", "web_guard", "anti_cheat"]},
+    "mode": {"enum": ["observe", "enforce"]},
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": "string", "format": "date-time"},
+    "detector_bundle": {
+      "type": "object",
+      "required": ["bundle_id", "bundle_version", "digest"],
+      "properties": {
+        "bundle_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$"},
+        "bundle_version": {"type": "string", "minLength": 1, "maxLength": 64},
+        "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "workflows": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": {
+        "type": "object",
+        "required": ["workflow", "default_decision", "thresholds"],
+        "properties": {
+          "workflow": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,95}$"},
+          "default_decision": {"enum": ["allow", "observe", "warn", "step_up", "block"]},
+          "thresholds": {
+            "type": "object",
+            "required": ["warn", "step_up", "block"],
+            "properties": {
+              "warn": {"type": "integer", "minimum": 0, "maximum": 100},
+              "step_up": {"type": "integer", "minimum": 0, "maximum": 100},
+              "block": {"type": "integer", "minimum": 0, "maximum": 100}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "capability_behavior": {
+      "type": "object",
+      "required": ["on_degraded", "on_unsupported", "on_missing_signal"],
+      "properties": {
+        "on_degraded": {"enum": ["observe", "warn", "step_up", "block", "abstain"]},
+        "on_unsupported": {"enum": ["observe", "warn", "step_up", "block", "abstain"]},
+        "on_missing_signal": {"enum": ["observe", "warn", "step_up", "block", "abstain"]}
+      },
+      "additionalProperties": false
+    },
+    "rollback": {
+      "type": "object",
+      "required": ["previous_policy_version", "kill_switch_id", "max_activation_seconds"],
+      "properties": {
+        "previous_policy_version": {"type": "string", "minLength": 1, "maxLength": 64},
+        "kill_switch_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$"},
+        "max_activation_seconds": {"type": "integer", "minimum": 1, "maximum": 3600}
+      },
+      "additionalProperties": false
+    },
+    "signature_status": {"enum": ["unsigned_synthetic", "signed_unverified", "signed_verified"]},
+    "external_claim_allowed": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

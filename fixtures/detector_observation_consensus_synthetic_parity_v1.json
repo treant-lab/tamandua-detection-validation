@@ -1,0 +1,73 @@
+{
+  "api_version": "tamandua.io/detector-observation-consensus/v1",
+  "artifact": {
+    "artifact_id": "synthetic/parity/runtime-telemetry-001",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "media_type": "application/octet-stream",
+    "size_bytes": 64
+  },
+  "input_contract": {
+    "contract_id": "tamandua/synthetic-runtime-parity",
+    "contract_version": "1.0.0",
+    "schema_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "observations": [
+    {
+      "detector_id": "synthetic/ensemble",
+      "detector_type": "ensemble",
+      "detector_version": "1.0.0",
+      "score": 0.75,
+      "score_orientation": "higher_is_more_malicious",
+      "threshold": 0.7,
+      "decision": "suspicious",
+      "confidence": 0.6,
+      "latency_ms": 3.5,
+      "status": "completed",
+      "degraded": false,
+      "error": null,
+      "runtime_lane": "embedded_onnx",
+      "model_contract_id": "synthetic/model-contract-v1",
+      "decision_mode": "detect_only",
+      "ensemble_votes": [
+        {
+          "detector_id": "synthetic/engine-a",
+          "status": "completed",
+          "score": 0.75,
+          "decision": "suspicious",
+          "confidence": 0.6
+        },
+        {
+          "detector_id": "synthetic/engine-b",
+          "status": "degraded",
+          "score": null,
+          "decision": "unknown",
+          "confidence": 0
+        }
+      ],
+      "provenance": {
+        "source": "tamandua-synthetic-parity",
+        "revision": "fixture-v1",
+        "artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "observed_at": "2026-07-15T12:00:00Z"
+    }
+  ],
+  "consensus": {
+    "strategy": "producer_passthrough",
+    "strategy_version": "1.0.0",
+    "member_detector_ids": ["synthetic/ensemble"],
+    "score": 0.75,
+    "score_orientation": "higher_is_more_malicious",
+    "threshold": 0.7,
+    "decision": "suspicious",
+    "confidence": 0.6,
+    "degraded": false,
+    "error": null,
+    "generated_at": "2026-07-15T12:00:00Z"
+  },
+  "validation_context": {
+    "evidence_class": "synthetic_parity",
+    "claim_scope": "parity_only",
+    "effectiveness_metrics": []
+  }
+}

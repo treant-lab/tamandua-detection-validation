@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/android_hardware_identity_physical_runner_signature_verification_v1.schema.json",
+  "title": "Android hardware identity physical runner normative signature verification contracts",
+  "oneOf": [
+    {"$ref": "#/$defs/trust_bundle"},
+    {"$ref": "#/$defs/signature_vectors"},
+    {"$ref": "#/$defs/verification_report"}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "timestamp": {"type": "string", "format": "date-time", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"},
+    "raw32_base64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{43}=$"},
+    "raw44_base64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{59}=$"},
+    "raw64_base64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$"},
+    "role": {"enum": ["physical_runner_authorizer", "coordinator_lease_snapshot_issuer"]},
+    "domain": {"enum": ["tamandua.android_hardware_identity.physical_runner_authorization/v1", "tamandua.android_hardware_identity.coordinator_lease_snapshot/v1"]},
+    "authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "domain", "fingerprint_sha256", "kid", "not_after", "not_before", "provenance", "raw_public_key_base64", "revoked_at", "role", "spki_der_base64", "status", "trust_epoch"],
+      "properties": {
+        "algorithm": {"const": "Ed25519"}, "domain": {"$ref": "#/$defs/domain"}, "fingerprint_sha256": {"$ref": "#/$defs/sha256"},
+        "kid": {"type": "string", "pattern": "^ed25519-sha256-[a-f0-9]{24}$"}, "not_after": {"$ref": "#/$defs/timestamp"}, "not_before": {"$ref": "#/$defs/timestamp"},
+        "provenance": {"const": "RFC8032_public_normative_test_vector_key"}, "raw_public_key_base64": {"$ref": "#/$defs/raw32_base64"}, "revoked_at": {"type": "null"},
+        "role": {"$ref": "#/$defs/role"}, "spki_der_base64": {"$ref": "#/$defs/raw44_base64"}, "status": {"const": "active_normative_test_only"}, "trust_epoch": {"const": 1}
+      }
+    },
+    "trust_bundle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authorities", "bundle_payload_sha256", "production_provisioning", "revocations", "schema", "trust_class", "trust_epoch"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.physical_runner_public_trust_bundle/v1"}, "trust_class": {"const": "normative_test_only"},
+        "production_provisioning": {"const": "pending"}, "trust_epoch": {"const": 1}, "revocations": {"const": []},
+        "authorities": {"type": "array", "minItems": 2, "maxItems": 2, "items": false, "prefixItems": [
+          {"allOf": [{"$ref": "#/$defs/authority"}, {"properties": {"role": {"const": "physical_runner_authorizer"}, "domain": {"const": "tamandua.android_hardware_identity.physical_runner_authorization/v1"}}}]},
+          {"allOf": [{"$ref": "#/$defs/authority"}, {"properties": {"role": {"const": "coordinator_lease_snapshot_issuer"}, "domain": {"const": "tamandua.android_hardware_identity.coordinator_lease_snapshot/v1"}}}]}
+        ]},
+        "bundle_payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "request": {
+      "type": "object", "additionalProperties": false,
+      "required": ["execution_nonce_sha256", "request_subject_sha256", "tenant_scope_sha256"],
+      "properties": {"execution_nonce_sha256": {"$ref": "#/$defs/sha256"}, "request_subject_sha256": {"$ref": "#/$defs/sha256"}, "tenant_scope_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "authorization_payload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authorization_bundle_sha256", "expires_at", "issued_at", "lab_authorization_receipt_sha256", "operator_authorization_receipt_sha256", "redaction_policy_sha256", "rollback_authorization_receipt_sha256"],
+      "properties": {
+        "authorization_bundle_sha256": {"$ref": "#/$defs/sha256"}, "expires_at": {"$ref": "#/$defs/timestamp"}, "issued_at": {"$ref": "#/$defs/timestamp"},
+        "lab_authorization_receipt_sha256": {"$ref": "#/$defs/sha256"}, "operator_authorization_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "redaction_policy_sha256": {"$ref": "#/$defs/sha256"}, "rollback_authorization_receipt_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "lease": {
+      "type": "object", "additionalProperties": false,
+      "required": ["asset_ordinal", "capability_role", "consume_once_execution_nonce_sha256", "expires_at", "fencing_token", "heartbeat_at", "issued_at", "lease_authority_sha256", "lease_receipt_sha256", "owner_binding_sha256", "state", "target_selector_redacted"],
+      "properties": {
+        "asset_ordinal": {"type": "integer", "minimum": 1, "maximum": 3}, "capability_role": {"enum": ["strongbox", "tee", "unsupported"]},
+        "consume_once_execution_nonce_sha256": {"$ref": "#/$defs/sha256"}, "expires_at": {"$ref": "#/$defs/timestamp"}, "fencing_token": {"type": "integer", "minimum": 1},
+        "heartbeat_at": {"$ref": "#/$defs/timestamp"}, "issued_at": {"$ref": "#/$defs/timestamp"}, "lease_authority_sha256": {"$ref": "#/$defs/sha256"},
+        "lease_receipt_sha256": {"$ref": "#/$defs/sha256"}, "owner_binding_sha256": {"$ref": "#/$defs/sha256"}, "state": {"const": "declared_active_unverified"},
+        "target_selector_redacted": {"const": true}
+      }
+    },
+    "signature": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "domain", "kid", "role", "signature_base64"],
+      "properties": {"algorithm": {"const": "Ed25519"}, "domain": {"$ref": "#/$defs/domain"}, "kid": {"type": "string", "pattern": "^ed25519-sha256-[a-f0-9]{24}$"}, "role": {"$ref": "#/$defs/role"}, "signature_base64": {"$ref": "#/$defs/raw64_base64"}}
+    },
+    "signature_vectors": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authorization_payload", "lease_snapshot", "request", "schema", "signatures", "trust_bundle_payload_sha256", "trust_epoch", "vectors_payload_sha256"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.physical_runner_signature_vectors/v1"}, "trust_epoch": {"const": 1},
+        "trust_bundle_payload_sha256": {"$ref": "#/$defs/sha256"}, "request": {"$ref": "#/$defs/request"}, "authorization_payload": {"$ref": "#/$defs/authorization_payload"},
+        "lease_snapshot": {"type": "array", "minItems": 3, "maxItems": 3, "items": false, "prefixItems": [
+          {"allOf": [{"$ref": "#/$defs/lease"}, {"properties": {"asset_ordinal": {"const": 1}, "capability_role": {"const": "strongbox"}}}]},
+          {"allOf": [{"$ref": "#/$defs/lease"}, {"properties": {"asset_ordinal": {"const": 2}, "capability_role": {"const": "tee"}}}]},
+          {"allOf": [{"$ref": "#/$defs/lease"}, {"properties": {"asset_ordinal": {"const": 3}, "capability_role": {"const": "unsupported"}}}]}
+        ]},
+        "signatures": {"type": "array", "minItems": 2, "maxItems": 2, "items": false, "prefixItems": [
+          {"allOf": [{"$ref": "#/$defs/signature"}, {"properties": {"role": {"const": "physical_runner_authorizer"}, "domain": {"const": "tamandua.android_hardware_identity.physical_runner_authorization/v1"}}}]},
+          {"allOf": [{"$ref": "#/$defs/signature"}, {"properties": {"role": {"const": "coordinator_lease_snapshot_issuer"}, "domain": {"const": "tamandua.android_hardware_identity.coordinator_lease_snapshot/v1"}}}]}
+        ]}, "vectors_payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "verified_role": {
+      "type": "object", "additionalProperties": false, "required": ["domain", "kid", "role", "statement_sha256", "verified"],
+      "properties": {"domain": {"$ref": "#/$defs/domain"}, "kid": {"type": "string"}, "role": {"$ref": "#/$defs/role"}, "statement_sha256": {"$ref": "#/$defs/sha256"}, "verified": {"const": true}}
+    },
+    "false_claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authorization_authenticity_proven", "continuity_validated", "current_fencing_proven", "current_revocation_proven", "execution_authorized", "external_claim_allowed", "fencing_enforced", "freshness_proven", "global_hardware_guid_validated", "hardware_attestation_validated", "live_lease_proven", "physical_device_validated", "product_ready", "production_ready", "replay_protection_proven", "trust_epoch_rollback_protected", "verimatrix_parity"],
+      "properties": {
+        "authorization_authenticity_proven": {"const": false}, "continuity_validated": {"const": false}, "current_fencing_proven": {"const": false}, "current_revocation_proven": {"const": false},
+        "execution_authorized": {"const": false}, "external_claim_allowed": {"const": false}, "fencing_enforced": {"const": false}, "freshness_proven": {"const": false}, "global_hardware_guid_validated": {"const": false},
+        "hardware_attestation_validated": {"const": false}, "live_lease_proven": {"const": false}, "physical_device_validated": {"const": false}, "product_ready": {"const": false},
+        "production_ready": {"const": false}, "replay_protection_proven": {"const": false}, "trust_epoch_rollback_protected": {"const": false}, "verimatrix_parity": {"const": false}
+      }
+    },
+    "verification_report": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authorization_payload_sha256", "claims", "decision", "evidence_class", "execution", "execution_nonce_sha256", "lease_snapshot_sha256", "production_authority_count", "production_fixture_count", "production_provisioning", "reference_time", "report_payload_sha256", "request_subject_sha256", "schema", "tenant_scope_sha256", "trust_bundle_payload_sha256", "trust_class", "trust_epoch", "vectors_payload_sha256", "verified_roles"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.physical_runner_signature_verification/v1"}, "evidence_class": {"const": "local_offline_normative_signature_verifier_mechanics"},
+        "decision": {"const": "normative_vectors_verified_hold"}, "trust_class": {"const": "normative_test_only"}, "production_provisioning": {"const": "pending"},
+        "production_authority_count": {"const": 0}, "production_fixture_count": {"const": 0}, "trust_epoch": {"const": 1},
+        "trust_bundle_payload_sha256": {"$ref": "#/$defs/sha256"}, "vectors_payload_sha256": {"$ref": "#/$defs/sha256"}, "request_subject_sha256": {"$ref": "#/$defs/sha256"},
+        "tenant_scope_sha256": {"$ref": "#/$defs/sha256"}, "execution_nonce_sha256": {"$ref": "#/$defs/sha256"}, "authorization_payload_sha256": {"$ref": "#/$defs/sha256"},
+        "lease_snapshot_sha256": {"$ref": "#/$defs/sha256"},
+        "reference_time": {"type": "object", "additionalProperties": false, "required": ["source", "trusted", "value"], "properties": {"source": {"const": "explicit_caller_input_for_deterministic_normative_evaluation"}, "trusted": {"const": false}, "value": {"$ref": "#/$defs/timestamp"}}},
+        "verified_roles": {"type": "array", "minItems": 2, "maxItems": 2, "items": false, "prefixItems": [
+          {"allOf": [{"$ref": "#/$defs/verified_role"}, {"properties": {
+            "domain": {"const": "tamandua.android_hardware_identity.physical_runner_authorization/v1"},
+            "kid": {"const": "ed25519-sha256-06e3fd8fda29bb60ab59557d"},
+            "role": {"const": "physical_runner_authorizer"},
+            "statement_sha256": {"const": "cf8325eb39bc58777440b93b814a83198ead33a3f819404a2fdab0a74b689c29"},
+            "verified": {"const": true}
+          }}]},
+          {"allOf": [{"$ref": "#/$defs/verified_role"}, {"properties": {
+            "domain": {"const": "tamandua.android_hardware_identity.coordinator_lease_snapshot/v1"},
+            "kid": {"const": "ed25519-sha256-deb2ded39dc26fce0e6085b6"},
+            "role": {"const": "coordinator_lease_snapshot_issuer"},
+            "statement_sha256": {"const": "686342b60e24327defbc6b228ddbc4e7776054134efff2a55d20cc33672b7a68"},
+            "verified": {"const": true}
+          }}]}
+        ]},
+        "execution": {"const": {"adb_operations": 0, "backend_operations": 0, "device_operations": 0, "executed": false, "native_key_operations": 0, "network_operations": 0}},
+        "claims": {"$ref": "#/$defs/false_claims"}, "report_payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    }
+  }
+}

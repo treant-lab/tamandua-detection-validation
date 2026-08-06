@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/maki_normalization_dry_run_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "evidence_class", "ready_for_promotion", "ready_for_training_or_holdout", "blockers", "inputs", "policy_version", "counts", "rejection_reasons", "execution", "claim_boundary", "accepted", "rejected"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-normalization-dry-run/v1"},
+    "kind": {"const": "MakiNormalizationDryRun"},
+    "evidence_class": {"const": "offline_metadata_normalization"},
+    "ready_for_promotion": {"const": false},
+    "ready_for_training_or_holdout": {"const": false},
+    "blockers": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+    "inputs": {"type": "array", "minItems": 2, "items": {"type": "object", "required": ["role", "sha256"], "properties": {"role": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}, "additionalProperties": false}},
+    "policy_version": {"type": "string", "minLength": 1},
+    "counts": {"type": "object"},
+    "rejection_reasons": {"type": "object"},
+    "execution": {"type": "object", "required": ["mode", "uses_network", "reads_sample_bodies", "copies_moves_or_deletes_objects"], "properties": {"mode": {"const": "dry_run"}, "uses_network": {"const": false}, "reads_sample_bodies": {"const": false}, "copies_moves_or_deletes_objects": {"const": false}}, "additionalProperties": false},
+    "claim_boundary": {"type": "object"},
+    "accepted": {"type": "array", "items": {"$ref": "#/$defs/record"}},
+    "rejected": {"type": "array", "items": {"$ref": "#/$defs/record"}}
+  },
+  "$defs": {
+    "record": {
+      "type": "object",
+      "required": ["sha256", "label", "source_id", "source_object_version_id", "version_id", "provenance_uri", "license_status", "curation_decision", "curation_manifest_sha256", "normalization_policy_version", "promotion_status", "normalization_decision"],
+      "properties": {
+        "sha256": {"type": ["string", "null"]},
+        "label": {"type": ["string", "null"]},
+        "source_id": {"type": ["string", "null"]},
+        "source_object_version_id": {"type": ["string", "null"]},
+        "version_id": {"type": ["string", "null"]},
+        "provenance_uri": {"type": ["string", "null"]},
+        "license_status": {"type": ["string", "null"]},
+        "curation_decision": {"type": ["string", "null"]},
+        "curation_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "normalization_policy_version": {"type": "string"},
+        "promotion_status": {"const": "not_attempted"},
+        "normalization_decision": {"enum": ["accepted_candidate", "rejected"]}
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "api_version": "tamandua.io/hist256-feature-contract/v1",
+  "contract_id": "tamandua.byte-histogram-256.v1",
+  "extractor": {
+    "algorithm": "count each byte value and divide each count by max(file_length, 1)",
+    "version": "v1",
+    "implementation_sha256": "fca88b3730f424fc0e11d14cfb9df3edb45e89accfece60f099a60396fe53b94"
+  },
+  "input": {
+    "type": "raw_bytes",
+    "max_bytes": 50000000,
+    "empty_file_policy": "256 zero values"
+  },
+  "output": {
+    "dtype": "float64",
+    "shape": [1, 256],
+    "index_order": "ascending unsigned byte value 0 through 255",
+    "range": [0.0, 1.0],
+    "normalization": "count[index] / max(file_length, 1)"
+  },
+  "contract_sha256": "2395c70fcb3cad70e3b16d8ac10d095ed3d10c1905f57f778a842df4a83d5d29"
+}

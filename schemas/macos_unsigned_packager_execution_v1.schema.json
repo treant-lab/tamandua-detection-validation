@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/macos_unsigned_packager_execution_v1.schema.json",
+  "title": "Tamandua macOS unsigned packager native execution receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "state", "native_execution_observed", "source", "runner", "toolchain", "inputs", "commands", "outputs", "v7", "race", "lifecycle", "claims"],
+  "properties": {
+    "schema_version": {"const": "tamandua.macos_unsigned_packager_execution/v1"},
+    "evidence_class": {"const": "github_hosted_unsigned_native_smoke"},
+    "state": {"const": "unsigned_native_smoke_validated"},
+    "native_execution_observed": {"const": true},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sha", "workflow_sha256", "harness_sha256", "packager_sha256", "v7_generator_sha256", "execution_schema_sha256", "execution_contract_sha256", "bootstrap_manifest_sha256", "python_requirements_sha256"],
+      "properties": {
+        "sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+        "workflow_sha256": {"$ref": "#/$defs/sha256"},
+        "harness_sha256": {"$ref": "#/$defs/sha256"},
+        "packager_sha256": {"$ref": "#/$defs/sha256"},
+        "v7_generator_sha256": {"$ref": "#/$defs/sha256"},
+        "execution_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "execution_contract_sha256": {"$ref": "#/$defs/sha256"},
+        "bootstrap_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "python_requirements_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "runner": {
+      "type": "object", "additionalProperties": false,
+      "required": ["os", "run_id", "run_attempt", "run_root_binding_sha256", "clean_checkout", "command_runner_sha256", "github_label", "architecture", "developer_dir", "sandbox_profile_sha256", "source_authority_snapshot_sha256"],
+      "properties": {
+        "os": {"const": "macOS"}, "run_id": {"type": "string", "pattern": "^[0-9]+$"},
+        "run_attempt": {"type": "string", "pattern": "^[0-9]+$"},
+        "run_root_binding_sha256": {"$ref": "#/$defs/sha256"}, "clean_checkout": {"const": true},
+        "command_runner_sha256": {"$ref": "#/$defs/sha256"},
+        "github_label": {"const": "macos-15"}, "architecture": {"const": "arm64"},
+        "developer_dir": {"const": "/Applications/Xcode_16.4.app/Contents/Developer"},
+        "sandbox_profile_sha256": {"$ref": "#/$defs/sha256"},
+        "source_authority_snapshot_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "toolchain": {
+      "type": "object", "additionalProperties": false,
+      "required": ["macos", "xcode", "macos_sdk", "python", "swift", "rustc", "cargo", "node", "npm", "jsonschema", "pyyaml"],
+      "properties": {
+        "macos": {"type": "string", "minLength": 1}, "xcode": {"const": "Xcode 16.4 | Build version 16F6"},
+        "macos_sdk": {"const": "15.5"}, "python": {"const": "Python 3.12.10"},
+        "swift": {"type": "string", "minLength": 1}, "rustc": {"type": "string", "minLength": 1},
+        "cargo": {"type": "string", "minLength": 1}, "node": {"const": "v20.19.1"},
+        "npm": {"const": "10.8.2"}, "jsonschema": {"const": "4.25.1"}, "pyyaml": {"const": "6.0.2"}
+      }
+    },
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["development_team_sha256", "base_tauri_config_sha256", "package_json_sha256", "package_lock_sha256", "tauri_cargo_toml_sha256", "tauri_cargo_lock_sha256", "source_app_inventory_sha256", "daemon_binary_sha256", "system_extension_binary_sha256", "host_entitlements_sha256", "daemon_entitlements_sha256", "system_extension_entitlements_sha256"],
+      "properties": {
+        "development_team_sha256": {"$ref": "#/$defs/sha256"}, "base_tauri_config_sha256": {"$ref": "#/$defs/sha256"},
+        "package_json_sha256": {"$ref": "#/$defs/sha256"}, "package_lock_sha256": {"$ref": "#/$defs/sha256"},
+        "tauri_cargo_toml_sha256": {"$ref": "#/$defs/sha256"}, "tauri_cargo_lock_sha256": {"$ref": "#/$defs/sha256"},
+        "source_app_inventory_sha256": {"$ref": "#/$defs/sha256"}, "daemon_binary_sha256": {"$ref": "#/$defs/sha256"},
+        "system_extension_binary_sha256": {"$ref": "#/$defs/sha256"},
+        "host_entitlements_sha256": {"$ref": "#/$defs/sha256"}, "daemon_entitlements_sha256": {"$ref": "#/$defs/sha256"},
+        "system_extension_entitlements_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "commands": {
+      "type": "array", "minItems": 8, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false, "required": ["name", "argv", "argv_sha256", "cwd", "expected_exit", "command_runner_sha256", "intent_sha256", "exit_code", "stdout", "stderr"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+          "argv": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+          "argv_sha256": {"$ref": "#/$defs/sha256"}, "cwd": {"type": "string", "minLength": 1},
+          "expected_exit": {"const": "zero"}, "command_runner_sha256": {"$ref": "#/$defs/sha256"}, "intent_sha256": {"$ref": "#/$defs/sha256"},
+          "exit_code": {"const": 0}, "stdout": {"$ref": "#/$defs/command_stream"}, "stderr": {"$ref": "#/$defs/command_stream"}
+        }
+      }
+    },
+    "outputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_inventory_sha256", "binary_evidence_sha256", "v7_receipt_sha256", "race_evidence_sha256", "sandbox_profile_sha256"],
+      "properties": {
+        "candidate_inventory_sha256": {"$ref": "#/$defs/sha256"}, "binary_evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "v7_receipt_sha256": {"$ref": "#/$defs/sha256"}, "race_evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "sandbox_profile_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "v7": {
+      "type": "object", "additionalProperties": false, "required": ["schema_version", "state", "receipt_sha256", "schema_valid"],
+      "properties": {"schema_version": {"const": "tamandua.macos_unsigned_bundle_evidence/v7"}, "state": {"const": "unsigned_candidate_validated"}, "receipt_sha256": {"$ref": "#/$defs/sha256"}, "schema_valid": {"const": true}}
+    },
+    "race": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "rename_observed", "packager_failed_closed", "packager_exit_code", "original_path_absent", "renamed_path_present", "partial_output_preserved", "stdout_sha256", "stderr_sha256", "stdout_path", "stderr_path", "argv", "argv_sha256", "intent_sha256", "command_runner_sha256"],
+      "properties": {"kind": {"const": "output_path_rename"}, "rename_observed": {"const": true}, "packager_failed_closed": {"const": true}, "packager_exit_code": {"type": "integer", "minimum": 1, "maximum": 255}, "original_path_absent": {"const": true}, "renamed_path_present": {"const": true}, "partial_output_preserved": {"const": true}, "stdout_sha256": {"$ref": "#/$defs/sha256"}, "stderr_sha256": {"$ref": "#/$defs/sha256"}, "stdout_path": {"const": "logs/race_packager.stdout"}, "stderr_path": {"const": "logs/race_packager.stderr"}, "argv": {"type": "array", "minItems": 1, "items": {"type": "string"}}, "argv_sha256": {"$ref": "#/$defs/sha256"}, "intent_sha256": {"$ref": "#/$defs/sha256"}, "command_runner_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "lifecycle": {"$ref": "#/$defs/false_lifecycle"},
+    "claims": {"$ref": "#/$defs/false_claims"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "command_stream": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bytes_total", "full_sha256", "bounded_bytes", "bounded_sha256", "bounded_path", "truncated"],
+      "properties": {
+        "bytes_total": {"type": "integer", "minimum": 0}, "full_sha256": {"$ref": "#/$defs/sha256"},
+        "bounded_bytes": {"type": "integer", "minimum": 0, "maximum": 65536}, "bounded_sha256": {"$ref": "#/$defs/sha256"},
+        "bounded_path": {"type": "string", "pattern": "^logs/[a-z0-9_]+\\.(stdout|stderr)$"}, "truncated": {"type": "boolean"}
+      }
+    },
+    "false_lifecycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["signed", "notarized", "installed", "activated", "runtime_observed", "released"],
+      "properties": {"signed": {"const": false}, "notarized": {"const": false}, "installed": {"const": false}, "activated": {"const": false}, "runtime_observed": {"const": false}, "released": {"const": false}}
+    },
+    "false_claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["identity_verified", "capability_proven", "product_ready", "production_ready", "external_claim_allowed"],
+      "properties": {"identity_verified": {"const": false}, "capability_proven": {"const": false}, "product_ready": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}}
+    }
+  }
+}

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/runtime_self_image_page_plan_receipt_v1.schema.json",
+  "title": "Tamandua Runtime Self Image Page Plan Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_class",
+    "target",
+    "build_command_id",
+    "artifact_sha256_before",
+    "artifact_sha256_after",
+    "artifact_size",
+    "planner_source_sha256",
+    "harness_sha256",
+    "format",
+    "page_size",
+    "eligible_pages",
+    "executable_file_backed_bytes",
+    "relocation_excluded_pages",
+    "eligible_bytes",
+    "bounds",
+    "claims"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "tamandua.runtime_self_image_page_plan_receipt/v1"
+    },
+    "evidence_class": {
+      "const": "owned-artifact-static-smoke"
+    },
+    "target": {
+      "const": "x86_64-pc-windows-msvc"
+    },
+    "build_command_id": {
+      "const": "cargo-release-windows-x86_64-msvc"
+    },
+    "artifact_sha256_before": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "artifact_sha256_after": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "planner_source_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "harness_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "format": {
+      "const": "pe64-amd64"
+    },
+    "page_size": {
+      "type": "integer",
+      "const": 4096
+    },
+    "artifact_size": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 67108864
+    },
+    "eligible_pages": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 8192
+    },
+    "executable_file_backed_bytes": {
+      "type": "integer",
+      "minimum": 4096,
+      "maximum": 67108864
+    },
+    "relocation_excluded_pages": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 16384
+    },
+    "eligible_bytes": {
+      "type": "integer",
+      "minimum": 4096,
+      "maximum": 33554432
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_input_bytes", "max_eligible_bytes"],
+      "properties": {
+        "max_input_bytes": {"const": 67108864},
+        "max_eligible_bytes": {"const": 33554432}
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "live_memory_compared",
+        "telemetry_emitted",
+        "runtime_detection_proven",
+        "release_authority",
+        "external_claim_allowed"
+      ],
+      "properties": {
+        "live_memory_compared": {"const": false},
+        "telemetry_emitted": {"const": false},
+        "runtime_detection_proven": {"const": false},
+        "release_authority": {"const": false},
+        "external_claim_allowed": {"const": false}
+      }
+    }
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "schema": "tamandua.anti_cheat.server_movement_replay_fixture/v1",
+  "evidence_class": "synthetic_contract",
+  "claim_boundary": {
+    "production_fpr_claimable": false,
+    "live_server_validated": false,
+    "enforcement_authorized": false,
+    "external_claim_allowed": false
+  },
+  "tenant_scope_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+  "build_digest": "2222222222222222222222222222222222222222222222222222222222222222",
+  "policy": {
+    "schema": "tamandua.anti_cheat.server_movement_policy/v1",
+    "policy_id": "sample.server.movement",
+    "policy_version": "1",
+    "tick_rate_hz": 60,
+    "max_speed_mm_per_second": 6000,
+    "tolerance_mm": 10,
+    "max_gap_ticks": 6,
+    "authorized_transitions": [
+      {"kind": "dash", "authorization_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "max_displacement_mm": 1200, "max_gap_ticks": 2},
+      {"kind": "teleport", "authorization_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "max_displacement_mm": 1000000, "max_gap_ticks": 1}
+    ]
+  },
+  "policy_digest": "5761d9c08930bd7581a1a42c34b639d70eb1e78202e444a1c97f444b98173d9c",
+  "clean_strata": [
+    {"name": "vanilla", "count": 598, "step_mm": 100, "extension": null},
+    {"name": "approved_mod", "count": 598, "step_mm": 100, "extension": {"namespace": "sample.approved_mod", "approval": "approved", "payload_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}},
+    {"name": "approved_accessibility", "count": 598, "step_mm": 100, "extension": {"namespace": "sample.approved_accessibility", "approval": "approved", "payload_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"}}
+  ],
+  "authorized_teleport": {"name": "authorized_teleport", "count": 1, "step_mm": 500000, "transition_kind": "teleport", "authorization_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"},
+  "speed_violation": {"name": "speed_violation", "count": 100, "step_mm": 1000},
+  "gap_inconclusive": {"name": "gap_inconclusive", "count": 1, "step_mm": 100, "gap_ticks": 7}
+}

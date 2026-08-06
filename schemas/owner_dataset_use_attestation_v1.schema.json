@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/owner_dataset_use_attestation_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "attestation_kind", "owner_authority", "review_id", "attested_at", "provenance_uri", "review_package_sha256", "scope", "decision", "approved_usage", "usage_status", "legal_license_conclusion", "redistribution_approval", "claim_boundary", "attestation"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/owner-dataset-use-attestation/v1"},
+    "attestation_kind": {"const": "owner_dataset_use_approval"},
+    "owner_authority": {"type": "string", "minLength": 1},
+    "review_id": {"type": "string", "minLength": 1},
+    "attested_at": {"type": "string", "format": "date-time"},
+    "provenance_uri": {"type": "string", "minLength": 1},
+    "review_package_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scope": {"type": "object", "required": ["member_count", "canonical_membership_sha256", "membership_algorithm"], "properties": {"member_count": {"type": "integer", "minimum": 1}, "canonical_membership_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "membership_algorithm": {"const": "sha256(canonical-json(sorted(unique(sample.sha256))))"}}, "additionalProperties": false},
+    "decision": {"const": "approved"},
+    "approved_usage": {"const": ["ml_training"]},
+    "usage_status": {"const": "approved_for_ml_training"},
+    "legal_license_conclusion": {"const": false},
+    "redistribution_approval": {"const": false},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "attestation": {"type": "object", "required": ["method", "canonical_payload_sha256"], "properties": {"method": {"const": "sha256"}, "canonical_payload_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}, "additionalProperties": false}
+  },
+  "additionalProperties": false
+}

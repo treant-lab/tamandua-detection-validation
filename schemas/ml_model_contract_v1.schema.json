@@ -157,7 +157,7 @@
           "items": {"type": "string", "minLength": 1}
         },
         "empty_input_policy": {"const": "zero_tensor"},
-        "normalization": {"const": "byte_div_255"},
+        "normalization": {"const": "byte_div_255_then_mean_0_5_std_0_5"},
         "channel_policy": {"const": "replicate_grayscale_to_rgb"}
       }
     },

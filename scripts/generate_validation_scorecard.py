@@ -547,7 +547,14 @@ def infer_timestamp(path: Path, report: dict[str, Any]) -> str:
 
 
 def profile_id(report: dict[str, Any]) -> str:
-    profile = report.get("profile") or {}
+    profile = report.get("profile")
+    if not isinstance(profile, dict):
+        # Legacy / non-scorecard run artifacts may carry a bare string (or
+        # otherwise non-dict) "profile" field. Treat them as having no
+        # scorecard profile so they are skipped as non-scorecard artifacts
+        # (fail-safe skip: never counted as a passing run) instead of
+        # crashing the whole refresh.
+        profile = {}
     return str(report.get("profile_id") or profile.get("profile_id") or "")
 
 

@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/runtime_trust_capability_matrix_v1.schema.json",
+  "title": "Tamandua Runtime Trust Capability Matrix v1",
+  "type": "object",
+  "required": ["schema", "matrix_version", "generated_from", "external_claim_allowed", "entries"],
+  "properties": {
+    "schema": {"const": "tamandua.runtime_trust.capability_matrix/v1"},
+    "matrix_version": {"type": "string", "minLength": 1, "maxLength": 64},
+    "generated_from": {"const": "source_review"},
+    "external_claim_allowed": {"const": false},
+    "entries": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "required": ["profile", "platform", "target_scope", "state", "evidence_status", "required_signal_ids", "limitations", "source_paths"],
+        "properties": {
+          "profile": {"enum": ["mobile_app_guard", "desktop_app_guard", "web_guard", "anti_cheat"]},
+          "platform": {"enum": ["android", "ios", "windows", "linux", "macos", "web"]},
+          "target_scope": {"enum": ["embedded_mobile_app", "embedded_desktop_app", "web_session", "game_client"]},
+          "state": {"enum": ["supported", "degraded", "unsupported", "not_applicable"]},
+          "evidence_status": {"enum": ["implemented", "source_validated", "physical_lab", "governed", "unsupported", "not_applicable"]},
+          "detector_bundle": {
+            "type": "object",
+            "required": ["bundle_id", "bundle_version", "contract_digest", "binding_status"],
+            "properties": {
+              "bundle_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$"},
+              "bundle_version": {"type": "string", "minLength": 1, "maxLength": 64},
+              "contract_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+              "binding_status": {"const": "contract_only"}
+            },
+            "additionalProperties": false
+          },
+          "required_signal_ids": {
+            "type": "array",
+            "maxItems": 64,
+            "uniqueItems": true,
+            "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,95}$"}
+          },
+          "limitations": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 32,
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1, "maxLength": 256}
+          },
+          "source_paths": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 32,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "pattern": "^(?!.*(?:^|/)\\.\\.?(/|$))[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

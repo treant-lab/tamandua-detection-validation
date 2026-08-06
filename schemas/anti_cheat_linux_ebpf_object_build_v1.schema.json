@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/anti_cheat_linux_ebpf_object_build_v1.schema.json",
+  "title": "Tamandua canonical Linux eBPF object source/build preflight v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "observed_at", "state", "source", "build", "object", "lifecycle", "claims", "blockers"],
+  "properties": {
+    "schema_version": {"const": "tamandua.anti_cheat_linux_ebpf_object_build/v1"},
+    "evidence_class": {"const": "local_source_build_preflight"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "state": {"enum": ["source_invalid", "toolchain_unavailable", "build_failed", "object_invalid", "artifact_observed_unbound"]},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_policy_sha256", "validator_authority_external", "files", "live_post_files", "snapshot_files", "retained_snapshot", "snapshot_isolated", "live_sources_unchanged", "build_input", "lsm_hooks", "program_sections", "attach_plan", "vmlinux_header_role", "problems"],
+      "properties": {
+        "source_policy_sha256": {"const": "05659ad33cf6aabff94ea790f675eb907147936a6ab54d1abb596e98919798c6"},
+        "validator_authority_external": {"const": false},
+        "files": {"type": "object", "additionalProperties": {"$ref": "#/$defs/fileIdentity"}},
+        "live_post_files": {"type": "object", "additionalProperties": {"$ref": "#/$defs/fileIdentity"}},
+        "snapshot_files": {"type": "object", "additionalProperties": {"$ref": "#/$defs/fileIdentity"}},
+        "retained_snapshot": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/retainedSnapshot"}]},
+        "snapshot_isolated": {"type": "boolean"},
+        "live_sources_unchanged": {"type": "boolean"},
+        "build_input": {"enum": ["none", "isolated_snapshot"]},
+        "lsm_hooks": {"const": ["bprm_check_security", "file_open", "file_permission", "mmap_file", "ptrace_access_check", "sb_mount", "socket_bind", "socket_connect", "task_kill"]},
+        "program_sections": {"const": ["lsm/bprm_check_security", "lsm/file_open", "lsm/file_permission", "lsm/mmap_file", "lsm/ptrace_access_check", "lsm/sb_mount", "lsm/socket_bind", "lsm/socket_connect", "lsm/task_kill", "tracepoint/module/module_load", "tracepoint/syscalls/sys_enter_mount"]},
+        "attach_plan": {
+          "const": {
+            "required_non_mount": [
+              ["lsm/bprm_check_security", "lsm_bprm_check_security", "lsm", "bprm_check_security"],
+              ["lsm/file_open", "lsm_file_open", "lsm", "file_open"],
+              ["lsm/file_permission", "lsm_file_permission", "lsm", "file_permission"],
+              ["lsm/mmap_file", "lsm_mmap_file", "lsm", "mmap_file"],
+              ["lsm/ptrace_access_check", "lsm_ptrace_access_check", "lsm", "ptrace_access_check"],
+              ["lsm/socket_bind", "lsm_socket_bind", "lsm", "socket_bind"],
+              ["lsm/socket_connect", "lsm_socket_connect", "lsm", "socket_connect"],
+              ["lsm/task_kill", "lsm_task_kill", "lsm", "task_kill"]
+            ],
+            "mount_alternatives": [
+              ["lsm/sb_mount", "lsm_sb_mount", "lsm", "sb_mount"],
+              ["tracepoint/syscalls/sys_enter_mount", "tp_sys_enter_mount", "tracepoint", "syscalls/sys_enter_mount"]
+            ],
+            "required_attach_count": 10
+          }
+        },
+        "vmlinux_header_role": {"const": "development_compile_stub_not_kernel_btf_proof"},
+        "problems": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "build": {
+      "type": "object", "additionalProperties": false,
+      "required": ["attempted", "outcome", "isolated_output", "toolchain", "missing_tools", "exit_code", "stdout", "stderr"],
+      "properties": {
+        "attempted": {"type": "boolean"},
+        "outcome": {"enum": ["not_attempted", "exited", "timed_out", "spawn_failed", "termination_failed"]},
+        "isolated_output": {"const": true},
+        "toolchain": {"oneOf": [{"const": {}}, {"$ref": "#/$defs/toolchain"}]},
+        "missing_tools": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "exit_code": {"type": ["integer", "null"]},
+        "stdout": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/stream"}]},
+        "stderr": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/stream"}]}
+      }
+    },
+    "object": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/objectValid"}, {"$ref": "#/$defs/objectError"}]},
+    "lifecycle": {"$ref": "#/$defs/lifecycle"},
+    "claims": {"$ref": "#/$defs/claims"},
+    "blockers": {"const": ["build_execution_authenticity_unbound", "kernel_verifier_unexecuted", "validator_authority_external", "real_kernel_btf_compatibility_not_validated", "load_not_executed", "attach_not_executed", "ring_buffer_runtime_not_observed", "privileged_kernel_execution_not_authorized", "efficacy_not_validated"]}
+  },
+  "allOf": [
+    {"if": {"properties": {"state": {"const": "source_invalid"}}}, "then": {"properties": {"source": {"properties": {"problems": {"minItems": 1}}}, "object": {"type": "null"}}}},
+    {"if": {"properties": {"state": {"const": "toolchain_unavailable"}}}, "then": {"properties": {"source": {"properties": {"problems": {"maxItems": 0}}}, "build": {"properties": {"attempted": {"const": false}, "outcome": {"const": "not_attempted"}, "missing_tools": {"minItems": 1}, "exit_code": {"type": "null"}, "stdout": {"type": "null"}, "stderr": {"type": "null"}}}, "object": {"type": "null"}}}},
+    {"if": {"properties": {"state": {"const": "build_failed"}}}, "then": {"properties": {"source": {"properties": {"problems": {"maxItems": 0}}}, "build": {"allOf": [{"properties": {"attempted": {"const": true}, "toolchain": {"$ref": "#/$defs/toolchain"}, "missing_tools": {"maxItems": 0}, "stdout": {"$ref": "#/$defs/stream"}, "stderr": {"$ref": "#/$defs/stream"}}}, {"oneOf": [{"properties": {"outcome": {"const": "exited"}, "exit_code": {"type": "integer", "not": {"const": 0}}}}, {"properties": {"outcome": {"enum": ["timed_out", "spawn_failed", "termination_failed"]}, "exit_code": {"type": "null"}}}]}]}, "object": {"type": "null"}}}},
+    {"if": {"properties": {"state": {"const": "object_invalid"}}}, "then": {"properties": {"source": {"properties": {"problems": {"maxItems": 0}}}, "build": {"properties": {"attempted": {"const": true}, "outcome": {"const": "exited"}, "toolchain": {"$ref": "#/$defs/toolchain"}, "missing_tools": {"maxItems": 0}, "exit_code": {"const": 0}, "stdout": {"$ref": "#/$defs/stream"}, "stderr": {"$ref": "#/$defs/stream"}}}, "object": {"$ref": "#/$defs/objectError"}}}},
+    {"if": {"properties": {"state": {"const": "artifact_observed_unbound"}}}, "then": {"properties": {"source": {"properties": {"problems": {"maxItems": 0}}}, "build": {"properties": {"attempted": {"const": true}, "outcome": {"const": "exited"}, "toolchain": {"$ref": "#/$defs/toolchain"}, "missing_tools": {"maxItems": 0}, "exit_code": {"const": 0}, "stdout": {"$ref": "#/$defs/stream"}, "stderr": {"$ref": "#/$defs/stream"}}}, "object": {"$ref": "#/$defs/objectValid"}}}},
+    {"if": {"properties": {"state": {"enum": ["toolchain_unavailable", "build_failed", "object_invalid", "artifact_observed_unbound"]}}}, "then": {"properties": {"source": {"properties": {"files": {"minProperties": 1}, "live_post_files": {"minProperties": 1}, "snapshot_files": {"minProperties": 1}, "retained_snapshot": {"$ref": "#/$defs/retainedSnapshot"}, "snapshot_isolated": {"const": true}, "live_sources_unchanged": {"const": true}, "build_input": {"const": "isolated_snapshot"}}}}}}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "fileIdentity": {"type": "object", "additionalProperties": false, "required": ["sha256", "bytes", "device", "inode", "mtime_ns"], "properties": {"sha256": {"$ref": "#/$defs/sha256"}, "bytes": {"type": "integer", "minimum": 1}, "device": {"type": "integer", "minimum": 0}, "inode": {"type": "integer", "minimum": 0}, "mtime_ns": {"type": "integer", "minimum": 0}}},
+    "namedDigests": {"type": "object", "additionalProperties": false, "required": ["make", "clang", "llvm-strip", "llvm-readelf", "sha256sum"], "properties": {"make": {"$ref": "#/$defs/sha256"}, "clang": {"$ref": "#/$defs/sha256"}, "llvm-strip": {"$ref": "#/$defs/sha256"}, "llvm-readelf": {"$ref": "#/$defs/sha256"}, "sha256sum": {"$ref": "#/$defs/sha256"}}},
+    "namedPaths": {"type": "object", "additionalProperties": false, "required": ["make", "clang", "llvm-strip", "llvm-readelf", "sha256sum"], "properties": {"make": {"type": "string", "pattern": "^/"}, "clang": {"type": "string", "pattern": "^/"}, "llvm-strip": {"type": "string", "pattern": "^/"}, "llvm-readelf": {"type": "string", "pattern": "^/"}, "sha256sum": {"type": "string", "pattern": "^/"}}},
+    "headerIdentity": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"type": "string", "pattern": "^/usr/include/bpf/"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "toolchain": {"type": "object", "additionalProperties": false, "required": ["paths", "sha256", "clang_version", "libbpf_headers"], "properties": {"paths": {"$ref": "#/$defs/namedPaths"}, "sha256": {"$ref": "#/$defs/namedDigests"}, "clang_version": {"type": "string", "minLength": 1, "maxLength": 512}, "libbpf_headers": {"type": "object", "additionalProperties": false, "required": ["bpf_helpers.h", "bpf_tracing.h"], "properties": {"bpf_helpers.h": {"$ref": "#/$defs/headerIdentity"}, "bpf_tracing.h": {"$ref": "#/$defs/headerIdentity"}}}}},
+    "retainedFile": {"type": "object", "additionalProperties": false, "required": ["file_type", "sha256", "bytes", "data_base64"], "properties": {"file_type": {"const": "regular"}, "sha256": {"$ref": "#/$defs/sha256"}, "bytes": {"type": "integer", "minimum": 1, "maximum": 2097152}, "data_base64": {"type": "string", "minLength": 4, "maxLength": 2796204}}},
+    "retainedSnapshot": {"type": "object", "additionalProperties": false, "required": ["manifest_format", "manifest_sha256", "files"], "properties": {"manifest_format": {"const": "tamandua.snapshot-manifest.canonical-json/v1"}, "manifest_sha256": {"$ref": "#/$defs/sha256"}, "files": {"type": "object", "minProperties": 1, "maxProperties": 8, "additionalProperties": {"$ref": "#/$defs/retainedFile"}}}},
+    "stream": {"type": "object", "additionalProperties": false, "required": ["bytes_total", "full_sha256", "bounded_bytes", "bounded_sha256", "retained_base64", "evidence", "truncated"], "properties": {"bytes_total": {"type": ["integer", "null"], "minimum": 0}, "full_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]}, "bounded_bytes": {"type": "integer", "minimum": 0, "maximum": 65536}, "bounded_sha256": {"$ref": "#/$defs/sha256"}, "retained_base64": {"type": "string", "maxLength": 87384}, "evidence": {"enum": ["retained_full_bytes", "retained_bounded_prefix_only"]}, "truncated": {"type": "boolean"}}, "allOf": [{"if": {"properties": {"truncated": {"const": false}}}, "then": {"properties": {"bytes_total": {"type": "integer"}, "full_sha256": {"$ref": "#/$defs/sha256"}, "evidence": {"const": "retained_full_bytes"}}}}, {"if": {"properties": {"truncated": {"const": true}}}, "then": {"properties": {"bytes_total": {"type": "null"}, "full_sha256": {"type": "null"}, "evidence": {"const": "retained_bounded_prefix_only"}}}}]},
+    "objectValid": {"type": "object", "additionalProperties": false, "required": ["filename", "sha256", "bytes", "retained_base64", "elf"], "properties": {"filename": {"const": "tamandua_linux.bpf.o"}, "sha256": {"$ref": "#/$defs/sha256"}, "bytes": {"type": "integer", "minimum": 1, "maximum": 16777216}, "retained_base64": {"type": "string", "minLength": 4, "maxLength": 22369624}, "elf": {"type": "object", "additionalProperties": false, "required": ["class", "endianness", "type", "machine", "program_sections", "structural_checks"], "properties": {"class": {"const": "ELF64"}, "endianness": {"const": "little"}, "type": {"const": "ET_REL"}, "machine": {"const": "EM_BPF"}, "program_sections": {"const": ["lsm/bprm_check_security", "lsm/file_open", "lsm/file_permission", "lsm/mmap_file", "lsm/ptrace_access_check", "lsm/sb_mount", "lsm/socket_bind", "lsm/socket_connect", "lsm/task_kill", "tracepoint/module/module_load", "tracepoint/syscalls/sys_enter_mount"]}, "structural_checks": {"const": {"executable_payloads": "nonempty_bounded_in_file_nonoverlapping", "symbols": "single_bounded_linked_symtab", "relocations": "bounded_exact_program_targets", "license": "present_bounded", "maps": "present_bounded", "kernel_verifier": "unexecuted"}}}}}},
+    "objectError": {"type": "object", "additionalProperties": false, "required": ["error"], "properties": {"error": {"type": "string", "minLength": 1, "maxLength": 1024}}},
+    "lifecycle": {"type": "object", "additionalProperties": false, "required": ["verifier_executed", "loaded", "attached", "privileged", "kernel_mutated", "deployed"], "properties": {"verifier_executed": {"const": false}, "loaded": {"const": false}, "attached": {"const": false}, "privileged": {"const": false}, "kernel_mutated": {"const": false}, "deployed": {"const": false}}},
+    "claims": {"type": "object", "additionalProperties": false, "required": ["verifier_validated", "kernel_btf_compatible", "loaded", "attached", "runtime_observed", "efficacy_validated", "production_ready", "external_claim_allowed"], "properties": {"verifier_validated": {"const": false}, "kernel_btf_compatible": {"const": false}, "loaded": {"const": false}, "attached": {"const": false}, "runtime_observed": {"const": false}, "efficacy_validated": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}}}
+  }
+}

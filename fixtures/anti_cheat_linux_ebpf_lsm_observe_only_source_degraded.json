@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "evidence_class": "static_source_inventory",
+  "observed_at": "2026-07-17T18:00:00Z",
+  "capability_state": "degraded_unproven",
+  "sources": {
+    "rust": {"path": "apps/tamandua_agent/ebpf-programs/src/main.rs", "sha256": "2a387e9c66cf1e5c64c9304f655fa068a7339420a939d22f085e8b3df345b812", "hooks": ["bprm_check_security", "file_open", "file_permission", "mmap_file", "socket_bind", "socket_connect", "task_kill"]},
+    "c": {"path": "apps/tamandua_agent/bpf/lsm_hooks.bpf.c", "sha256": "d60f1773f39961268eee325991885ca383e3793100fccaf09b2b376e9d9d3590", "hooks": ["bprm_check_security", "file_open", "file_permission", "mmap_file", "ptrace_access_check", "sb_mount", "socket_bind", "socket_connect", "task_kill"]}
+  },
+  "assessment": {"prior_lsm_decision_preserved": false, "decisive_behavior_assessment": "not_formally_proven"},
+  "lifecycle": {"runtime_state": "not_executed", "load_requested": false, "load_authorized": false, "attach_requested": false, "attach_authorized": false, "enforcement_requested": false, "enforcement_authorized": false},
+  "claims": {"build_validated": false, "load_validated": false, "kernel_compatibility_validated": false, "efficacy_validated": false, "production_ready": false, "external_claim_allowed": false},
+  "blockers": ["prior_lsm_decision_not_preserved", "decisive_behavior_not_formally_proven"]
+}

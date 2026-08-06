@@ -1,0 +1,32 @@
+{
+  "authority": "tamandua-ai-runtime-integrity-v2",
+  "canonicalization": "tmnd-tree-v1",
+  "algorithm": "sha-256",
+  "evidence_class": "contract_smoke",
+  "maturity": "experimental",
+  "claims": {"product_ready": false, "release_ready": false, "production_ready": false, "external_claims_allowed": false},
+  "primitive_vectors": [
+    {"name": "null", "value": null, "canonical_hex": "00"},
+    {"name": "false", "value": false, "canonical_hex": "01"},
+    {"name": "true", "value": true, "canonical_hex": "02"},
+    {"name": "i64-negative", "value": -2, "canonical_hex": "03fffffffffffffffe"},
+    {"name": "i64-positive", "value": 42, "canonical_hex": "03000000000000002a"},
+    {"name": "utf8", "value": "Tamanduá", "canonical_hex": "04000000000000000954616d616e6475c3a1"},
+    {"name": "array", "value": [null, true, 7, "x"], "canonical_hex": "050000000000000004000203000000000000000704000000000000000178"},
+    {"name": "object-utf8-key-order", "value": {"z": 1, "a": "á"}, "canonical_hex": "06000000000000000204000000000000000161040000000000000002c3a10400000000000000017a030000000000000001"}
+  ],
+  "multi_chunk_manifest": {
+    "units": [
+      {"sequence": 1, "event_id": "vector-event-1", "event_type": "message", "event_digest": "ce36863f51b6baf9d16397ffb3e9af506b284a816f72d487e55943c1fd974d6d", "raw_evidence_sha256": "e72e2581cffd8fef935b300f398a5a18bcb730d59ebd2fc267c5dfd7d5fe149e", "normalized_sha256": "85fb9511de7addbaec1efdff1bf9d1b936d83e8c085383bd4bbeebaa68a9a908", "chunk_id": "vector-chunk-assembly", "chunk_index": 0, "chunk_count": 2, "chunk_content_sha256": "a5779baaf034e926df934546a0a4a1ffe6dadbda4a2d00a34e162f4f92666a86", "full_content_sha256": "ad75b988ebc23bb94926555e6e491c65859daaa4a1cd7e027aed7ed1444d922c", "full_content_byte_length": 11},
+      {"sequence": 2, "event_id": "vector-event-2", "event_type": "message", "event_digest": "b4e3d14e7519279e6a352f776d75a905a9de9a27efdb6d802fe4e700224ade2e", "raw_evidence_sha256": "335dd07e171725cf337cc75777beadb91a5c56bd1df7eca8b936eb65b243911f", "normalized_sha256": "343b1b549ee7f0313c223998d878a6e1848001e63da09afcb9437dea7390723a", "chunk_id": "vector-chunk-assembly", "chunk_index": 1, "chunk_count": 2, "chunk_content_sha256": "304b4a90a76a1cbe4c112e074b30e75181f54df43d60f883597457844293b341", "full_content_sha256": "ad75b988ebc23bb94926555e6e491c65859daaa4a1cd7e027aed7ed1444d922c", "full_content_byte_length": 11}
+    ],
+    "assemblies": [{"chunk_id": "vector-chunk-assembly", "chunk_count": 2, "sequences": [1, 2], "chunk_content_sha256s": ["a5779baaf034e926df934546a0a4a1ffe6dadbda4a2d00a34e162f4f92666a86", "304b4a90a76a1cbe4c112e074b30e75181f54df43d60f883597457844293b341"], "full_content_sha256": "ad75b988ebc23bb94926555e6e491c65859daaa4a1cd7e027aed7ed1444d922c", "full_content_byte_length": 11}],
+    "manifest": {"version": 1, "unit_count": 2, "assembly_count": 1, "units_sha256": "5378ae254a77d1a75ff091ad8c432fca3ab38a97d8a94a1d22646a9dad6d58f5", "assemblies_sha256": "668119dc57df96f789cb3f379565df33719f9bbddc7d7aebbc8ab89a87a0337f"},
+    "manifest_sha256": "03b0e09e7b5b886aadafc7e78039852cc828d87446bdfbe39173315896f2edc3"
+  },
+  "provider_vectors": [
+    {"provider": "codex", "event_file": "ai_agent_runtime_codex_event_v2.json", "snapshot_file": "ai_agent_runtime_codex_snapshot_v2.json", "canonical_event_sha256": "a5f1b2d0d017eaed5a7d49c72c42a48f4d824aca1df789439e9cad6697b96c20", "event_digest": "a604a4dd99401b0fe79de0322a849624557734daf83964e64b27a1d659b2cde1", "snapshot_digest": "674f5cf9c093461c363fddada4778e39f8cd19676fc9527ab276a06fb9aba27d"},
+    {"provider": "claude", "event_file": "ai_agent_runtime_claude_event_v2.json", "snapshot_file": "ai_agent_runtime_claude_snapshot_v2.json", "canonical_event_sha256": "3089e48619c6d390ef24849cf384c7a473a92f0514e0ab993d4bc45a0bd705a0", "event_digest": "4c01ca547f1013e93acf82f5f29f22e569fa72068a06b539042d072efa3f9985", "snapshot_digest": "98d3e8cf8ddf656bd5fd00a932e146776f6379faa15799cda26237727462ad34"},
+    {"provider": "opencode", "event_file": "ai_agent_runtime_opencode_event_v2.json", "snapshot_file": "ai_agent_runtime_opencode_snapshot_v2.json", "canonical_event_sha256": "674651ff21f774398130240a5dac2c8257faf41722eaafad6e2c0112656d4756", "event_digest": "d3819561844144c5ef5624b18aca12369e0ba1f0df3a001922a316cf2fe26d53", "snapshot_digest": "afad6ab69ccdb9c0b732333367a6f4babc91985153e3d524366b7ddd0296c2b8"}
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/maki_metadata_reconciliation_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "evidence_class", "ready_for_promotion", "ready_for_training_or_holdout", "blockers", "inputs", "counts", "rejection_reasons", "execution", "claim_boundary", "accepted_candidates", "rejected"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-metadata-reconciliation/v1"},
+    "kind": {"const": "MakiMetadataReconciliation"},
+    "evidence_class": {"const": "offline_metadata_reconciliation"},
+    "ready_for_promotion": {"const": false},
+    "ready_for_training_or_holdout": {"const": false},
+    "blockers": {"type": "array", "minItems": 2, "uniqueItems": true, "items": {"type": "string"}},
+    "inputs": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "object", "required": ["role", "sha256"], "properties": {"role": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}, "additionalProperties": false}},
+    "counts": {"type": "object", "required": ["input", "accepted_candidates", "rejected"], "properties": {"input": {"type": "integer", "minimum": 0}, "accepted_candidates": {"type": "integer", "minimum": 0}, "rejected": {"type": "integer", "minimum": 0}}, "additionalProperties": false},
+    "rejection_reasons": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1}},
+    "execution": {"type": "object", "required": ["mode", "uses_network", "reads_sample_bodies", "mutates_object_storage", "concludes_license_automatically"], "properties": {"mode": {"const": "offline_read_only"}, "uses_network": {"const": false}, "reads_sample_bodies": {"const": false}, "mutates_object_storage": {"const": false}, "concludes_license_automatically": {"const": false}}, "additionalProperties": false},
+    "claim_boundary": {"type": "object"},
+    "accepted_candidates": {"type": "array", "items": {"$ref": "#/$defs/candidate"}},
+    "rejected": {"type": "array", "items": {"$ref": "#/$defs/rejected"}}
+  },
+  "$defs": {
+    "identity": {"type": "object", "required": ["sha256", "label", "source_id", "source_object_key", "curation_manifest_sha256"], "properties": {"sha256": {"type": ["string", "null"]}, "label": {"type": ["string", "null"]}, "source_id": {"type": ["string", "null"]}, "source_object_key": {"type": ["string", "null"]}, "curation_manifest_sha256": {"type": ["string", "null"]}}, "additionalProperties": true},
+    "candidate": {"allOf": [{"$ref": "#/$defs/identity"}, {"type": "object", "required": ["source_object_version_id", "version_id", "provenance_uri", "license_status", "license_review_id", "license_evidence_uri", "normalization_report_sha256", "inventory_receipt_sha256", "license_review_manifest_sha256", "promotion_status", "reconciliation_decision"], "properties": {"source_object_version_id": {"type": "string", "minLength": 1}, "version_id": {"type": "string", "minLength": 1}, "provenance_uri": {"type": "string", "minLength": 1}, "license_status": {"type": "string", "minLength": 1}, "license_review_id": {"type": "string", "minLength": 1}, "license_evidence_uri": {"type": "string", "minLength": 1}, "normalization_report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "inventory_receipt_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "license_review_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "promotion_status": {"const": "not_attempted"}, "reconciliation_decision": {"const": "accepted_candidate"}}}]},
+    "rejected": {"allOf": [{"$ref": "#/$defs/identity"}, {"type": "object", "required": ["reconciliation_decision", "blockers"], "properties": {"reconciliation_decision": {"const": "rejected"}, "blockers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}}}]}
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/agentic_restore_authority_receipt_v1.schema.json",
+  "title": "Tamandua agentic restore authority verification receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_sha", "verification_sql_sha256", "bootstrap_sql_sha256", "verified_at", "inputs", "result"],
+  "properties": {
+    "schema_version": {"const": "tamandua.agentic-restore-authority-receipt.v1"},
+    "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "verification_sql_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "bootstrap_sql_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "verified_at": {"type": "string", "format": "date-time"},
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["agentic_restore_login", "runtime_login", "migrator_login", "retention_authority_login", "owner_role", "executor_role", "function_signature", "snapshot_version", "maximum_limit"],
+      "properties": {
+        "agentic_restore_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "runtime_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "migrator_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "retention_authority_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "owner_role": {"const": "tamandua_authority_agentic_restore_v1_owner"},
+        "executor_role": {"const": "tamandua_authority_agentic_restore_v1_executor"},
+        "function_signature": {"const": "public.authority_agentic_restore_v1_organization_ids(integer,integer)"},
+        "snapshot_version": {"const": 1},
+        "maximum_limit": {"const": 500}
+      }
+    },
+    "result": {
+      "type": "object", "additionalProperties": false, "required": ["verified"],
+      "properties": {
+        "verified": {"type": "boolean"},
+        "server_version_num": {"type": "integer", "minimum": 160000},
+        "database": {"type": "string", "minLength": 1, "maxLength": 63},
+        "system_identifier": {"type": "string", "pattern": "^[0-9]+$"},
+        "bootstrap_session_role": {"type": "string", "minLength": 1, "maxLength": 63},
+        "error": {"type": "string", "maxLength": 512}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"result": {"properties": {"verified": {"const": true}}}}},
+      "then": {"properties": {"result": {"required": ["verified", "server_version_num", "database", "system_identifier", "bootstrap_session_role"]}}},
+      "else": {"properties": {"result": {"required": ["verified", "error"]}}}
+    }
+  ]
+}

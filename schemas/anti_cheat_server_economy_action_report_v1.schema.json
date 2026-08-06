@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/anti_cheat_server_economy_action_report_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "report_id", "fixture_sha256", "replay_schema_sha256", "report_schema_sha256", "policy_digest", "replay_digest", "counts", "clean_strata", "cp_upper_bound_contract", "claims"],
+  "properties": {
+    "schema": {"const": "tamandua.anti_cheat.server_economy_action_report/v1"},
+    "report_id": {"$ref": "#/$defs/digest"},
+    "fixture_sha256": {"$ref": "#/$defs/digest"},
+    "replay_schema_sha256": {"$ref": "#/$defs/digest"},
+    "report_schema_sha256": {"$ref": "#/$defs/digest"},
+    "policy_digest": {"$ref": "#/$defs/digest"},
+    "replay_digest": {"$ref": "#/$defs/digest"},
+    "counts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["total", "within_constraints", "economy_violation", "action_violation", "inconclusive_gap", "inconclusive_conflict"],
+      "properties": {"total": {"const": 2054}, "within_constraints": {"const": 1794}, "economy_violation": {"const": 80}, "action_violation": {"const": 120}, "inconclusive_gap": {"const": 30}, "inconclusive_conflict": {"const": 30}}
+    },
+    "clean_strata": {"type": "array", "minItems": 3, "maxItems": 3, "prefixItems": [
+      {"$ref": "#/$defs/vanilla_stratum"}, {"$ref": "#/$defs/mod_stratum"}, {"$ref": "#/$defs/accessibility_stratum"}
+    ], "items": false},
+    "cp_upper_bound_contract": {"type": "object", "additionalProperties": false, "required": ["method", "confidence_numerator", "confidence_denominator", "integer_exact"], "properties": {"method": {"const": "clopper_pearson_zero_failures_one_sided"}, "confidence_numerator": {"const": 95}, "confidence_denominator": {"const": 100}, "integer_exact": {"const": true}}},
+    "claims": {"type": "object", "additionalProperties": false, "required": ["production_fpr_claimable", "live_server_validated", "enforcement_authorized", "external_claim_allowed"], "properties": {"production_fpr_claimable": {"const": false}, "live_server_validated": {"const": false}, "enforcement_authorized": {"const": false}, "external_claim_allowed": {"const": false}}}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "stratum": {"type": "object", "additionalProperties": false, "required": ["name", "samples", "false_positives", "cp_one_sided_95_upper_ppm"], "properties": {"name": {"type": "string"}, "samples": {"const": 598}, "false_positives": {"const": 0}, "cp_one_sided_95_upper_ppm": {"const": 4998}}},
+    "vanilla_stratum": {"allOf": [{"$ref": "#/$defs/stratum"}, {"properties": {"name": {"const": "vanilla"}}}]},
+    "mod_stratum": {"allOf": [{"$ref": "#/$defs/stratum"}, {"properties": {"name": {"const": "approved_mod"}}}]},
+    "accessibility_stratum": {"allOf": [{"$ref": "#/$defs/stratum"}, {"properties": {"name": {"const": "approved_accessibility"}}}]}
+  }
+}

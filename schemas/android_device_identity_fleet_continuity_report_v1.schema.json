@@ -1,0 +1,242 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/android_device_identity_fleet_continuity_report_v1.schema.json",
+  "title": "Android Device Identity Fleet Continuity Offline Report v1",
+  "$comment": "Synthetic aggregate-only semantic evidence. tmnd is an installation handle and tmdk is tenant-scoped key continuity; neither is a physical hardware GUID.",
+  "oneOf": [
+    { "$ref": "#/$defs/validReport" },
+    { "$ref": "#/$defs/errorReport" }
+  ],
+  "$defs": {
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "physical_device_validated",
+        "hardware_attestation_validated",
+        "real_fleet_uniqueness_validated",
+        "clone_detection_validated",
+        "product_ready",
+        "production_ready",
+        "external_claim_allowed",
+        "vendor_parity"
+      ],
+      "properties": {
+        "physical_device_validated": { "const": false },
+        "hardware_attestation_validated": { "const": false },
+        "real_fleet_uniqueness_validated": { "const": false },
+        "clone_detection_validated": { "const": false },
+        "product_ready": { "const": false },
+        "production_ready": { "const": false },
+        "external_claim_allowed": { "const": false },
+        "vendor_parity": { "const": false }
+      }
+    },
+    "common": {
+      "type": "object",
+      "properties": {
+        "schema": { "const": "tamandua.android.device_identity.fleet_continuity_report/v1" },
+        "evidence_class": { "const": "synthetic_fleet_continuity_contract" },
+        "profile": { "const": "tamandua.android.device_identity.fleet_continuity_offline/v1" },
+        "decision": { "const": "hold" },
+        "input_sha256": { "$ref": "#/$defs/sha256" },
+        "aggregate_only": { "const": true },
+        "claims": { "$ref": "#/$defs/claims" }
+      }
+    },
+    "ratio": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["numerator", "denominator"],
+      "properties": {
+        "numerator": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "denominator": { "type": "integer", "minimum": 1, "maximum": 4096 }
+      }
+    },
+    "categoryCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "baseline_observed",
+        "stable_match",
+        "tenant_separation",
+        "authorized_rotation",
+        "authorized_reenrollment",
+        "recovery_previous",
+        "recovery_replacement",
+        "attestation_assurance_change_only",
+        "missing_key_hold",
+        "unexpected_key_change_hold",
+        "cross_slot_key_reuse_hold",
+        "clone_restore_suspected_hold"
+      ],
+      "properties": {
+        "baseline_observed": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "stable_match": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "tenant_separation": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "authorized_rotation": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "authorized_reenrollment": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "recovery_previous": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "recovery_replacement": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "attestation_assurance_change_only": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "missing_key_hold": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "unexpected_key_change_hold": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "cross_slot_key_reuse_hold": { "type": "integer", "minimum": 0, "maximum": 4096 },
+        "clone_restore_suspected_hold": { "type": "integer", "minimum": 0, "maximum": 4096 }
+      }
+    },
+    "validReport": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "evidence_class",
+            "profile",
+            "outcome",
+            "decision",
+            "input_sha256",
+            "aggregate_only",
+            "identity_semantics",
+            "metrics",
+            "limitations",
+            "claims"
+          ],
+          "properties": {
+            "schema": true,
+            "evidence_class": true,
+            "profile": true,
+            "outcome": { "const": "synthetic_contract_match" },
+            "decision": true,
+            "input_sha256": true,
+            "aggregate_only": true,
+            "identity_semantics": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["installation_handle", "device_key"],
+              "properties": {
+                "installation_handle": { "const": "install_scoped_handle_not_hardware_guid" },
+                "device_key": { "const": "tenant_scoped_key_continuity_not_physical_guid" }
+              }
+            },
+            "metrics": {
+              "type": "object",
+              "$comment": "Validator-enforced cross-field invariants: category counts sum to observations; eligible_transitions is nonzero; stable and authorized ratio denominators equal eligible_transitions; hold ratio denominator equals observations; each ratio numerator equals its documented disjoint category sum and does not exceed its denominator. JSON Schema alone does not prove these arithmetic relations.",
+              "additionalProperties": false,
+              "required": [
+                "observations",
+                "fleet_slots",
+                "eligible_transitions",
+                "category_counts",
+                "stable_continuity_ratio",
+                "authorized_change_ratio",
+                "hold_ratio"
+              ],
+              "properties": {
+                "observations": { "type": "integer", "minimum": 2, "maximum": 4096 },
+                "fleet_slots": { "type": "integer", "minimum": 1, "maximum": 512 },
+                "eligible_transitions": { "type": "integer", "minimum": 1, "maximum": 4095 },
+                "category_counts": { "$ref": "#/$defs/categoryCounts" },
+                "stable_continuity_ratio": { "$ref": "#/$defs/ratio" },
+                "authorized_change_ratio": { "$ref": "#/$defs/ratio" },
+                "hold_ratio": { "$ref": "#/$defs/ratio" }
+              }
+            },
+            "limitations": {
+              "const": [
+                "synthetic_semantics_only",
+                "no_real_fleet_uniqueness_claim",
+                "no_physical_hardware_guid_claim",
+                "no_clone_detection_efficacy_claim",
+                "no_attestation_verification",
+                "no_sla_or_vendor_parity_claim"
+              ]
+            },
+            "claims": true
+          }
+        }
+      ]
+    },
+    "errorReport": {
+      "allOf": [
+        { "$ref": "#/$defs/common" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "schema",
+            "evidence_class",
+            "profile",
+            "outcome",
+            "decision",
+            "input_sha256",
+            "aggregate_only",
+            "reason",
+            "claims"
+          ],
+          "properties": {
+            "schema": true,
+            "evidence_class": true,
+            "profile": true,
+            "outcome": { "const": "invalid" },
+            "decision": true,
+            "input_sha256": true,
+            "aggregate_only": true,
+            "reason": {
+              "type": "string",
+              "enum": [
+                "arguments_invalid",
+                "authorization_id_invalid",
+                "authorization_reuse",
+                "authorized_transition_binding_invalid",
+                "baseline_invalid",
+                "case_id_invalid",
+                "cross_tenant_key_reuse",
+                "duplicate_case_id",
+                "duplicate_json_key",
+                "eligible_transition_count_invalid",
+                "expected_category_mismatch",
+                "fleet_slot_count_invalid",
+                "fleet_slot_invalid",
+                "input_changed",
+                "input_depth_exceeded",
+                "input_fields_invalid",
+                "input_identity_invalid",
+                "input_json_invalid",
+                "input_not_canonical",
+                "input_path_unsafe",
+                "input_size_invalid",
+                "installation_epoch_invalid",
+                "key_token_invalid",
+                "missing_key_has_token",
+                "observation_category_invalid",
+                "observation_count_invalid",
+                "observation_fields_invalid",
+                "observation_order_invalid",
+                "observation_replay",
+                "observation_state_invalid",
+                "present_key_missing_token",
+                "previous_key_token_invalid",
+                "recovery_previous_binding_invalid",
+                "reenrollment_epoch_not_changed",
+                "rotation_epoch_changed",
+                "sensitive_field_rejected",
+                "sensitive_value_rejected",
+                "string_bound_exceeded",
+                "tenant_id_invalid",
+                "unexpected_transition_authority"
+              ]
+            },
+            "claims": true
+          }
+        }
+      ]
+    }
+  }
+}

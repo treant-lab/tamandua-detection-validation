@@ -1,0 +1,197 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/macos_release_inventory_v1.schema.json",
+  "title": "Tamandua macOS bundle inventory v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "state",
+    "static_structure_passed",
+    "expected_target",
+    "carrier",
+    "app_root",
+    "tree_digest",
+    "entries",
+    "bounds",
+    "apple_trust_proven",
+    "publication_authority",
+    "limitations"
+  ],
+  "properties": {
+    "schema_id": {"const": "tamandua.macos_bundle_inventory/v1"},
+    "state": {"const": "passed"},
+    "static_structure_passed": {"const": true},
+    "expected_target": {"enum": ["x86_64-apple-darwin", "aarch64-apple-darwin", "universal2-apple-darwin"]},
+    "carrier": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "format", "size", "sha256"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1, "maxLength": 255},
+        "format": {"const": "zip-evidence-carrier"},
+        "size": {"type": "integer", "minimum": 1, "maximum": 4294967296},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "app_root": {"type": "string", "pattern": "^[^/\\\\]+\\.app$", "maxLength": 255},
+    "tree_digest": {"$ref": "#/$defs/sha256"},
+    "entries": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 4096,
+      "items": {"$ref": "#/$defs/entry"}
+    },
+    "bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_entries",
+        "max_file_size",
+        "max_total_size",
+        "max_compression_ratio",
+        "observed_entries",
+        "observed_total_size"
+      ],
+      "properties": {
+        "max_entries": {"const": 4096},
+        "max_file_size": {"const": 268435456},
+        "max_total_size": {"const": 1073741824},
+        "max_compression_ratio": {"const": 200},
+        "observed_entries": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "observed_total_size": {"type": "integer", "minimum": 1, "maximum": 1073741824}
+      }
+    },
+    "apple_trust_proven": {"const": false},
+    "publication_authority": {"const": false},
+    "limitations": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 16,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 512}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"expected_target": {"const": "x86_64-apple-darwin"}}, "required": ["expected_target"]},
+      "then": {"properties": {"entries": {"items": {"$ref": "#/$defs/x86_64_entry_target"}}}}
+    },
+    {
+      "if": {"properties": {"expected_target": {"const": "aarch64-apple-darwin"}}, "required": ["expected_target"]},
+      "then": {"properties": {"entries": {"items": {"$ref": "#/$defs/aarch64_entry_target"}}}}
+    },
+    {
+      "if": {"properties": {"expected_target": {"const": "universal2-apple-darwin"}}, "required": ["expected_target"]},
+      "then": {"properties": {"entries": {"items": {"$ref": "#/$defs/universal2_entry_target"}}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1024,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)\\.{1,2}(?:/|$))[^\\u0000-\\u001f\\u007f]+$"
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "requirement", "state", "detail"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z0-9_]+$", "maxLength": 64},
+        "requirement": {"enum": ["required", "advisory"]},
+        "state": {"enum": ["pass", "fail", "not_detected"]},
+        "detail": {"type": "string", "minLength": 1, "maxLength": 1024}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"requirement": {"const": "required"}}, "required": ["requirement"]},
+          "then": {"properties": {"state": {"const": "pass"}}}
+        }
+      ]
+    },
+    "slice": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["arch", "cpu_type", "cpu_subtype", "offset", "size", "sha256", "state", "checks"],
+      "properties": {
+        "arch": {"enum": ["x86_64", "arm64"]},
+        "cpu_type": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+        "cpu_subtype": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+        "offset": {"type": "integer", "minimum": 0, "maximum": 4294967296},
+        "size": {"type": "integer", "minimum": 1, "maximum": 4294967296},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "state": {"const": "passed"},
+        "checks": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"$ref": "#/$defs/check"}}
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_schema_id", "target", "policy", "format", "arch", "checks", "slices", "limitations"],
+      "properties": {
+        "authority_schema_id": {"const": "tamandua.artifact_hardening_receipt/v1"},
+        "target": {"enum": ["x86_64-apple-darwin", "aarch64-apple-darwin", "universal2-apple-darwin"]},
+        "policy": {"const": "hardened"},
+        "format": {"const": "macho"},
+        "arch": {"enum": ["x86_64", "arm64", "universal2"]},
+        "checks": {"type": "array", "minItems": 1, "maxItems": 32, "items": {"$ref": "#/$defs/check"}},
+        "slices": {"type": "array", "minItems": 1, "maxItems": 2, "items": {"$ref": "#/$defs/slice"}},
+        "limitations": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 16,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 512}
+        }
+      }
+    },
+    "x86_64_entry_target": {
+      "if": {"properties": {"role": {"enum": ["app-main", "system-extension-main", "nested-code"]}}, "required": ["role"]},
+      "then": {"properties": {"evidence": {"properties": {"target": {"const": "x86_64-apple-darwin"}}, "required": ["target"]}}}
+    },
+    "aarch64_entry_target": {
+      "if": {"properties": {"role": {"enum": ["app-main", "system-extension-main", "nested-code"]}}, "required": ["role"]},
+      "then": {"properties": {"evidence": {"properties": {"target": {"const": "aarch64-apple-darwin"}}, "required": ["target"]}}}
+    },
+    "universal2_entry_target": {
+      "if": {"properties": {"role": {"enum": ["app-main", "system-extension-main", "nested-code"]}}, "required": ["role"]},
+      "then": {"properties": {"evidence": {"properties": {"target": {"const": "universal2-apple-darwin"}}, "required": ["target"]}}}
+    },
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "mode", "type", "size", "sha256", "target", "role", "evidence"],
+      "properties": {
+        "path": {"$ref": "#/$defs/path"},
+        "mode": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "type": {"enum": ["file", "directory", "symlink"]},
+        "size": {"type": "integer", "minimum": 0, "maximum": 268435456},
+        "sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "target": {"oneOf": [{"type": "string", "minLength": 1, "maxLength": 1024}, {"type": "null"}]},
+        "role": {"enum": ["app-main", "system-extension-main", "nested-code", "resource", "signature-metadata"]},
+        "evidence": {"oneOf": [{"$ref": "#/$defs/evidence"}, {"type": "null"}]}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"type": {"const": "file"}}, "required": ["type"]},
+          "then": {"properties": {"sha256": {"$ref": "#/$defs/sha256"}, "target": {"type": "null"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "symlink"}}, "required": ["type"]},
+          "then": {"properties": {"sha256": {"type": "null"}, "target": {"type": "string", "minLength": 1, "maxLength": 1024}, "evidence": {"type": "null"}}}
+        },
+        {
+          "if": {"properties": {"type": {"const": "directory"}}, "required": ["type"]},
+          "then": {"properties": {"size": {"const": 0}, "sha256": {"type": "null"}, "target": {"type": "null"}, "role": {"enum": ["resource", "signature-metadata"]}, "evidence": {"type": "null"}}}
+        },
+        {
+          "if": {"properties": {"role": {"enum": ["app-main", "system-extension-main", "nested-code"]}}, "required": ["role"]},
+          "then": {"properties": {"type": {"const": "file"}, "evidence": {"$ref": "#/$defs/evidence"}}},
+          "else": {"properties": {"evidence": {"type": "null"}}}
+        }
+      ]
+    }
+  }
+}

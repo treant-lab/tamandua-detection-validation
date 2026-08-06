@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/maki_aws_version_export_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "Bucket", "SourceRevision", "ExportedAt", "IsTruncated", "Prefixes", "ExportConfigSha256", "Profile", "Region", "Backend", "ObjectCap", "Execution", "Versions", "DeleteMarkers"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-aws-version-export/v1"},
+    "Bucket": {"type": "string", "minLength": 1},
+    "SourceRevision": {"type": "string", "minLength": 1},
+    "ExportedAt": {"type": "string", "format": "date-time"},
+    "IsTruncated": {"const": false},
+    "Prefixes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "ExportConfigSha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "Profile": {"type": "string", "minLength": 1},
+    "Region": {"type": "string", "minLength": 1},
+    "Backend": {"enum": ["boto3", "aws-cli"]},
+    "ObjectCap": {"type": "integer", "minimum": 1, "maximum": 1000000},
+    "Execution": {
+      "type": "object",
+      "required": ["read_only", "allowed_s3_operations", "mutating_s3_operations", "checksum_enrichment_enabled"],
+      "properties": {
+        "read_only": {"const": true},
+        "allowed_s3_operations": {"const": ["HeadObject", "ListObjectVersions"]},
+        "mutating_s3_operations": {"const": []},
+        "checksum_enrichment_enabled": {"type": "boolean"}
+      },
+      "additionalProperties": false
+    },
+    "Versions": {"type": "array", "items": {"$ref": "#/$defs/version"}},
+    "DeleteMarkers": {"type": "array", "items": {"$ref": "#/$defs/deleteMarker"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "version": {
+      "type": "object",
+      "required": ["Key", "VersionId", "IsLatest", "Size"],
+      "properties": {
+        "Key": {"type": "string", "minLength": 1},
+        "VersionId": {"type": "string", "minLength": 1},
+        "IsLatest": {"type": "boolean"},
+        "Size": {"type": "integer", "minimum": 0},
+        "ChecksumSHA256": {"type": "string", "minLength": 1},
+        "ChecksumEvidence": {"const": "head_object_checksum_mode_enabled"}
+      },
+      "additionalProperties": true
+    },
+    "deleteMarker": {
+      "type": "object",
+      "required": ["Key", "VersionId", "IsLatest"],
+      "properties": {
+        "Key": {"type": "string", "minLength": 1},
+        "VersionId": {"type": "string", "minLength": 1},
+        "IsLatest": {"type": "boolean"}
+      },
+      "additionalProperties": true
+    }
+  }
+}

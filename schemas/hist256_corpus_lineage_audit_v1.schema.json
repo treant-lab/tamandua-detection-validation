@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/hist256_corpus_lineage_audit_v1.schema.json",
+  "title": "Hist256 corpus lineage audit v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "ready_for_training_or_holdout", "blockers", "feature_contract", "declared_feature_contract", "counts", "goodware_training_authorities", "holdout_separation_strategy", "duplicates", "accepted_holdout_overlap_count", "consumed_overlap_count", "consumed_datasets", "rejection_reasons", "inputs", "execution", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/hist256-corpus-lineage-audit/v1"},
+    "kind": {"const": "Hist256CorpusLineageAudit"},
+    "evidence_class": {"const": "offline_lineage_gate"},
+    "ready_for_training_or_holdout": {"type": "boolean"},
+    "blockers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "feature_contract": {"const": "tamandua.byte-histogram-256.v1"},
+    "declared_feature_contract": {"type": ["string", "null"]},
+    "counts": {"type": "object"},
+    "goodware_training_authorities": {"type": "object", "properties": {"legal_license_review": {"type": "integer", "minimum": 0}, "owner_dataset_use": {"type": "integer", "minimum": 0}}, "additionalProperties": false},
+    "holdout_separation_strategy": {"enum": ["temporal", "independent_source", "unconfigured", null]},
+    "duplicates": {"type": "object"},
+    "accepted_holdout_overlap_count": {"type": "integer", "minimum": 0},
+    "consumed_overlap_count": {"type": "integer", "minimum": 0},
+    "consumed_datasets": {"type": "array", "items": {"type": "object"}},
+    "rejection_reasons": {"type": "object"},
+    "inputs": {"type": "array", "items": {"type": "object"}},
+    "execution": {
+      "type": "object",
+      "required": ["plan_only", "uses_network", "moves_or_copies_samples", "reads_sample_bodies"],
+      "properties": {
+        "plan_only": {"const": true}, "uses_network": {"const": false},
+        "moves_or_copies_samples": {"const": false}, "reads_sample_bodies": {"const": false}
+      }
+    },
+    "claim_boundary": {"type": "object"}
+  }
+}

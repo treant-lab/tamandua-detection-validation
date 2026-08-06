@@ -52,6 +52,12 @@ else:
     DEFAULT_OUTPUT_DIR = RUNS_DIR
     PROFILE_DIR = ROOT / "tools" / "detection_validation" / "profiles"
 
+# Postgres container the harness `docker exec`s into for evidence-capture queries.
+# Parameterized via TAMANDUA_PG_CONTAINER so the same harness targets the Phase 76
+# lab stack (`tamandua-postgres-lab`, the default) or the legacy lab-light stack
+# (`tamandua-postgres-light`). Mirrors deploy/docker/lab-telemetry-evidence.sh.
+PG_CONTAINER = os.environ.get("TAMANDUA_PG_CONTAINER", "tamandua-postgres-lab")
+
 
 @dataclasses.dataclass
 class CommandResult:
@@ -2269,7 +2275,7 @@ def sql_literal(value: str) -> str:
 def psql_json_query(server: SshHost, sql: str, timeout: int = 120) -> CommandResult:
     escaped_sql = shlex.quote(sql)
     command = (
-        "docker exec tamandua-postgres-light sh -lc "
+        "docker exec " + shlex.quote(PG_CONTAINER) + " sh -lc "
         + shlex.quote(
             "user=${POSTGRES_USER:-tamandua}; "
             "db=${POSTGRES_DB:-tamandua_dev}; "

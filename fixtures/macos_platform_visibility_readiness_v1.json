@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "fixture_id": "macos-platform-visibility-readiness-v1",
+  "description": "Synthetic macOS platform visibility readiness scenarios for mapping active, degraded, and unavailable states.",
+  "evidence_class": "synthetic_parity",
+  "claim_boundary": "Fixture-only gate for macOS visibility readiness. It does not prove live event collection, App Store entitlement approval, MDM deployment, production detection efficacy, Network Extension packet fidelity, TLS decryption, or kernel extension support.",
+  "minimum_fields": [
+    "endpoint_security_entitled",
+    "sysext_installed",
+    "tcc_permissions",
+    "bpf_access",
+    "network_extension_entitled",
+    "dns_log_visibility",
+    "full_disk_access"
+  ],
+  "scenarios": [
+    {
+      "id": "enterprise-active-es-ne",
+      "category": "active_enterprise",
+      "description": "Enterprise deployment with EndpointSecurity entitlement, installed System Extension, FDA/TCC approval, Network Extension entitlement, and DNS fallback evidence.",
+      "readiness": {
+        "endpoint_security_entitled": true,
+        "sysext_installed": true,
+        "tcc_permissions": {
+          "accessibility": true,
+          "input_monitoring": true,
+          "automation": true
+        },
+        "bpf_access": true,
+        "network_extension_entitled": true,
+        "dns_log_visibility": true,
+        "full_disk_access": true
+      },
+      "expected_classification": "active"
+    },
+    {
+      "id": "app-only-degraded-bpf-dns",
+      "category": "degraded_app_only",
+      "description": "App-only deployment with user-granted FDA/TCC and DNS fallback, but no EndpointSecurity or Network Extension entitlements.",
+      "readiness": {
+        "endpoint_security_entitled": false,
+        "sysext_installed": false,
+        "tcc_permissions": {
+          "accessibility": true,
+          "input_monitoring": false,
+          "automation": false
+        },
+        "bpf_access": true,
+        "network_extension_entitled": false,
+        "dns_log_visibility": true,
+        "full_disk_access": true
+      },
+      "expected_classification": "degraded"
+    },
+    {
+      "id": "no-entitlement-unavailable",
+      "category": "unavailable_no_entitlement",
+      "description": "No EndpointSecurity, no System Extension, no TCC/FDA, no Network Extension, and no DNS/BPF fallback.",
+      "readiness": {
+        "endpoint_security_entitled": false,
+        "sysext_installed": false,
+        "tcc_permissions": {
+          "accessibility": false,
+          "input_monitoring": false,
+          "automation": false
+        },
+        "bpf_access": false,
+        "network_extension_entitled": false,
+        "dns_log_visibility": false,
+        "full_disk_access": false
+      },
+      "expected_classification": "unavailable"
+    }
+  ]
+}

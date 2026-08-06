@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ml_dataset_manifest_v2_pilot_plan_v1.schema.json",
+  "title": "Tamandua metadata-only Manifest v2 pilot candidate plan",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "ready_for_manifest_v2", "blockers", "inputs", "execution", "selection_policy", "counts", "candidate_plan_sha256", "candidates", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-dataset-manifest-v2-pilot-plan/v1"},
+    "kind": {"const": "MLDatasetManifestV2PilotPlan"},
+    "evidence_class": {"const": "offline_metadata_only_pre_promotion_candidate_plan"},
+    "ready_for_manifest_v2": {"const": false},
+    "blockers": {
+      "type": "array",
+      "minItems": 3,
+      "uniqueItems": true,
+      "contains": {"const": "promotion_not_executed"},
+      "items": {"type": "string", "minLength": 1}
+    },
+    "inputs": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "sha256"],
+        "properties": {
+          "kind": {"enum": ["hist256_metadata_plan", "hist256_body_availability", "goodware_dataset_use"]},
+          "sha256": {"$ref": "#/$defs/sha256"}
+        }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["network_used", "reads_sample_bodies", "mutates_s3", "opens_holdout", "trains_model"],
+      "properties": {
+        "network_used": {"const": false},
+        "reads_sample_bodies": {"const": false},
+        "mutates_s3": {"const": false},
+        "opens_holdout": {"const": false},
+        "trains_model": {"const": false}
+      }
+    },
+    "selection_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["max_per_class", "train_per_class", "validation_per_class", "source_cap_per_split", "group_cap_per_split", "group_disjoint_splits", "train_before_validation_per_label", "holdout_members", "upstream_split_handling"],
+      "properties": {
+        "max_per_class": {"type": "integer", "minimum": 2, "maximum": 100},
+        "train_per_class": {"type": "integer", "minimum": 1, "maximum": 99},
+        "validation_per_class": {"type": "integer", "minimum": 1, "maximum": 99},
+        "source_cap_per_split": {"type": "integer", "minimum": 1},
+        "group_cap_per_split": {"type": "integer", "minimum": 1},
+        "group_disjoint_splits": {"const": true},
+        "train_before_validation_per_label": {"const": true},
+        "holdout_members": {"const": 0},
+        "upstream_split_handling": {"const": "ignored_reselected_by_group_and_time"}
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidate_ceiling", "selected", "excluded"],
+      "properties": {
+        "candidate_ceiling": {"$ref": "#/$defs/classCounts"},
+        "selected": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["train", "validation"],
+          "properties": {
+            "train": {"$ref": "#/$defs/classCounts"},
+            "validation": {"$ref": "#/$defs/classCounts"}
+          }
+        },
+        "excluded": {
+          "type": "object",
+          "additionalProperties": {"type": "integer", "minimum": 0}
+        }
+      }
+    },
+    "candidate_plan_sha256": {"$ref": "#/$defs/sha256"},
+    "candidates": {
+      "type": "array",
+      "maxItems": 200,
+      "items": {"$ref": "#/$defs/candidate"}
+    },
+    "claim_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supports", "does_not_support"],
+      "properties": {
+        "supports": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "does_not_support": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "classCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goodware", "malware"],
+      "properties": {
+        "goodware": {"type": "integer", "minimum": 0},
+        "malware": {"type": "integer", "minimum": 0}
+      }
+    },
+    "candidate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "label", "source_id", "planning_evidence_kind", "planning_evidence_sha256", "leakage_group_id", "observed_at", "body_availability_status", "legal_license_status", "promotion_status", "ready_for_manifest_v2", "missing_fields", "intended_split"],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "label": {"enum": ["goodware", "malware"]},
+        "source_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{1,127}$"},
+        "planning_evidence_kind": {"enum": ["dataset_use_package", "curation_manifest"]},
+        "planning_evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "leakage_group_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "body_availability_status": {"type": "string", "minLength": 1},
+        "legal_license_status": {"type": "string", "minLength": 1},
+        "promotion_status": {"const": "not_attempted"},
+        "ready_for_manifest_v2": {"const": false},
+        "missing_fields": {
+          "type": "array",
+          "minItems": 6,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "intended_split": {"enum": ["train", "validation"]}
+      }
+    }
+  }
+}

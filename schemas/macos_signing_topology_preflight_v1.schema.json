@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/macos_signing_topology_preflight_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "status", "source", "roles", "signing_order", "mismatches", "prerequisites", "claims"],
+  "properties": {
+    "schema_version": {"const": "tamandua.macos_signing_topology_preflight/v1"},
+    "evidence_class": {"const": "static_source_contract"},
+    "status": {"const": "hold"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["current_sha", "governed_unsigned_receipt"],
+      "properties": {
+        "current_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "governed_unsigned_receipt": {
+          "type": "object", "additionalProperties": false,
+          "required": ["filename", "sha256", "source_sha", "valid"],
+          "properties": {
+            "filename": {"const": "20260718T073047Z-macos-canonical-swift-scratch-v6.json"},
+            "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "source_sha": {"const": "d79e1213ba382b3313f9d97a77c687d8164f72c1"},
+            "valid": {"type": "boolean"}
+          }
+        }
+      }
+    },
+    "roles": {"const": ["activation_host", "rust_helper", "endpoint_security_extension"]},
+    "signing_order": {"const": ["rust_helper_executable", "rust_helper_bundle", "endpoint_security_extension_executable", "endpoint_security_extension_bundle", "activation_host_executable", "carrier_app_bundle"]},
+    "mismatches": {
+      "type": "array", "uniqueItems": true,
+      "items": {"enum": ["canonical_packager_topology_mismatch", "workflow_topology_mismatch", "entitlement_role_mismatch", "notary_role_validation_mismatch", "current_source_not_receipt_source", "governed_receipt_mismatch"]}
+    },
+    "prerequisites": {
+      "type": "object", "additionalProperties": false,
+      "required": ["developer_id_application", "macos_capability_profile", "signing_authorized"],
+      "properties": {
+        "developer_id_application": {"const": "not_evaluated"},
+        "macos_capability_profile": {"const": "not_evaluated"},
+        "signing_authorized": {"const": false}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["signed", "notarized", "installed", "activated", "full_disk_access", "backend_ready", "release_ready", "external_claim_allowed"],
+      "properties": {
+        "signed": {"const": false}, "notarized": {"const": false},
+        "installed": {"const": false}, "activated": {"const": false},
+        "full_disk_access": {"const": false}, "backend_ready": {"const": false},
+        "release_ready": {"const": false}, "external_claim_allowed": {"const": false}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"source": {"properties": {"current_sha": {"const": "d79e1213ba382b3313f9d97a77c687d8164f72c1"}}}}},
+      "then": {"properties": {"mismatches": {"not": {"contains": {"const": "current_source_not_receipt_source"}}}}},
+      "else": {
+        "properties": {
+          "mismatches": {"contains": {"const": "current_source_not_receipt_source"}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"source": {"properties": {"governed_unsigned_receipt": {"properties": {"valid": {"const": true}}}}}}},
+      "then": {
+        "properties": {
+          "source": {"properties": {"governed_unsigned_receipt": {"properties": {"sha256": {"const": "24ca8f6215255dbfe1491f2b27403b283996c33dbdf6c2ec92f3445f92a3dbfb"}}}}},
+          "mismatches": {"not": {"contains": {"const": "governed_receipt_mismatch"}}}
+        }
+      },
+      "else": {
+        "properties": {
+          "mismatches": {"contains": {"const": "governed_receipt_mismatch"}}
+        }
+      }
+    }
+  ]
+}

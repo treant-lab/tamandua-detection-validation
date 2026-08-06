@@ -1,0 +1,246 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/android_device_mutation_e2e_evidence_v1.schema.json",
+  "title": "Android Device Mutation End-to-End Evidence v1",
+  "$comment": "Cross-field digest equality, stage continuity, freshness, replay and sensitive-value constraints require validator profile tamandua.android.device-mutation-e2e-semantic/v1; JSON Schema validation alone is insufficient.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "profile_id",
+    "validator_profile_id",
+    "semantic_validation_required",
+    "composite_continuity_sha256",
+    "evidence_class",
+    "physical_execution",
+    "generated_at",
+    "source",
+    "artifact",
+    "device_binding",
+    "backend_binding",
+    "stages",
+    "anti_replay",
+    "claims",
+    "limitations"
+  ],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "profile_id": { "const": "android-device-mutation-e2e" },
+    "validator_profile_id": {
+      "const": "tamandua.android.device-mutation-e2e-semantic/v1"
+    },
+    "semantic_validation_required": { "const": true },
+    "composite_continuity_sha256": {
+      "$ref": "#/$defs/sha256",
+      "description": "Domain-separated canonical composite over every closed semantic field except itself, recomputed by the mandatory semantic validator; substitutions cannot be detected by JSON Schema alone."
+    },
+    "evidence_class": {
+      "enum": ["dry_run_plan", "local_physical_observation_unverified"]
+    },
+    "physical_execution": { "type": "boolean" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "source": { "$ref": "#/$defs/source" },
+    "artifact": { "$ref": "#/$defs/artifact" },
+    "device_binding": { "$ref": "#/$defs/deviceBinding" },
+    "backend_binding": { "$ref": "#/$defs/backendBinding" },
+    "stages": { "$ref": "#/$defs/stages" },
+    "anti_replay": { "$ref": "#/$defs/antiReplay" },
+    "claims": { "$ref": "#/$defs/claims" },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 7,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "offline_contract_only",
+          "local_observation_not_remote_attestation",
+          "single_device_observation_only",
+          "backend_target_not_production",
+          "source_snapshot_local_dirty_worktree",
+          "no_release_or_production_claim",
+          "no_vendor_parity_claim"
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_sha",
+        "canonical_manifest_sha256",
+        "canonical_manifest_algorithm"
+      ],
+      "properties": {
+        "source_sha": { "$ref": "#/$defs/sha256" },
+        "canonical_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "canonical_manifest_algorithm": {
+          "const": "sha256-canonical-posix-path-size-content-v1"
+        }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "host_apk_sha256",
+        "pulled_base_apk_sha256",
+        "byte_equal",
+        "signer_sha256",
+        "version_code",
+        "data_inode_binding_sha256"
+      ],
+      "properties": {
+        "host_apk_sha256": { "$ref": "#/$defs/sha256" },
+        "pulled_base_apk_sha256": { "$ref": "#/$defs/sha256" },
+        "byte_equal": { "const": true },
+        "signer_sha256": { "$ref": "#/$defs/sha256" },
+        "version_code": { "type": "integer", "minimum": 1 },
+        "data_inode_binding_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "deviceBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selection",
+        "transport",
+        "pseudonym_scheme",
+        "receipt_context_sha256",
+        "receipt_local_pseudonym",
+        "raw_identifiers_included"
+      ],
+      "properties": {
+        "selection": { "const": "single_unambiguous_physical_device" },
+        "transport": { "const": "usb" },
+        "pseudonym_scheme": {
+          "const": "hmac-sha256-tmdk_v1-receipt-context-v1"
+        },
+        "receipt_context_sha256": { "$ref": "#/$defs/sha256" },
+        "receipt_local_pseudonym": { "$ref": "#/$defs/sha256" },
+        "raw_identifiers_included": { "const": false }
+      }
+    },
+    "backendBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "environment",
+        "target_origin_sha256",
+        "server_source_manifest_sha256",
+        "independently_observed"
+      ],
+      "properties": {
+        "environment": { "enum": ["isolated_lab", "local_test"] },
+        "target_origin_sha256": { "$ref": "#/$defs/sha256" },
+        "server_source_manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "independently_observed": { "const": true }
+      }
+    },
+    "stage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "observed_at",
+        "request_binding_sha256",
+        "resource_binding_sha256",
+        "outcome_binding_sha256"
+      ],
+      "properties": {
+        "state": { "enum": ["observed", "verified", "accepted", "consumed"] },
+        "observed_at": { "type": "string", "format": "date-time" },
+        "request_binding_sha256": { "$ref": "#/$defs/sha256" },
+        "resource_binding_sha256": { "$ref": "#/$defs/sha256" },
+        "outcome_binding_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "stages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "challenge_issued",
+        "native_signature_verified",
+        "submit_outcome",
+        "status_consumed"
+      ],
+      "properties": {
+        "challenge_issued": {
+          "allOf": [
+            { "$ref": "#/$defs/stage" },
+            { "properties": { "state": { "const": "observed" } } }
+          ]
+        },
+        "native_signature_verified": {
+          "allOf": [
+            { "$ref": "#/$defs/stage" },
+            { "properties": { "state": { "const": "verified" } } }
+          ]
+        },
+        "submit_outcome": {
+          "allOf": [
+            { "$ref": "#/$defs/stage" },
+            { "properties": { "state": { "const": "accepted" } } }
+          ]
+        },
+        "status_consumed": {
+          "allOf": [
+            { "$ref": "#/$defs/stage" },
+            { "properties": { "state": { "const": "consumed" } } }
+          ]
+        }
+      }
+    },
+    "antiReplay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "challenge_issued_at",
+        "challenge_expires_at",
+        "submit_attempt_count",
+        "replay_count",
+        "resubmit_count"
+      ],
+      "properties": {
+        "challenge_issued_at": { "type": "string", "format": "date-time" },
+        "challenge_expires_at": { "type": "string", "format": "date-time" },
+        "submit_attempt_count": { "const": 1 },
+        "replay_count": { "const": 0 },
+        "resubmit_count": { "const": 0 }
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_ready",
+        "external_claim_allowed",
+        "production_validated",
+        "vendor_parity"
+      ],
+      "properties": {
+        "product_ready": { "const": false },
+        "external_claim_allowed": { "const": false },
+        "production_validated": { "const": false },
+        "vendor_parity": { "const": false }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "evidence_class": { "const": "dry_run_plan" } } },
+      "then": { "properties": { "physical_execution": { "const": false } } }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_class": { "const": "local_physical_observation_unverified" }
+        }
+      },
+      "then": { "properties": { "physical_execution": { "const": true } } }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/macos_source_bundle_evidence_v1.schema.json",
+  "title": "Tamandua macOS source bundle evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version","state","source","toolchain","sdk","environment","provenance","builds","comparison","negative_control","trust"],
+  "properties": {
+    "schema_version": {"const":"tamandua.macos_source_bundle_evidence/v1"},
+    "state": {"enum":["pass","mismatch","blocked_stub","inspection_only","dirty_source"]},
+    "source": {"type":"object","additionalProperties":false,"required":["commit","dirty","dirty_patch_sha256"],"properties":{"commit":{"type":"string","pattern":"^[0-9a-f]{40}$"},"dirty":{"type":"boolean"},"dirty_patch_sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}}},
+    "toolchain": {"type":"object","additionalProperties":{"type":"string"},"required":["cargo","rustc","swift"]},
+    "sdk": {"type":"object","additionalProperties":false,"required":["path","version","endpoint_security_tbd","endpoint_security_tbd_sha256"],"properties":{"path":{"type":"string"},"version":{"type":"string"},"endpoint_security_tbd":{"type":"string"},"endpoint_security_tbd_sha256":{"type":["string","null"],"pattern":"^[0-9a-f]{64}$"}}},
+    "environment": {"type":"object","additionalProperties":{"type":["string","null"]}},
+    "provenance": {"type":"object","additionalProperties":false,"required":["commands","locked","scratch_isolated","mach_o_normalized"],"properties":{"commands":{"type":"array","items":{"type":"array","items":{"type":"string"}}},"locked":{"type":"boolean"},"scratch_isolated":{"type":"boolean"},"mach_o_normalized":{"const":false}}},
+    "builds": {"type":"array","minItems":2,"maxItems":2,"items":{"$ref":"#/$defs/build"}},
+    "comparison": {"type":"object","additionalProperties":false,"required":["rust_sha256_equal","swift_tree_equal","ordered_tree_equal","endpoint_security_linked_both"],"properties":{"rust_sha256_equal":{"type":"boolean"},"swift_tree_equal":{"type":"boolean"},"ordered_tree_equal":{"type":"boolean"},"endpoint_security_linked_both":{"type":"boolean"}}},
+    "negative_control": {"type":["object","null"],"additionalProperties":false,"required":["path","sha256","endpoint_security_linked","classified_blocked_stub"],"properties":{"path":{"type":"string"},"sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"},"endpoint_security_linked":{"type":"boolean"},"classified_blocked_stub":{"type":"boolean"}}},
+    "trust": {"type":"object","additionalProperties":false,"required":["apple_trust_proven","signed","notarized","installed","activated","production_ready"],"properties":{"apple_trust_proven":{"const":false},"signed":{"const":false},"notarized":{"const":false},"installed":{"const":false},"activated":{"const":false},"production_ready":{"const":false}}}
+  },
+  "$defs": {
+    "file":{"type":"object","additionalProperties":false,"required":["path","size","mode","sha256"],"properties":{"path":{"type":"string"},"size":{"type":"integer","minimum":0},"mode":{"type":"integer","minimum":0,"maximum":4095},"sha256":{"type":"string","pattern":"^[0-9a-f]{64}$"}}},
+    "build":{"type":"object","additionalProperties":false,"required":["id","rust","swift_tree","ordered_tree","endpoint_security_linked"],"properties":{"id":{"enum":["a","b"]},"rust":{"$ref":"#/$defs/file"},"swift_tree":{"type":"array","items":{"$ref":"#/$defs/file"}},"ordered_tree":{"type":"array","items":{"$ref":"#/$defs/file"}},"endpoint_security_linked":{"type":"boolean"}}}
+  }
+}

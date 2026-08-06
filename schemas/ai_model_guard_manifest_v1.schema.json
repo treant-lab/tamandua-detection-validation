@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ai_model_guard_manifest_v1.schema.json",
+  "title": "Tamandua AI Model Guard Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "generated_at",
+    "source_validation_json",
+    "sample_roots",
+    "samples"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "tamandua.io/ai-model-guard-manifest/v1"
+    },
+    "kind": {
+      "const": "AiModelGuardManifest"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_validation_json": {
+      "type": "string",
+      "minLength": 1
+    },
+    "sample_roots": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "samples": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sample_id",
+          "format",
+          "label",
+          "attack_family",
+          "sha256",
+          "path"
+        ],
+        "properties": {
+          "sample_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "format": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "enum": [
+              "benign",
+              "adversarial"
+            ]
+          },
+          "attack_family": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/anti_cheat_sanction_decision_v1.schema.json",
+  "title": "Tamandua synthetic anti-cheat sanction governance decision v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "decision_id", "decision_version", "prior_decision_digest", "appeal_case_id", "idempotency_key_digest", "scope", "source_bindings", "action", "evidence_class", "reason_codes", "evidence_refs", "policy_version", "requested_at_unix", "expires_at_unix", "human_review", "appeal_entitlement", "retention", "audit", "claims"],
+  "properties": {
+    "schema": {"const": "tamandua.anti_cheat.sanction_decision/v1"},
+    "decision_id": {"$ref": "#/$defs/digest"},
+    "decision_version": {"type": "integer", "minimum": 1},
+    "prior_decision_digest": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]},
+    "appeal_case_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]},
+    "idempotency_key_digest": {"$ref": "#/$defs/digest"},
+    "scope": {"$ref": "#/$defs/scope"},
+    "source_bindings": {"$ref": "#/$defs/sourceBindings"},
+    "action": {"enum": ["observe", "step_up", "temporary_restriction", "manual_review", "permanent_sanction", "reverse"]},
+    "evidence_class": {"enum": ["single_local", "inconclusive", "corroborated_synthetic"]},
+    "reason_codes": {"type": "array", "minItems": 1, "maxItems": 8, "uniqueItems": true, "items": {"enum": ["client_integrity_only", "server_movement_violation", "server_action_violation", "conflicting_evidence", "clean_behavior", "approved_mod", "accessibility_tool", "moderator_compromise", "appeal_reversal"]}},
+    "evidence_refs": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+    "policy_version": {"type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+){0,3}$"},
+    "requested_at_unix": {"type": "integer", "minimum": 0},
+    "expires_at_unix": {"type": ["integer", "null"], "minimum": 0},
+    "human_review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["required", "proposer_digest", "approver_digests", "authorized_roster_digest", "separation_of_duties"],
+      "properties": {"required": {"type": "boolean"}, "proposer_digest": {"$ref": "#/$defs/digest"}, "approver_digests": {"type": "array", "maxItems": 2, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}}, "authorized_roster_digest": {"$ref": "#/$defs/digest"}, "separation_of_duties": {"const": true}}
+    },
+    "appeal_entitlement": {
+      "type": "object", "additionalProperties": false,
+      "required": ["entitled", "deadline_unix", "sla_hours", "channel"],
+      "properties": {"entitled": {"const": true}, "deadline_unix": {"type": "integer", "minimum": 0}, "sla_hours": {"type": "integer", "minimum": 1, "maximum": 720}, "channel": {"enum": ["in_product", "support_portal"]}}
+    },
+    "retention": {"$ref": "#/$defs/retention"},
+    "audit": {"$ref": "#/$defs/audit"},
+    "claims": {"$ref": "#/$defs/claims"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"action": {"const": "permanent_sanction"}}, "required": ["action"]},
+      "then": {"properties": {"human_review": {"properties": {"required": {"const": true}, "approver_digests": {"minItems": 2, "maxItems": 2}}}}}
+    }
+  ],
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scope": {"type": "object", "additionalProperties": false, "required": ["tenant_digest", "game_digest", "build_digest", "match_digest", "player_digest"], "properties": {"tenant_digest": {"$ref": "#/$defs/digest"}, "game_digest": {"$ref": "#/$defs/digest"}, "build_digest": {"$ref": "#/$defs/digest"}, "match_digest": {"$ref": "#/$defs/digest"}, "player_digest": {"$ref": "#/$defs/digest"}}},
+    "sourceBindings": {"type": "object", "additionalProperties": false, "required": ["game_001_assessment_digest", "game_001_report_digest", "game_003_policy_digest", "game_003_report_digest"], "properties": {"game_001_assessment_digest": {"$ref": "#/$defs/digest"}, "game_001_report_digest": {"$ref": "#/$defs/digest"}, "game_003_policy_digest": {"$ref": "#/$defs/digest"}, "game_003_report_digest": {"$ref": "#/$defs/digest"}}},
+    "retention": {"type": "object", "additionalProperties": false, "required": ["region", "window_days", "delete_after_unix", "legal_hold"], "properties": {"region": {"enum": ["br", "eu", "us"]}, "window_days": {"type": "integer", "minimum": 1, "maximum": 3650}, "delete_after_unix": {"type": "integer", "minimum": 0}, "legal_hold": {"type": "boolean"}}},
+    "audit": {"type": "object", "additionalProperties": false, "required": ["sequence", "prior_event_digest", "event_digest"], "properties": {"sequence": {"type": "integer", "minimum": 1}, "prior_event_digest": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]}, "event_digest": {"$ref": "#/$defs/digest"}}},
+    "claims": {"type": "object", "additionalProperties": false, "required": ["enforcement_executed", "durable_state_written", "production_ready", "external_claim_allowed"], "properties": {"enforcement_executed": {"const": false}, "durable_state_written": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}}}
+  }
+}

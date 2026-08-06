@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/runtime_self_image_live_compare_receipt_v1.schema.json",
+  "title": "Tamandua Runtime Self Image Live Compare Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "actions",
+    "artifact_sha256_after",
+    "artifact_sha256_before",
+    "artifact_size",
+    "build_command_id",
+    "build_command_sha256",
+    "cargo_lock_sha256",
+    "claims",
+    "counts",
+    "cost",
+    "degraded_reason",
+    "dirty_patch_sha256",
+    "evidence_class",
+    "harness_sha256",
+    "identity",
+    "measurement_boundary",
+    "page_size",
+    "planner_source_sha256",
+    "receipt_encoding_and_write_measured",
+    "post_restore_counts",
+    "post_restore_state",
+    "scenario",
+    "schema_version",
+    "source_commit",
+    "state",
+    "target",
+    "toolchain_id"
+  ],
+  "properties": {
+    "actions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "current_main_modified",
+        "disposable_mapping_restored",
+        "disposable_sec_image_used",
+        "live_memory_compared"
+      ],
+      "properties": {
+        "current_main_modified": {"const": false},
+        "disposable_mapping_restored": {"type": "boolean"},
+        "disposable_sec_image_used": {"type": "boolean"},
+        "live_memory_compared": {"type": "boolean"}
+      }
+    },
+    "artifact_sha256_after": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact_sha256_before": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "artifact_size": {"type": "integer", "minimum": 1, "maximum": 67108864},
+    "build_command_id": {"const": "cargo-test-release-nodefault-windows-x86_64-msvc-live-lab-v1"},
+    "build_command_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "cargo_lock_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "external_claim_allowed",
+        "production_ready",
+        "release_authority",
+        "runtime_detection_proven",
+        "telemetry_emitted",
+        "verimatrix_parity"
+      ],
+      "properties": {
+        "external_claim_allowed": {"const": false},
+        "production_ready": {"const": false},
+        "release_authority": {"const": false},
+        "runtime_detection_proven": {"const": false},
+        "telemetry_emitted": {"const": false},
+        "verimatrix_parity": {"const": false}
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clean_pages",
+        "compared_pages",
+        "mismatch_pages",
+        "planned_pages",
+        "relocation_excluded_pages",
+        "unstable_pages"
+      ],
+      "properties": {
+        "clean_pages": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "compared_pages": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "mismatch_pages": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "planned_pages": {"type": "integer", "minimum": 1, "maximum": 8192},
+        "relocation_excluded_pages": {"type": "integer", "minimum": 0, "maximum": 16384},
+        "unstable_pages": {"type": "integer", "minimum": 0, "maximum": 8192}
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "budget_state",
+        "cpu_time_ms",
+        "elapsed_ms",
+        "query_count",
+        "read_attempt_count",
+        "read_bytes",
+        "working_set_after",
+        "working_set_before",
+        "working_set_delta_bytes",
+        "working_set_peak_delta_bytes"
+      ],
+      "properties": {
+        "budget_state": {"enum": ["within_budget", "exceeded"]},
+        "cpu_time_ms": {"type": "integer", "minimum": 0, "maximum": 300000},
+        "elapsed_ms": {"type": "integer", "minimum": 0, "maximum": 300000},
+        "query_count": {"type": "integer", "minimum": 0, "maximum": 49152},
+        "read_attempt_count": {"type": "integer", "minimum": 0, "maximum": 49152},
+        "read_bytes": {"type": "integer", "minimum": 0, "maximum": 134217728},
+        "working_set_after": {"type": "integer", "minimum": 1, "maximum": 1125899906842624},
+        "working_set_before": {"type": "integer", "minimum": 1, "maximum": 1125899906842624},
+        "working_set_delta_bytes": {"type": "integer", "minimum": -1125899906842624, "maximum": 1125899906842624},
+        "working_set_peak_delta_bytes": {"type": "integer", "minimum": 0, "maximum": 1125899906842624}
+      }
+    },
+    "degraded_reason": {
+      "enum": [
+        "none",
+        "identity_unavailable",
+        "cost_budget_exceeded",
+        "relocation_exclusion_not_positive",
+        "unsupported_page_geometry"
+      ]
+    },
+    "dirty_patch_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "evidence_class": {"const": "windows-live-compare-lab"},
+    "harness_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "anchor_within_main_image",
+        "anchor_module_matches_main",
+        "artifact_matches_main_exe",
+        "disposable_mapping_disjoint_from_main",
+        "file_id_stable",
+        "locked_read_handle",
+        "mapped_file_object_identity_proven",
+        "mapped_name_matches_locked_artifact",
+        "module_size_matches_pe",
+        "native_amd64_process",
+        "page_size_matches"
+      ],
+      "properties": {
+        "anchor_within_main_image": {"type": "boolean"},
+        "anchor_module_matches_main": {"type": "boolean"},
+        "artifact_matches_main_exe": {"type": "boolean"},
+        "disposable_mapping_disjoint_from_main": {"type": "boolean"},
+        "file_id_stable": {"type": "boolean"},
+        "locked_read_handle": {"type": "boolean"},
+        "mapped_file_object_identity_proven": {"const": false},
+        "mapped_name_matches_locked_artifact": {"type": "boolean"},
+        "module_size_matches_pe": {"type": "boolean"},
+        "native_amd64_process": {"type": "boolean"},
+        "page_size_matches": {"type": "boolean"}
+      }
+    },
+    "page_size": {"const": 4096},
+    "measurement_boundary": {"const": "pre_receipt_serialization"},
+    "planner_source_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "receipt_encoding_and_write_measured": {"const": false},
+    "post_restore_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clean_pages",
+        "compared_pages",
+        "mismatch_pages",
+        "planned_pages",
+        "relocation_excluded_pages",
+        "unstable_pages"
+      ],
+      "properties": {
+        "clean_pages": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "compared_pages": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "mismatch_pages": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "planned_pages": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "relocation_excluded_pages": {"type": "integer", "minimum": 0, "maximum": 16384},
+        "unstable_pages": {"type": "integer", "minimum": 0, "maximum": 8192}
+      }
+    },
+    "post_restore_state": {"enum": ["not_applicable", "clean"]},
+    "scenario": {
+      "enum": ["current-main-observe", "disposable-sec-image-controlled-drift"]
+    },
+    "schema_version": {"const": "tamandua.runtime_self_image_live_compare_receipt/v1"},
+    "source_commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "state": {
+      "enum": ["clean", "controlled_mismatch_detected", "degraded", "mismatch", "unstable"]
+    },
+    "target": {"const": "x86_64-pc-windows-msvc"},
+    "toolchain_id": {"type": "string", "pattern": "^[A-Za-z0-9._+-]{1,96}$"}
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 3,
+  "evidence_class": "static_source_host_lifecycle_inventory",
+  "capability_state": "source_lifecycle_present_native_unvalidated",
+  "runtime_state": "not_executed",
+  "sources": [
+    {"path": "apps/tamandua_gui/src-tauri/build.rs", "role": "macos_target_gated_native_build", "sha256": "72a9ed8eb5992f54bc6a1b0746ee389e24273dcfedff5f9f651d15b3c5266b65"},
+    {"path": "apps/tamandua_gui/src-tauri/Cargo.toml", "role": "host_manifest_native_build_dependency", "sha256": "f0f95ccb97f1558c1ebc410baca721fc4438bd790f20134cfd17988ceb2865db"},
+    {"path": "apps/tamandua_gui/src-tauri/tauri.conf.json", "role": "host_identity_and_macos_floor", "sha256": "aee6720fddea76b8f268889f369f077d2df99c1d7586413168b6518145c90072"},
+    {"path": "apps/tamandua_gui/src-tauri/Info.plist", "role": "host_system_extension_usage_intent", "sha256": "a829d6b813a036684ddc7a70f707fa2d1ee30e91a57f25b47d1093c82d92e8fd"},
+    {"path": "apps/tamandua_gui/src-tauri/src/main.rs", "role": "explicit_tauri_command_registration", "sha256": "4ea2fe2503c84b0d3531f16bade185363b96e479e5932f13a2421819e1fd4232"},
+    {"path": "apps/tamandua_gui/src-tauri/src/commands.rs", "role": "confirmed_fixed_lifecycle_commands", "sha256": "d2a135ddb901add71d1f4d78272ecc5d616175302b5717dd86c41c11157f7653"},
+    {"path": "apps/tamandua_gui/src-tauri/src/macos/mod.rs", "role": "macos_lifecycle_module_boundary", "sha256": "cb75dcd5f0bbd8fb24bd1632fee87c9f87e945c17dd403b4341127de58d0a98c"},
+    {"path": "apps/tamandua_gui/src-tauri/src/macos/system_extension_lifecycle.rs", "role": "fixed_abi_fail_closed_rust_boundary", "sha256": "18e4ecc804cb1c4d03edf0b45ca7643b4610179c5630717fbd9284abdf657ece"},
+    {"path": "apps/tamandua_gui/src-tauri/src/macos/system_extension_bridge.m", "role": "single_flight_systemextensions_bridge", "sha256": "d12999203d5a031de58c34edb1feb9411d70133776f8518e73feaf51fc2fbcce"},
+    {"path": "deploy/installers/macos/entitlements.plist", "role": "host_install_entitlement_intent", "sha256": "d275d432077dd645887f85bb9d038650029136d931be7ad8b1f9764a67c33873"},
+    {"path": "docs/architecture/adr/ADR-0003-macos-system-extension-lifecycle.md", "role": "source_only_lifecycle_decision", "sha256": "f5f0141006c831552e50ce9780ab2b76d64ae16f782fa95b4d141e8d9446a86f"}
+  ],
+  "inventory_digest": "c04ba82c94d1cc9c88800b36f599410493ec12a139995affe49242202bcb0749",
+  "gate_authority": {"path": "tools/detection_validation/scripts/anti_cheat_macos_system_extension_lifecycle_source_v3_gate.py", "sha256": "d9a56f4c4c85b13955e3084b893e770306fd2738b76b702bff4d4b007b936ef0", "external_review_required": true},
+  "contract": {"host_id": "com.tamandua.edr", "extension_id": "com.tamandua.agent.sysext.filemonitor", "abi_version": 1, "minimum_macos": "14.0", "explicit_confirmation": true, "single_flight": true, "replacement": "strictly_newer_only", "completion_implies_runtime": false},
+  "lifecycle": {"native_compile": false, "framework_link": false, "bundle_merge": false, "embed": false, "sign": false, "install": false, "activate": false, "deactivate": false, "callback_runtime": false, "telemetry": false},
+  "claims": {"runtime_proven": false, "product_ready": false, "production_ready": false, "external_claim_allowed": false},
+  "blockers": ["xcode_systemextension_target_absent", "host_embed_phase_absent", "swift_compile_not_validated", "xpc_api_availability_not_validated", "signed_peer_identifier_unobserved", "objc_compile_not_validated", "systemextensions_framework_link_not_validated", "native_callback_runtime_not_validated", "host_bundle_merge_not_validated", "extension_embedding_not_validated", "signed_entitlements_unobserved", "provisioning_unobserved", "sign_not_validated", "notarization_gatekeeper_not_validated", "install_not_validated", "activation_not_executed", "deactivation_not_executed", "user_approval_not_observed", "reboot_completion_not_observed", "apple_es_grant_unobserved", "fda_unobserved", "xpc_runtime_not_validated", "es_runtime_not_validated", "telemetry_not_validated", "update_rollback_not_rehearsed", "release_decision_not_approved"]
+}

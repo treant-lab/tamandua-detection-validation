@@ -1,0 +1,211 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ml_static_model_comparison_preregistration_v1.schema.json",
+  "title": "Tamandua static-model comparison preregistration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "status", "executable", "blockers", "inputs", "execution", "pilot_contract_smoke", "protocol", "cohort_estimability", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-static-model-comparison-preregistration/v1"},
+    "kind": {"const": "MLStaticModelComparisonPreregistration"},
+    "evidence_class": {"const": "deterministic_metadata_only_preregistration"},
+    "status": {"const": "prepared_not_executable"},
+    "executable": {"const": false},
+    "blockers": {
+      "type": "array",
+      "minItems": 6,
+      "maxItems": 6,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "governed_manifest_v2_snapshot_missing",
+          "version_pinned_promotion_receipts_missing",
+          "governed_holdout_identity_missing",
+          "governed_holdout_evaluation_size_below_minimum",
+          "reference_hardware_evidence_missing",
+          "candidate_model_artifacts_missing"
+        ]
+      }
+    },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pilot_plan_sha256", "transition_audit_sha256", "manifest_v2_schema_sha256", "hist256_config_sha256", "byte_transformer_config_source_sha256", "byte_transformer_tokenizer_source_sha256", "protocol_config_sha256"],
+      "properties": {
+        "pilot_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "transition_audit_sha256": {"$ref": "#/$defs/sha256"},
+        "manifest_v2_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "hist256_config_sha256": {"$ref": "#/$defs/sha256"},
+        "byte_transformer_config_source_sha256": {"$ref": "#/$defs/sha256"},
+        "byte_transformer_tokenizer_source_sha256": {"$ref": "#/$defs/sha256"},
+        "protocol_config_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["network_used", "reads_sample_bodies", "accesses_frozen_evaluation_data", "opens_holdout", "trains_models", "evaluates_samples", "mutates_s3"],
+      "properties": {
+        "network_used": {"const": false},
+        "reads_sample_bodies": {"const": false},
+        "accesses_frozen_evaluation_data": {"const": false},
+        "opens_holdout": {"const": false},
+        "trains_models": {"const": false},
+        "evaluates_samples": {"const": false},
+        "mutates_s3": {"const": false}
+      }
+    },
+    "pilot_contract_smoke": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selected_by_label", "maximum_by_label", "sufficient_for_model_comparison"],
+      "properties": {
+        "selected_by_label": {"$ref": "#/$defs/classCounts"},
+        "maximum_by_label": {"const": {"goodware": 100, "malware": 100}},
+        "sufficient_for_model_comparison": {"const": false}
+      }
+    },
+    "protocol": {"$ref": "#/$defs/protocol"},
+    "cohort_estimability": {
+      "const": {
+        "overall": "not_estimable_governed_holdout_absent",
+        "packed": "not_estimable_metadata_absent",
+        "source-shift": "not_estimable_metadata_absent"
+      }
+    },
+    "claim_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supports", "does_not_support"],
+      "properties": {
+        "supports": {"type": "array", "minItems": 3, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "does_not_support": {"type": "array", "minItems": 6, "uniqueItems": true, "contains": {"const": "architecture-only effect attribution"}, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "classCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["goodware", "malware"],
+      "properties": {
+        "goodware": {"type": "integer", "minimum": 0},
+        "malware": {"type": "integer", "minimum": 0}
+      }
+    },
+    "protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["api_version", "comparison_id", "models", "eligibility", "estimand", "primary_endpoint", "secondary_endpoints", "cohorts", "operational_gates", "decision_rules"],
+      "properties": {
+        "api_version": {"const": "tamandua.io/ml-static-model-comparison-protocol-config/v1"},
+        "comparison_id": {"const": "hist256-vs-byte-transformer-small-v1"},
+        "models": {
+          "const": {
+            "baseline": {
+              "model_id": "hist256-lightgbm",
+              "feature_contract": "tamandua.byte-histogram-256.v1",
+              "input_policy": "full-file-byte-histogram-256"
+            },
+            "challenger": {
+              "model_id": "byte-transformer-small",
+              "architecture_preset": "small",
+              "architecture": {"d_model": 256, "n_heads": 4, "n_layers": 4, "d_ff": 1024, "vocab_size": 259},
+              "source_contract_sha256": {
+                "config": "7330d07f9ac3008dd7434e1bd13e73591b883e56233ad5baf26054702ca941a8",
+                "tokenizer": "28c41166e7b009598c20fbab1366ed65fcfcf21083d1e528e8635c1e671f0437"
+              },
+              "sequence_positions": 512,
+              "content_bytes": 511,
+              "special_token_positions": 1,
+              "input_policy": "first-window-only"
+            }
+          }
+        },
+        "eligibility": {
+          "const": {
+            "manifest_api_version": "tamandua.io/ml-dataset-manifest/v2",
+            "requires_ready_for_training": true,
+            "requires_version_pinned_receipts": true,
+            "requires_group_disjoint_splits": true,
+            "requires_train_before_validation_per_label": true,
+            "requires_temporal_disjoint_splits": true,
+            "holdout_temporal_rule": "accepted-max-before-holdout-min-per-label",
+            "requires_holdout_disjoint_from_train_and_validation": true,
+            "holdout_identity_exposure": "dataset-snapshot-sha256-and-counts-only",
+            "minimum_governed_holdout_by_label": {"goodware": 10000, "malware": 10000},
+            "pilot_contract_smoke_by_label": {"goodware": 100, "malware": 100},
+            "pilot_is_sufficient_for_model_comparison": false
+          }
+        },
+        "estimand": {"const": "end_to_end_pipeline_under_preregistered_input_policies"},
+        "primary_endpoint": {
+          "const": {
+            "metric": "paired-delta-recall-challenger-minus-baseline",
+            "pairing_unit": "sample-sha256",
+            "threshold_selection": {
+              "cohort": "governed-validation-only",
+              "selection_per_model": "independent",
+              "objective": "maximize-recall-under-empirical-fpr-cap",
+              "fpr_cap": 0.001,
+              "tie_break_order": ["lower-fpr", "higher-threshold"]
+            },
+            "fpr_interval": {
+              "method": "clopper-pearson-exact-binomial",
+              "confidence_level": 0.95,
+              "tail": "one-sided-upper",
+              "gate": "upper-bound-at-or-below-fpr-cap-per-model"
+            },
+            "delta_recall_interval": {
+              "method": "group-paired-percentile-bootstrap",
+              "group_key": "leakage_group_id",
+              "seed": 20260717,
+              "resamples": 10000,
+              "confidence_level": 0.95
+            },
+            "minimum_unique_malware_leakage_groups": 1000,
+            "evaluation_cohort": "governed-holdout-only-frozen-once"
+          }
+        },
+        "secondary_endpoints": {
+          "const": ["roc-auc", "pr-auc", "fnr-at-frozen-threshold", "brier-score", "expected-calibration-error-15-equal-width-bins"]
+        },
+        "cohorts": {
+          "const": [
+            {"cohort_id": "overall", "metadata_fields": [], "missing_metadata_policy": "not-estimable"},
+            {"cohort_id": "packed", "metadata_fields": ["packer_family"], "missing_metadata_policy": "not-estimable"},
+            {"cohort_id": "source-shift", "metadata_fields": ["source_id", "observed_at"], "missing_metadata_policy": "not-estimable"}
+          ]
+        },
+        "operational_gates": {
+          "const": {
+            "reference_hardware_receipt_required": true,
+            "serialized_model_size_mib_max": 64,
+            "single_sample_p95_latency_ms_max": 50,
+            "peak_rss_mib_max": 256,
+            "warmup_runs": 100,
+            "measured_runs": 1000
+          }
+        },
+        "decision_rules": {
+          "const": {
+            "promote_for_further_validation_when_all": [
+              "baseline-fpr-upper-at-or-below-cap",
+              "challenger-fpr-upper-at-or-below-cap",
+              "challenger-operational-gates-pass",
+              "delta-recall-ci-lower-greater-than-zero"
+            ],
+            "stop_when_any": [
+              "challenger-fpr-upper-exceeds-cap",
+              "challenger-operational-gate-fails",
+              "delta-recall-ci-upper-less-than-zero"
+            ],
+            "otherwise": "hold",
+            "promotion_scope": "further-validation-only-no-deployment"
+          }
+        }
+      }
+    }
+  }
+}

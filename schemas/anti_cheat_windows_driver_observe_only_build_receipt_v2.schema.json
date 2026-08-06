@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/anti_cheat_windows_driver_observe_only_build_receipt_v2.schema.json",
+  "title": "Tamandua Windows observe-only driver provenance-bound build receipt v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "observed_at", "evidence_class", "status", "provenance", "source", "toolchain", "policy", "execution", "process", "artifact", "artifact_check", "claims", "blockers"],
+  "properties": {
+    "schema_version": {"const": "tamandua.anti_cheat_windows_driver_observe_only_build_receipt/v2"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "evidence_class": {"const": "local_unsigned_build_provenance_bound"},
+    "status": {"enum": ["artifact_observed_provenance_bound", "toolchain_unavailable", "project_preflight_failed", "timed_out", "build_failed", "artifact_missing", "artifact_invalid", "input_drift", "provenance_drift", "internal_error"]},
+    "provenance": {"$ref": "#/$defs/provenance"},
+    "source": {"type": ["object", "null"]},
+    "toolchain": {"type": ["object", "null"]},
+    "policy": {"type": ["object", "null"]},
+    "execution": {"type": ["object", "null"]},
+    "process": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/process"}]},
+    "artifact": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact"}]},
+    "artifact_check": {"type": ["object", "null"]},
+    "claims": {"$ref": "#/$defs/falseClaims"},
+    "blockers": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"enum": ["msbuild_not_found", "msbuild_preprocess_failed", "source_or_toolchain_changed_during_build", "msbuild_deadline_exceeded", "spectre_mitigated_libraries_unavailable", "wdk_platform_toolset_unavailable", "requested_wdk_version_unavailable", "msbuild_nonzero_exit", "expected_exactly_one_sys_artifact", "invalid_pe_artifact", "unexpected_signed_artifact", "build_execution_authenticity_unbound", "link_execution_authenticity_unbound", "signature_not_validated", "install_not_validated", "load_not_validated", "driver_communication_not_validated", "runtime_not_validated", "efficacy_not_validated", "source_or_toolchain_changed_during_build", "authority_or_provenance_changed", "internal_gate_error", "unsafe_output_topology", "invalid_project_contract", "toolchain_inventory_unavailable", "receipt_validation_failed"]}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "fileIdentity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "basename", "path_token", "size", "sha256"],
+      "properties": {
+        "role": {"type": "string", "minLength": 1}, "basename": {"type": "string", "minLength": 1},
+        "path_token": {"$ref": "#/$defs/sha256"}, "size": {"type": "integer", "minimum": 1},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "provenance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["authority_snapshot", "authority_sha256", "authority_post_sha256", "role_inventory_pre", "role_inventory_pre_sha256", "role_inventory_post", "role_inventory_post_sha256", "unchanged"],
+      "properties": {
+        "authority_snapshot": {"type": "object"},
+        "authority_sha256": {"$ref": "#/$defs/sha256"},
+        "authority_post_sha256": {"$ref": "#/$defs/sha256"},
+        "role_inventory_pre": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"$ref": "#/$defs/fileIdentity"}},
+        "role_inventory_pre_sha256": {"$ref": "#/$defs/sha256"},
+        "role_inventory_post": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"$ref": "#/$defs/fileIdentity"}},
+        "role_inventory_post_sha256": {"$ref": "#/$defs/sha256"},
+        "unchanged": {"type": "boolean"}
+      }
+    },
+    "process": {
+      "type": "object", "additionalProperties": false,
+      "required": ["exit_code", "timed_out", "duration_ms", "output_sha256", "output_bytes", "retained_output", "retained_output_sha256", "retained_raw_sha256", "retained_raw_bytes", "redaction_applied", "retained_truncated", "job_containment"],
+      "properties": {
+        "exit_code": {"type": ["integer", "null"]}, "timed_out": {"type": "boolean"},
+        "duration_ms": {"type": "integer", "minimum": 0}, "output_sha256": {"$ref": "#/$defs/sha256"},
+        "output_bytes": {"type": "integer", "minimum": 0}, "retained_output": {"type": "string", "maxLength": 262144},
+        "retained_output_sha256": {"$ref": "#/$defs/sha256"}, "retained_raw_sha256": {"$ref": "#/$defs/sha256"},
+        "retained_raw_bytes": {"type": "integer", "minimum": 0, "maximum": 262144},
+        "redaction_applied": {"type": "boolean"}, "retained_truncated": {"type": "boolean"},
+        "job_containment": {"enum": ["windows_job_kill_on_close", "process_only"]}
+      }
+    },
+    "artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "size", "sha256", "machine", "characteristics", "imports", "certificate_table_present"],
+      "properties": {
+        "path": {"type": "string", "pattern": "(?i)\\.sys$"}, "size": {"type": "integer", "minimum": 256, "maximum": 134217728},
+        "sha256": {"$ref": "#/$defs/sha256"}, "machine": {"const": "amd64"},
+        "characteristics": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "imports": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9_.-]+$"}},
+        "certificate_table_present": {"const": false}
+      }
+    },
+    "falseClaims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["build_validated", "link_validated", "signed", "installed", "loaded", "driver_communication_validated", "runtime_validated", "efficacy_validated", "production_ready", "external_claim_allowed"],
+      "properties": {
+        "build_validated": {"const": false}, "link_validated": {"const": false}, "signed": {"const": false},
+        "installed": {"const": false}, "loaded": {"const": false}, "driver_communication_validated": {"const": false},
+        "runtime_validated": {"const": false}, "efficacy_validated": {"const": false},
+        "production_ready": {"const": false}, "external_claim_allowed": {"const": false}
+      }
+    }
+  }
+}

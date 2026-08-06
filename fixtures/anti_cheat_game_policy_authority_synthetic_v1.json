@@ -1,0 +1,60 @@
+{
+  "schema": "tamandua.anti_cheat.game_policy_authority/v1",
+  "evidence_class": "synthetic_offline_contract",
+  "game_003a_policy_digest": "5761d9c08930bd7581a1a42c34b639d70eb1e78202e444a1c97f444b98173d9c",
+  "expected_scope": {
+    "tenant_scope_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+    "game_id": "sample.game",
+    "build_digest": "2222222222222222222222222222222222222222222222222222222222222222"
+  },
+  "trust_root": {
+    "root_id": "sample.game.root",
+    "algorithm": "Ed25519",
+    "keys": [
+      {
+        "key_id": "sample.root.key1",
+        "public_key_hex": "79b5562e8fe654f94078b112e8a98ba7901f853ae695bed7e0e3910bad049664",
+        "authorized_epochs": [1]
+      }
+    ]
+  },
+  "revocations": {"version": 2, "revoked_key_ids": []},
+  "prior_checkpoint": {
+    "authority_epoch": 1,
+    "revision": 7,
+    "revocation_version": 2,
+    "revocation_set_digest": "44900b1b28bf284b74664c737c6f5e82c2d7cf27129d2a8c365c52633883ebb9",
+    "revoked_key_ids": [],
+    "policy_digest": "3333333333333333333333333333333333333333333333333333333333333333",
+    "envelope_digest": "4444444444444444444444444444444444444444444444444444444444444444",
+    "checkpoint_digest": "2b5f48a9543ef79f9e6b23a6fa19466e8ccbf2b05c9f9c434634b37e13c2a229"
+  },
+  "signed_envelope": {
+    "schema": "tamandua.anti_cheat.signed_game_policy_envelope/v1",
+    "scope": {
+      "tenant_scope_digest": "1111111111111111111111111111111111111111111111111111111111111111",
+      "game_id": "sample.game",
+      "build_digest": "2222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "policy": {
+      "policy_id": "sample.server.movement",
+      "policy_version": "1",
+      "policy_digest": "5761d9c08930bd7581a1a42c34b639d70eb1e78202e444a1c97f444b98173d9c"
+    },
+    "mapping": {"features": ["server_position_fixed_point"], "detectors": ["server_movement_replay_v1"]},
+    "authority": {"key_id": "sample.root.key1", "authority_epoch": 1, "revision": 8},
+    "validity": {"issued_at_unix": 1780000000, "not_before_unix": 1780000000, "expires_at_unix": 1780003600},
+    "revocation_version": 2,
+    "revocation_digest": "44900b1b28bf284b74664c737c6f5e82c2d7cf27129d2a8c365c52633883ebb9",
+    "prior_checkpoint_digest": "2b5f48a9543ef79f9e6b23a6fa19466e8ccbf2b05c9f9c434634b37e13c2a229"
+  },
+  "signature_hex": "feca7d86e080b47f9a2b91eaff572d182146addabb344247afd2b9953ae1e81067f31e574fef19db60c0086100b4cf00b97e204c7881658cd543d8c4e1ee5605",
+  "claims": {
+    "runtime_authorized": false,
+    "enforcement_authorized": false,
+    "external_latest_state_validated": false,
+    "rollback_durability_validated": false,
+    "production_ready": false,
+    "external_claim_allowed": false
+  }
+}

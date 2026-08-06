@@ -13,6 +13,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import sys
 import re
 import subprocess
 import time
@@ -32,7 +33,8 @@ except ImportError:
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 PROFILE_ID = "macos-backend-readiness-probe"
 PROFILE_NAME = "macOS Backend Readiness Probe"
-DEFAULT_CTL = ROOT / "apps" / "tamandua_ctl" / "target" / "release" / "tamandua-ctl.exe"
+DEFAULT_CTL_NAME = "tamandua-ctl.exe" if sys.platform.startswith("win") else "tamandua-ctl"
+DEFAULT_CTL = ROOT / "apps" / "tamandua_ctl" / "target" / "release" / DEFAULT_CTL_NAME
 FRESHNESS_SECONDS = int(os.getenv("TAMANDUA_MACOS_READINESS_FRESHNESS_SECONDS", "300"))
 LIVE_RESPONSE_REMOTE_TIMEOUT_SECONDS = int(os.getenv("TAMANDUA_MACOS_LIVE_RESPONSE_REMOTE_TIMEOUT_SECONDS", "45"))
 LIVE_RESPONSE_PROCESS_TIMEOUT_SECONDS = int(os.getenv("TAMANDUA_MACOS_LIVE_RESPONSE_PROCESS_TIMEOUT_SECONDS", "55"))
@@ -195,15 +197,34 @@ def load_agents(server: str | None = None) -> tuple[list[dict[str, Any]], dict[s
     command = [str(ctl_path()), "remote", "agents", "list", "--json"]
     if server:
         command.extend(["--server", server])
-    result = subprocess.run(
-        command,
-        cwd=ROOT,
-        env=tamandua_ctl_env(server),
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        timeout=60,
-    )
+    try:
+        result = subprocess.run(
+            command,
+            cwd=ROOT,
+            env=tamandua_ctl_env(server),
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            timeout=60,
+        )
+    except FileNotFoundError as exc:
+        evidence = {
+            "command": " ".join(command),
+            "exit_code": 127,
+            "stderr": f"tamandua_ctl_missing: {exc}",
+            "stdout": "",
+            "remote_config": remote_config_metadata(server),
+        }
+        return [], evidence
+    except subprocess.TimeoutExpired as exc:
+        evidence = {
+            "command": " ".join(command),
+            "exit_code": None,
+            "stderr": output_text(exc.stderr)[-2000:] + "\ntamandua_ctl_timeout",
+            "stdout": output_text(exc.stdout)[-2000:],
+            "remote_config": remote_config_metadata(server),
+        }
+        return [], evidence
     evidence = {
         "command": " ".join(command),
         "exit_code": result.returncode,
@@ -226,10 +247,29 @@ def load_agents(server: str | None = None) -> tuple[list[dict[str, Any]], dict[s
     return [agent for agent in agents if isinstance(agent, dict)], evidence
 
 
+def output_text(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
+
+
 def inventory_auth_missing(inventory: dict[str, Any]) -> bool:
     text = f"{inventory.get('stderr') or ''}\n{inventory.get('stdout') or ''}".lower()
     return int(inventory.get("exit_code") or 0) != 0 and (
-        "401 unauthorized" in text or "invalid or expired token" in text
+        "401 unauthorized" in text
+        or "invalid or expired token" in text
+        or "missing token" in text
+        or "pass --token" in text
+        or "remote login" in text
+    )
+
+
+def inventory_ctl_unavailable(inventory: dict[str, Any]) -> bool:
+    text = f"{inventory.get('stderr') or ''}\n{inventory.get('stdout') or ''}".lower()
+    return inventory.get("exit_code") in {None, 127} and (
+        "tamandua_ctl_missing" in text or "tamandua_ctl_timeout" in text
     )
 
 
@@ -716,6 +756,18 @@ def best_macos_candidate(summaries: list[dict[str, Any]]) -> dict[str, Any] | No
 
 
 def macos_next_action(best_candidate: dict[str, Any] | None, inventory: dict[str, Any] | None = None) -> dict[str, Any]:
+    if inventory and inventory_ctl_unavailable(inventory):
+        command = str(inventory.get("command") or "tamandua-ctl remote agents list --json")
+        return {
+            "target_agent_id": None,
+            "target_hostname": None,
+            "missing_readiness": ["tamandua_ctl_unavailable"],
+            "action": (
+                "Build or provide tamandua-ctl for this operator platform, set TAMANDUA_CTL_PATH if needed, "
+                "then rerun macos_backend_readiness_probe.py before diagnosing macOS agent enrollment."
+            ),
+            "command": command,
+        }
     if inventory and inventory_auth_missing(inventory):
         remote_config = inventory.get("remote_config") if isinstance(inventory.get("remote_config"), dict) else {}
         target_server = remote_config.get("target_server") or None
@@ -856,6 +908,7 @@ def build_tests(
 ) -> list[dict[str, Any]]:
     agents, inventory = load_agents(server)
     auth_missing = inventory_auth_missing(inventory)
+    ctl_unavailable = inventory_ctl_unavailable(inventory)
     macs = [agent for agent in agents if str(agent.get("os_type") or "").lower() == "macos"]
     summaries = [macos_agent_summary(agent) for agent in macs]
     online = [agent for agent in summaries if str(agent.get("status") or "").lower() == "online"]
@@ -891,7 +944,12 @@ def build_tests(
         "live_response_diagnostics": live_response_evidence,
         "bootstrap_readiness_report": bootstrap_evidence,
     }
-    row_missing = ["tamandua_ctl_auth"] if auth_missing else ["macos_agent_row"]
+    if ctl_unavailable:
+        row_missing = ["tamandua_ctl_unavailable"]
+    elif auth_missing:
+        row_missing = ["tamandua_ctl_auth"]
+    else:
+        row_missing = ["macos_agent_row"]
     tests = [
         make_result(
             "macos-backend-agent-row-present",
@@ -1101,7 +1159,13 @@ def write_markdown(report: dict[str, Any], path: Path) -> None:
             "",
         ]
     )
-    path.write_text("\n".join(lines), encoding="utf-8")
+    atomic_write_text(path, "\n".join(lines))
+
+
+def atomic_write_text(path: Path, body: str) -> None:
+    temp_path = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+    temp_path.write_text(body, encoding="utf-8")
+    temp_path.replace(path)
 
 
 def parse_args() -> argparse.Namespace:
@@ -1132,7 +1196,7 @@ def main() -> int:
     passed = all(test["status"] == "covered" for test in tests)
     covered = sum(1 for test in tests if test["status"] == "covered")
     missed = len(tests) - covered
-    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ") + f"-{PROFILE_ID}"
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ") + f"-{PROFILE_ID}"
 
     report = {
         "schema_version": 1,
@@ -1209,8 +1273,8 @@ def main() -> int:
     json_path = output_dir / f"{run_id}.json"
     comparison_path = output_dir / f"{run_id}.comparison.json"
     md_path = output_dir / f"{run_id}.md"
-    json_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
-    comparison_path.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+    atomic_write_text(json_path, json.dumps(report, indent=2, sort_keys=True) + "\n")
+    atomic_write_text(comparison_path, json.dumps(report, indent=2, sort_keys=True) + "\n")
     write_markdown(report, md_path)
     print(f"macos_backend_readiness={'ok' if passed else 'gaps'} json={json_path} markdown={md_path}")
     return 0 if passed else 1

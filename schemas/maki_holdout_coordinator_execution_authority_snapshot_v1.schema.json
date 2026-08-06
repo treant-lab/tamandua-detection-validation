@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/maki_holdout_coordinator_execution_authority_snapshot_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "capture_position", "captured_at", "deployment", "phase", "artifact_digest", "lease", "artifact_verification", "approval_review", "approval_status", "claims"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-holdout-coordinator-execution-authority-snapshot/v1"},
+    "kind": {"const": "MakiHoldoutCoordinatorExecutionAuthoritySnapshot"},
+    "evidence_class": {"const": "local_self_reported"},
+    "capture_position": {"enum": ["before_decision", "after_decision"]},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "deployment": {"$ref": "#/$defs/deployment"},
+    "phase": {"enum": ["verified", "awaiting_approval"]},
+    "artifact_digest": {"$ref": "#/$defs/artifactDigest"},
+    "lease": {
+      "allOf": [
+        {"$ref": "#/$defs/authorityBinding"},
+        {
+          "type": "object",
+          "required": ["owner", "fencing_token", "phase", "expires_at"],
+          "properties": {
+            "owner": {"$ref": "#/$defs/owner"},
+            "fencing_token": {"type": "integer", "minimum": 1},
+            "phase": {"enum": ["verified", "awaiting_approval"]},
+            "expires_at": {"type": "number"}
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "artifact_verification": {
+      "allOf": [
+        {"$ref": "#/$defs/authorityBinding"},
+        {
+          "type": "object",
+          "required": ["verified_at", "owner", "fencing_token"],
+          "properties": {
+            "verified_at": {"type": "number"},
+            "owner": {"$ref": "#/$defs/owner"},
+            "fencing_token": {"type": "integer", "minimum": 1}
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "approval_review": {
+      "allOf": [
+        {"$ref": "#/$defs/authorityBinding"},
+        {
+          "type": "object",
+          "required": ["approval_required", "manifest_fingerprint", "policy", "database_scoped", "max_ttl_seconds", "evidence_label", "evidence_boundary"],
+          "properties": {
+            "approval_required": {"const": true},
+            "manifest_fingerprint": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+            "policy": {"type": "string", "minLength": 1, "maxLength": 160},
+            "database_scoped": {"const": false},
+            "max_ttl_seconds": {"type": "integer", "minimum": 1, "maximum": 28800},
+            "evidence_label": {"const": "local_self_reported"},
+            "evidence_boundary": {"const": "workspace_completion_receipt_local_only"}
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "approval_status": {
+      "allOf": [
+        {"$ref": "#/$defs/authorityBinding"},
+        {
+          "type": "object",
+          "required": ["approval_required", "approval_id", "state", "policy", "evidence_label", "issued_at", "expires_at"],
+          "properties": {
+            "approval_required": {"const": true},
+            "approval_id": {"$ref": "#/$defs/id"},
+            "state": {"const": "active"},
+            "policy": {"type": "string", "minLength": 1, "maxLength": 160},
+            "evidence_label": {"const": "local_self_reported"},
+            "issued_at": {"type": "number"},
+            "expires_at": {"type": "number"}
+          }
+        }
+      ],
+      "unevaluatedProperties": false
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["snapshot_source", "coordinator_consumed", "execution_authorized", "aws_mutation"],
+      "properties": {
+        "snapshot_source": {"const": "read_only_public_coordinator_apis"},
+        "coordinator_consumed": {"const": false},
+        "execution_authorized": {"const": false},
+        "aws_mutation": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"},
+    "owner": {"type": "string", "pattern": "^[A-Za-z0-9._:@/-]{1,256}$"},
+    "artifactDigest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "deployment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["deployment_id", "source_sha", "target", "surface"],
+      "properties": {
+        "deployment_id": {"$ref": "#/$defs/id"},
+        "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+        "target": {"const": "staging"},
+        "surface": {"const": "ml-corpus-holdout"}
+      }
+    },
+    "authorityBinding": {
+      "type": "object",
+      "required": ["deployment_id", "source_sha", "target", "surface", "artifact_digest"],
+      "properties": {
+        "deployment_id": {"$ref": "#/$defs/id"},
+        "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+        "target": {"const": "staging"},
+        "surface": {"const": "ml-corpus-holdout"},
+        "artifact_digest": {"$ref": "#/$defs/artifactDigest"}
+      }
+    }
+  }
+}

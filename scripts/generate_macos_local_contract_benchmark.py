@@ -20,6 +20,7 @@ from typing import Any
 
 PROFILE_ID = "macos-local-sensor-contracts"
 PROFILE_NAME = "macOS Local Sensor Contracts"
+DEFAULT_CONTRACT_TIMEOUT_SECONDS = 180
 CLAIM_BOUNDARY = (
     "local contract only; does not prove LaunchDaemon online state, "
     "EndpointSecurity/System Extension install entitlement delivery, mTLS issuance, or backend event ingestion"
@@ -147,6 +148,17 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo-root", default=Path(__file__).resolve().parents[2])
     parser.add_argument("--skip-run", action="store_true", help="record contracts as previously verified")
+    parser.add_argument(
+        "--contract-timeout-seconds",
+        type=int,
+        default=DEFAULT_CONTRACT_TIMEOUT_SECONDS,
+        help="maximum runtime for each contract command before it is marked timed_out",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        help="suppress per-contract progress lines",
+    )
     args = parser.parse_args()
 
     repo_root = Path(args.repo_root).resolve()
@@ -174,7 +186,14 @@ def main() -> int:
                 "coverage": contract["coverage"],
             }
         else:
-            result = run_contract(repo_root, agent_dir, contract)
+            if not args.quiet:
+                print(f"running {contract['test_id']}...", flush=True)
+            result = run_contract(repo_root, agent_dir, contract, args.contract_timeout_seconds)
+            if not args.quiet:
+                print(
+                    f"finished {contract['test_id']} status={result['status']} duration_ms={result['duration_ms']}",
+                    flush=True,
+                )
         sdk_stub_warning = sdk_stub_warning or result.get("sdk_warning_seen", False)
         results.append(result)
 
@@ -257,27 +276,45 @@ def main() -> int:
     return 0 if passed else 1
 
 
-def run_contract(repo_root: Path, agent_dir: Path, contract: dict[str, Any]) -> dict[str, Any]:
+def run_contract(
+    repo_root: Path,
+    agent_dir: Path,
+    contract: dict[str, Any],
+    timeout_seconds: int,
+) -> dict[str, Any]:
     started = datetime.now(timezone.utc)
     cwd = repo_root if contract.get("cwd") == "repo" else agent_dir
-    proc = subprocess.run(
-        contract["command"],
-        cwd=cwd,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        env={**os.environ, "CARGO_TERM_COLOR": "never"},
-    )
+    try:
+        proc = subprocess.run(
+            contract["command"],
+            cwd=cwd,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env={**os.environ, "CARGO_TERM_COLOR": "never"},
+            timeout=timeout_seconds,
+        )
+        status = "covered" if proc.returncode == 0 else "missed"
+        exit_code: int | None = proc.returncode
+        stdout = proc.stdout
+        stderr = proc.stderr
+    except subprocess.TimeoutExpired as exc:
+        status = "timed_out"
+        exit_code = None
+        stdout = output_text(exc.stdout)
+        stderr = output_text(exc.stderr) + f"\ncommand timed out after {timeout_seconds}s"
+
     duration_ms = int((datetime.now(timezone.utc) - started).total_seconds() * 1000)
     return {
         "test_id": contract["test_id"],
-        "status": "covered" if proc.returncode == 0 else "missed",
+        "status": status,
         "command": " ".join(contract["command"]),
-        "exit_code": proc.returncode,
+        "exit_code": exit_code,
         "duration_ms": duration_ms,
-        "sdk_warning_seen": "EndpointSecurity.framework not found" in (proc.stdout + proc.stderr),
-        "stdout_tail": tail(proc.stdout),
-        "stderr_tail": tail(proc.stderr),
+        "timeout_seconds": timeout_seconds,
+        "sdk_warning_seen": "EndpointSecurity.framework not found" in (stdout + stderr),
+        "stdout_tail": tail(stdout),
+        "stderr_tail": tail(stderr),
         "expected_telemetry": contract["expected_telemetry"],
         "coverage": contract["coverage"],
     }
@@ -323,6 +360,14 @@ def render_markdown(report: dict[str, Any]) -> str:
 
 def tail(value: str, limit: int = 4000) -> str:
     return value[-limit:] if len(value) > limit else value
+
+
+def output_text(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
 
 
 def utc_now() -> str:

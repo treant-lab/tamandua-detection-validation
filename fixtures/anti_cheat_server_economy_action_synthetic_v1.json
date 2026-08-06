@@ -1,0 +1,40 @@
+{
+  "schema": "tamandua.anti_cheat.server_economy_action_fixture/v1",
+  "evidence_class": "synthetic_contract",
+  "claim_boundary": {"production_fpr_claimable": false, "live_server_validated": false, "enforcement_authorized": false, "external_claim_allowed": false},
+  "tenant_scope_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "build_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "policy": {
+    "schema": "tamandua.anti_cheat.server_economy_action_policy/v1",
+    "policy_id": "game.economy_action.synthetic.v1",
+    "policy_version": "1.0.0",
+    "max_gap_ticks": 20,
+    "initial_currency": 1000,
+    "initial_items": 2,
+    "initial_ammo": 30,
+    "operations": [
+      {"kind": "grant", "authorization_digest": "1111111111111111111111111111111111111111111111111111111111111111", "currency_delta": 50, "item_delta": 0, "ammo_delta": 0, "cooldown_ticks": 0, "ability_from": "ready", "ability_to": "ready"},
+      {"kind": "purchase", "authorization_digest": "2222222222222222222222222222222222222222222222222222222222222222", "currency_delta": -100, "item_delta": 1, "ammo_delta": 0, "cooldown_ticks": 0, "ability_from": "ready", "ability_to": "ready"},
+      {"kind": "spend", "authorization_digest": "3333333333333333333333333333333333333333333333333333333333333333", "currency_delta": -25, "item_delta": 0, "ammo_delta": 0, "cooldown_ticks": 0, "ability_from": "ready", "ability_to": "ready"},
+      {"kind": "fire", "authorization_digest": "4444444444444444444444444444444444444444444444444444444444444444", "currency_delta": 0, "item_delta": 0, "ammo_delta": -1, "cooldown_ticks": 3, "ability_from": "ready", "ability_to": "ready"},
+      {"kind": "ability", "authorization_digest": "5555555555555555555555555555555555555555555555555555555555555555", "currency_delta": 0, "item_delta": 0, "ammo_delta": -5, "cooldown_ticks": 10, "ability_from": "ready", "ability_to": "cooldown"},
+      {"kind": "recover", "authorization_digest": "6666666666666666666666666666666666666666666666666666666666666666", "currency_delta": 0, "item_delta": 0, "ammo_delta": 0, "cooldown_ticks": 0, "ability_from": "cooldown", "ability_to": "ready"},
+      {"kind": "idempotent_retry", "authorization_digest": "7777777777777777777777777777777777777777777777777777777777777777", "currency_delta": 0, "item_delta": 0, "ammo_delta": 0, "cooldown_ticks": 0, "ability_from": "ready", "ability_to": "ready"}
+    ]
+  },
+  "policy_digest": "c1bf58437e8de7d3949f9e7f711cc4ef957d934e391b8a6a83336796eb47e244",
+  "clean_strata": [
+    {"name": "vanilla", "count": 598, "extension": null},
+    {"name": "approved_mod", "count": 598, "extension": {"namespace_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc", "approval": "approved_mod"}},
+    {"name": "approved_accessibility", "count": 598, "extension": {"namespace_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "approval": "approved_accessibility"}}
+  ],
+  "injected": [
+    {"name": "currency_violation", "count": 40, "mutation": "currency"},
+    {"name": "inventory_violation", "count": 40, "mutation": "inventory"},
+    {"name": "cadence_violation", "count": 40, "mutation": "cadence"},
+    {"name": "ammo_violation", "count": 40, "mutation": "ammo"},
+    {"name": "ability_violation", "count": 40, "mutation": "ability"},
+    {"name": "gap_inconclusive", "count": 30, "mutation": "gap"},
+    {"name": "conflict_inconclusive", "count": 30, "mutation": "conflict"}
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/anti_cheat_appeal_case_v1.schema.json",
+  "title": "Tamandua synthetic anti-cheat appeal case v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "case_id", "case_version", "prior_case_digest", "decision_id", "decision_digest", "scope", "status", "opened_at_unix", "updated_at_unix", "sla_due_at_unix", "appellant_digest", "reviewer_digest", "reviewer_roster_digest", "reason_codes", "evidence_refs", "outcome", "retention", "audit", "claims"],
+  "properties": {
+    "schema": {"const": "tamandua.anti_cheat.appeal_case/v1"},
+    "case_id": {"$ref": "#/$defs/digest"},
+    "case_version": {"type": "integer", "minimum": 1},
+    "prior_case_digest": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]},
+    "decision_id": {"$ref": "#/$defs/digest"},
+    "decision_digest": {"$ref": "#/$defs/digest"},
+    "scope": {"$ref": "#/$defs/scope"},
+    "status": {"enum": ["open", "review", "uphold", "reverse"]},
+    "opened_at_unix": {"type": "integer", "minimum": 0},
+    "updated_at_unix": {"type": "integer", "minimum": 0},
+    "sla_due_at_unix": {"type": "integer", "minimum": 0},
+    "appellant_digest": {"$ref": "#/$defs/digest"},
+    "reviewer_digest": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]},
+    "reviewer_roster_digest": {"$ref": "#/$defs/digest"},
+    "reason_codes": {"type": "array", "minItems": 1, "maxItems": 8, "uniqueItems": true, "items": {"enum": ["mistaken_identity", "clean_behavior", "approved_mod", "accessibility_tool", "evidence_conflict", "moderator_compromise", "sanction_upheld", "sanction_reversed"]}},
+    "evidence_refs": {"type": "array", "minItems": 1, "maxItems": 16, "uniqueItems": true, "items": {"$ref": "#/$defs/digest"}},
+    "outcome": {
+      "type": "object", "additionalProperties": false,
+      "required": ["result", "reversal_decision_id", "remediation_actions", "deletion_due_at_unix"],
+      "properties": {"result": {"enum": ["pending", "upheld", "reversed"]}, "reversal_decision_id": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]}, "remediation_actions": {"type": "array", "maxItems": 5, "uniqueItems": true, "items": {"enum": ["restore_access", "remove_restriction", "annotate_false_positive", "delete_eligible_evidence", "retain_under_legal_basis"]}}, "deletion_due_at_unix": {"type": "integer", "minimum": 0}}
+    },
+    "retention": {"$ref": "#/$defs/retention"},
+    "audit": {"$ref": "#/$defs/audit"},
+    "claims": {"$ref": "#/$defs/claims"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scope": {"type": "object", "additionalProperties": false, "required": ["tenant_digest", "game_digest", "build_digest", "match_digest", "player_digest"], "properties": {"tenant_digest": {"$ref": "#/$defs/digest"}, "game_digest": {"$ref": "#/$defs/digest"}, "build_digest": {"$ref": "#/$defs/digest"}, "match_digest": {"$ref": "#/$defs/digest"}, "player_digest": {"$ref": "#/$defs/digest"}}},
+    "retention": {"type": "object", "additionalProperties": false, "required": ["region", "window_days", "delete_after_unix", "legal_hold"], "properties": {"region": {"enum": ["br", "eu", "us"]}, "window_days": {"type": "integer", "minimum": 1, "maximum": 3650}, "delete_after_unix": {"type": "integer", "minimum": 0}, "legal_hold": {"type": "boolean"}}},
+    "audit": {"type": "object", "additionalProperties": false, "required": ["sequence", "prior_event_digest", "event_digest"], "properties": {"sequence": {"type": "integer", "minimum": 1}, "prior_event_digest": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/digest"}]}, "event_digest": {"$ref": "#/$defs/digest"}}},
+    "claims": {"type": "object", "additionalProperties": false, "required": ["enforcement_executed", "durable_state_written", "production_ready", "external_claim_allowed"], "properties": {"enforcement_executed": {"const": false}, "durable_state_written": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}}}
+  }
+}

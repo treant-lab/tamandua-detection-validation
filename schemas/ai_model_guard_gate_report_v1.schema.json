@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/ai_model_guard_gate_report_v1.schema.json",
+  "title": "Tamandua AI Model Guard Gate Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "generated_at",
+    "gate_status",
+    "external_claim_allowed",
+    "local_gate_runnable",
+    "claim_boundary",
+    "evidence",
+    "sample_accounting",
+    "outcomes",
+    "coverage_plan",
+    "known_signature_gate",
+    "promotion_blockers",
+    "claimable_status"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "tamandua.io/ai-model-guard-gate-report/v1"
+    },
+    "kind": {
+      "const": "AiModelGuardGateReport"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "gate_status": {
+      "enum": [
+        "blocked_for_production_claim",
+        "production_claim_ready"
+      ]
+    },
+    "external_claim_allowed": {
+      "type": "boolean"
+    },
+    "local_gate_runnable": {
+      "const": true
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 20
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "class_reason",
+        "source_artifacts",
+        "source_kind"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "smoke",
+            "synthetic_parity",
+            "bootstrap_calibration",
+            "governed_holdout",
+            "production_telemetry"
+          ]
+        },
+        "class_reason": {
+          "type": "string",
+          "minLength": 20
+        },
+        "source_artifacts": {
+          "type": "array",
+          "minItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "source_kind": {
+          "enum": [
+            "validation_json",
+            "manifest"
+          ]
+        }
+      }
+    },
+    "sample_accounting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "declared_malicious",
+        "declared_benign",
+        "observed_malicious",
+        "observed_benign",
+        "total_samples"
+      ],
+      "properties": {
+        "declared_malicious": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "declared_benign": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observed_malicious": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observed_benign": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "total_samples": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "outcomes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tp",
+        "tn",
+        "fp",
+        "fn",
+        "malicious_total",
+        "benign_total",
+        "fpr",
+        "fnr"
+      ],
+      "properties": {
+        "tp": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "tn": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "fp": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "fn": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "malicious_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "benign_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fpr": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "fnr": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "coverage_plan": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "path",
+        "formats",
+        "coverage_blockers",
+        "documented_evidence_classes"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "formats": {
+          "type": "object"
+        },
+        "coverage_blockers": {
+          "type": "array"
+        },
+        "documented_evidence_classes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "known_signature_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "require_zero_known_signature_fn",
+        "misses",
+        "passed"
+      ],
+      "properties": {
+        "require_zero_known_signature_fn": {
+          "const": true
+        },
+        "misses": {
+          "type": "array"
+        },
+        "passed": {
+          "type": "boolean"
+        }
+      }
+    },
+    "promotion_blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "claimable_status": {
+      "type": "string",
+      "minLength": 20
+    }
+  }
+}

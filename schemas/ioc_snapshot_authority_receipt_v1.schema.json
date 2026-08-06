@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ioc_snapshot_authority_receipt_v1.schema.json",
+  "title": "Tamandua IOC snapshot authority verification receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_sha", "verification_sql_sha256", "bootstrap_sql_sha256", "verified_at", "inputs", "result"],
+  "properties": {
+    "schema_version": {"const": "tamandua.ioc-snapshot-authority-receipt.v1"},
+    "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "verification_sql_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "bootstrap_sql_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "verified_at": {"type": "string", "format": "date-time"},
+    "inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ioc_snapshot_login", "runtime_login", "migrator_login", "retention_authority_login", "owner_role", "executor_role", "function_signature", "page_size", "maximum_rows", "maximum_bytes", "maximum_row_bytes"],
+      "properties": {
+        "ioc_snapshot_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "runtime_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "migrator_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "retention_authority_login": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"},
+        "owner_role": {"const": "tamandua_authority_ioc_snapshot_v1_owner"},
+        "executor_role": {"const": "tamandua_authority_ioc_snapshot_v1_executor"},
+        "function_signature": {"const": "public.authority_ioc_snapshot_v1(bigint,uuid,integer)"},
+        "page_size": {"const": 1000},
+        "maximum_rows": {"const": 100000},
+        "maximum_bytes": {"const": 67108864},
+        "maximum_row_bytes": {"const": 65536}
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verified"],
+      "properties": {
+        "verified": {"type": "boolean"},
+        "server_version_num": {"type": "integer", "minimum": 160000},
+        "database": {"type": "string", "minLength": 1, "maxLength": 63},
+        "system_identifier": {"type": "string", "pattern": "^[0-9]+$"},
+        "bootstrap_session_role": {"type": "string", "minLength": 1, "maxLength": 63},
+        "error": {"type": "string", "maxLength": 512}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"result": {"properties": {"verified": {"const": true}}}}},
+      "then": {"properties": {"result": {"required": ["verified", "server_version_num", "database", "system_identifier", "bootstrap_session_role"], "not": {"required": ["error"]}}}},
+      "else": {"properties": {"result": {"required": ["verified", "error"], "not": {"anyOf": [{"required": ["server_version_num"]}, {"required": ["database"]}, {"required": ["system_identifier"]}, {"required": ["bootstrap_session_role"]}]}}}}
+    }
+  ]
+}

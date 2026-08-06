@@ -1,0 +1,128 @@
+{
+  "schema": "tamandua.runtime_trust.event/v1",
+  "event_id": "evt_runtime_trust_android_0001",
+  "observed_at": "2026-07-17T14:00:00Z",
+  "profile": "mobile_app_guard",
+  "platform": "android",
+  "event_type": "debugger_detected",
+  "scope": {
+    "tenant_resolution": "unresolved_legacy_adapter"
+  },
+  "protected_target": {
+    "kind": "mobile_app",
+    "target_id": "com.example.wallet",
+    "build_id": "1203",
+    "version": "1.2.3",
+    "signer_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "session": {
+    "session_id": "session-runtime-trust-0001",
+    "workflow": "withdrawal",
+    "user_id_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "evaluation": {
+    "score": 85,
+    "decision": "block",
+    "reasons": ["debugger_detected", "root_detected"],
+    "policy_id": "policy_app_guard_default",
+    "decision_source": "legacy_adapter",
+    "evidence_class": "legacy_unclassified",
+    "external_claim_allowed": false,
+    "limitations": [
+      "legacy_v1_has_no_runtime_trust_capability_negotiation",
+      "legacy_v1_has_no_evidence_class",
+      "tenant_resolution_requires_server_context",
+      "synthetic_fixture_is_not_physical_or_release_evidence"
+    ]
+  },
+  "capability_report": {
+    "adapter_id": "tamandua.app_guard.v1_adapter",
+    "adapter_version": "1",
+    "state": "degraded",
+    "missing_capabilities": ["runtime_trust_capability_negotiation", "tenant_resolution"],
+    "degraded_reasons": ["source_schema_predates_runtime_trust_capability_report"]
+  },
+  "signals": [
+    {
+      "signal_id": "debugger_detected",
+      "detector_family": "runtime_integrity",
+      "state": "observed",
+      "evidence_strength": "strong",
+      "source": "legacy_adapter",
+      "observed_at": "2026-07-17T14:00:00Z",
+      "evidence_ref": {
+        "kind": "legacy_inline_metadata",
+        "source_path": "signals[0].evidence",
+        "privacy_mode": "metadata_only"
+      }
+    }
+  ],
+  "evidence_boundary": {
+    "metadata_only": true,
+    "contains_raw_content": false,
+    "excluded_fields": ["raw_memory", "screen_content", "request_body", "response_body", "credentials"]
+  },
+  "compatibility": {
+    "source_schema": "tamandua.app_guard.event/v1",
+    "mapping_version": "app_guard_v1_to_runtime_trust_v1",
+    "source_payload_sha256": "3b41af3efbbe520f7ffaaef0f02d50239f76857fbd58c3d7080a1f6eb7fe6da5",
+    "source_payload": {
+      "schema": "tamandua.app_guard.event/v1",
+      "event_id": "evt_runtime_trust_android_0001",
+      "timestamp": "2026-07-17T14:00:00Z",
+      "event_type": "debugger_detected",
+      "severity": "high",
+      "platform": "android",
+      "app": {
+        "package_or_bundle_id": "com.example.wallet",
+        "version": "1.2.3",
+        "build": "1203",
+        "signing_hash": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      },
+      "device": {
+        "device_id": "app-scoped-device-0001",
+        "os_version": "15",
+        "identity_scope": "app_scoped",
+        "identity_source": "install_scoped"
+      },
+      "session": {
+        "session_id": "session-runtime-trust-0001",
+        "workflow": "withdrawal",
+        "user_id_hash": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      },
+      "risk": {
+        "score": 85,
+        "decision": "block",
+        "reasons": ["debugger_detected", "root_detected"],
+        "policy": {
+          "policy_id": "policy_app_guard_default",
+          "decision_source": "sdk_local",
+          "thresholds": {
+            "observe": 1,
+            "warn": 20,
+            "step_up": 40,
+            "block": 60,
+            "kill_session": 90
+          }
+        }
+      },
+      "signals": [
+        {
+          "name": "debugger_detected",
+          "weight": 30,
+          "source": "native",
+          "category": "runtime_integrity",
+          "confidence": 95,
+          "evidence": {
+            "kind": "boolean",
+            "value": true,
+            "privacy_mode": "metadata_only",
+            "collected_at": "2026-07-17T14:00:00Z"
+          }
+        }
+      ]
+    },
+    "core_fields_lossless": true,
+    "unmapped_fields": []
+  }
+}

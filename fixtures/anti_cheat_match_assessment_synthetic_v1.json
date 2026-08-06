@@ -1,0 +1,147 @@
+{
+  "schema": "tamandua.anti_cheat.match_assessment_fixture/v1",
+  "evidence_class": "synthetic_contract",
+  "tenant_scope_digest": "1010101010101010101010101010101010101010101010101010101010101010",
+  "policy_manifest": {
+    "schema": "tamandua.anti_cheat.scoring_policy/v1",
+    "policy_id": "sample.anti_cheat.observe",
+    "policy_version": "policy-v1",
+    "score_orientation": "higher_is_more_suspicious",
+    "max_score": 100,
+    "review_threshold": 60,
+    "queue_review_requires_server_authoritative": true,
+    "decision_rules": {
+      "on_conflicting_or_inconclusive": "abstain",
+      "on_corroborated_at_or_above_review_threshold": "queue_review",
+      "otherwise": "observe"
+    },
+    "rules": [
+      {"reason_code": "client_integrity_anomaly", "source": "client_integrity", "client_state": "observed", "evidence_strength": "weak", "points": 20},
+      {"reason_code": "client_integrity_anomaly", "source": "client_integrity", "client_state": "observed", "evidence_strength": "moderate", "points": 80},
+      {"reason_code": "server_action_sequence_violation", "source": "server_authoritative", "detector_family": "action", "server_outcome": "corroborated", "points": 70},
+      {"reason_code": "server_movement_constraint_violation", "source": "server_authoritative", "detector_family": "movement", "server_outcome": "corroborated", "points": 60}
+    ]
+  },
+  "policy_manifest_digest": "913d360d45328b51834031ddb74031d5d6afe2b5027adbf658898591ae236f4c",
+  "claim_boundary": {
+    "fixture_only": true,
+    "fpr_claimable": false,
+    "engine_adapter_validated": false,
+    "server_authority_authenticated": false,
+    "live_server_validated": false,
+    "enforcement_authorized": false,
+    "external_claim_allowed": false
+  },
+  "future_governed_fpr_gate": {
+    "method": "clopper_pearson",
+    "one_sided_confidence": 0.95,
+    "upper_bound_max": 0.005,
+    "zero_failure_minimum_per_stratum": 598
+  },
+  "tooling_performance_budget": {
+    "iterations": 10000,
+    "p95_ms": 10.0,
+    "product_or_engine_performance_claim": false
+  },
+  "assessments": [
+    {
+      "scenario": "clean",
+      "assessment": {
+        "schema": "tamandua.anti_cheat.match_assessment/v1",
+        "assessment_id": "0101010101010101010101010101010101010101010101010101010101010101",
+        "tenant_scope_digest": "1010101010101010101010101010101010101010101010101010101010101010",
+        "observed_at": "2026-07-20T12:00:00Z",
+        "protected_target": {"kind": "game_client", "game_id_digest": "3030303030303030303030303030303030303030303030303030303030303030", "build_id_digest": "3131313131313131313131313131313131313131313131313131313131313131", "manifest_digest": "1111111111111111111111111111111111111111111111111111111111111111"},
+        "session": {"match_id_digest": "4040404040404040404040404040404040404040404040404040404040404040", "player_session_id_digest": "5050505050505050505050505050505050505050505050505050505050505050", "player_identity_scope": "tenant_match_pseudonym", "player_pseudonym_digest": "2222222222222222222222222222222222222222222222222222222222222222", "server_session_nonce_digest": "3333333333333333333333333333333333333333333333333333333333333333", "sequence": 1, "tick": 1200},
+        "client_adapter": {"engine": "unbound", "state": "not_integrated", "frame_impact_measured": false},
+        "client_integrity": {"capability_state": "not_integrated", "signals": []},
+        "server_authority": {
+          "authority_id": "sample.authoritative.validator", "authority_version": "auth-v1", "validator_digest": "4444444444444444444444444444444444444444444444444444444444444444", "authentication_state": "unauthenticated_synthetic",
+          "window": {"start_tick": 1100, "end_tick": 1200}, "corroboration_state": "not_corroborated",
+          "observations": [{"observation_id_digest": "6161616161616161616161616161616161616161616161616161616161616161", "detector_family": "movement", "outcome": "not_corroborated", "reason_code": "server_movement_within_constraints", "evidence_digest": "5555555555555555555555555555555555555555555555555555555555555555", "start_tick": 1100, "end_tick": 1200, "feature_schema": "tamandua.game.movement_features/v1"}]
+        },
+        "score": {"orientation": "higher_is_more_suspicious", "value": 0, "not_probability": true, "policy_id": "sample.anti_cheat.observe", "policy_version": "policy-v1", "policy_digest": "913d360d45328b51834031ddb74031d5d6afe2b5027adbf658898591ae236f4c", "review_threshold": 60, "reasons": [], "contributions": []},
+        "decision": "observe",
+        "review": {"status": "not_queued", "human_review_required": true, "enforcement_authorized": false, "automatic_sanction": false, "durable_sanction": false},
+        "privacy": {"metadata_only": true, "contains_raw_content": false, "identifier_scope": "tenant_match_only", "excluded_fields": ["raw_input", "raw_chat", "screen_content", "raw_memory", "ip_address", "device_serial", "credentials", "email", "global_player_identifier"]},
+        "evidence_class": "synthetic_contract", "external_claim_allowed": false,
+        "limitations": ["synthetic_fixture_only", "client_engine_adapter_not_integrated", "server_authority_unauthenticated", "no_live_server_or_fpr_evidence"]
+      }
+    },
+    {
+      "scenario": "local_only",
+      "assessment": {
+        "schema": "tamandua.anti_cheat.match_assessment/v1",
+        "assessment_id": "0202020202020202020202020202020202020202020202020202020202020202",
+        "tenant_scope_digest": "1010101010101010101010101010101010101010101010101010101010101010",
+        "observed_at": "2026-07-20T12:01:00Z",
+        "protected_target": {"kind": "game_client", "game_id_digest": "3030303030303030303030303030303030303030303030303030303030303030", "build_id_digest": "3131313131313131313131313131313131313131313131313131313131313131", "manifest_digest": "1111111111111111111111111111111111111111111111111111111111111111"},
+        "session": {"match_id_digest": "4141414141414141414141414141414141414141414141414141414141414141", "player_session_id_digest": "5151515151515151515151515151515151515151515151515151515151515151", "player_identity_scope": "tenant_match_pseudonym", "player_pseudonym_digest": "6666666666666666666666666666666666666666666666666666666666666666", "server_session_nonce_digest": "7777777777777777777777777777777777777777777777777777777777777777", "sequence": 2, "tick": 2200},
+        "client_adapter": {"engine": "unbound", "state": "not_integrated", "frame_impact_measured": false},
+        "client_integrity": {"capability_state": "degraded", "signals": [{"signal_id": "client_runtime_integrity_anomaly", "state": "observed", "evidence_strength": "moderate", "reason_code": "client_integrity_anomaly", "evidence_digest": "8888888888888888888888888888888888888888888888888888888888888888"}]},
+        "server_authority": {
+          "authority_id": "sample.authoritative.validator", "authority_version": "auth-v1", "validator_digest": "4444444444444444444444444444444444444444444444444444444444444444", "authentication_state": "unauthenticated_synthetic",
+          "window": {"start_tick": 2100, "end_tick": 2200}, "corroboration_state": "not_corroborated",
+          "observations": [{"observation_id_digest": "6262626262626262626262626262626262626262626262626262626262626262", "detector_family": "action", "outcome": "not_corroborated", "reason_code": "server_action_sequence_valid", "evidence_digest": "9999999999999999999999999999999999999999999999999999999999999999", "start_tick": 2100, "end_tick": 2200, "feature_schema": "tamandua.game.action_features/v1"}]
+        },
+        "score": {"orientation": "higher_is_more_suspicious", "value": 80, "not_probability": true, "policy_id": "sample.anti_cheat.observe", "policy_version": "policy-v1", "policy_digest": "913d360d45328b51834031ddb74031d5d6afe2b5027adbf658898591ae236f4c", "review_threshold": 60, "reasons": ["client_integrity_anomaly"], "contributions": [{"source": "client_integrity", "reason_code": "client_integrity_anomaly", "points": 80, "evidence_digest": "8888888888888888888888888888888888888888888888888888888888888888"}]},
+        "decision": "observe",
+        "review": {"status": "not_queued", "human_review_required": true, "enforcement_authorized": false, "automatic_sanction": false, "durable_sanction": false},
+        "privacy": {"metadata_only": true, "contains_raw_content": false, "identifier_scope": "tenant_match_only", "excluded_fields": ["raw_input", "raw_chat", "screen_content", "raw_memory", "ip_address", "device_serial", "credentials", "email", "global_player_identifier"]},
+        "evidence_class": "synthetic_contract", "external_claim_allowed": false,
+        "limitations": ["synthetic_fixture_only", "local_integrity_is_not_server_corroboration", "server_authority_unauthenticated", "no_live_server_or_fpr_evidence"]
+      }
+    },
+    {
+      "scenario": "server_corroborated",
+      "assessment": {
+        "schema": "tamandua.anti_cheat.match_assessment/v1",
+        "assessment_id": "0303030303030303030303030303030303030303030303030303030303030303",
+        "tenant_scope_digest": "1010101010101010101010101010101010101010101010101010101010101010",
+        "observed_at": "2026-07-20T12:02:00Z",
+        "protected_target": {"kind": "game_client", "game_id_digest": "3030303030303030303030303030303030303030303030303030303030303030", "build_id_digest": "3131313131313131313131313131313131313131313131313131313131313131", "manifest_digest": "1111111111111111111111111111111111111111111111111111111111111111"},
+        "session": {"match_id_digest": "4242424242424242424242424242424242424242424242424242424242424242", "player_session_id_digest": "5252525252525252525252525252525252525252525252525252525252525252", "player_identity_scope": "tenant_match_pseudonym", "player_pseudonym_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "server_session_nonce_digest": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "sequence": 3, "tick": 3200},
+        "client_adapter": {"engine": "unbound", "state": "not_integrated", "frame_impact_measured": false},
+        "client_integrity": {"capability_state": "degraded", "signals": [{"signal_id": "client_runtime_integrity_anomaly", "state": "observed", "evidence_strength": "weak", "reason_code": "client_integrity_anomaly", "evidence_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}]},
+        "server_authority": {
+          "authority_id": "sample.authoritative.validator", "authority_version": "auth-v1", "validator_digest": "4444444444444444444444444444444444444444444444444444444444444444", "authentication_state": "unauthenticated_synthetic",
+          "window": {"start_tick": 3100, "end_tick": 3200}, "corroboration_state": "corroborated",
+          "observations": [{"observation_id_digest": "6363636363636363636363636363636363636363636363636363636363636363", "detector_family": "movement", "outcome": "corroborated", "reason_code": "server_movement_constraint_violation", "evidence_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd", "start_tick": 3100, "end_tick": 3200, "feature_schema": "tamandua.game.movement_features/v1"}]
+        },
+        "score": {"orientation": "higher_is_more_suspicious", "value": 80, "not_probability": true, "policy_id": "sample.anti_cheat.observe", "policy_version": "policy-v1", "policy_digest": "913d360d45328b51834031ddb74031d5d6afe2b5027adbf658898591ae236f4c", "review_threshold": 60, "reasons": ["client_integrity_anomaly", "server_movement_constraint_violation"], "contributions": [{"source": "client_integrity", "reason_code": "client_integrity_anomaly", "points": 20, "evidence_digest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"}, {"source": "server_authoritative", "reason_code": "server_movement_constraint_violation", "points": 60, "evidence_digest": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"}]},
+        "decision": "queue_review",
+        "review": {"status": "pending", "human_review_required": true, "enforcement_authorized": false, "automatic_sanction": false, "durable_sanction": false},
+        "privacy": {"metadata_only": true, "contains_raw_content": false, "identifier_scope": "tenant_match_only", "excluded_fields": ["raw_input", "raw_chat", "screen_content", "raw_memory", "ip_address", "device_serial", "credentials", "email", "global_player_identifier"]},
+        "evidence_class": "synthetic_contract", "external_claim_allowed": false,
+        "limitations": ["synthetic_fixture_only", "queue_review_is_not_a_sanction", "server_authority_unauthenticated", "no_live_server_or_fpr_evidence"]
+      }
+    },
+    {
+      "scenario": "conflicting",
+      "assessment": {
+        "schema": "tamandua.anti_cheat.match_assessment/v1",
+        "assessment_id": "0404040404040404040404040404040404040404040404040404040404040404",
+        "tenant_scope_digest": "1010101010101010101010101010101010101010101010101010101010101010",
+        "observed_at": "2026-07-20T12:03:00Z",
+        "protected_target": {"kind": "game_client", "game_id_digest": "3030303030303030303030303030303030303030303030303030303030303030", "build_id_digest": "3131313131313131313131313131313131313131313131313131313131313131", "manifest_digest": "1111111111111111111111111111111111111111111111111111111111111111"},
+        "session": {"match_id_digest": "4343434343434343434343434343434343434343434343434343434343434343", "player_session_id_digest": "5353535353535353535353535353535353535353535353535353535353535353", "player_identity_scope": "tenant_match_pseudonym", "player_pseudonym_digest": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee", "server_session_nonce_digest": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "sequence": 4, "tick": 4200},
+        "client_adapter": {"engine": "unbound", "state": "not_integrated", "frame_impact_measured": false},
+        "client_integrity": {"capability_state": "not_integrated", "signals": []},
+        "server_authority": {
+          "authority_id": "sample.authoritative.validator", "authority_version": "auth-v1", "validator_digest": "4444444444444444444444444444444444444444444444444444444444444444", "authentication_state": "unauthenticated_synthetic",
+          "window": {"start_tick": 4100, "end_tick": 4200}, "corroboration_state": "conflicting",
+          "observations": [
+            {"observation_id_digest": "6464646464646464646464646464646464646464646464646464646464646464", "detector_family": "action", "outcome": "corroborated", "reason_code": "server_action_sequence_violation", "evidence_digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", "start_tick": 4100, "end_tick": 4200, "feature_schema": "tamandua.game.action_features/v1"},
+            {"observation_id_digest": "6565656565656565656565656565656565656565656565656565656565656565", "detector_family": "action", "outcome": "not_corroborated", "reason_code": "server_action_sequence_valid", "evidence_digest": "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789", "start_tick": 4100, "end_tick": 4200, "feature_schema": "tamandua.game.action_features/v1"}
+          ]
+        },
+        "score": {"orientation": "higher_is_more_suspicious", "value": 70, "not_probability": true, "policy_id": "sample.anti_cheat.observe", "policy_version": "policy-v1", "policy_digest": "913d360d45328b51834031ddb74031d5d6afe2b5027adbf658898591ae236f4c", "review_threshold": 60, "reasons": ["server_action_sequence_violation"], "contributions": [{"source": "server_authoritative", "reason_code": "server_action_sequence_violation", "points": 70, "evidence_digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"}]},
+        "decision": "abstain",
+        "review": {"status": "not_queued", "human_review_required": true, "enforcement_authorized": false, "automatic_sanction": false, "durable_sanction": false},
+        "privacy": {"metadata_only": true, "contains_raw_content": false, "identifier_scope": "tenant_match_only", "excluded_fields": ["raw_input", "raw_chat", "screen_content", "raw_memory", "ip_address", "device_serial", "credentials", "email", "global_player_identifier"]},
+        "evidence_class": "synthetic_contract", "external_claim_allowed": false,
+        "limitations": ["synthetic_fixture_only", "conflicting_server_evidence_requires_abstention", "server_authority_unauthenticated", "no_live_server_or_fpr_evidence"]
+      }
+    }
+  ]
+}

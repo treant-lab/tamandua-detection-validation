@@ -1,0 +1,228 @@
+{
+  "schema_version": "mobile_device_mutation_authorization_vectors_v1",
+  "evidence_class": "local_synthetic_contract",
+  "claims_boundary": "Deterministic non-secret interoperability vectors only; no device, backend, deployment, parity, release, or production evidence.",
+  "canonical_body_vectors": [
+    {
+      "id": "unicode_key_order",
+      "body": {
+        "😀": 2,
+        "": 1,
+        "a": 0
+      },
+      "canonical_body": "{\"a\":0,\"\":1,\"😀\":2}",
+      "body_sha256_base64url": "BTyF3SZnBMlgf-rkbKmL_XqyliFEvY6Xvf5M1Swx9r8"
+    },
+    {
+      "id": "escaped_string_values",
+      "body": {
+        "device_id": "vector-device",
+        "text": "line1\nline2\t\"quoted\"\\tail",
+        "unicode": "tamanduá"
+      },
+      "canonical_body": "{\"device_id\":\"vector-device\",\"text\":\"line1\\nline2\\t\\\"quoted\\\"\\\\tail\",\"unicode\":\"tamanduá\"}",
+      "body_sha256_base64url": "k2ClgEyuRd9qOlLDSbCLCgKY43Ey8qrfGCCF4MDhrSA"
+    },
+    {
+      "id": "safe_integer_bounds",
+      "body": {
+        "maximum": 9007199254740991,
+        "minimum": -9007199254740991,
+        "zero": 0
+      },
+      "canonical_body": "{\"maximum\":9007199254740991,\"minimum\":-9007199254740991,\"zero\":0}",
+      "body_sha256_base64url": "bC6_w4raJubFysCIfOBXHj_ivdEIcl4TZOHcI7bP0OA"
+    },
+    {
+      "id": "nested_arrays",
+      "body": {
+        "device_id": "vector-device",
+        "nested": {
+          "z": 3,
+          "a": [
+            true,
+            null,
+            "value",
+            {
+              "beta": 2,
+              "alpha": 1
+            }
+          ]
+        },
+        "platform": "android"
+      },
+      "canonical_body": "{\"device_id\":\"vector-device\",\"nested\":{\"a\":[true,null,\"value\",{\"alpha\":1,\"beta\":2}],\"z\":3},\"platform\":\"android\"}",
+      "body_sha256_base64url": "qvuGMqBtSSYTMXXYJ814Z9WXrBTNqnMukbw_QV3e17I"
+    }
+  ],
+  "boundary_descriptors": [
+    {
+      "id": "maximum_safe_integer",
+      "constructor": "integer_decimal",
+      "value": "9007199254740991",
+      "expected": "accepted"
+    },
+    {
+      "id": "minimum_safe_integer",
+      "constructor": "integer_decimal",
+      "value": "-9007199254740991",
+      "expected": "accepted"
+    },
+    {
+      "id": "maximum_json_depth",
+      "constructor": "nested_object_depth",
+      "value": 16,
+      "expected": "accepted"
+    },
+    {
+      "id": "maximum_json_entries",
+      "constructor": "array_entry_count_with_root_key",
+      "value": 2047,
+      "expected": "accepted"
+    },
+    {
+      "id": "maximum_canonical_utf8_bytes_ascii",
+      "constructor": "canonical_utf8_size",
+      "character": "x",
+      "repeat_count": 65522,
+      "suffix": "none",
+      "expected_canonical_utf8_bytes": 65536,
+      "body_sha256_base64url": "bpyagTJPpQ5TtUZdYN7QiaLTCzmkGiwFmB10QUA6dv0",
+      "expected": "accepted"
+    },
+    {
+      "id": "maximum_canonical_utf8_bytes_multibyte_escaped",
+      "constructor": "canonical_utf8_size",
+      "character": "é",
+      "repeat_count": 32760,
+      "suffix": "newline",
+      "expected_canonical_utf8_bytes": 65536,
+      "body_sha256_base64url": "KjAbDqIaUvp1V9QoUeX0yHPXbiwC5TS4_3Hh9CZzFLA",
+      "expected": "accepted"
+    }
+  ],
+  "rejection_descriptors": [
+    {
+      "id": "integer_above_safe_range",
+      "constructor": "integer_decimal",
+      "value": "9007199254740992",
+      "expected": "rejected"
+    },
+    {
+      "id": "integer_below_safe_range",
+      "constructor": "integer_decimal",
+      "value": "-9007199254740992",
+      "expected": "rejected"
+    },
+    {
+      "id": "fractional_number",
+      "constructor": "fractional_number",
+      "value": "1.5",
+      "expected": "rejected"
+    },
+    {
+      "id": "depth_above_limit",
+      "constructor": "nested_object_depth",
+      "value": 17,
+      "expected": "rejected"
+    },
+    {
+      "id": "entries_above_limit",
+      "constructor": "array_entry_count_with_root_key",
+      "value": 2048,
+      "expected": "rejected"
+    },
+    {
+      "id": "reserved_recursive_field",
+      "constructor": "reserved_mutation_authorization_field",
+      "expected": "rejected"
+    },
+    {
+      "id": "forbidden_prototype_key",
+      "constructor": "forbidden_key",
+      "value": "__proto__",
+      "expected": "rejected"
+    },
+    {
+      "id": "control_object_key",
+      "constructor": "control_key",
+      "value": "key\u0000",
+      "expected": "rejected"
+    },
+    {
+      "id": "canonical_utf8_bytes_above_limit_ascii",
+      "constructor": "canonical_utf8_size",
+      "character": "x",
+      "repeat_count": 65523,
+      "suffix": "none",
+      "expected_canonical_utf8_bytes": 65537,
+      "body_sha256_base64url": "rOINwi8UV3yry4lggfOm2f1cQLhYAElASuQqEFpZ8gM",
+      "expected": "rejected"
+    },
+    {
+      "id": "canonical_utf8_bytes_above_limit_multibyte_escaped",
+      "constructor": "canonical_utf8_size",
+      "character": "é",
+      "repeat_count": 32760,
+      "suffix": "newline_then_ascii",
+      "expected_canonical_utf8_bytes": 65537,
+      "body_sha256_base64url": "onfqiCNSlZgDWOTOporA84KIcGHc3ZxdDNKgslKbeT8",
+      "expected": "rejected"
+    },
+    {
+      "id": "isolated_high_surrogate_string_value",
+      "constructor": "isolated_unicode_scalar",
+      "surrogate": "high",
+      "location": "string_value",
+      "expected": "rejected"
+    },
+    {
+      "id": "isolated_low_surrogate_string_value",
+      "constructor": "isolated_unicode_scalar",
+      "surrogate": "low",
+      "location": "string_value",
+      "expected": "rejected"
+    },
+    {
+      "id": "isolated_high_surrogate_object_key",
+      "constructor": "isolated_unicode_scalar",
+      "surrogate": "high",
+      "location": "object_key",
+      "expected": "rejected"
+    },
+    {
+      "id": "isolated_low_surrogate_object_key",
+      "constructor": "isolated_unicode_scalar",
+      "surrogate": "low",
+      "location": "object_key",
+      "expected": "rejected"
+    }
+  ],
+  "signed_payload_vector": {
+    "id": "fixed_twenty_field_payload",
+    "signed_fields": {
+      "protocol": "tamandua.mobile.device-mutation/v1",
+      "message_type": "mobile_device_v2_mutation",
+      "message_version": "1",
+      "organization_id": "organization-vector",
+      "actor_id": "user:vector-actor",
+      "installation_id": "installation-vector",
+      "platform": "android",
+      "device_key_id": "tmdk_v1_ERERERERERERERERERERERERERERERERERERERERERE",
+      "key_scope_id": "tmdks_v1_IiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI",
+      "request_id": "tmmr_v1_MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzM",
+      "challenge_id": "REREREREREREREREREREREREREREREREREREREREREQ",
+      "nonce": "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU",
+      "operation": "mobile_device_v2_upsert",
+      "http_method": "POST",
+      "route_id": "mobile_v2_devices_upsert",
+      "resource_id": "vector-device",
+      "body_sha256": "qvuGMqBtSSYTMXXYJ814Z9WXrBTNqnMukbw_QV3e17I",
+      "algorithm": "ecdsa-p256-sha256",
+      "issued_at": "2026-07-17T18:00:00.123456Z",
+      "expires_at": "2026-07-17T18:02:00.123456Z"
+    },
+    "canonical_payload": "protocol=dGFtYW5kdWEubW9iaWxlLmRldmljZS1tdXRhdGlvbi92MQ\nmessage_type=bW9iaWxlX2RldmljZV92Ml9tdXRhdGlvbg\nmessage_version=MQ\norganization_id=b3JnYW5pemF0aW9uLXZlY3Rvcg\nactor_id=dXNlcjp2ZWN0b3ItYWN0b3I\ninstallation_id=aW5zdGFsbGF0aW9uLXZlY3Rvcg\nplatform=YW5kcm9pZA\ndevice_key_id=dG1ka192MV9FUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJF\nkey_scope_id=dG1ka3NfdjFfSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSWlJaUlpSQ\nrequest_id=dG1tcl92MV9Nek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpNek16TXpN\nchallenge_id=UkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUkVSRVJFUQ\nnonce=VlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVlZWVQ\noperation=bW9iaWxlX2RldmljZV92Ml91cHNlcnQ\nhttp_method=UE9TVA\nroute_id=bW9iaWxlX3YyX2RldmljZXNfdXBzZXJ0\nresource_id=dmVjdG9yLWRldmljZQ\nbody_sha256=cXZ1R01xQnRTU1lUTVhYWUo4MTRaOVdYckJUTnFuTXVrYndfUVYzZTE3SQ\nalgorithm=ZWNkc2EtcDI1Ni1zaGEyNTY\nissued_at=MjAyNi0wNy0xN1QxODowMDowMC4xMjM0NTZa\nexpires_at=MjAyNi0wNy0xN1QxODowMjowMC4xMjM0NTZa",
+    "payload_sha256_base64url": "yHtgAijbdaYcTxqKjMzxgTZaZ1TQiMt0qTeoep6fUEY"
+  }
+}

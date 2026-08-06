@@ -1,0 +1,15 @@
+{
+  "api_version": "tamandua.io/ai-agent-runtime-event/v1", "kind": "AiAgentRuntimeEvent",
+  "event_id": "event-codex-001", "observed_at": "2026-07-22T12:00:04Z",
+  "tenant": {"tenant_id": "tenant-alpha", "organization_id": "org-enterprise-alpha"},
+  "endpoint": {"agent_id": "agent-win-001", "device_id": "device-win-001", "hostname": "eng-ws-001", "platform": "windows"},
+  "source": {"collector_id": "tamandua.ai_agent_runtime", "collector_version": 1, "upstream_project": "graykode/abtop", "upstream_commit": "a3328db20fe189887986e0147080954bc07178a1", "upstream_license": "MIT", "upstream_copyright": "Copyright (c) 2026 Tae Hwan Jung"},
+  "session": {"provider": "codex", "session_id": "codex-session-001"}, "event_type": "message",
+  "capture": {"status": "complete", "reason_codes": [], "parser": "codex-jsonl-v1", "source_offset": 812},
+  "raw_evidence": {"format": "utf8", "mime_type": "text/plain; charset=utf-8", "content": "Implement enterprise policy engine without redaction.", "byte_length": 53, "content_sha256": "9f14da6d8805ee49e12c1c3fe439319e9e01b0f6e3d135e795610f356a064050", "is_redacted": false, "is_truncated": false, "source_locator": "D:/Users/analyst/.codex/sessions/2026/07/22/session.jsonl#812"},
+  "normalized": {"category": "content", "action": "user_message", "role": "user", "text": "Implement enterprise policy engine without redaction.", "attributes": {"message_id": "msg-codex-001", "model": "gpt-5.6-codex", "content_preserved": true}},
+  "runtime_context": {"pid": 4512, "parent_pid": 2200, "port": 4318, "mcp_server_id": "mcp-github-001", "token_usage": {"input": 1200, "output": 380, "cached_input": 400, "reasoning": 210}, "context_usage": {"window": 200000, "used": 3400, "remaining": 196600}, "rate_limit": {"status": "available", "remaining": 920, "limit": 1000, "resets_at": "2026-07-22T13:00:00Z"}},
+  "governance": {"classification": "restricted_ai_agent_content", "collection_basis": "enterprise_endpoint_security_policy", "access_policy_id": "policy-ai-content-read", "retention_policy_id": "retention-ai-365d", "retention_days": 365, "legal_hold": false, "encryption": {"at_rest": "aes-256-gcm", "in_transit": "tls-1.3", "key_id": "kms-tenant-alpha-ai"}, "audit_required": true, "export_policy_id": "export-ai-controlled"},
+  "integrity": {"stream_id": "stream-codex-001", "sequence": 1, "previous_event_digest": null, "event_digest": "3cda5fde579b5794d10f8017bef185406b6d48b95b67dc93d93bb8f43a06cdf1", "chunk": {"chunk_id": "chunk-codex-001", "index": 0, "count": 1, "chunk_sha256": "9f14da6d8805ee49e12c1c3fe439319e9e01b0f6e3d135e795610f356a064050", "full_content_sha256": "9f14da6d8805ee49e12c1c3fe439319e9e01b0f6e3d135e795610f356a064050"}},
+  "claims": {"maturity": "experimental", "evidence_class": "contract_smoke", "product_ready": false, "release_ready": false, "production_ready": false, "external_claims_allowed": false}
+}

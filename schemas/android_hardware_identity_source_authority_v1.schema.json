@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.invalid/schemas/android_hardware_identity_source_authority_v1.schema.json",
+  "title": "Android hardware identity detached local source authority v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "version", "normalizer", "parser", "node", "sources", "trust_model", "authority_payload_sha256"],
+  "properties": {
+    "schema": {"const": "tamandua.android_hardware_identity.source_authority/v1"},
+    "version": {"const": 1},
+    "normalizer": {
+      "type": "object", "additionalProperties": false, "required": ["id", "source_sha256"],
+      "properties": {"id": {"const": "tamandua.full_semantic_ecmascript_ast/v1"}, "source_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "parser": {
+      "type": "object", "additionalProperties": false, "required": ["name", "version", "source_sha256"],
+      "properties": {"name": {"const": "acorn"}, "version": {"const": "8.15.0"}, "source_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "node": {
+      "type": "object", "additionalProperties": false, "required": ["version", "platform", "arch", "executable_sha256"],
+      "properties": {"version": {"type": "string", "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"}, "platform": {"type": "string", "minLength": 2}, "arch": {"type": "string", "minLength": 2}, "executable_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "sources": {
+      "type": "array", "minItems": 5, "maxItems": 5,
+      "prefixItems": [
+        {"allOf": [{"$ref": "#/$defs/javascript_source"}, {"properties": {"role": {"const": "physical_collection_plan"}, "path": {"const": "apps/tamandua_mobile/scripts/plan-android-hardware-identity-physical-collection.js"}}}]},
+        {"allOf": [{"$ref": "#/$defs/javascript_source"}, {"properties": {"role": {"const": "physical_collector"}, "path": {"const": "apps/tamandua_mobile/scripts/android-hardware-identity-physical-collector-source.js"}}}]},
+        {"allOf": [{"$ref": "#/$defs/javascript_source"}, {"properties": {"role": {"const": "collection_packet"}, "path": {"const": "apps/tamandua_mobile/scripts/android-hardware-identity-physical-collection-packet.js"}}}]},
+        {"allOf": [{"$ref": "#/$defs/data_source"}, {"properties": {"role": {"const": "collector_protocol_schema"}, "path": {"const": "schemas/android_hardware_identity_physical_collector_protocol_v1.schema.json"}}}]},
+        {"allOf": [{"$ref": "#/$defs/data_source"}, {"properties": {"role": {"const": "collection_packet_schema"}, "path": {"const": "schemas/android_hardware_identity_physical_collection_packet_v1.schema.json"}}}]}
+      ],
+      "items": false
+    },
+    "trust_model": {
+      "const": {
+        "scope": "local_offline_detached_source_integrity_contract",
+        "external_root": "vcs_and_independent_review",
+        "authenticity_proven": false,
+        "same_user_tamper_resistance_proven": false
+      }
+    },
+    "authority_payload_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "source_base": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "path", "byte_length", "raw_sha256", "ast_sha256"],
+      "properties": {
+        "role": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+        "path": {"type": "string", "pattern": "^[a-zA-Z0-9_./-]+$", "not": {"pattern": "(?:^/|\\.\\.|\\\\|:)"}},
+        "byte_length": {"type": "integer", "minimum": 2, "maximum": 1048576},
+        "raw_sha256": {"$ref": "#/$defs/sha256"},
+        "ast_sha256": {}
+      }
+    },
+    "javascript_source": {
+      "allOf": [{"$ref": "#/$defs/source_base"}, {"properties": {"ast_sha256": {"$ref": "#/$defs/sha256"}}}]
+    },
+    "data_source": {
+      "allOf": [{"$ref": "#/$defs/source_base"}, {"properties": {"ast_sha256": {"type": "null"}}}]
+    }
+  }
+}

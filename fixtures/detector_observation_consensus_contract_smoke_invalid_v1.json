@@ -1,0 +1,73 @@
+{
+  "api_version": "tamandua.io/detector-observation-consensus/v1",
+  "artifact": {
+    "artifact_id": "fixture/invalid-001",
+    "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "media_type": "application/octet-stream"
+  },
+  "input_contract": {
+    "contract_id": "tamandua/raw-bytes",
+    "contract_version": "1.0.0",
+    "schema_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+  },
+  "observations": [
+    {
+      "detector_id": "detector/duplicate",
+      "detector_type": "model",
+      "detector_version": "1.0.0",
+      "score": null,
+      "score_orientation": "higher_is_more_malicious",
+      "threshold": null,
+      "decision": "malicious",
+      "confidence": 0.9,
+      "latency_ms": 1,
+      "status": "degraded",
+      "degraded": true,
+      "error": null,
+      "provenance": {
+        "source": "untrusted",
+        "revision": "latest",
+        "artifact_sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      },
+      "observed_at": "not-a-timestamp"
+    },
+    {
+      "detector_id": "detector/duplicate",
+      "detector_type": "rule",
+      "detector_version": "1.0.0",
+      "score": 1,
+      "score_orientation": "higher_is_more_malicious",
+      "threshold": 1,
+      "decision": "suspicious",
+      "confidence": 0.5,
+      "latency_ms": 1,
+      "status": "completed",
+      "degraded": false,
+      "error": null,
+      "provenance": {
+        "source": "rules",
+        "revision": "1",
+        "artifact_sha256": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+      },
+      "observed_at": "2026-07-14T22:00:00Z"
+    }
+  ],
+  "consensus": {
+    "strategy": "weighted_decision",
+    "strategy_version": "1.0.0",
+    "member_detector_ids": ["detector/missing"],
+    "score": 0.9,
+    "score_orientation": "higher_is_more_malicious",
+    "threshold": 0.8,
+    "decision": "malicious",
+    "confidence": 0.9,
+    "degraded": false,
+    "error": null,
+    "generated_at": "2026-07-14T22:00:00Z"
+  },
+  "validation_context": {
+    "evidence_class": "contract_smoke",
+    "claim_scope": "efficacy",
+    "effectiveness_metrics": ["false_positive_rate"]
+  }
+}

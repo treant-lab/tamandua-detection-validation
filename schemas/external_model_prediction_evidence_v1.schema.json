@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/external_model_prediction_evidence_v1.schema.json",
+  "title": "Tamandua External Model Prediction Evidence v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "candidate_id", "model_contract_id", "artifact_sha256", "runtime_lane", "decision_mode", "status", "latency_ms", "timestamp"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/external-model-prediction-evidence/v1"},
+    "candidate_id": {"type": "string", "minLength": 3},
+    "model_contract_id": {"type": "string", "minLength": 3},
+    "artifact_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "feature_contract_id": {"type": "string", "minLength": 3},
+    "runtime_lane": {"enum": ["embedded_onnx", "embedded_treelite", "local_service", "backend", "decision_only", "none"]},
+    "decision_mode": {"enum": ["detect_only", "decision_only", "enforced", "failed_enforcement"]},
+    "status": {"enum": ["completed", "cached", "timeout", "degraded", "failed", "unsupported"]},
+    "score": {"type": "number"},
+    "score_orientation": {"enum": ["higher_is_more_malicious", "lower_is_more_malicious"]},
+    "threshold": {"type": "number"},
+    "calibration": {"type": "string", "minLength": 1},
+    "verdict": {"enum": ["malicious", "benign", "unknown"]},
+    "latency_ms": {"type": "number", "minimum": 0},
+    "error_code": {"type": "string", "minLength": 1},
+    "timestamp": {"type": "string", "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"enum": ["completed", "cached"]}}},
+      "then": {"required": ["score", "score_orientation", "threshold", "verdict"]}
+    },
+    {
+      "if": {"properties": {"status": {"enum": ["timeout", "degraded", "failed", "unsupported"]}}},
+      "then": {"required": ["error_code", "verdict"], "properties": {"verdict": {"const": "unknown"}}}
+    },
+    {
+      "if": {"properties": {"decision_mode": {"const": "enforced"}}},
+      "then": {"properties": {"status": {"enum": ["completed", "cached"]}}}
+    }
+  ]
+}

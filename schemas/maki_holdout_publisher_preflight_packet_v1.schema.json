@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/maki_holdout_publisher_preflight_packet_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "offline_preflight_eligible", "approval_recorded", "coordinator_enqueue_verified", "publisher_lease_verified", "iam_verified", "deployment", "inputs", "authorization", "selection", "destination", "source_objects", "postconditions", "execution", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-holdout-publisher-preflight-packet/v1"},
+    "kind": {"const": "MakiHoldoutPublisherPreflightPacket"},
+    "evidence_class": {"const": "offline_holdout_publisher_preflight"},
+    "offline_preflight_eligible": {"const": true},
+    "approval_recorded": {"const": false},
+    "coordinator_enqueue_verified": {"const": false},
+    "publisher_lease_verified": {"const": false},
+    "iam_verified": {"const": false},
+    "deployment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["deployment_id", "source_sha", "target", "surface"],
+      "properties": {"deployment_id": {"type": "string", "minLength": 1, "maxLength": 160}, "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"}, "target": {"const": "staging"}, "surface": {"const": "ml-corpus-holdout"}}
+    },
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["promotion_manifest_sha256", "holdout_dry_run_sha256", "holdout_authorization_sha256", "packet_schema_sha256"],
+      "properties": {"promotion_manifest_sha256": {"$ref": "#/$defs/sha256"}, "holdout_dry_run_sha256": {"$ref": "#/$defs/sha256"}, "holdout_authorization_sha256": {"$ref": "#/$defs/sha256"}, "packet_schema_sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "authorization": {
+      "type": "object", "additionalProperties": false,
+      "required": ["verified", "authorization_id", "purpose", "custodian_owner", "custodian_key_id", "trust_root_sha256", "publisher_owner", "publisher_key_id"],
+      "properties": {"verified": {"const": true}, "authorization_id": {"type": "string"}, "purpose": {"const": "holdout-corpus-publisher-preflight"}, "custodian_owner": {"type": "string"}, "custodian_key_id": {"type": "string"}, "trust_root_sha256": {"$ref": "#/$defs/sha256"}, "publisher_owner": {"type": "string"}, "publisher_key_id": {"type": "string"}}
+    },
+    "selection": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tier", "selected_count", "selection_digest", "accepted_selected"],
+      "properties": {"tier": {"const": "holdout"}, "selected_count": {"type": "integer", "minimum": 1}, "selection_digest": {"$ref": "#/$defs/sha256"}, "accepted_selected": {"const": false}}
+    },
+    "destination": {"type": "object", "additionalProperties": false, "required": ["bucket", "prefix"], "properties": {"bucket": {"type": "string"}, "prefix": {"const": "holdout/"}}},
+    "source_objects": {"type": "array", "minItems": 1, "maxItems": 1000000, "items": {"$ref": "#/$defs/sourceObject"}},
+    "postconditions": {
+      "type": "object", "additionalProperties": false,
+      "required": ["coordinator_approval_required", "publisher_lease_and_fencing_required", "iam_verification_required", "post_copy_signed_receipt_required", "holdout_access_isolation_required"],
+      "properties": {"coordinator_approval_required": {"const": true}, "publisher_lease_and_fencing_required": {"const": true}, "iam_verification_required": {"const": true}, "post_copy_signed_receipt_required": {"const": true}, "holdout_access_isolation_required": {"const": true}}
+    },
+    "execution": {"type": "object", "additionalProperties": false, "required": ["execution_authorized", "aws_mutation_performed", "iam_verified", "uses_network"], "properties": {"execution_authorized": {"const": false}, "aws_mutation_performed": {"const": false}, "iam_verified": {"const": false}, "uses_network": {"const": false}}},
+    "claim_boundary": {"type": "object", "additionalProperties": false, "required": ["supports", "does_not_support"], "properties": {"supports": {"type": "array", "items": {"type": "string"}}, "does_not_support": {"type": "array", "items": {"type": "string"}}}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identity": {"type": "object", "additionalProperties": false, "required": ["bucket", "key", "version_id", "checksum_sha256", "size_bytes"], "properties": {"bucket": {"type": "string", "minLength": 1}, "key": {"type": "string", "minLength": 1}, "version_id": {"type": "string", "minLength": 1}, "checksum_sha256": {"$ref": "#/$defs/sha256"}, "size_bytes": {"type": "integer", "minimum": 1}}},
+    "sourceObject": {"type": "object", "additionalProperties": false, "required": ["sha256", "sample_class", "split", "source", "destination_key"], "properties": {"sha256": {"$ref": "#/$defs/sha256"}, "sample_class": {"enum": ["goodware", "malware"]}, "split": {"const": "holdout"}, "source": {"$ref": "#/$defs/identity"}, "destination_key": {"type": "string", "pattern": "^holdout/(goodware|malware)/.+\\.bin$"}}}
+  }
+}

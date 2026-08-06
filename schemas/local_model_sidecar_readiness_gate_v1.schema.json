@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/local_model_sidecar_readiness_gate_v1.schema.json",
+  "title": "Tamandua Local Model Sidecar Readiness Gate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "generated_at", "mode", "evidence", "decision", "may_start_service", "may_execute_model", "may_publish_efficacy_claim", "inputs", "checks", "promotion_blockers", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/local-model-sidecar-readiness-gate/v1"},
+    "kind": {"const": "LocalModelSidecarReadinessGateReport"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "offline_static_no_execution"},
+    "evidence": {
+      "type": "object", "additionalProperties": false, "required": ["class", "scope"],
+      "properties": {"class": {"const": "synthetic_parity"}, "scope": {"const": "package_readiness_smoke"}}
+    },
+    "decision": {"enum": ["eligible_for_manual_review", "blocked"]},
+    "may_start_service": {"const": false},
+    "may_execute_model": {"const": false},
+    "may_publish_efficacy_claim": {"const": false},
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["manifest_sha256", "provider_registry_sha256", "promotion_report_sha256", "candidate_artifact_sha256", "feature_contract_sha256", "freeze_manifest_sha256", "holdout_evidence_sha256", "holdout_lineage_sha256", "threshold", "calibration_id", "initial_lane", "decision_mode"],
+      "properties": {
+        "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "provider_registry_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "promotion_report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "candidate_artifact_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "feature_contract_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "freeze_manifest_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "holdout_evidence_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "holdout_lineage_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "threshold": {"type": ["number", "null"], "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+        "calibration_id": {"type": ["string", "null"], "minLength": 1},
+        "initial_lane": {"type": ["string", "null"], "enum": ["endpoint_shadow", null]},
+        "decision_mode": {"type": ["string", "null"], "enum": ["decision_only", null]}
+      }
+    },
+    "checks": {
+      "type": "array", "minItems": 6, "uniqueItems": true,
+      "items": {"type": "object", "additionalProperties": false, "required": ["id", "status", "detail"], "properties": {
+        "id": {"type": "string", "minLength": 1}, "status": {"enum": ["pass", "fail"]}, "detail": {"type": "string", "minLength": 1, "maxLength": 500}
+      }}
+    },
+    "promotion_blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "claim_boundary": {"type": "string", "minLength": 120}
+  },
+  "allOf": [
+    {"if": {"properties": {"decision": {"const": "eligible_for_manual_review"}}}, "then": {
+      "properties": {"promotion_blockers": {"maxItems": 0}, "checks": {"items": {"properties": {"status": {"const": "pass"}}}}}
+    }},
+    {"if": {"properties": {"decision": {"const": "blocked"}}}, "then": {"properties": {"promotion_blockers": {"minItems": 1}}}}
+  ]
+}

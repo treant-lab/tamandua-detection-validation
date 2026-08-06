@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/hist256_holdout_evaluation_v1.schema.json",
+  "title": "Tamandua hist256 governed holdout evaluation v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "status", "generated_at", "model_id", "freeze_manifest_sha256", "artifact_sha256", "feature_contract_id", "threshold", "calibration_id", "holdout_lineage_sha256", "consumed_membership_manifest_sha256", "metrics", "reproducibility_commands", "may_promote", "may_enforce", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/hist256-holdout-evaluation/v1"},
+    "kind": {"const": "Hist256GovernedHoldoutEvaluation"},
+    "evidence_class": {"enum": ["governed_holdout", "governed_holdout_below_sample_gate"]},
+    "status": {"const": "evaluation_complete_not_promotion_eligible"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "model_id": {"type": "string", "minLength": 1},
+    "freeze_manifest_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "artifact_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "feature_contract_id": {"const": "tamandua.byte-histogram-256.v1"},
+    "threshold": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "calibration_id": {"type": "string", "minLength": 1},
+    "holdout_lineage_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "consumed_membership_manifest_sha256": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-f0-9]{64}$"}},
+    "metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sample_count", "goodware_count", "malware_count", "confusion", "fpr", "fnr", "latency_ms", "minimum_goodware_gate", "minimum_malware_gate", "sample_gate_met"],
+      "properties": {
+        "sample_count": {"type": "integer", "minimum": 2},
+        "goodware_count": {"type": "integer", "minimum": 1},
+        "malware_count": {"type": "integer", "minimum": 1},
+        "confusion": {
+          "type": "object", "additionalProperties": false,
+          "required": ["tp", "tn", "fp", "fn"],
+          "properties": {"tp": {"type": "integer", "minimum": 0}, "tn": {"type": "integer", "minimum": 0}, "fp": {"type": "integer", "minimum": 0}, "fn": {"type": "integer", "minimum": 0}}
+        },
+        "fpr": {"type": "number", "minimum": 0, "maximum": 1},
+        "fnr": {"type": "number", "minimum": 0, "maximum": 1},
+        "latency_ms": {
+          "type": "object", "additionalProperties": false, "required": ["mean", "p95", "max"],
+          "properties": {"mean": {"type": "number", "minimum": 0}, "p95": {"type": "number", "minimum": 0}, "max": {"type": "number", "minimum": 0}}
+        },
+        "minimum_goodware_gate": {"type": "integer", "minimum": 1},
+        "minimum_malware_gate": {"type": "integer", "minimum": 1},
+        "sample_gate_met": {"type": "boolean"}
+      }
+    },
+    "reproducibility_commands": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "may_promote": {"const": false},
+    "may_enforce": {"const": false},
+    "claim_boundary": {"type": "string", "minLength": 40}
+  }
+}

@@ -1,0 +1,439 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ios_device_identity_continuity_v1.schema.json",
+  "title": "Tamandua iOS device identity continuity source-only vectors",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "evidence_class", "operation_scope", "claims", "vectors"],
+  "properties": {
+    "schema": {
+      "const": "tamandua.mobile.ios-device-identity-continuity-vectors/v1"
+    },
+    "evidence_class": { "const": "source_only_synthetic_vectors" },
+    "operation_scope": { "const": "classifier_owned_capability_calls_only" },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "apple_service_executed",
+        "native_bridge_executed",
+        "adapter_executed",
+        "storage_mutated",
+        "network_executed",
+        "device_executed",
+        "backend_executed",
+        "continuity_verified",
+        "hardware_identity_verified",
+        "external_claim_allowed"
+      ],
+      "properties": {
+        "apple_service_executed": { "const": false },
+        "native_bridge_executed": { "const": false },
+        "adapter_executed": { "const": false },
+        "storage_mutated": { "const": false },
+        "network_executed": { "const": false },
+        "device_executed": { "const": false },
+        "backend_executed": { "const": false },
+        "continuity_verified": { "const": false },
+        "hardware_identity_verified": { "const": false },
+        "external_claim_allowed": { "const": false }
+      }
+    },
+    "vectors": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 32,
+      "items": {
+        "oneOf": [
+          { "$ref": "#/$defs/baseVector" },
+          { "$ref": "#/$defs/derivedVector" }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "binding": {
+      "type": "object",
+      "required": [
+        "organization_digest",
+        "installation_digest",
+        "app_profile_digest",
+        "environment",
+        "protocol",
+        "provider"
+      ],
+      "properties": {
+        "organization_digest": { "$ref": "#/$defs/digest" },
+        "installation_digest": { "$ref": "#/$defs/digest" },
+        "app_profile_digest": { "$ref": "#/$defs/digest" },
+        "environment": { "enum": ["development", "production"] },
+        "protocol": { "const": "tamandua.mobile.app-attest/v1" },
+        "provider": { "const": "apple_app_attest" }
+      }
+    },
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema",
+        "binding",
+        "active_identity",
+        "native_status",
+        "observation",
+        "lifecycle_event"
+      ],
+      "properties": {
+        "schema": {
+          "const": "tamandua.mobile.ios-device-identity-continuity/v1"
+        },
+        "binding": {
+          "allOf": [{ "$ref": "#/$defs/binding" }],
+          "unevaluatedProperties": false
+        },
+        "active_identity": {
+          "allOf": [
+            { "$ref": "#/$defs/binding" },
+            {
+              "type": "object",
+              "required": [
+                "device_key_id",
+                "provider_key_reference_digest",
+                "provider_key_reference_scope"
+              ],
+              "properties": {
+                "device_key_id": {
+                  "type": "string",
+                  "pattern": "^tmdk_v1_[A-Za-z0-9_-]{43}$"
+                },
+                "provider_key_reference_digest": { "$ref": "#/$defs/digest" },
+                "provider_key_reference_scope": {
+                  "const": "tenant_install_environment_domain_separated"
+                }
+              }
+            }
+          ],
+          "unevaluatedProperties": false
+        },
+        "native_status": {
+          "allOf": [
+            { "$ref": "#/$defs/binding" },
+            {
+              "type": "object",
+              "required": [
+                "state",
+                "reason",
+                "provider_key_reference_digest",
+                "provider_key_reference_scope"
+              ],
+              "properties": {
+                "state": {
+                  "enum": [
+                    "present_unverified",
+                    "unsupported",
+                    "unavailable",
+                    "error"
+                  ]
+                },
+                "reason": {
+                  "enum": [
+                    "none",
+                    "app_attest_unsupported_on_simulator",
+                    "app_attest_not_supported_on_this_device",
+                    "ios_version_below_14",
+                    "app_attest_key_not_generated",
+                    "app_attest_key_inaccessible",
+                    "app_attest_invalid_key",
+                    "keychain_read_failed",
+                    "stored_key_id_invalid",
+                    "app_attest_legacy_key_reconciliation_required"
+                  ]
+                },
+                "provider_key_reference_digest": {
+                  "oneOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }]
+                },
+                "provider_key_reference_scope": {
+                  "const": "tenant_install_environment_domain_separated"
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": { "state": { "const": "present_unverified" } }
+                  },
+                  "then": {
+                    "properties": {
+                      "reason": { "const": "none" },
+                      "provider_key_reference_digest": {
+                        "$ref": "#/$defs/digest"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": { "state": { "const": "unsupported" } }
+                  },
+                  "then": {
+                    "properties": {
+                      "reason": {
+                        "enum": [
+                          "app_attest_unsupported_on_simulator",
+                          "app_attest_not_supported_on_this_device",
+                          "ios_version_below_14"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": { "state": { "const": "unavailable" } }
+                  },
+                  "then": {
+                    "properties": {
+                      "reason": {
+                        "enum": [
+                          "app_attest_key_not_generated",
+                          "app_attest_key_inaccessible",
+                          "app_attest_legacy_key_reconciliation_required"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": { "properties": { "state": { "const": "error" } } },
+                  "then": {
+                    "properties": {
+                      "reason": {
+                        "enum": [
+                          "app_attest_invalid_key",
+                          "keychain_read_failed",
+                          "stored_key_id_invalid"
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ],
+          "unevaluatedProperties": false
+        },
+        "observation": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "nonce_digest",
+            "observation_digest",
+            "counter_category"
+          ],
+          "properties": {
+            "nonce_digest": { "$ref": "#/$defs/digest" },
+            "observation_digest": { "$ref": "#/$defs/digest" },
+            "counter_category": {
+              "enum": ["fresh", "replayed", "regressed", "unknown"]
+            }
+          }
+        },
+        "lifecycle_event": {
+          "enum": [
+            "normal_launch",
+            "app_update",
+            "os_update",
+            "reinstall_or_restore_unknown",
+            "invalid_key",
+            "explicit_rotation"
+          ]
+        }
+      }
+    },
+    "expected": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "reason"],
+      "properties": {
+        "state": {
+          "enum": [
+            "continue_requires_fresh_assertion",
+            "candidate_rebind_required",
+            "step_up_rebind_required",
+            "unsupported",
+            "hold"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[a-z0-9_]+$"
+        }
+      }
+    },
+    "baseVector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "input", "expected"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "input": { "$ref": "#/$defs/input" },
+        "expected": { "$ref": "#/$defs/expected" }
+      }
+    },
+    "derivedVector": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "derive_from", "patch", "expected"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9-]+$" },
+        "derive_from": { "const": "normal-launch-same-reference" },
+        "patch": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["lifecycle_event"],
+              "properties": {
+                "lifecycle_event": {
+                  "enum": [
+                    "normal_launch",
+                    "app_update",
+                    "os_update",
+                    "reinstall_or_restore_unknown",
+                    "invalid_key",
+                    "explicit_rotation"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["observation.counter_category"],
+              "properties": {
+                "observation.counter_category": {
+                  "enum": ["fresh", "replayed", "regressed", "unknown"]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["native_status.provider_key_reference_digest"],
+              "properties": {
+                "native_status.provider_key_reference_digest": {
+                  "oneOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["native_status.state", "native_status.reason"],
+              "properties": {
+                "native_status.state": {
+                  "enum": [
+                    "present_unverified",
+                    "unsupported",
+                    "unavailable",
+                    "error"
+                  ]
+                },
+                "native_status.reason": {
+                  "enum": [
+                    "none",
+                    "app_attest_unsupported_on_simulator",
+                    "app_attest_not_supported_on_this_device",
+                    "ios_version_below_14",
+                    "app_attest_key_not_generated",
+                    "app_attest_key_inaccessible",
+                    "app_attest_invalid_key",
+                    "keychain_read_failed",
+                    "stored_key_id_invalid",
+                    "app_attest_legacy_key_reconciliation_required"
+                  ]
+                },
+                "native_status.provider_key_reference_digest": {
+                  "oneOf": [{ "$ref": "#/$defs/digest" }, { "type": "null" }]
+                }
+              },
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "native_status.state": { "const": "present_unverified" }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "native_status.reason": { "const": "none" },
+                      "native_status.provider_key_reference_digest": {
+                        "$ref": "#/$defs/digest"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "native_status.state": { "const": "unsupported" }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "native_status.reason": {
+                        "enum": [
+                          "app_attest_unsupported_on_simulator",
+                          "app_attest_not_supported_on_this_device",
+                          "ios_version_below_14"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "native_status.state": { "const": "unavailable" }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "native_status.reason": {
+                        "enum": [
+                          "app_attest_key_not_generated",
+                          "app_attest_key_inaccessible",
+                          "app_attest_legacy_key_reconciliation_required"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "native_status.state": { "const": "error" }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "native_status.reason": {
+                        "enum": [
+                          "app_attest_invalid_key",
+                          "keychain_read_failed",
+                          "stored_key_id_invalid"
+                        ]
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "expected": { "$ref": "#/$defs/expected" }
+      }
+    }
+  }
+}

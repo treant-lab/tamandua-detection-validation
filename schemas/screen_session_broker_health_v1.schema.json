@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/screen_session_broker_health_v1.schema.json",
+  "title": "Tamandua screen session broker health v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "platform",
+    "state",
+    "ready",
+    "capabilities",
+    "observed_at",
+    "transport",
+    "consent_model",
+    "silent_supported",
+    "session_capture_supported",
+    "degraded_reason",
+    "unsupported_reason",
+    "detail_code"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "tamandua.screen_session_broker/v1"
+    },
+    "platform": {
+      "enum": ["windows", "macos", "linux", "android", "ios"]
+    },
+    "state": {
+      "enum": [
+        "ready",
+        "no_user_session",
+        "locked",
+        "consent_required",
+        "permission_denied",
+        "portal_unavailable",
+        "broker_unavailable",
+        "unsupported"
+      ]
+    },
+    "ready": {
+      "type": "boolean"
+    },
+    "capabilities": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "screen_capture",
+          "user_notify",
+          "user_confirm",
+          "monitor_selection",
+          "active_window_capture",
+          "watermark",
+          "redaction"
+        ]
+      }
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "transport": {
+      "enum": [
+        "windows_named_pipe",
+        "unix_socket",
+        "macos_xpc",
+        "xdg_desktop_portal",
+        "android_app_command",
+        "ios_app_command",
+        "none"
+      ]
+    },
+    "consent_model": {
+      "enum": [
+        "policy",
+        "os_permission",
+        "portal_prompt",
+        "user_prompt",
+        "user_initiated",
+        "unsupported"
+      ]
+    },
+    "silent_supported": {
+      "type": "boolean"
+    },
+    "session_capture_supported": {
+      "type": "boolean"
+    },
+    "degraded_reason": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "unsupported_reason": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "detail_code": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "session_id": {
+      "type": ["string", "integer", "null"]
+    },
+    "displays": {
+      "type": "array",
+      "maxItems": 16,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "x", "y", "width", "height", "primary"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1, "maxLength": 128},
+          "x": {"type": "integer"},
+          "y": {"type": "integer"},
+          "width": {"type": "integer", "minimum": 1, "maximum": 32768},
+          "height": {"type": "integer", "minimum": 1, "maximum": 32768},
+          "primary": {"type": "boolean"}
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"state": {"const": "ready"}},
+        "required": ["state"]
+      },
+      "then": {
+        "properties": {
+          "ready": {"const": true},
+          "capabilities": {"contains": {"const": "screen_capture"}}
+        }
+      },
+      "else": {
+        "properties": {"ready": {"const": false}}
+      }
+    }
+  ]
+}

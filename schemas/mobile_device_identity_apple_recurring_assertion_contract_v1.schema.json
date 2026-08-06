@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/mobile_device_identity_apple_recurring_assertion_contract_v1.schema.json",
+  "title": "Tamandua Apple recurring assertion source-only contract",
+  "oneOf": [
+    {"$ref": "#/$defs/result"},
+    {"$ref": "#/$defs/vector_corpus"}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tenant_binding_digest", "expected_tenant_binding_digest",
+        "installation_binding_digest", "expected_installation_binding_digest",
+        "profile_binding_digest", "expected_profile_binding_digest",
+        "environment_binding_digest", "expected_environment_binding_digest",
+        "team_binding_digest", "expected_team_binding_digest",
+        "bundle_binding_digest", "expected_bundle_binding_digest",
+        "provider_key_reference_digest", "active_provider_key_reference_digest",
+        "challenge_reference_digest", "expected_challenge_reference_digest",
+        "parent_receipt_digest", "expected_parent_receipt_digest",
+        "stored_counter", "candidate_counter", "challenge_state",
+        "verifier_authority_state", "rebind_state"
+      ],
+      "properties": {
+        "tenant_binding_digest": {"$ref": "#/$defs/sha256"},
+        "expected_tenant_binding_digest": {"$ref": "#/$defs/sha256"},
+        "installation_binding_digest": {"$ref": "#/$defs/sha256"},
+        "expected_installation_binding_digest": {"$ref": "#/$defs/sha256"},
+        "profile_binding_digest": {"$ref": "#/$defs/sha256"},
+        "expected_profile_binding_digest": {"$ref": "#/$defs/sha256"},
+        "environment_binding_digest": {"$ref": "#/$defs/sha256"},
+        "expected_environment_binding_digest": {"$ref": "#/$defs/sha256"},
+        "team_binding_digest": {"$ref": "#/$defs/sha256"},
+        "expected_team_binding_digest": {"$ref": "#/$defs/sha256"},
+        "bundle_binding_digest": {"$ref": "#/$defs/sha256"},
+        "expected_bundle_binding_digest": {"$ref": "#/$defs/sha256"},
+        "provider_key_reference_digest": {"$ref": "#/$defs/sha256"},
+        "active_provider_key_reference_digest": {"$ref": "#/$defs/sha256"},
+        "challenge_reference_digest": {"$ref": "#/$defs/sha256"},
+        "expected_challenge_reference_digest": {"$ref": "#/$defs/sha256"},
+        "parent_receipt_digest": {"$ref": "#/$defs/sha256"},
+        "expected_parent_receipt_digest": {"$ref": "#/$defs/sha256"},
+        "stored_counter": {"type": "integer", "minimum": 1, "maximum": 4294967295},
+        "candidate_counter": {"type": "integer", "minimum": 1, "maximum": 4294967295},
+        "challenge_state": {"const": "pending"},
+        "verifier_authority_state": {"const": "server_verifier_required_but_not_executed"},
+        "rebind_state": {"const": "absent"}
+      }
+    },
+    "category": {
+      "enum": [
+        "pending_runtime_authority", "invalid_contract_input", "invalid_digest_binding",
+        "placeholder_digest_rejected", "digest_role_collision", "established_counter_required",
+        "zero_counter_for_established_key", "counter_out_of_range", "equal_counter_replay",
+        "counter_regression_or_clone", "challenge_already_consumed", "challenge_expired",
+        "challenge_state_untrusted", "challenge_binding_mismatch", "parent_receipt_mismatch",
+        "identity_binding_drift", "provider_key_authority_mismatch", "verifier_authority_missing",
+        "recurring_assertion_cannot_rebind", "rebind_state_untrusted",
+        "hold_requires_apple_verification_and_atomic_server_commit"
+      ]
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "contract_version", "authority_kind", "decision", "category",
+        "eligible_for_future_atomic_transition", "prior_evidence_binding", "source_binding",
+        "compiler_owned_observations", "compiler_owned_operations", "compiler_owned_outcomes", "compiler_scope", "claims",
+        "future_atomic_transition"
+      ],
+      "properties": {
+        "contract_version": {"const": "mobile_device_identity_apple_recurring_assertion_contract/v1"},
+        "authority_kind": {"const": "source_only_pending_contract"},
+        "decision": {"const": "HOLD"},
+        "category": {"$ref": "#/$defs/category"},
+        "eligible_for_future_atomic_transition": {"const": false},
+        "prior_evidence_binding": {
+          "type": "object", "additionalProperties": false,
+          "required": ["workspace_coordinator_completion_receipt_sha256", "pending_fixture_path", "pending_fixture_sha256", "packet_digest", "plan_digest", "proves_runtime_authenticity"],
+          "properties": {
+            "workspace_coordinator_completion_receipt_sha256": {"const": "d9fbbfded18965831f3b2d8c471e5409308a5a8e8337de43d3c8bb6a10d398dd"},
+            "pending_fixture_path": {"const": "apps/tamandua_mobile/examples/ios-app-attest-physical-evidence.pending.v1.json"},
+            "pending_fixture_sha256": {"const": "609a7afcaf2096becf3345889fd54423f502e61c6e559d711cc9b28b5abde02d"},
+            "packet_digest": {"const": "755b5290e9a7a84e81a7e22ce66881763d22eea4126da070f4248641b298fe26"},
+            "plan_digest": {"const": "f097d9d50967464bc0c40a004533358b29f572f30afa9b3a7f7f2236f2a1d0ce"},
+            "proves_runtime_authenticity": {"const": false}
+          }
+        },
+        "source_binding": {
+          "type": "object", "additionalProperties": false,
+          "required": ["repository_base_sha", "revision_scope", "files"],
+          "properties": {
+            "repository_base_sha": {"const": "d38e0ee2d02b733b9c5f98261ab28bedecb736f3"},
+            "revision_scope": {"const": "worktree_snapshot_with_per_file_sha256"},
+            "files": {
+              "type": "array", "minItems": 5, "maxItems": 5,
+              "prefixItems": [
+                {"type": "object", "additionalProperties": false, "required": ["role", "path", "sha256"], "properties": {"role": {"const": "apple_flow"}, "path": {"const": "apps/tamandua_server/lib/tamandua_server/mobile/mobile_device_identity_apple_flow.ex"}, "sha256": {"const": "df7407a073984c04416888cb429215b19e6a81c2226d730d476fce5cd1dfa625"}}},
+                {"type": "object", "additionalProperties": false, "required": ["role", "path", "sha256"], "properties": {"role": {"const": "apple_verifier"}, "path": {"const": "apps/tamandua_server/lib/tamandua_server/mobile/mobile_device_identity_apple_app_attest.ex"}, "sha256": {"const": "845defc4738d088d0578adb965637bb17b48afce31fc1e84de0558ff744b5c3c"}}},
+                {"type": "object", "additionalProperties": false, "required": ["role", "path", "sha256"], "properties": {"role": {"const": "apple_context"}, "path": {"const": "apps/tamandua_server/lib/tamandua_server/mobile/mobile_device_identity_apple_context.ex"}, "sha256": {"const": "bb34dff121d3a94d2e0bc57e3af3b0b33f58b10c3c6badf8a712d6f34d3d2da6"}}},
+                {"type": "object", "additionalProperties": false, "required": ["role", "path", "sha256"], "properties": {"role": {"const": "provider_key"}, "path": {"const": "apps/tamandua_server/lib/tamandua_server/mobile/mobile_device_identity_provider_key.ex"}, "sha256": {"const": "7f455bca3f3213b96cbd789703b9c55b63c696383bbf7657784db61ec9a6eeb6"}}},
+                {"type": "object", "additionalProperties": false, "required": ["role", "path", "sha256"], "properties": {"role": {"const": "identity"}, "path": {"const": "apps/tamandua_server/lib/tamandua_server/mobile/mobile_device_identity.ex"}, "sha256": {"const": "04acd876f776d7e1a598de224a477052c441248a791cf73740c94a264fab58ea"}}}
+              ],
+              "items": false
+            }
+          }
+        },
+        "compiler_owned_observations": {
+          "type": "object", "additionalProperties": false,
+          "required": ["apple_service_responses", "backend_responses", "device_observations", "cryptographic_verifications", "native_observations", "network_observations", "physical_device_observations", "trusted_time_observations", "challenge_state_observations", "persistence_reads"],
+          "properties": {
+            "apple_service_responses": {"const": 0}, "backend_responses": {"const": 0},
+            "device_observations": {"const": 0},
+            "cryptographic_verifications": {"const": 0}, "trusted_time_observations": {"const": 0},
+            "native_observations": {"const": 0}, "network_observations": {"const": 0},
+            "physical_device_observations": {"const": 0},
+            "challenge_state_observations": {"const": 0}, "persistence_reads": {"const": 0}
+          }
+        },
+        "compiler_owned_operations": {
+          "type": "object", "additionalProperties": false,
+          "required": ["apple_service_calls", "backend_calls", "challenge_consumptions", "counter_updates", "database_mutations", "device_operations", "key_activations", "key_rebinds", "native_calls", "network_calls", "persistence_transactions"],
+          "properties": {
+            "apple_service_calls": {"const": 0}, "backend_calls": {"const": 0},
+            "challenge_consumptions": {"const": 0}, "counter_updates": {"const": 0},
+            "database_mutations": {"const": 0}, "device_operations": {"const": 0},
+            "key_activations": {"const": 0}, "key_rebinds": {"const": 0},
+            "native_calls": {"const": 0}, "network_calls": {"const": 0},
+            "persistence_transactions": {"const": 0}
+          }
+        },
+        "compiler_owned_outcomes": {
+          "type": "object", "additionalProperties": false,
+          "required": ["accepted", "held", "rejected", "verified"],
+          "properties": {
+            "accepted": {"const": 0}, "held": {"const": 0},
+            "rejected": {"const": 0}, "verified": {"const": 0}
+          }
+        },
+        "compiler_scope": {"const": "compiler_owned_capabilities_only"},
+        "claims": {
+          "type": "object", "additionalProperties": false,
+          "required": ["cryptographically_verified", "challenge_pending_proven", "continuity_validated", "concurrency_safe", "counter_persisted", "external_claim_allowed", "global_hardware_guid_validated", "physical_device_validated", "production_ready", "rebind_safety_validated", "replay_resistance_validated", "runtime_semantic_composition_proven", "trusted_time_observed", "verimatrix_parity"],
+          "properties": {
+            "cryptographically_verified": {"const": false}, "challenge_pending_proven": {"const": false},
+            "continuity_validated": {"const": false},
+            "concurrency_safe": {"const": false}, "counter_persisted": {"const": false},
+            "external_claim_allowed": {"const": false},
+            "global_hardware_guid_validated": {"const": false},
+            "physical_device_validated": {"const": false},
+            "production_ready": {"const": false}, "trusted_time_observed": {"const": false},
+            "rebind_safety_validated": {"const": false},
+            "replay_resistance_validated": {"const": false},
+            "runtime_semantic_composition_proven": {"const": false},
+            "verimatrix_parity": {"const": false}
+          }
+        },
+        "future_atomic_transition": {
+          "type": "object", "additionalProperties": false,
+          "required": ["available_now", "requirements"],
+          "properties": {
+            "available_now": {"const": false},
+            "requirements": {
+              "type": "array", "minItems": 12, "maxItems": 12, "uniqueItems": true,
+              "prefixItems": [
+                {"const": "lock_pending_challenge_and_active_provider_key_row"},
+                {"const": "re_read_challenge_spent_state_and_ttl_using_server_trusted_time_inside_transaction"},
+                {"const": "re_read_and_validate_challenge_parent_binding_inside_transaction"},
+                {"const": "re_read_and_validate_tenant_installation_profile_environment_team_and_bundle_bindings_inside_transaction"},
+                {"const": "re_read_and_validate_active_provider_key_binding_inside_transaction"},
+                {"const": "re_read_persisted_counter_inside_transaction"},
+                {"const": "verify_assertion_with_server_owned_cryptographic_authority"},
+                {"const": "require_candidate_counter_strictly_greater_than_persisted_counter"},
+                {"const": "consume_challenge_and_compare_and_swap_counter_in_one_transaction"},
+                {"const": "update_last_asserted_time_from_server_trusted_time_in_same_transaction"},
+                {"const": "roll_back_challenge_and_counter_together_on_any_failure"},
+                {"const": "never_activate_or_rebind_a_key_from_a_recurring_assertion"}
+              ],
+              "items": false
+            }
+          }
+        }
+      }
+    },
+    "vector": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "mutation", "expected_category", "expected_eligible"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+        "mutation": {
+          "type": "object", "additionalProperties": false,
+          "properties": {
+            "tenant_binding_digest": {}, "expected_tenant_binding_digest": {},
+            "installation_binding_digest": {}, "expected_installation_binding_digest": {},
+            "profile_binding_digest": {}, "expected_profile_binding_digest": {},
+            "environment_binding_digest": {}, "expected_environment_binding_digest": {},
+            "team_binding_digest": {}, "expected_team_binding_digest": {},
+            "bundle_binding_digest": {}, "expected_bundle_binding_digest": {},
+            "provider_key_reference_digest": {}, "active_provider_key_reference_digest": {},
+            "challenge_reference_digest": {}, "expected_challenge_reference_digest": {},
+            "parent_receipt_digest": {}, "expected_parent_receipt_digest": {},
+            "stored_counter": {}, "candidate_counter": {}, "challenge_state": {},
+            "verifier_authority_state": {}, "rebind_state": {}
+          }
+        },
+        "expected_category": {"$ref": "#/$defs/category"},
+        "expected_eligible": {"const": false}
+      }
+    },
+    "vector_corpus": {
+      "type": "object", "additionalProperties": false,
+      "required": ["contract_version", "base_input", "vectors"],
+      "properties": {
+        "contract_version": {"const": "mobile_device_identity_apple_recurring_assertion_contract/v1"},
+        "base_input": {"$ref": "#/$defs/input"},
+        "vectors": {"type": "array", "minItems": 31, "maxItems": 31, "uniqueItems": true, "items": {"$ref": "#/$defs/vector"}}
+      }
+    }
+  }
+}

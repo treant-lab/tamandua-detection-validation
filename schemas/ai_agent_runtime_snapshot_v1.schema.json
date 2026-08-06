@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ai_agent_runtime_snapshot_v1.schema.json",
+  "title": "Tamandua AI Agent Runtime Snapshot v1",
+  "description": "Experimental full-fidelity enterprise snapshot contract. Content governance is explicit; collection is never represented as production-ready evidence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "snapshot_id", "collected_at", "tenant", "endpoint", "source", "session", "capture", "governance", "integrity", "claims"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ai-agent-runtime-snapshot/v1"},
+    "kind": {"const": "AiAgentRuntimeSnapshot"},
+    "snapshot_id": {"$ref": "#/$defs/id"},
+    "collected_at": {"type": "string", "format": "date-time"},
+    "tenant": {"$ref": "#/$defs/tenant"},
+    "endpoint": {"$ref": "#/$defs/endpoint"},
+    "source": {"$ref": "#/$defs/source"},
+    "session": {"$ref": "#/$defs/session"},
+    "capture": {"$ref": "#/$defs/capture"},
+    "governance": {"$ref": "#/$defs/governance"},
+    "integrity": {"$ref": "#/$defs/snapshot_integrity"},
+    "claims": {"$ref": "#/$defs/claims"}
+  },
+  "$defs": {
+    "id": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/@-]*$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tenant": {
+      "type": "object", "additionalProperties": false,
+      "required": ["tenant_id", "organization_id"],
+      "properties": {"tenant_id": {"$ref": "#/$defs/id"}, "organization_id": {"$ref": "#/$defs/id"}}
+    },
+    "endpoint": {
+      "type": "object", "additionalProperties": false,
+      "required": ["agent_id", "device_id", "hostname", "platform"],
+      "properties": {
+        "agent_id": {"$ref": "#/$defs/id"}, "device_id": {"$ref": "#/$defs/id"},
+        "hostname": {"type": "string", "minLength": 1, "maxLength": 255},
+        "platform": {"enum": ["windows", "linux", "macos"]}
+      }
+    },
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["collector_id", "collector_version", "upstream_project", "upstream_commit", "upstream_license", "upstream_copyright"],
+      "properties": {
+        "collector_id": {"const": "tamandua.ai_agent_runtime"},
+        "collector_version": {"const": 1},
+        "upstream_project": {"const": "graykode/abtop"},
+        "upstream_commit": {"const": "a3328db20fe189887986e0147080954bc07178a1"},
+        "upstream_license": {"const": "MIT"},
+        "upstream_copyright": {"const": "Copyright (c) 2026 Tae Hwan Jung"}
+      }
+    },
+    "session": {
+      "type": "object", "additionalProperties": false,
+      "required": ["provider", "session_id", "status", "started_at", "last_activity_at", "project", "process_tree", "ports", "mcp_servers", "usage", "content_state"],
+      "properties": {
+        "provider": {"enum": ["codex", "claude", "opencode"]},
+        "session_id": {"$ref": "#/$defs/id"},
+        "parent_session_id": {"oneOf": [{"$ref": "#/$defs/id"}, {"type": "null"}]},
+        "title": {"type": ["string", "null"], "maxLength": 4096},
+        "status": {"enum": ["active", "idle", "completed", "failed", "unknown"]},
+        "started_at": {"type": "string", "format": "date-time"},
+        "last_activity_at": {"type": "string", "format": "date-time"},
+        "project": {"$ref": "#/$defs/project"},
+        "process_tree": {"type": "array", "maxItems": 4096, "items": {"$ref": "#/$defs/process"}},
+        "ports": {"type": "array", "maxItems": 4096, "items": {"$ref": "#/$defs/port"}},
+        "mcp_servers": {"type": "array", "maxItems": 1024, "items": {"$ref": "#/$defs/mcp"}},
+        "usage": {"$ref": "#/$defs/usage"},
+        "content_state": {"$ref": "#/$defs/content_state"}
+      }
+    },
+    "project": {
+      "type": "object", "additionalProperties": false,
+      "required": ["working_directory", "repository_root", "repository_id", "branch", "head_commit"],
+      "properties": {
+        "working_directory": {"type": "string", "minLength": 1},
+        "repository_root": {"type": ["string", "null"]},
+        "repository_id": {"type": ["string", "null"]},
+        "branch": {"type": ["string", "null"]},
+        "head_commit": {"oneOf": [{"type": "string", "pattern": "^[0-9a-f]{40}$"}, {"type": "null"}]}
+      }
+    },
+    "process": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pid", "parent_pid", "executable", "command_line", "started_at", "role", "state"],
+      "properties": {
+        "pid": {"type": "integer", "minimum": 1}, "parent_pid": {"type": ["integer", "null"], "minimum": 1},
+        "executable": {"type": "string", "minLength": 1}, "command_line": {"type": "string"},
+        "started_at": {"type": ["string", "null"], "format": "date-time"},
+        "role": {"enum": ["session_root", "tool_child", "server_child", "unknown_child"]},
+        "state": {"enum": ["running", "exited", "orphaned", "unknown"]},
+        "executable_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+      }
+    },
+    "port": {
+      "type": "object", "additionalProperties": false,
+      "required": ["protocol", "local_address", "local_port", "pid", "exposure", "state"],
+      "properties": {
+        "protocol": {"enum": ["tcp", "udp"]}, "local_address": {"type": "string", "minLength": 1},
+        "local_port": {"type": "integer", "minimum": 1, "maximum": 65535}, "pid": {"type": ["integer", "null"], "minimum": 1},
+        "exposure": {"enum": ["loopback", "lan", "all_interfaces", "unknown"]},
+        "state": {"enum": ["listening", "established", "orphaned", "unknown"]}
+      }
+    },
+    "mcp": {
+      "type": "object", "additionalProperties": false,
+      "required": ["server_id", "name", "transport", "endpoint", "status", "tool_names", "config_source"],
+      "properties": {
+        "server_id": {"$ref": "#/$defs/id"}, "name": {"type": "string", "minLength": 1},
+        "transport": {"enum": ["stdio", "http", "sse", "websocket", "unknown"]},
+        "endpoint": {"type": ["string", "null"]}, "status": {"enum": ["connected", "configured", "failed", "unknown"]},
+        "tool_names": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "config_source": {"type": "string", "minLength": 1}
+      }
+    },
+    "usage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["input_tokens", "output_tokens", "cached_input_tokens", "reasoning_tokens", "context_window_tokens", "context_used_tokens", "context_remaining_tokens", "rate_limit"],
+      "properties": {
+        "input_tokens": {"type": "integer", "minimum": 0}, "output_tokens": {"type": "integer", "minimum": 0},
+        "cached_input_tokens": {"type": "integer", "minimum": 0}, "reasoning_tokens": {"type": "integer", "minimum": 0},
+        "context_window_tokens": {"type": ["integer", "null"], "minimum": 1},
+        "context_used_tokens": {"type": ["integer", "null"], "minimum": 0},
+        "context_remaining_tokens": {"type": ["integer", "null"], "minimum": 0},
+        "rate_limit": {"$ref": "#/$defs/rate_limit"}
+      }
+    },
+    "rate_limit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "remaining", "limit", "resets_at"],
+      "properties": {
+        "status": {"enum": ["available", "limited", "exhausted", "unknown"]},
+        "remaining": {"type": ["integer", "null"], "minimum": 0}, "limit": {"type": ["integer", "null"], "minimum": 1},
+        "resets_at": {"type": ["string", "null"], "format": "date-time"}
+      }
+    },
+    "content_state_item": {
+      "type": "object", "additionalProperties": false,
+      "required": ["captured_count", "raw_available_count", "normalized_count", "latest_event_sequence"],
+      "properties": {
+        "captured_count": {"type": "integer", "minimum": 0}, "raw_available_count": {"type": "integer", "minimum": 0},
+        "normalized_count": {"type": "integer", "minimum": 0}, "latest_event_sequence": {"type": ["integer", "null"], "minimum": 1}
+      }
+    },
+    "content_state": {
+      "type": "object", "additionalProperties": false,
+      "required": ["messages", "summaries", "commands", "tool_inputs", "tool_results", "file_evidence"],
+      "properties": {
+        "messages": {"$ref": "#/$defs/content_state_item"}, "summaries": {"$ref": "#/$defs/content_state_item"},
+        "commands": {"$ref": "#/$defs/content_state_item"}, "tool_inputs": {"$ref": "#/$defs/content_state_item"},
+        "tool_results": {"$ref": "#/$defs/content_state_item"}, "file_evidence": {"$ref": "#/$defs/content_state_item"}
+      }
+    },
+    "channel": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "status", "reason_codes", "records_seen", "records_captured"],
+      "properties": {
+        "name": {"enum": ["session_metadata", "messages", "summaries", "commands", "tool_inputs", "tool_results", "file_evidence", "processes", "ports", "mcp", "tokens", "context", "rate_limits"]},
+        "status": {"enum": ["complete", "partial", "unavailable", "unsupported"]},
+        "reason_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "records_seen": {"type": ["integer", "null"], "minimum": 0}, "records_captured": {"type": "integer", "minimum": 0}
+      }
+    },
+    "capture": {
+      "type": "object", "additionalProperties": false,
+      "required": ["mode", "overall_status", "started_at", "completed_at", "channels", "parser_errors"],
+      "properties": {
+        "mode": {"const": "governed_full_fidelity"}, "overall_status": {"enum": ["complete", "degraded", "failed"]},
+        "started_at": {"type": "string", "format": "date-time"}, "completed_at": {"type": "string", "format": "date-time"},
+        "channels": {"type": "array", "minItems": 13, "maxItems": 13, "items": {"$ref": "#/$defs/channel"}},
+        "parser_errors": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "governance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["classification", "collection_basis", "access_policy_id", "retention_policy_id", "retention_days", "legal_hold", "encryption", "audit_required", "export_policy_id"],
+      "properties": {
+        "classification": {"const": "restricted_ai_agent_content"}, "collection_basis": {"type": "string", "minLength": 1},
+        "access_policy_id": {"$ref": "#/$defs/id"}, "retention_policy_id": {"$ref": "#/$defs/id"},
+        "retention_days": {"type": "integer", "minimum": 1}, "legal_hold": {"type": "boolean"},
+        "encryption": {
+          "type": "object", "additionalProperties": false, "required": ["at_rest", "in_transit", "key_id"],
+          "properties": {"at_rest": {"const": "aes-256-gcm"}, "in_transit": {"const": "tls-1.3"}, "key_id": {"$ref": "#/$defs/id"}}
+        },
+        "audit_required": {"const": true}, "export_policy_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "snapshot_integrity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["stream_id", "first_sequence", "last_sequence", "event_count", "last_event_digest", "snapshot_digest"],
+      "properties": {
+        "stream_id": {"$ref": "#/$defs/id"}, "first_sequence": {"type": ["integer", "null"], "minimum": 1},
+        "last_sequence": {"type": ["integer", "null"], "minimum": 1}, "event_count": {"type": "integer", "minimum": 0},
+        "last_event_digest": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}, "snapshot_digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["maturity", "evidence_class", "product_ready", "release_ready", "production_ready", "external_claims_allowed"],
+      "properties": {
+        "maturity": {"const": "experimental"}, "evidence_class": {"enum": ["contract_smoke", "synthetic_parity", "source_local"]},
+        "product_ready": {"const": false}, "release_ready": {"const": false}, "production_ready": {"const": false}, "external_claims_allowed": {"const": false}
+      }
+    }
+  }
+}

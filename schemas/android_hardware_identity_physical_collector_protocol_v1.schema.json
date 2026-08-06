@@ -1,0 +1,136 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.invalid/schemas/android_hardware_identity_physical_collector_protocol_v1.schema.json",
+  "title": "Android physical identity inert collector request/response protocol v1",
+  "oneOf": [{"$ref": "#/$defs/request"}, {"$ref": "#/$defs/response"}],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "bindings": {
+      "type": "object", "additionalProperties": false,
+      "required": ["apk_installed_bytes_sha256", "apk_signer_certificate_sha256", "apk_version_binding_sha256", "backend_source_sha256", "native_source_sha256", "template_source_sha256", "native_template_parity_sha256", "attestation_trust_root_sha256", "attestation_policy_sha256", "tenant_identity_policy_sha256", "collector_source_sha256"],
+      "properties": {
+        "apk_installed_bytes_sha256": {"$ref": "#/$defs/sha256"}, "apk_signer_certificate_sha256": {"$ref": "#/$defs/sha256"}, "apk_version_binding_sha256": {"$ref": "#/$defs/sha256"}, "backend_source_sha256": {"$ref": "#/$defs/sha256"}, "native_source_sha256": {"$ref": "#/$defs/sha256"}, "template_source_sha256": {"$ref": "#/$defs/sha256"}, "native_template_parity_sha256": {"$ref": "#/$defs/sha256"}, "attestation_trust_root_sha256": {"$ref": "#/$defs/sha256"}, "attestation_policy_sha256": {"$ref": "#/$defs/sha256"}, "tenant_identity_policy_sha256": {"$ref": "#/$defs/sha256"}, "collector_source_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "authorization": {
+      "type": "object", "additionalProperties": false,
+      "required": ["lab_authorization_receipt_sha256", "device_lease_receipt_sha256", "operator_authorization_receipt_sha256", "rebind_authorization_policy_sha256", "isolation_plan_sha256", "backup_manifest_sha256", "rollback_plan_sha256", "redaction_policy_sha256", "independent_verifier_plan_sha256"],
+      "properties": {
+        "lab_authorization_receipt_sha256": {"$ref": "#/$defs/sha256"}, "device_lease_receipt_sha256": {"$ref": "#/$defs/sha256"}, "operator_authorization_receipt_sha256": {"$ref": "#/$defs/sha256"}, "rebind_authorization_policy_sha256": {"$ref": "#/$defs/sha256"}, "isolation_plan_sha256": {"$ref": "#/$defs/sha256"}, "backup_manifest_sha256": {"$ref": "#/$defs/sha256"}, "rollback_plan_sha256": {"$ref": "#/$defs/sha256"}, "redaction_policy_sha256": {"$ref": "#/$defs/sha256"}, "independent_verifier_plan_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "plan_bindings": {
+      "type": "object", "additionalProperties": false, "required": ["bindings", "authorization"],
+      "properties": {"bindings": {"$ref": "#/$defs/bindings"}, "authorization": {"$ref": "#/$defs/authorization"}}
+    },
+    "authorities": {
+      "type": "object", "additionalProperties": false,
+      "required": ["collector_source_sha256", "packet_authority_source_sha256", "collector_protocol_schema_sha256", "collection_packet_schema_sha256", "node_interpreter_sha256", "native_module_sha256", "device_smoke_template_sha256", "device_proof_source_sha256", "hardware_identity_status_source_sha256", "server_android_attestation_verifier_sha256", "loop140_evidence_schema_sha256", "loop140_evidence_validator_sha256", "future_adb_runner_sha256"],
+      "properties": {
+        "collector_source_sha256": {"$ref": "#/$defs/sha256"}, "packet_authority_source_sha256": {"$ref": "#/$defs/sha256"}, "collector_protocol_schema_sha256": {"$ref": "#/$defs/sha256"}, "collection_packet_schema_sha256": {"$ref": "#/$defs/sha256"}, "node_interpreter_sha256": {"$ref": "#/$defs/sha256"}, "native_module_sha256": {"$ref": "#/$defs/sha256"}, "device_smoke_template_sha256": {"$ref": "#/$defs/sha256"}, "device_proof_source_sha256": {"$ref": "#/$defs/sha256"}, "hardware_identity_status_source_sha256": {"$ref": "#/$defs/sha256"}, "server_android_attestation_verifier_sha256": {"$ref": "#/$defs/sha256"}, "loop140_evidence_schema_sha256": {"$ref": "#/$defs/sha256"}, "loop140_evidence_validator_sha256": {"$ref": "#/$defs/sha256"}, "future_adb_runner_sha256": {"const": "3a1f778c7fa7ee88486a3430171ce106a4724d0c4cf2175345ecbbc80c436a88"}
+      }
+    },
+    "future_execution_contract": {
+      "const": {
+        "enabled": false,
+        "implementation_state": "authorization_gated_protocol_defined",
+        "invocation_authorized": false,
+        "spawn_authorized": false,
+        "runner_state": "source_only_protocol_no_process_adapter",
+        "runner_source_sha256": "41aa09930f0f42114edd6bf9c88e94b0412e6d0a9bccc377e00f07e726e5c6ec",
+        "runner_schema_sha256": "950cdf00203dc8945e5a1ec0320bc2f477d65f0aec7f8aae82b4b2ef462ed060",
+        "executable": "<externally-pinned-adb-binary>",
+        "shell": false,
+        "windows_hide": true,
+        "stdio": ["ignore", "pipe", "pipe"],
+        "argv": ["-s", "<selector-resolved-in-memory-from-active-lease>", "shell", "am", "instrument", "-w", "-e", "approved_plan_sha256", "<bound-plan-sha256>", "-e", "scenario_ordinal", "<01..15>", "-e", "asset_ordinal", "<1..3>", "com.tamandua.edr.test/androidx.test.runner.AndroidJUnitRunner"],
+        "argv_order_locked": true,
+        "inherit_env": false,
+        "env": {"LANG": "C", "LC_ALL": "C", "TZ": "UTC"},
+        "cwd": "<fixed-isolated-read-only-run-root>",
+        "attempt_timeout_ms": 120000,
+        "total_timeout_ms": 1800000,
+        "stdout_max_bytes": 65536,
+        "stderr_max_bytes": 16384,
+        "protocol_max_bytes": 65536,
+        "protocol_frames": 1,
+        "cancel_grace_ms": 2000,
+        "force_terminate_grace_ms": 3000,
+        "cleanup_timeout_ms": 10000,
+        "process_tree_containment": "required_external_adapter_not_present",
+        "single_device_required": true,
+        "emulator_rejected": true,
+        "physical_authorization_required": true,
+        "prerequisites": ["installed_apk_bytes_sha256_match", "apk_signer_certificate_sha256_match", "apk_version_binding_sha256_match", "backend_source_sha256_match", "attestation_trust_root_sha256_match", "device_lease_and_operator_authorization_verified"]
+      }
+    },
+    "privacy": {"const": {"aliases_and_ordinals_only": true, "raw_identifiers_forbidden": true, "raw_attestation_forbidden": true, "key_material_forbidden": true, "secrets_forbidden": true, "observations_forbidden": true}},
+    "collector_source_binding": {
+      "type": "object", "additionalProperties": false,
+      "required": ["plan_binding_sha256", "request_authority_sha256", "actual_source_sha256", "normalized_ast_sha256", "detached_authority_payload_sha256", "verified_equal"],
+      "properties": {"plan_binding_sha256": {"$ref": "#/$defs/sha256"}, "request_authority_sha256": {"$ref": "#/$defs/sha256"}, "actual_source_sha256": {"$ref": "#/$defs/sha256"}, "normalized_ast_sha256": {"$ref": "#/$defs/sha256"}, "detached_authority_payload_sha256": {"$ref": "#/$defs/sha256"}, "verified_equal": {"const": true}}
+    },
+    "execution": {"const": {"executed": false, "adb_operations": 0, "device_operations": 0, "native_key_operations": 0, "network_operations": 0, "backend_operations": 0}},
+    "claims": {"const": {"physical_device_validated": false, "hardware_attestation_validated": false, "continuity_validated": false, "global_hardware_guid_validated": false, "cross_tenant_unlinkability_validated": false, "product_ready": false, "production_ready": false, "external_claim_allowed": false, "verimatrix_parity": false}},
+    "asset": {
+      "type": "object", "additionalProperties": false, "required": ["ordinal", "asset_alias", "capability_role"],
+      "properties": {"ordinal": {"type": "integer", "minimum": 1, "maximum": 3}, "asset_alias": {"type": "string", "pattern": "^lab-device-(strongbox|tee|unsupported)-0[1-3]$"}, "capability_role": {"enum": ["strongbox", "tee", "unsupported"]}}
+    },
+    "assets": {
+      "type": "array", "minItems": 3, "maxItems": 3, "items": {"$ref": "#/$defs/asset"},
+      "allOf": [
+        {"contains": {"properties": {"capability_role": {"const": "strongbox"}}, "required": ["capability_role"]}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"capability_role": {"const": "tee"}}, "required": ["capability_role"]}, "minContains": 1, "maxContains": 1},
+        {"contains": {"properties": {"capability_role": {"const": "unsupported"}}, "required": ["capability_role"]}, "minContains": 1, "maxContains": 1}
+      ]
+    },
+    "category": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ordinal", "name", "asset_ordinals", "capability_roles", "category", "observation_count"],
+      "properties": {
+        "ordinal": {"type": "integer", "minimum": 1, "maximum": 15}, "name": {"type": "string"},
+        "asset_ordinals": {"type": "array", "minItems": 1, "maxItems": 2, "uniqueItems": true, "items": {"type": "integer", "minimum": 1, "maximum": 3}},
+        "capability_roles": {"type": "array", "minItems": 1, "maxItems": 2, "uniqueItems": true, "items": {"enum": ["strongbox", "tee"]}},
+        "category": {"const": "planned_not_executed"}, "observation_count": {"const": 0}
+      }
+    },
+    "categories": {
+      "type": "array", "minItems": 15, "maxItems": 15, "items": false,
+      "prefixItems": [
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 1}, "name": {"const": "baseline_key_creation"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 2}, "name": {"const": "reboot_continuity"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 3}, "name": {"const": "app_update_continuity"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 4}, "name": {"const": "os_update_continuity"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 5}, "name": {"const": "clear_data_key_loss_recovery"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 6}, "name": {"const": "uninstall_reinstall_key_loss_recovery"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 7}, "name": {"const": "cross_device_distinction"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 8}, "name": {"const": "cross_tenant_unlinkability"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 9}, "name": {"const": "replay_rejection"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 10}, "name": {"const": "stale_challenge_rejection"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 11}, "name": {"const": "clone_rejection"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 12}, "name": {"const": "authorized_rebind_acceptance"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 13}, "name": {"const": "unauthorized_rebind_rejection"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 14}, "name": {"const": "concurrent_rebind_serialization"}}}]},
+        {"allOf": [{"$ref": "#/$defs/category"}, {"properties": {"ordinal": {"const": 15}, "name": {"const": "idempotent_retry"}}}]}
+      ]
+    },
+    "request": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "approved_plan_bytes", "approved_plan_sha256", "plan_bindings", "authorities", "future_execution_contract", "privacy", "request_payload_sha256"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.physical_collector_request/v1"},
+        "approved_plan_bytes": {"type": "string", "minLength": 2, "maxLength": 65536},
+        "approved_plan_sha256": {"$ref": "#/$defs/sha256"}, "plan_bindings": {"$ref": "#/$defs/plan_bindings"},
+        "authorities": {"$ref": "#/$defs/authorities"}, "future_execution_contract": {"$ref": "#/$defs/future_execution_contract"}, "privacy": {"$ref": "#/$defs/privacy"}, "request_payload_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "response": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "evidence_class", "decision", "approved_plan_sha256", "request_payload_sha256", "response_payload_sha256", "collector_source_binding", "authorities", "assets", "categories", "execution", "claims", "privacy"],
+      "properties": {
+        "schema": {"const": "tamandua.android_hardware_identity.physical_collector_protocol/v1"}, "evidence_class": {"const": "source_only_planned_not_executed"}, "decision": {"const": "hold"},
+        "approved_plan_sha256": {"$ref": "#/$defs/sha256"}, "request_payload_sha256": {"$ref": "#/$defs/sha256"}, "response_payload_sha256": {"$ref": "#/$defs/sha256"}, "collector_source_binding": {"$ref": "#/$defs/collector_source_binding"}, "authorities": {"$ref": "#/$defs/authorities"}, "assets": {"$ref": "#/$defs/assets"}, "categories": {"$ref": "#/$defs/categories"}, "execution": {"$ref": "#/$defs/execution"}, "claims": {"$ref": "#/$defs/claims"}, "privacy": {"$ref": "#/$defs/privacy"}
+      }
+    }
+  }
+}

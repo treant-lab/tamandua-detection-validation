@@ -21,10 +21,12 @@ ML-1..ML-6 gates.
 | `docs/benchmarks/` | Curated evidence, handoff notes, and selected run artifacts explicitly allowlisted by the mirror manifest. |
 | `.github/` | Mirror-local CI and repository metadata. |
 
-The repository root should not contain Python entry points. Operators call
-scripts with `python scripts/<name>.py ...`; tests live under `tests/`. Use
-[PROBE_CATALOG.md](./PROBE_CATALOG.md) as the maintained index for probe
-domains, ML contract validators, platform probes, and publication rules.
+The repository root should not gain new Python entry points. Operators call
+scripts with `python scripts/<name>.py ...`; tests live under `tests/`. The only
+root-level Python files allowed are compatibility wrappers retained for older
+operator commands, such as `validate_ml_contracts.py` and
+`readiness_probe_linter.py`. New probes, validators, and generators belong under
+`scripts/`.
 
 ## Artifact Policy
 

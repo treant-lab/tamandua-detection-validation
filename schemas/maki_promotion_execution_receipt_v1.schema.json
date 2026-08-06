@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/maki_promotion_execution_receipt_v1.schema.json",
+  "title": "Maki offline synthetic promotion execution receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "production_eligible", "complete", "promotion_manifest_sha256", "curation_manifest_sha256", "target_tier", "execution", "summary", "planned", "records", "failures", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-promotion-execution-receipt/v1"},
+    "kind": {"const": "MakiPromotionExecutionReceipt"},
+    "evidence_class": {"const": "offline_synthetic_promotion_contract"},
+    "production_eligible": {"const": false},
+    "complete": {"type": "boolean"},
+    "promotion_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "curation_manifest_sha256": {"$ref": "#/$defs/sha256"},
+    "target_tier": {"enum": ["accepted", "holdout"]},
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "uses_network", "mutates_aws", "live_execution_enabled"],
+      "properties": {
+        "mode": {"enum": ["dry_run", "synthetic_adapter"]},
+        "uses_network": {"const": false},
+        "mutates_aws": {"const": false},
+        "live_execution_enabled": {"const": false}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["planned_count", "synthetic_verified_count", "failed_count", "idempotent_replay_count"],
+      "properties": {
+        "planned_count": {"type": "integer", "minimum": 0},
+        "synthetic_verified_count": {"type": "integer", "minimum": 0},
+        "failed_count": {"type": "integer", "minimum": 0},
+        "idempotent_replay_count": {"type": "integer", "minimum": 0}
+      }
+    },
+    "planned": {"type": "array", "items": {"$ref": "#/$defs/planned"}},
+    "records": {"type": "array", "items": {"$ref": "#/$defs/syntheticVerified"}},
+    "failures": {"type": "array", "items": {"$ref": "#/$defs/failure"}},
+    "claim_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["supports", "does_not_support"],
+      "properties": {
+        "supports": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "does_not_support": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bucket", "key", "version_id", "checksum_sha256", "size_bytes"],
+      "properties": {
+        "bucket": {"type": "string", "minLength": 1},
+        "key": {"type": "string", "minLength": 1},
+        "version_id": {"type": "string", "minLength": 1},
+        "checksum_sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1}
+      }
+    },
+    "destinationPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bucket", "key", "tier"],
+      "properties": {
+        "bucket": {"type": "string", "minLength": 1},
+        "key": {"type": "string", "minLength": 1},
+        "tier": {"enum": ["accepted", "holdout"]}
+      }
+    },
+    "lineage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "sample_class", "size_bytes", "split", "source_id", "source_evidence_sha256", "leakage_group_id", "observed_at", "curation_manifest_sha256"],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "sample_class": {"enum": ["goodware", "malware"]},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "split": {"enum": ["train", "validation", "holdout"]},
+        "source_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{1,127}$"},
+        "source_evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "leakage_group_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "curation_manifest_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "planned": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "sample_class", "size_bytes", "split", "source_id", "source_evidence_sha256", "leakage_group_id", "observed_at", "curation_manifest_sha256", "source", "destination"],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "sample_class": {"enum": ["goodware", "malware"]},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "split": {"enum": ["train", "validation", "holdout"]},
+        "source_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{1,127}$"},
+        "source_evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "leakage_group_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "curation_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "source": {"$ref": "#/$defs/identity"},
+        "destination": {"$ref": "#/$defs/destinationPlan"}
+      }
+    },
+    "syntheticVerified": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "synthetic_evidence", "sha256", "sample_class", "size_bytes", "post_copy_verified", "source_id", "source_evidence_sha256", "leakage_group_id", "observed_at", "split", "promotion_manifest_sha256", "curation_manifest_sha256", "destination"],
+      "properties": {
+        "status": {"const": "synthetic_verified"},
+        "synthetic_evidence": {"const": true},
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "sample_class": {"enum": ["goodware", "malware"]},
+        "size_bytes": {"type": "integer", "minimum": 1},
+        "post_copy_verified": {"const": false},
+        "source_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9_.-]{1,127}$"},
+        "source_evidence_sha256": {"$ref": "#/$defs/sha256"},
+        "leakage_group_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "observed_at": {"type": "string", "format": "date-time"},
+        "split": {"enum": ["train", "validation", "holdout"]},
+        "promotion_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "curation_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "destination": {"$ref": "#/$defs/identity"}
+      }
+    },
+    "failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sha256", "reason"],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/sha256"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

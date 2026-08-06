@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "fixture_id": "windows-kernel-visibility-readiness-v1",
+  "description": "Synthetic readiness snapshots for classifying Windows kernel visibility as active, degraded, or unavailable.",
+  "evidence_class": "synthetic_parity",
+  "claim_boundary": "Fixture-only gate for readiness labels. It does not prove a driver is loaded, an ETW session is live, provider drop counters are clean, WFP rules are applied, or production endpoint enforcement works.",
+  "required_fields": [
+    "etw_enabled",
+    "kernel_process",
+    "kernel_file",
+    "kernel_network",
+    "kernel_registry",
+    "dns_client",
+    "tamper_detection",
+    "driver_embedded",
+    "wfp_available",
+    "signed_driver",
+    "admin_or_service"
+  ],
+  "scenarios": [
+    {
+      "id": "active-all-aggressive-windows-signals",
+      "description": "ETW and all aggressive Windows visibility controls are reported present.",
+      "snapshot": {
+        "etw_enabled": true,
+        "kernel_process": true,
+        "kernel_file": true,
+        "kernel_network": true,
+        "kernel_registry": true,
+        "dns_client": true,
+        "tamper_detection": true,
+        "driver_embedded": true,
+        "wfp_available": true,
+        "signed_driver": true,
+        "admin_or_service": true
+      },
+      "expected_classification": "active",
+      "expected_health_label": "windows_kernel_visibility_active"
+    },
+    {
+      "id": "degraded-etw-without-embedded-driver",
+      "description": "ETW providers are usable, but driver-backed visibility has not been packaged or signed.",
+      "snapshot": {
+        "etw_enabled": true,
+        "kernel_process": true,
+        "kernel_file": true,
+        "kernel_network": true,
+        "kernel_registry": true,
+        "dns_client": true,
+        "tamper_detection": true,
+        "driver_embedded": false,
+        "wfp_available": true,
+        "signed_driver": false,
+        "admin_or_service": true
+      },
+      "expected_classification": "degraded",
+      "expected_health_label": "windows_kernel_visibility_degraded"
+    },
+    {
+      "id": "unavailable-without-etw",
+      "description": "No ETW base session is available, so kernel visibility must not be labeled active or degraded.",
+      "snapshot": {
+        "etw_enabled": false,
+        "kernel_process": false,
+        "kernel_file": false,
+        "kernel_network": false,
+        "kernel_registry": false,
+        "dns_client": false,
+        "tamper_detection": true,
+        "driver_embedded": true,
+        "wfp_available": true,
+        "signed_driver": true,
+        "admin_or_service": true
+      },
+      "expected_classification": "unavailable",
+      "expected_health_label": "windows_kernel_visibility_unavailable"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ios_native_apns_categorical_receipt_v1.schema.json",
+  "title": "Tamandua iOS native APNs categorical observation receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "observed_at", "source", "app", "device", "diagnostic", "observation", "manifest_sha256", "receipt_signature_present", "claims"],
+  "properties": {
+    "schema_version": {"const": "tamandua.ios_native_apns_categorical_receipt/v1"},
+    "run_id": {"type": "string", "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"},
+    "observed_at": {"type": "string", "format": "date-time", "pattern": "Z$"},
+    "source": {
+      "type": "object", "additionalProperties": false, "required": ["clean", "sha"],
+      "properties": {"clean": {"const": true}, "sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"}}
+    },
+    "app": {
+      "type": "object", "additionalProperties": false,
+      "required": ["executable_sha256", "configuration", "signing_identity_class", "apns_environment"],
+      "properties": {
+        "executable_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "configuration": {"const": "Debug"},
+        "signing_identity_class": {"const": "apple_development"},
+        "apns_environment": {"const": "development"}
+      }
+    },
+    "device": {
+      "type": "object", "additionalProperties": false, "required": ["physical", "model_category", "os_build_category"],
+      "properties": {
+        "physical": {"const": true},
+        "model_category": {"enum": ["iphone_12", "iphone_17_pro_max"]},
+        "os_build_category": {"type": "string", "pattern": "^ios_[0-9]{1,2}(?:_[0-9]{1,2}){0,2}$", "maxLength": 16}
+      }
+    },
+    "diagnostic": {"type": "object", "additionalProperties": false, "required": ["flag"], "properties": {"flag": {"const": "EXPO_PUBLIC_TAMANDUA_IOS_NATIVE_APNS_DIAGNOSTIC=1"}}},
+    "observation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["outcome", "permission", "token_type", "token_present", "token_length_bucket"],
+      "properties": {
+        "outcome": {"enum": ["token_present", "token_absent", "permission_not_granted", "error"]},
+        "permission": {"enum": ["granted", "denied", "undetermined", "unknown"]},
+        "token_type": {"enum": ["ios", "unknown"]},
+        "token_present": {"type": "boolean"},
+        "token_length_bucket": {"enum": ["none", "1-32", "33-64", "65+"]}
+      }
+    },
+    "manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "receipt_signature_present": {"const": false},
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["token_valid", "apns_delivery", "expo_token", "backend_registration", "token_rotation", "cold_start_routing", "production_apns", "distribution", "release_ready", "external_claim_allowed"],
+      "properties": {
+        "token_valid": {"const": false}, "apns_delivery": {"const": false}, "expo_token": {"const": false},
+        "backend_registration": {"const": false}, "token_rotation": {"const": false}, "cold_start_routing": {"const": false},
+        "production_apns": {"const": false}, "distribution": {"const": false}, "release_ready": {"const": false},
+        "external_claim_allowed": {"const": false}
+      }
+    }
+  }
+}

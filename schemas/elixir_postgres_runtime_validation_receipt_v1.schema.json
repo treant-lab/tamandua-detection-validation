@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/elixir_postgres_runtime_validation_receipt_v1.schema.json",
+  "title": "Elixir PostgreSQL Runtime Validation Receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile_id", "generated_at", "mode", "status", "source", "database", "runner", "tests", "checks", "cleanup", "claims", "claim_boundary", "limitations"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "execution_contract_version": {"enum": [1, 2]},
+    "profile_id": {"const": "elixir-postgres-runtime-validation"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"enum": ["inspect", "execute"]},
+    "status": {"enum": ["blocked", "blocked_preflight", "blocked_missing_password_env", "blocked_error", "ready_inspect_only", "pass", "fail"]},
+    "source": {"type": "object", "additionalProperties": false, "required": ["sha256", "file_count", "dirty_worktree", "staged_sha256", "staged_file_count"], "properties": {"sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "file_count": {"type": "integer", "minimum": 1}, "dirty_worktree": {"const": true}, "staged_sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}, "staged_file_count": {"type": ["integer", "null"], "minimum": 1}, "harness_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}},
+    "database": {"type": "object", "additionalProperties": false, "required": ["mode", "container_name", "expected_container_id", "image", "expected_image_id", "network", "readiness_timeout_seconds"], "properties": {"mode": {"enum": ["shared", "owned"]}, "container_name": {"type": ["string", "null"], "minLength": 1}, "expected_container_id": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}, "image": {"type": ["string", "null"], "pattern": "^sha256:[a-f0-9]{64}$"}, "expected_image_id": {"type": ["string", "null"], "pattern": "^sha256:[a-f0-9]{64}$"}, "network": {"type": ["string", "null"], "minLength": 1}, "readiness_timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 180}}},
+    "runner": {"type": "object", "additionalProperties": false, "required": ["image", "expected_image_id"], "properties": {"image": {"type": "string", "minLength": 1}, "expected_image_id": {"type": ["string", "null"], "pattern": "^sha256:[a-f0-9]{64}$"}}},
+    "tests": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^test/.+_test\\.exs$"}},
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "network_exact": {"type": "boolean"},
+        "database_healthy": {"type": "boolean"},
+        "database_endpoint_pinned": {"type": "boolean"},
+        "database_container_id_pinned": {"type": "boolean"},
+        "database_image_id_pinned": {"type": "boolean"},
+        "runner_image_id_pinned": {"type": "boolean"},
+        "generated_resources_absent_preflight": {"type": "boolean"},
+        "staged_source_matches_recorded": {"type": "boolean"},
+        "database_identity_stable": {"type": "boolean"},
+        "finished_runner_verified": {"type": "boolean"},
+        "cleanup_verified": {"type": "boolean"},
+        "migration_inventory_matches": {"type": "boolean"},
+        "pre_bootstrap_source_stable": {"type": "boolean"},
+        "bootstrap_source_stable": {"type": "boolean"},
+        "post_bootstrap_source_stable": {"type": "boolean"}
+      }
+    },
+    "cleanup": {"type": "object", "additionalProperties": false, "required": ["runner_absent", "test_database_absent", "database_container_absent", "network_absent", "zero_residue", "verified"], "properties": {"runner_absent": {"type": ["boolean", "null"]}, "pre_bootstrap_runner_absent": {"type": ["boolean", "null"]}, "post_bootstrap_runner_absent": {"type": ["boolean", "null"]}, "test_database_absent": {"type": ["boolean", "null"]}, "database_container_absent": {"type": ["boolean", "null"]}, "network_absent": {"type": ["boolean", "null"]}, "zero_residue": {"type": "boolean"}, "verified": {"type": "boolean"}}},
+    "claims": {"type": "object", "additionalProperties": false, "required": ["local_dirty_worktree_runtime_smoke", "product_ready", "production_validated", "external_claim_allowed", "vendor_parity"], "properties": {"local_dirty_worktree_runtime_smoke": {"type": "boolean"}, "product_ready": {"const": false}, "production_validated": {"const": false}, "external_claim_allowed": {"const": false}, "vendor_parity": {"const": false}}},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "limitations": {"type": "array", "items": {"type": "string"}},
+    "observed": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["db_container_id", "db_image_id", "runner_image_id", "db_health", "db_networks", "db_network_endpoint"],
+      "properties": {
+        "db_container_id": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "db_image_id": {"type": ["string", "null"], "pattern": "^sha256:[a-f0-9]{64}$"},
+        "runner_image_id": {"type": ["string", "null"], "pattern": "^sha256:[a-f0-9]{64}$"},
+        "db_health": {"type": "string"},
+        "db_networks": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+        "db_network_endpoint": {"type": ["string", "null"], "format": "ipv4"},
+        "postgres_version": {"type": "string", "pattern": "^postgres \\(PostgreSQL\\) 16\\."},
+        "psql_version": {"type": "string", "pattern": "^psql \\(PostgreSQL\\) 16\\."}
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["invocation_id", "runner_name", "runner_container_id", "database_endpoint", "test_database", "exit_code"],
+      "properties": {
+        "invocation_id": {"type": "string", "pattern": "^[a-f0-9]{32}$"},
+        "runner_name": {"type": "string", "pattern": "^tamandua-elixir-runtime-(?:(?:pre|post)-)?[a-f0-9]{32}$"},
+        "runner_container_id": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "database_endpoint": {"anyOf": [{"type": "null"}, {"type": "string", "format": "ipv4"}, {"const": "db"}]},
+        "test_database": {"type": "string", "pattern": "^tamandua_loop(84|105)_[a-f0-9]{32}$"},
+        "exit_code": {"type": ["integer", "null"]},
+        "database_container_id": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "network_id": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+        "readiness_attempts": {"type": "integer", "minimum": 1},
+        "stdout": {"type": "string"},
+        "stderr": {"type": "string"},
+        "phase_order": {"type": "array", "prefixItems": [
+          {"const": "database_created"}, {"const": "pre_bootstrap_migrated"},
+          {"const": "degraded_roles_created"}, {"const": "authority_bootstrapped"},
+          {"const": "post_bootstrap_tests_completed"}, {"const": "migrations_audited"},
+          {"const": "roles_audited"}
+        ], "items": false, "minItems": 7, "maxItems": 7},
+        "runners": {"type": "object", "additionalProperties": false, "required": ["pre_bootstrap", "post_bootstrap"], "properties": {
+          "pre_bootstrap": {"$ref": "#/$defs/owned_runner_phase"},
+          "post_bootstrap": {"$ref": "#/$defs/owned_runner_phase"}
+        }},
+        "stdin": {"type": "object", "additionalProperties": false, "required": ["limit_bytes", "degraded_roles_sha256", "degraded_roles_bytes", "authority_bootstrap_sha256", "authority_bootstrap_bytes"], "properties": {
+          "limit_bytes": {"const": 65536},
+          "degraded_roles_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "degraded_roles_bytes": {"type": "integer", "minimum": 1, "maximum": 65536},
+          "authority_bootstrap_sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+          "authority_bootstrap_bytes": {"type": ["integer", "null"], "minimum": 1, "maximum": 65536}
+        }},
+        "role_audit": {"enum": ["not_run", "closed_degraded"]}
+      }
+    },
+    "audit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["migration_count", "migration_max", "migration_digest_sha256", "test_files_requested", "test_command_count", "test_retry_count", "tests_total", "failures", "excluded", "skipped"],
+      "properties": {
+        "migration_count": {"type": "integer", "minimum": 1},
+        "migration_max": {"type": "string", "pattern": "^[0-9]+$"},
+        "migration_digest_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "test_files_requested": {"type": "integer", "minimum": 1},
+        "test_command_count": {"const": 1},
+        "test_retry_count": {"const": 0},
+        "tests_total": {"type": "integer", "minimum": 1},
+        "failures": {"type": "integer", "minimum": 0},
+        "excluded": {"type": "integer", "minimum": 0},
+        "skipped": {"type": "integer", "minimum": 0}
+      }
+    }
+  },
+  "$defs": {
+    "owned_runner_phase": {"type": "object", "additionalProperties": false, "required": ["name", "container_id", "exit_code", "verified"], "properties": {
+      "name": {"type": "string", "pattern": "^tamandua-elixir-runtime-(?:pre|post)-[a-f0-9]{32}$"},
+      "container_id": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
+      "exit_code": {"type": ["integer", "null"], "minimum": 0, "maximum": 255},
+      "verified": {"type": "boolean"}
+    }}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"execution_contract_version": {"const": 2}},
+        "required": ["execution_contract_version"]
+      },
+      "then": {"properties": {"source": {"required": ["harness_sha256"]}}}
+    },
+    {
+      "if": {"properties": {"mode": {"const": "inspect"}}},
+      "then": {
+        "not": {"required": ["execution"]},
+        "properties": {"claims": {"properties": {"local_dirty_worktree_runtime_smoke": {"const": false}}}}
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "pass"}}},
+      "then": {
+        "required": ["observed", "execution", "audit"],
+        "properties": {
+          "mode": {"const": "execute"},
+          "execution": {"properties": {"exit_code": {"const": 0}, "runner_container_id": {"type": "string"}, "database_endpoint": {"type": "string"}}},
+          "source": {"properties": {"staged_sha256": {"type": "string"}, "staged_file_count": {"type": "integer"}}},
+          "cleanup": {"properties": {"runner_absent": {"const": true}, "test_database_absent": {"const": true}, "zero_residue": {"const": true}, "verified": {"const": true}}},
+          "checks": {
+            "required": ["network_exact", "database_healthy", "database_endpoint_pinned", "database_container_id_pinned", "database_image_id_pinned", "runner_image_id_pinned", "generated_resources_absent_preflight", "staged_source_matches_recorded", "database_identity_stable", "finished_runner_verified", "cleanup_verified"],
+            "properties": {
+              "network_exact": {"const": true},
+              "database_healthy": {"const": true},
+              "database_endpoint_pinned": {"const": true},
+              "database_container_id_pinned": {"const": true},
+              "database_image_id_pinned": {"const": true},
+              "runner_image_id_pinned": {"const": true},
+              "generated_resources_absent_preflight": {"const": true},
+              "staged_source_matches_recorded": {"const": true},
+              "database_identity_stable": {"const": true},
+              "finished_runner_verified": {"const": true},
+              "cleanup_verified": {"const": true}
+            }
+          },
+          "audit": {"properties": {"test_command_count": {"const": 1}, "failures": {"const": 0}}},
+          "claims": {"properties": {"local_dirty_worktree_runtime_smoke": {"const": true}}}
+        }
+      },
+      "else": {
+        "properties": {"claims": {"properties": {"local_dirty_worktree_runtime_smoke": {"const": false}}}}
+      }
+    },
+    {
+      "if": {"properties": {"database": {"properties": {"mode": {"const": "owned"}}}, "status": {"const": "pass"}}, "required": ["database", "status"]},
+      "then": {
+        "properties": {
+          "database": {"properties": {"container_name": {"const": null}, "expected_container_id": {"const": null}, "network": {"const": null}, "image": {"type": "string"}, "expected_image_id": {"type": "string"}}},
+          "observed": {"required": ["postgres_version"], "properties": {"db_container_id": {"type": "string"}, "db_health": {"const": "ready"}}},
+          "execution": {"required": ["database_container_id", "network_id", "readiness_attempts"], "properties": {"database_endpoint": {"const": "db"}, "database_container_id": {"type": "string"}, "network_id": {"type": "string"}}},
+          "cleanup": {"properties": {"database_container_absent": {"const": true}, "network_absent": {"const": true}, "zero_residue": {"const": true}}},
+          "checks": {"required": ["migration_inventory_matches"], "properties": {"migration_inventory_matches": {"const": true}}},
+          "audit": {"properties": {"test_retry_count": {"const": 0}, "excluded": {"const": 0}, "skipped": {"const": 0}}}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "execution_contract_version": {"const": 2},
+          "database": {"properties": {"mode": {"const": "owned"}}},
+          "status": {"const": "pass"}
+        },
+        "required": ["execution_contract_version", "database", "status"]
+      },
+      "then": {
+        "properties": {
+          "tests": {"const": [
+            "test/tamandua_server/authorization/access_policy_global_rls_runtime_pg_test.exs",
+            "test/tamandua_server/authorization/rbac_fresh_permission_test.exs",
+            "test/tamandua_server_web/controllers/api/v1/mobile_device_identity_recovery_controller_test.exs"
+          ]},
+          "observed": {"required": ["psql_version"]},
+          "cleanup": {
+            "required": ["pre_bootstrap_runner_absent", "post_bootstrap_runner_absent"],
+            "properties": {
+              "pre_bootstrap_runner_absent": {"const": true},
+              "post_bootstrap_runner_absent": {"const": true}
+            }
+          },
+          "checks": {
+            "required": ["pre_bootstrap_source_stable", "bootstrap_source_stable", "post_bootstrap_source_stable"],
+            "properties": {
+              "pre_bootstrap_source_stable": {"const": true},
+              "bootstrap_source_stable": {"const": true},
+              "post_bootstrap_source_stable": {"const": true}
+            }
+          },
+          "execution": {
+            "required": ["phase_order", "runners", "stdin", "role_audit"],
+            "not": {"anyOf": [{"required": ["stdout"]}, {"required": ["stderr"]}]},
+            "properties": {
+              "role_audit": {"const": "closed_degraded"},
+              "stdin": {"properties": {
+                "authority_bootstrap_sha256": {"type": "string"},
+                "authority_bootstrap_bytes": {"type": "integer"}
+              }},
+              "runners": {"properties": {
+                "pre_bootstrap": {"properties": {
+                  "name": {"pattern": "^tamandua-elixir-runtime-pre-[a-f0-9]{32}$"},
+                  "container_id": {"type": "string"}, "exit_code": {"const": 0}, "verified": {"const": true}
+                }},
+                "post_bootstrap": {"properties": {
+                  "name": {"pattern": "^tamandua-elixir-runtime-post-[a-f0-9]{32}$"},
+                  "container_id": {"type": "string"}, "exit_code": {"const": 0}, "verified": {"const": true}
+                }}
+              }}
+            }
+          }
+        }
+      }
+    }
+  ]
+}

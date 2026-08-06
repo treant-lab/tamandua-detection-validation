@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/consumed_membership_index_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "dataset_id", "partition", "source", "sample_count", "samples", "claim_boundary", "membership_payload_sha256"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/consumed-membership-index/v1"},
+    "kind": {"const": "ConsumedMembershipIndex"},
+    "dataset_id": {"enum": ["ember2018-official-test", "ember2024-official-test", "ember2024-official-challenge"]},
+    "partition": {"enum": ["test", "challenge"]},
+    "source": {"type": "object", "required": ["revision", "manifest_sha256"], "properties": {"revision": {"type": "string", "minLength": 1}, "manifest_sha256": {"$ref": "#/$defs/sha256"}}, "additionalProperties": false},
+    "sample_count": {"type": "integer", "minimum": 1},
+    "samples": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["sample_id", "sha256", "label"], "properties": {"sample_id": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "label": {"enum": ["goodware", "malware"]}}, "additionalProperties": false}},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "membership_payload_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "additionalProperties": false
+}

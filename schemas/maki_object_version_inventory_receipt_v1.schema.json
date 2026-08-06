@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/maki_object_version_inventory_receipt_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "receipt_status", "evidence_class", "ready_for_license_reconciliation", "ready_for_promotion", "blockers", "bucket", "source_revision", "export_sha256", "normalization_report_sha256", "counts", "rejection_reasons", "execution", "claim_boundary", "records", "rejected"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-object-version-inventory-receipt/v1"},
+    "kind": {"const": "MakiObjectVersionInventoryReceipt"},
+    "receipt_status": {"const": "finalized"},
+    "evidence_class": {"enum": ["offline_aws_export_reconciliation", "preupload_sha_bound"]},
+    "ready_for_license_reconciliation": {"type": "boolean"},
+    "ready_for_promotion": {"const": false},
+    "blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "bucket": {"type": "string", "minLength": 1},
+    "source_revision": {"type": "string", "minLength": 1},
+    "export_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "normalization_report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "curation_manifest_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "owner_authorization_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "downstream_bytes_sha256_revalidation": {"const": true},
+    "counts": {"type": "object", "required": ["normalization_records", "verified_versions", "rejected"], "properties": {"normalization_records": {"type": "integer", "minimum": 0}, "verified_versions": {"type": "integer", "minimum": 0}, "rejected": {"type": "integer", "minimum": 0}}, "additionalProperties": false},
+    "rejection_reasons": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1}},
+    "execution": {"type": "object", "required": ["mode", "uses_network", "invokes_aws_cli", "reads_sample_bodies", "mutates_object_storage"], "properties": {"mode": {"const": "offline_read_only"}, "uses_network": {"const": false}, "invokes_aws_cli": {"const": false}, "reads_sample_bodies": {"const": false}, "mutates_object_storage": {"const": false}}, "additionalProperties": false},
+    "claim_boundary": {"type": "object"},
+    "records": {"type": "array", "items": {"$ref": "#/$defs/record"}},
+    "rejected": {"type": "array", "items": {"$ref": "#/$defs/rejected"}}
+  },
+  "allOf": [{"if": {"properties": {"evidence_class": {"const": "preupload_sha_bound"}}}, "then": {"required": ["curation_manifest_sha256", "owner_authorization_sha256", "downstream_bytes_sha256_revalidation"]}}],
+  "$defs": {
+    "record": {"type": "object", "required": ["sha256", "source_id", "source_object_key", "bucket", "object_key", "source_object_version_id", "version_id", "is_latest", "delete_marker", "size_bytes", "content_sha256_evidence", "evidence_uri", "normalization_report_sha256", "source_revision", "export_sha256", "downstream_bytes_sha256_revalidation", "receipt_decision"], "properties": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "source_id": {"type": "string", "minLength": 1}, "source_object_key": {"type": "string", "minLength": 1}, "bucket": {"type": "string", "minLength": 1}, "object_key": {"type": "string", "minLength": 1}, "source_object_version_id": {"type": "string", "minLength": 1, "not": {"const": "null"}}, "version_id": {"type": "string", "minLength": 1, "not": {"const": "null"}}, "is_latest": {"const": true}, "delete_marker": {"const": false}, "size_bytes": {"type": "integer", "minimum": 1}, "content_sha256_evidence": {"enum": ["checksum_sha256_hex", "checksum_sha256_base64", "object_tag_sha256", "preupload_sha_bound"]}, "evidence_uri": {"type": "string", "minLength": 1}, "normalization_report_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "source_revision": {"type": "string", "minLength": 1}, "export_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "downstream_bytes_sha256_revalidation": {"const": true}, "receipt_decision": {"const": "version_identity_verified"}}, "additionalProperties": false},
+    "rejected": {"type": "object", "required": ["sha256", "source_id", "source_object_key", "receipt_decision", "blockers"], "properties": {"sha256": {"type": ["string", "null"]}, "source_id": {"type": ["string", "null"]}, "source_object_key": {"type": ["string", "null"]}, "receipt_decision": {"const": "rejected"}, "blockers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string"}}}, "additionalProperties": false}
+  }
+}

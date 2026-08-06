@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/platform_endpoint_health_bundle_v1.schema.json",
+  "title": "Tamandua platform endpoint health bundle",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "evidence_class",
+    "claim_boundary",
+    "endpoints"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "bundle_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "evidence_class": {
+      "const": "live_endpoint_health"
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "endpoints": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "endpoint_id",
+          "platform",
+          "collected_at",
+          "source",
+          "health"
+        ],
+        "properties": {
+          "endpoint_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "platform": {
+            "enum": [
+              "linux",
+              "windows",
+              "macos",
+              "mobile"
+            ]
+          },
+          "collected_at": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source": {
+            "enum": [
+              "agent_health_api",
+              "agent_cli_health",
+              "tamandua_ctl_health"
+            ]
+          },
+          "health": {
+            "type": "object",
+            "required": [
+              "agent_running",
+              "telemetry_recent",
+              "clock_synchronized"
+            ],
+            "properties": {
+              "agent_running": {
+                "type": "boolean"
+              },
+              "telemetry_recent": {
+                "type": "boolean"
+              },
+              "clock_synchronized": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

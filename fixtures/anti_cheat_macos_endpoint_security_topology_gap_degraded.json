@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "evidence_class": "static_source_topology_inventory",
+  "capability_state": "degraded_topology_unproven",
+  "runtime_state": "not_executed",
+  "sources": [
+    {"path": "apps/tamandua_agent/SystemExtension/Package.swift", "role": "swiftpm_manifest", "sha256": "845253566207a93259a2519ae812049201f430a81355cda4ab04994a91cd9518"},
+    {"path": "apps/tamandua_agent/SystemExtension/TamanduaFileMonitor/ESClient.swift", "role": "sysext_es_client", "sha256": "c507ab2daeec26a581259aca4b9b37259bfeb9090c761c19e5a3d86d7a4bc3d7"},
+    {"path": "apps/tamandua_agent/SystemExtension/TamanduaFileMonitor/Info.plist", "role": "sysext_info_intent", "sha256": "b06f930da38c2b3c6051949c52fbc067e115dfc67e77b591757e0f13b9a0f11d"},
+    {"path": "apps/tamandua_agent/SystemExtension/TamanduaFileMonitor/TamanduaFileMonitor.swift", "role": "sysext_entrypoint", "sha256": "b468e807348550f2a84eed831114bb8376ec23ff860042082e3d86a846a5094d"},
+    {"path": "apps/tamandua_agent/SystemExtension/TamanduaFileMonitor/XPCServer.swift", "role": "sysext_xpc_server", "sha256": "97ffa3fc73a3e5f52c414a7b4d51aa7bbc745bf362fc06e28ea0df168e4d2501"},
+    {"path": "apps/tamandua_agent/SystemExtension/TamanduaFileMonitor/entitlements.plist", "role": "sysext_entitlements_intent", "sha256": "d12ac4c9e85dcd80b9737b0fb8ff2f53b1f7395302e2cea4aae146b2c0d74cbd"},
+    {"path": "apps/tamandua_agent/src/collectors/endpoint_security.rs", "role": "rust_direct_es_client", "sha256": "96d95313d3cf2d84de59dcb90f77610ba14eee6de5ab764727cdf06595adb93d"},
+    {"path": "apps/tamandua_agent/src/collectors/health.rs", "role": "rust_macos_health", "sha256": "54c6c4c0d0e5f8c12d203c767ae794496256c71cea9daef8fe1675ea6a43e2a6"},
+    {"path": "apps/tamandua_agent/src/collectors/sysext_bridge.rs", "role": "rust_sysext_bridge", "sha256": "16ae26c72fb551ba5e9775de44446017d0c9275bea8bbd6b7b92295311180694"},
+    {"path": "deploy/installers/macos/create-dmg.sh", "role": "deploy_bundle_verifier", "sha256": "e44c13539e492f82c9c1c257c094478df3b2a8f38077b20db45d24b54f01e777"},
+    {"path": "deploy/installers/macos/entitlements.plist", "role": "deploy_host_entitlements_intent", "sha256": "ffe4f61b4c4de2079cb9063dc5a686e352bfe81440af258fc2a99a3484525f30"}
+  ],
+  "inventory_digest": "cddba70bb16e7eb56d777ef773690216363ea6ae96c1d19c11468c659366d6f1",
+  "gate_authority": {"path": "tools/detection_validation/scripts/anti_cheat_macos_endpoint_security_topology_gap_gate.py", "sha256": "688100b012cd7b003c64b4e8b2785775954329f144d0cd00a1817178d0e62885", "trust_model": "detached_fixture_test_vcs_review_external_root_cli_not_self_authenticating", "cli_autonomously_authenticates": false, "coordinated_change_requires_external_review": true},
+  "topology": {"host_app_bundle": "unbound", "extension_product": "swiftpm_executable_not_proven_systemextension", "extension_point_declared": true, "package_embedding_validated": false, "activation_api_present": false, "direct_es_client_present": true, "sysext_client_present": true, "single_privileged_architecture_selected": false, "xpc_transport_state": "stub_no_connection"},
+  "entitlement_intent": {"source_declared": true, "signed_artifact_observed": false, "provisioning_observed": false, "apple_grant_observed": false, "placement_assessment": "unproven"},
+  "observe_xpc": {"observe_only_source_established": false, "auth_subscriptions_present": true, "auth_response_api_present": true, "blocking_control_present": true, "xpc_mutators_present": true, "xpc_client_identity_validation_present": false, "early_boot_policy_justified": false},
+  "lifecycle": {"build": false, "sign": false, "notarize": false, "package": false, "install": false, "activate": false, "connect": false, "subscribe": false, "fda_mutation": false, "runtime": false, "telemetry": false, "efficacy": false, "rollback": false},
+  "claims": {"capability_proven": false, "observe_only_proven": false, "product_ready": false, "production_ready": false, "external_claim_allowed": false},
+  "blockers": ["host_app_bundle_topology_unbound", "swiftpm_executable_not_proven_systemextension", "package_embedding_not_validated", "entitlement_placement_unproven", "signed_entitlements_unobserved", "apple_endpoint_security_grant_unobserved", "observe_only_source_not_established", "auth_event_subscriptions_present", "auth_response_surface_present", "xpc_mutation_surface_present", "xpc_client_identity_validation_absent", "direct_es_and_sysext_architecture_unresolved", "sysext_bridge_transport_stub", "early_boot_policy_unjustified", "build_not_validated", "macos_host_not_observed", "activation_not_validated", "runtime_not_validated", "rollback_not_rehearsed"]
+}

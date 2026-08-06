@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/elixir_check_locked_probe_worker_adapter_boundary_receipt_v1.schema.json",
+  "title": "Elixir check-locked source-only worker adapter boundary receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "evidence_class", "workspace_base_head", "invocation_id", "bindings", "plan", "execution", "process", "observation", "transport", "result", "claims"],
+  "properties": {
+    "schema": { "const": "tamandua.elixir_check_locked.worker_adapter_boundary_receipt/v1" },
+    "evidence_class": { "const": "local_offline_source_only_container_adapter_contract" },
+    "workspace_base_head": { "const": "ce97ccd64a686e91fbf6f613e3face7cb17843d2" },
+    "invocation_id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+    "bindings": {
+      "type": "object", "additionalProperties": false,
+      "required": ["parent_source_sha256", "double_source_sha256", "protocol_schema_sha256", "receipt_schema_sha256", "interpreter_executable_sha256", "interpreter_version_sha256", "mix_exs_sha256", "mix_lock_sha256", "config_sha256", "config_file_count", "runner_source_sha256", "runner_dockerfile_sha256", "manifest_sha256", "argv_sha256"],
+      "properties": {
+        "parent_source_sha256": { "$ref": "#/$defs/sha" }, "double_source_sha256": { "$ref": "#/$defs/sha" },
+        "protocol_schema_sha256": { "$ref": "#/$defs/sha" }, "receipt_schema_sha256": { "$ref": "#/$defs/sha" },
+        "interpreter_executable_sha256": { "$ref": "#/$defs/sha" }, "interpreter_version_sha256": { "$ref": "#/$defs/sha" },
+        "mix_exs_sha256": { "$ref": "#/$defs/sha" }, "mix_lock_sha256": { "$ref": "#/$defs/sha" },
+        "config_sha256": { "$ref": "#/$defs/sha" }, "config_file_count": { "type": "integer", "minimum": 1, "maximum": 64 },
+        "runner_source_sha256": { "$ref": "#/$defs/sha" }, "runner_dockerfile_sha256": { "$ref": "#/$defs/sha" },
+        "manifest_sha256": { "$ref": "#/$defs/sha" }, "argv_sha256": { "$ref": "#/$defs/sha" }
+      }
+    },
+    "plan": {
+      "type": "object", "additionalProperties": false,
+      "required": ["adapter", "resource", "state_machine", "limits"],
+      "properties": {
+        "adapter": {
+          "type": "object", "additionalProperties": false,
+          "required": ["executable_path", "executable_sha256", "version_sha256", "context_sha256", "identity_observed", "image_id", "argv", "argv_sha256", "environment", "environment_sha256", "cwd", "cwd_sha256", "mounts", "mounts_sha256", "ownership_predicate"],
+          "properties": {
+            "executable_path": { "const": "C:/Program Files/Docker/Docker/resources/bin/docker.exe" },
+            "executable_sha256": { "const": "0000000000000000000000000000000000000000000000000000000000000000" },
+            "version_sha256": { "const": "0000000000000000000000000000000000000000000000000000000000000000" },
+            "context_sha256": { "const": "0000000000000000000000000000000000000000000000000000000000000000" },
+            "identity_observed": { "const": false },
+            "image_id": { "const": "sha256:f31484716c92e442efbe163ff5df3456ac6dd3e0c96a2c3d1cc4fd295661e5a0" },
+            "argv": {
+              "type": "object", "additionalProperties": false,
+              "required": ["pre_absence", "inventory_before", "inspect_owned", "run", "cleanup_exact_id", "final_absence", "inventory_after"],
+              "properties": {
+                "pre_absence": { "$ref": "#/$defs/argv" }, "inventory_before": { "$ref": "#/$defs/argv" },
+                "inspect_owned": { "$ref": "#/$defs/argv" }, "run": { "$ref": "#/$defs/argv" }, "cleanup_exact_id": { "$ref": "#/$defs/argv" },
+                "final_absence": { "$ref": "#/$defs/argv" }, "inventory_after": { "$ref": "#/$defs/argv" }
+              }
+            },
+            "argv_sha256": { "$ref": "#/$defs/sha" }, "environment": { "const": {} },
+            "environment_sha256": { "$ref": "#/$defs/sha" },
+            "cwd": { "type": "string", "minLength": 3, "maxLength": 512 }, "cwd_sha256": { "$ref": "#/$defs/sha" },
+            "mounts": { "type": "array", "minItems": 5, "maxItems": 70, "uniqueItems": true, "items": { "$ref": "#/$defs/mount" } },
+            "mounts_sha256": { "$ref": "#/$defs/sha" },
+            "ownership_predicate": {
+              "type": "object", "additionalProperties": false,
+              "required": ["exact_id_pattern", "required_labels"],
+              "properties": { "exact_id_pattern": { "const": "^[a-f0-9]{64}$" }, "required_labels": { "type": "object" } }
+            }
+          }
+        },
+        "resource": {
+          "type": "object", "additionalProperties": false,
+          "required": ["id", "resource_name", "labels"],
+          "properties": {
+            "id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+            "resource_name": { "type": "string", "pattern": "^tamandua-check-locked-loop150-[a-f0-9]{32}$" },
+            "labels": {
+              "type": "object", "additionalProperties": false,
+              "required": ["io.tamandua.operation", "io.tamandua.owner", "io.tamandua.source", "io.tamandua.input.mix-exs-sha256", "io.tamandua.input.mix-lock-sha256", "io.tamandua.input.config-sha256", "io.tamandua.input.runner-sha256", "io.tamandua.input.dockerfile-sha256"],
+              "properties": {
+                "io.tamandua.operation": { "const": "check-locked-source-contract" },
+                "io.tamandua.owner": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+                "io.tamandua.source": { "const": "ce97ccd64a686e91fbf6f613e3face7cb17843d2" },
+                "io.tamandua.input.mix-exs-sha256": { "$ref": "#/$defs/sha" }, "io.tamandua.input.mix-lock-sha256": { "$ref": "#/$defs/sha" },
+                "io.tamandua.input.config-sha256": { "$ref": "#/$defs/sha" }, "io.tamandua.input.runner-sha256": { "$ref": "#/$defs/sha" },
+                "io.tamandua.input.dockerfile-sha256": { "$ref": "#/$defs/sha" }
+              }
+            }
+          }
+        },
+        "state_machine": { "const": ["pre_absence", "optional_exact_resource_id", "ownership_verified", "cleanup_attempted", "final_absence", "inventory_reconciled"] },
+        "limits": { "const": { "total_timeout_ms": 5000, "cleanup_reserve_ms": 1500, "combined_output_max_bytes": 32768, "request_max_bytes": 65536, "response_max_bytes": 16384 } }
+      }
+    },
+    "execution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["double_spawn_count", "adapter_runs", "network_requests", "check_locked_runs"],
+      "properties": {
+        "double_spawn_count": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "adapter_runs": { "const": 0 }, "network_requests": { "const": 0 }, "check_locked_runs": { "const": 0 }
+      }
+    },
+    "process": {
+      "type": "object", "additionalProperties": false,
+      "required": ["platform", "lifecycle_state", "containment_established", "termination_attempted", "exit_confirmed", "exit_code", "timed_out"],
+      "properties": {
+        "platform": { "enum": ["windows", "posix"] },
+        "lifecycle_state": { "enum": ["not_spawned", "contained_exited", "contained_exit_unconfirmed", "uncontained_exited", "uncontained_exit_unconfirmed"] },
+        "containment_established": { "type": "boolean" }, "termination_attempted": { "type": "boolean" },
+        "exit_confirmed": { "type": "boolean" }, "exit_code": { "oneOf": [{ "type": "integer", "minimum": -2147483648, "maximum": 2147483647 }, { "type": "null" }] },
+        "timed_out": { "type": "boolean" }
+      }
+    },
+    "observation": { "$ref": "#/$defs/unobserved" },
+    "transport": {
+      "type": "object", "additionalProperties": false,
+      "required": ["stdin_canonical", "stdout_canonical", "stdout_observation_complete", "stderr_observation_complete", "stderr_seen", "output_limit_exceeded", "stream_read_error_seen", "stdin_write_error_seen", "accepted_output_bytes", "accepted_stdout_bytes", "accepted_stderr_bytes", "accepted_output_max_bytes", "request_sha256", "response_sha256"],
+      "properties": {
+        "stdin_canonical": { "type": "boolean" }, "stdout_canonical": { "type": "boolean" },
+        "stdout_observation_complete": { "type": "boolean" }, "stderr_observation_complete": { "type": "boolean" },
+        "stderr_seen": { "type": "boolean" }, "output_limit_exceeded": { "type": "boolean" },
+        "stream_read_error_seen": { "type": "boolean" }, "stdin_write_error_seen": { "type": "boolean" },
+        "accepted_output_bytes": { "type": "integer", "minimum": 0, "maximum": 32768 },
+        "accepted_stdout_bytes": { "type": "integer", "minimum": 0, "maximum": 32768 },
+        "accepted_stderr_bytes": { "type": "integer", "minimum": 0, "maximum": 32768 },
+        "accepted_output_max_bytes": { "const": 32768 },
+        "request_sha256": { "oneOf": [{ "$ref": "#/$defs/sha" }, { "type": "null" }] },
+        "response_sha256": { "oneOf": [{ "$ref": "#/$defs/sha" }, { "type": "null" }] }
+      }
+    },
+    "result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "outcome", "error_class"],
+      "properties": {
+        "status": { "enum": ["observed", "blocked"] },
+        "outcome": { "enum": ["source_only_not_executed", "boundary_error"] },
+        "error_class": { "enum": [null, "input_invalid", "manifest_drift", "process_setup_error", "protocol_error", "stream_limit_exceeded", "stream_observation_incomplete", "worker_error", "worker_timeout"] }
+      }
+    },
+    "claims": { "$ref": "#/$defs/claims" }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "result": { "const": { "status": "observed", "outcome": "source_only_not_executed", "error_class": null } },
+        "execution": { "properties": { "double_spawn_count": { "const": 1 } } },
+        "process": { "properties": { "lifecycle_state": { "const": "contained_exited" }, "containment_established": { "const": true }, "termination_attempted": { "const": false }, "exit_confirmed": { "const": true }, "exit_code": { "const": 0 }, "timed_out": { "const": false } } },
+        "transport": { "properties": { "stdin_canonical": { "const": true }, "stdout_canonical": { "const": true }, "stdout_observation_complete": { "const": true }, "stderr_observation_complete": { "const": true }, "stderr_seen": { "const": false }, "output_limit_exceeded": { "const": false }, "stream_read_error_seen": { "const": false }, "stdin_write_error_seen": { "const": false }, "response_sha256": { "$ref": "#/$defs/sha" } } }
+      }
+    },
+    {
+      "properties": {
+        "result": { "properties": { "status": { "const": "blocked" }, "outcome": { "const": "boundary_error" }, "error_class": { "type": "string" } } },
+        "transport": { "properties": { "stdout_canonical": { "const": false }, "response_sha256": { "type": "null" } } }
+      }
+    }
+  ],
+  "allOf": [
+    { "if": { "properties": { "process": { "properties": { "lifecycle_state": { "const": "not_spawned" } } } } }, "then": { "properties": { "process": { "properties": { "containment_established": { "const": false }, "termination_attempted": { "const": false }, "exit_confirmed": { "const": false }, "exit_code": { "const": null }, "timed_out": { "const": false } } } } } },
+    { "if": { "properties": { "process": { "properties": { "lifecycle_state": { "const": "contained_exited" } } } } }, "then": { "properties": { "process": { "properties": { "containment_established": { "const": true }, "exit_confirmed": { "const": true }, "exit_code": { "type": "integer" } } } } } },
+    { "if": { "properties": { "process": { "properties": { "lifecycle_state": { "const": "contained_exit_unconfirmed" } } } } }, "then": { "properties": { "process": { "properties": { "containment_established": { "const": true }, "exit_confirmed": { "const": false }, "exit_code": { "const": null } } } } } },
+    { "if": { "properties": { "process": { "properties": { "lifecycle_state": { "const": "uncontained_exited" } } } } }, "then": { "properties": { "process": { "properties": { "containment_established": { "const": false }, "exit_confirmed": { "const": true }, "exit_code": { "type": "integer" } } } } } },
+    { "if": { "properties": { "process": { "properties": { "lifecycle_state": { "const": "uncontained_exit_unconfirmed" } } } } }, "then": { "properties": { "process": { "properties": { "containment_established": { "const": false }, "exit_confirmed": { "const": false }, "exit_code": { "const": null } } } } } },
+    { "if": { "properties": { "transport": { "properties": { "output_limit_exceeded": { "const": true } } } } }, "then": { "properties": { "transport": { "properties": { "accepted_output_bytes": { "const": 32768 } } } } } },
+    { "if": { "properties": { "transport": { "properties": { "stderr_seen": { "const": false } } } } }, "then": { "properties": { "transport": { "properties": { "accepted_stderr_bytes": { "const": 0 } } } } } },
+    { "if": { "properties": { "process": { "properties": { "termination_attempted": { "const": true } } } } }, "then": { "properties": { "result": { "properties": { "error_class": { "enum": ["worker_timeout", "stream_limit_exceeded", "stream_observation_incomplete", "process_setup_error"] } } } } } },
+    { "if": { "properties": { "result": { "properties": { "error_class": { "const": "worker_timeout" } } } } }, "then": { "properties": { "process": { "properties": { "containment_established": { "const": true }, "timed_out": { "const": true }, "termination_attempted": { "const": true } } } } } },
+    { "if": { "properties": { "result": { "properties": { "error_class": { "const": "stream_limit_exceeded" } } } } }, "then": { "properties": { "process": { "properties": { "containment_established": { "const": true }, "timed_out": { "const": false } } }, "transport": { "properties": { "output_limit_exceeded": { "const": true }, "accepted_output_bytes": { "const": 32768 } } } } } },
+    { "if": { "properties": { "result": { "properties": { "error_class": { "const": "input_invalid" } } } } }, "then": { "properties": { "execution": { "properties": { "double_spawn_count": { "const": 0 } } }, "process": { "properties": { "lifecycle_state": { "const": "not_spawned" }, "containment_established": { "const": false }, "termination_attempted": { "const": false }, "exit_confirmed": { "const": false }, "exit_code": { "const": null }, "timed_out": { "const": false } } }, "transport": { "properties": { "stdin_canonical": { "const": false }, "stdout_canonical": { "const": false }, "stdout_observation_complete": { "const": false }, "stderr_observation_complete": { "const": false }, "stderr_seen": { "const": false }, "output_limit_exceeded": { "const": false }, "stream_read_error_seen": { "const": false }, "stdin_write_error_seen": { "const": false }, "accepted_output_bytes": { "const": 0 }, "accepted_stdout_bytes": { "const": 0 }, "accepted_stderr_bytes": { "const": 0 }, "request_sha256": { "const": null }, "response_sha256": { "const": null } } } } } },
+    { "if": { "properties": { "result": { "properties": { "error_class": { "const": "stream_observation_incomplete" } } } } }, "then": { "anyOf": [
+      { "properties": { "transport": { "properties": { "stdin_write_error_seen": { "const": true } } } } },
+      { "properties": { "transport": { "properties": { "stream_read_error_seen": { "const": true } } } } },
+      { "properties": { "transport": { "properties": { "stdout_observation_complete": { "const": false } } } } },
+      { "properties": { "transport": { "properties": { "stderr_observation_complete": { "const": false } } } } }
+    ], "properties": { "process": { "properties": { "containment_established": { "const": true }, "timed_out": { "const": false } } }, "transport": { "properties": { "output_limit_exceeded": { "const": false } } } } } },
+    { "if": { "properties": { "result": { "properties": { "error_class": { "const": "process_setup_error" } } } } }, "then": { "anyOf": [
+      { "properties": { "execution": { "properties": { "double_spawn_count": { "const": 0 } } }, "process": { "properties": { "lifecycle_state": { "const": "not_spawned" } } } } },
+      { "properties": { "execution": { "properties": { "double_spawn_count": { "const": 1 } } }, "process": { "properties": { "termination_attempted": { "const": true } } } } }
+    ], "properties": { "process": { "properties": { "timed_out": { "const": false } } }, "transport": { "const": { "stdin_canonical": false, "stdout_canonical": false, "stdout_observation_complete": false, "stderr_observation_complete": false, "stderr_seen": false, "output_limit_exceeded": false, "stream_read_error_seen": false, "stdin_write_error_seen": false, "accepted_output_bytes": 0, "accepted_stdout_bytes": 0, "accepted_stderr_bytes": 0, "accepted_output_max_bytes": 32768, "request_sha256": null, "response_sha256": null } } } } },
+    { "if": { "properties": { "result": { "properties": { "error_class": { "enum": ["manifest_drift", "protocol_error"] } } } } }, "then": { "properties": {
+      "execution": { "properties": { "double_spawn_count": { "const": 1 } } },
+      "process": { "properties": { "containment_established": { "const": true }, "termination_attempted": { "const": false }, "exit_confirmed": { "const": true }, "exit_code": { "const": 0 }, "timed_out": { "const": false } } },
+      "transport": { "properties": { "stdout_observation_complete": { "const": true }, "stderr_observation_complete": { "const": true }, "stderr_seen": { "const": false }, "output_limit_exceeded": { "const": false }, "stream_read_error_seen": { "const": false }, "stdin_write_error_seen": { "const": false } } }
+    } } },
+    { "if": { "properties": { "result": { "properties": { "error_class": { "const": "worker_error" } } } } }, "then": {
+      "properties": {
+        "execution": { "properties": { "double_spawn_count": { "const": 1 } } },
+        "process": { "properties": { "containment_established": { "const": true }, "termination_attempted": { "const": false }, "exit_confirmed": { "const": true }, "timed_out": { "const": false } } },
+        "transport": { "properties": { "stdout_observation_complete": { "const": true }, "stderr_observation_complete": { "const": true }, "output_limit_exceeded": { "const": false }, "stream_read_error_seen": { "const": false }, "stdin_write_error_seen": { "const": false } } }
+      },
+      "anyOf": [
+        { "properties": { "transport": { "properties": { "stderr_seen": { "const": true } } } } },
+        { "properties": { "process": { "properties": { "exit_code": { "not": { "const": 0 } } } } } }
+      ]
+    } }
+  ],
+  "$defs": {
+    "sha": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "argv": { "type": "array", "minItems": 3, "maxItems": 96, "items": { "type": "string", "minLength": 1, "maxLength": 768 } },
+    "mount": { "type": "object", "additionalProperties": false, "required": ["source", "source_sha256", "destination", "read_only"], "properties": { "source": { "type": "string", "minLength": 3, "maxLength": 512 }, "source_sha256": { "$ref": "#/$defs/sha" }, "destination": { "type": "string", "pattern": "^/tamandua-inputs/[a-f0-9]{64}/(?:server|contract)/[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)?$" }, "read_only": { "const": true } } },
+    "unobserved": { "const": { "pre_absence": "not_observed", "exact_resource_id": null, "cleanup_attempted": false, "cleanup_succeeded": null, "final_absence": "not_observed", "inventory_before_sha256": null, "inventory_after_sha256": null, "inventory_unchanged": null } },
+    "claims": { "const": { "adapter_executed": false, "check_locked_executed": false, "external_claim_allowed": false, "product_ready": false, "production_ready": false, "real_cleanup_verified": false, "release_ready": false, "verimatrix_parity": false } }
+  }
+}

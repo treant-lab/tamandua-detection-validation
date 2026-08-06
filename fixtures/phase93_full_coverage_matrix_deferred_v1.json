@@ -1,0 +1,59 @@
+{
+  "schema_version": "phase93_full_coverage_matrix_v1",
+  "evidence_class": "deferred",
+  "status": "deferred",
+  "generated_at": "2026-07-24T00:00:00Z",
+  "phase92_handoff": null,
+  "meas05": {
+    "windows": {
+      "state": "deferred",
+      "attempted": 0,
+      "detected": 0,
+      "detection_rate_percent": null,
+      "artifact": null
+    },
+    "macos": {
+      "state": "deferred",
+      "attempted": 0,
+      "detected": 0,
+      "detection_rate_percent": null,
+      "artifact": null
+    }
+  },
+  "meas06": {
+    "linux": {
+      "state": "deferred",
+      "evaluated_cells": 0,
+      "passed_cells": 0,
+      "partial_cells": 0,
+      "failed_cells": 0,
+      "artifact": null
+    },
+    "windows": {
+      "state": "deferred",
+      "evaluated_cells": 0,
+      "passed_cells": 0,
+      "partial_cells": 0,
+      "failed_cells": 0,
+      "artifact": null
+    },
+    "macos": {
+      "state": "deferred",
+      "evaluated_cells": 0,
+      "passed_cells": 0,
+      "partial_cells": 0,
+      "failed_cells": 0,
+      "artifact": null
+    }
+  },
+  "combined": {
+    "required_cells": 45,
+    "evaluated_cells": 0,
+    "passed_cells": 0,
+    "partial_cells": 0,
+    "failed_cells": 0
+  },
+  "claim_boundary": "Contract fixture only; Phase 92 endpoints and all live Phase 93 measurements remain unobserved.",
+  "external_claim_allowed": false,
+  "blockers": ["phase92_handoff_missing", "live_measurement_artifacts_missing"]
+}

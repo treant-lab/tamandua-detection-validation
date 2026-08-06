@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/anti_cheat_macos_endpoint_security_topology_gap_v1.schema.json",
+  "title": "Tamandua macOS Endpoint Security topology gap inventory v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "capability_state", "runtime_state", "sources", "inventory_digest", "gate_authority", "topology", "entitlement_intent", "observe_xpc", "lifecycle", "claims", "blockers"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "evidence_class": {"const": "static_source_topology_inventory"},
+    "capability_state": {"const": "degraded_topology_unproven"},
+    "runtime_state": {"const": "not_executed"},
+    "sources": {
+      "type": "array",
+      "minItems": 11,
+      "maxItems": 11,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "role", "sha256"],
+        "properties": {
+          "path": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"},
+          "role": {"enum": ["swiftpm_manifest", "sysext_info_intent", "sysext_entitlements_intent", "sysext_entrypoint", "sysext_es_client", "sysext_xpc_server", "rust_direct_es_client", "rust_sysext_bridge", "rust_macos_health", "deploy_host_entitlements_intent", "deploy_bundle_verifier"]},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "inventory_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gate_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "sha256", "trust_model", "cli_autonomously_authenticates", "coordinated_change_requires_external_review"],
+      "properties": {
+        "path": {"const": "tools/detection_validation/scripts/anti_cheat_macos_endpoint_security_topology_gap_gate.py"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "trust_model": {"const": "detached_fixture_test_vcs_review_external_root_cli_not_self_authenticating"},
+        "cli_autonomously_authenticates": {"const": false},
+        "coordinated_change_requires_external_review": {"const": true}
+      }
+    },
+    "topology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["host_app_bundle", "extension_product", "extension_point_declared", "package_embedding_validated", "activation_api_present", "direct_es_client_present", "sysext_client_present", "single_privileged_architecture_selected", "xpc_transport_state"],
+      "properties": {
+        "host_app_bundle": {"const": "unbound"},
+        "extension_product": {"const": "swiftpm_executable_not_proven_systemextension"},
+        "extension_point_declared": {"const": true},
+        "package_embedding_validated": {"const": false},
+        "activation_api_present": {"const": false},
+        "direct_es_client_present": {"const": true},
+        "sysext_client_present": {"const": true},
+        "single_privileged_architecture_selected": {"const": false},
+        "xpc_transport_state": {"const": "stub_no_connection"}
+      }
+    },
+    "entitlement_intent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_declared", "signed_artifact_observed", "provisioning_observed", "apple_grant_observed", "placement_assessment"],
+      "properties": {
+        "source_declared": {"const": true},
+        "signed_artifact_observed": {"const": false},
+        "provisioning_observed": {"const": false},
+        "apple_grant_observed": {"const": false},
+        "placement_assessment": {"const": "unproven"}
+      }
+    },
+    "observe_xpc": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["observe_only_source_established", "auth_subscriptions_present", "auth_response_api_present", "blocking_control_present", "xpc_mutators_present", "xpc_client_identity_validation_present", "early_boot_policy_justified"],
+      "properties": {
+        "observe_only_source_established": {"const": false},
+        "auth_subscriptions_present": {"const": true},
+        "auth_response_api_present": {"const": true},
+        "blocking_control_present": {"const": true},
+        "xpc_mutators_present": {"const": true},
+        "xpc_client_identity_validation_present": {"const": false},
+        "early_boot_policy_justified": {"const": false}
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["build", "sign", "notarize", "package", "install", "activate", "connect", "subscribe", "fda_mutation", "runtime", "telemetry", "efficacy", "rollback"],
+      "properties": {
+        "build": {"const": false}, "sign": {"const": false}, "notarize": {"const": false}, "package": {"const": false}, "install": {"const": false}, "activate": {"const": false}, "connect": {"const": false}, "subscribe": {"const": false}, "fda_mutation": {"const": false}, "runtime": {"const": false}, "telemetry": {"const": false}, "efficacy": {"const": false}, "rollback": {"const": false}
+      }
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability_proven", "observe_only_proven", "product_ready", "production_ready", "external_claim_allowed"],
+      "properties": {
+        "capability_proven": {"const": false}, "observe_only_proven": {"const": false}, "product_ready": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}
+      }
+    },
+    "blockers": {
+      "const": ["host_app_bundle_topology_unbound", "swiftpm_executable_not_proven_systemextension", "package_embedding_not_validated", "entitlement_placement_unproven", "signed_entitlements_unobserved", "apple_endpoint_security_grant_unobserved", "observe_only_source_not_established", "auth_event_subscriptions_present", "auth_response_surface_present", "xpc_mutation_surface_present", "xpc_client_identity_validation_absent", "direct_es_and_sysext_architecture_unresolved", "sysext_bridge_transport_stub", "early_boot_policy_unjustified", "build_not_validated", "macos_host_not_observed", "activation_not_validated", "runtime_not_validated", "rollback_not_rehearsed"]
+    }
+  }
+}

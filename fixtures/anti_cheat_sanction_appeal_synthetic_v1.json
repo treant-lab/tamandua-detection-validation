@@ -1,0 +1,109 @@
+{
+  "schema": "tamandua.anti_cheat.sanction_appeal_fixture/v1",
+  "evidence_class": "synthetic_tabletop",
+  "source_bindings": {
+    "game_001_assessment_digest": "2e26415ab0a90876a0347351e71feef37b22c3751c07a008966b2d2703ab7027",
+    "game_001_report_digest": "668c7f5f3e1eabe06c8b0aeac241e490ef78ea8ff2bb6813df549443f508db53",
+    "game_003_policy_digest": "5761d9c08930bd7581a1a42c34b639d70eb1e78202e444a1c97f444b98173d9c",
+    "game_003_report_digest": "22f2afa5795ffb6e047127ad081b23e4ea53d827fe55f648e3697f03230a89e8"
+  },
+  "scope": {
+    "tenant_digest": "1010101010101010101010101010101010101010101010101010101010101010",
+    "game_digest": "3030303030303030303030303030303030303030303030303030303030303030",
+    "build_digest": "3131313131313131313131313131313131313131313131313131313131313131",
+    "match_digest": "4242424242424242424242424242424242424242424242424242424242424242",
+    "player_digest": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "governance_roles": {
+    "proposer_digests": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"],
+    "sanction_approver_digests": ["bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb", "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"],
+    "appeal_reviewer_digests": ["eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"]
+  },
+  "tabletop_cases": [
+    {
+      "scenario": "abuse",
+      "operations": [{"kind": "decision", "variant": "permanent_abuse"}],
+      "expected": [{"outcome": "accepted", "reason": "none"}]
+    },
+    {
+      "scenario": "mistaken_clean_mod_accessibility",
+      "operations": [
+        {"kind": "decision", "variant": "temporary_mistake"},
+        {"kind": "appeal", "variant": "open"},
+        {"kind": "appeal", "variant": "review"},
+        {"kind": "decision", "variant": "appeal_reversal"},
+        {"kind": "appeal", "variant": "reverse"}
+      ],
+      "expected": [
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "accepted", "reason": "none"}
+      ]
+    },
+    {
+      "scenario": "compromised_moderator",
+      "operations": [{"kind": "decision", "variant": "compromised_moderator"}],
+      "expected": [{"outcome": "rejected", "reason": "separation_of_duties_failed"}]
+    },
+    {
+      "scenario": "duplicate_replay",
+      "operations": [
+        {"kind": "decision", "variant": "temporary_uphold"},
+        {"kind": "decision", "variant": "repeat_last"},
+        {"kind": "decision", "variant": "idempotency_conflict"}
+      ],
+      "expected": [
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "idempotent_duplicate", "reason": "none"},
+        {"outcome": "rejected", "reason": "idempotency_conflict"}
+      ]
+    },
+    {
+      "scenario": "cross_tenant",
+      "operations": [
+        {"kind": "decision", "variant": "temporary_cross_tenant"},
+        {"kind": "appeal", "variant": "cross_tenant_open"}
+      ],
+      "expected": [
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "rejected", "reason": "cross_scope_rejected"}
+      ]
+    },
+    {
+      "scenario": "expiry_deletion",
+      "operations": [
+        {"kind": "decision", "variant": "temporary_expiry"},
+        {"kind": "appeal", "variant": "expired_open"},
+        {"kind": "appeal", "variant": "deleted_open"}
+      ],
+      "expected": [
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "rejected", "reason": "appeal_entitlement_expired"},
+        {"outcome": "rejected", "reason": "appeal_evidence_deleted"}
+      ]
+    },
+    {
+      "scenario": "uphold",
+      "operations": [
+        {"kind": "decision", "variant": "temporary_uphold"},
+        {"kind": "appeal", "variant": "open"},
+        {"kind": "appeal", "variant": "review"},
+        {"kind": "appeal", "variant": "uphold"}
+      ],
+      "expected": [
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "accepted", "reason": "none"},
+        {"outcome": "accepted", "reason": "none"}
+      ]
+    }
+  ],
+  "claims": {
+    "enforcement_executed": false,
+    "durable_state_written": false,
+    "production_ready": false,
+    "external_claim_allowed": false
+  }
+}

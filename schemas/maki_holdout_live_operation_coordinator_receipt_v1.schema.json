@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/maki_holdout_live_operation_coordinator_receipt_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "evidence_class",
+    "operation_id",
+    "candidate_id",
+    "deployment_id",
+    "state",
+    "authority",
+    "outcome_evidence_sha256",
+    "claims"
+  ],
+  "properties": {
+    "schema": {
+      "const": "tamandua.maki.holdout-live-operation-coordinator-receipt/v1"
+    },
+    "evidence_class": {"const": "local_coordinator_authority"},
+    "operation_id": {"$ref": "#/$defs/sha256"},
+    "candidate_id": {"$ref": "#/$defs/id"},
+    "deployment_id": {"$ref": "#/$defs/id"},
+    "state": {
+      "enum": ["issued", "consuming", "consumed", "outcome_unknown"]
+    },
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "approval_id",
+        "owner",
+        "fencing_token",
+        "artifact_digest",
+        "candidate_sha256",
+        "candidate_expires_at",
+        "issued_at",
+        "updated_at"
+      ],
+      "properties": {
+        "approval_id": {"$ref": "#/$defs/id"},
+        "owner": {"type": "string", "minLength": 1, "maxLength": 256},
+        "fencing_token": {"type": "integer", "minimum": 1},
+        "artifact_digest": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "candidate_sha256": {"$ref": "#/$defs/sha256"},
+        "candidate_expires_at": {"type": "number"},
+        "issued_at": {"type": "number"},
+        "updated_at": {"type": "number"}
+      }
+    },
+    "outcome_evidence_sha256": {
+      "oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "execution_authorized",
+        "coordinator_consumed",
+        "reservation_active",
+        "consume_started",
+        "consume_allowed",
+        "retry_allowed",
+        "aws_credentials_issued",
+        "sts_assumed",
+        "aws_mutation",
+        "membership",
+        "holdout_opened",
+        "evaluation",
+        "training"
+      ],
+      "properties": {
+        "execution_authorized": {"type": "boolean"},
+        "coordinator_consumed": {"type": "boolean"},
+        "reservation_active": {"type": "boolean"},
+        "consume_started": {"type": "boolean"},
+        "consume_allowed": {"type": "boolean"},
+        "retry_allowed": {"const": false},
+        "aws_credentials_issued": {"const": false},
+        "sts_assumed": {"const": false},
+        "aws_mutation": {"const": false},
+        "membership": {"const": false},
+        "holdout_opened": {"const": false},
+        "evaluation": {"const": false},
+        "training": {"const": false}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"state": {"const": "issued"}}},
+      "then": {
+        "properties": {
+          "outcome_evidence_sha256": {"type": "null"},
+          "claims": {
+            "properties": {
+              "execution_authorized": {"const": false},
+              "coordinator_consumed": {"const": false},
+              "reservation_active": {"const": true},
+              "consume_started": {"const": false},
+              "consume_allowed": {"const": true}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"state": {"const": "consuming"}}},
+      "then": {
+        "properties": {
+          "outcome_evidence_sha256": {"type": "null"},
+          "claims": {
+            "properties": {
+              "execution_authorized": {"const": true},
+              "coordinator_consumed": {"const": true},
+              "reservation_active": {"const": false},
+              "consume_started": {"const": true},
+              "consume_allowed": {"const": false}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "state": {"enum": ["consumed", "outcome_unknown"]}
+        }
+      },
+      "then": {
+        "properties": {
+          "outcome_evidence_sha256": {"$ref": "#/$defs/sha256"},
+          "claims": {
+            "properties": {
+              "execution_authorized": {"const": false},
+              "reservation_active": {"const": false},
+              "consume_allowed": {"const": false}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"state": {"const": "consumed"}}},
+      "then": {
+        "properties": {
+          "claims": {
+            "properties": {
+              "coordinator_consumed": {"const": true},
+              "consume_started": {"const": true}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"state": {"const": "outcome_unknown"}}},
+      "then": {
+        "properties": {
+          "claims": {
+            "oneOf": [
+              {
+                "properties": {
+                  "coordinator_consumed": {"const": true},
+                  "consume_started": {"const": true}
+                }
+              },
+              {
+                "properties": {
+                  "coordinator_consumed": {"const": false},
+                  "consume_started": {"const": false}
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$"
+    }
+  }
+}

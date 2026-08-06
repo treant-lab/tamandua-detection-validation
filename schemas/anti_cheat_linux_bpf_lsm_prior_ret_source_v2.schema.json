@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/anti_cheat_linux_bpf_lsm_prior_ret_source_v2.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "observed_at", "capability_state", "sources", "historical_v1", "assessment", "lifecycle", "claims", "blockers"],
+  "properties": {
+    "schema_version": {"const": 2},
+    "evidence_class": {"const": "static_source_contract"},
+    "observed_at": {"const": "2026-07-18T01:00:00Z"},
+    "capability_state": {"const": "source_observe_only_v2"},
+    "sources": {"$ref": "#/$defs/sources"},
+    "historical_v1": {"$ref": "#/$defs/historical"},
+    "assessment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["prior_lsm_decision_preserved", "new_denial_introduced"],
+      "properties": {"prior_lsm_decision_preserved": {"const": true}, "new_denial_introduced": {"const": false}}
+    },
+    "lifecycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["runtime_state", "build_requested", "build_authorized", "load_requested", "load_authorized", "attach_requested", "attach_authorized", "enforcement_requested", "enforcement_authorized"],
+      "properties": {
+        "runtime_state": {"const": "not_executed"},
+        "build_requested": {"const": false}, "build_authorized": {"const": false},
+        "load_requested": {"const": false}, "load_authorized": {"const": false},
+        "attach_requested": {"const": false}, "attach_authorized": {"const": false},
+        "enforcement_requested": {"const": false}, "enforcement_authorized": {"const": false}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["build_validated", "verifier_validated", "btf_abi_validated", "load_validated", "attach_validated", "runtime_prior_decision_preservation_validated", "telemetry_validated", "kernel_compatibility_validated", "efficacy_validated", "performance_validated", "rollback_validated", "production_ready", "external_claim_allowed"],
+      "properties": {
+        "build_validated": {"const": false}, "verifier_validated": {"const": false}, "btf_abi_validated": {"const": false},
+        "load_validated": {"const": false}, "attach_validated": {"const": false}, "runtime_prior_decision_preservation_validated": {"const": false},
+        "telemetry_validated": {"const": false}, "kernel_compatibility_validated": {"const": false}, "efficacy_validated": {"const": false},
+        "performance_validated": {"const": false}, "rollback_validated": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}
+      }
+    },
+    "blockers": {"const": ["build_not_validated", "verifier_not_validated", "btf_abi_not_validated", "load_not_validated", "attach_not_validated", "runtime_prior_decision_preservation_not_validated", "telemetry_not_validated", "kernel_compatibility_not_validated", "efficacy_not_validated", "performance_not_validated", "rollback_not_validated", "decision_gate_not_approved"]}
+  },
+  "$defs": {
+    "source": {"type": "object", "additionalProperties": false, "required": ["path", "sha256", "hooks"], "properties": {"path": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}, "hooks": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}}},
+    "sources": {"type": "object", "additionalProperties": false, "required": ["rust", "c", "rust_prior_ret_indices"], "properties": {"rust": {"allOf": [{"$ref": "#/$defs/source"}, {"properties": {"path": {"const": "apps/tamandua_agent/ebpf-programs/src/main.rs"}, "sha256": {"const": "dc4b896d991b1c733c79a41689712e63b64efd8c3aeb3ad4e3e934b16f1f1271"}, "hooks": {"const": ["bprm_check_security", "file_open", "file_permission", "mmap_file", "socket_bind", "socket_connect", "task_kill"]}}}]}, "c": {"allOf": [{"$ref": "#/$defs/source"}, {"properties": {"path": {"const": "apps/tamandua_agent/bpf/lsm_hooks.bpf.c"}, "sha256": {"const": "d2d80206e03be012f28ee753c8608d4c708b32a2da8e3e5dda0be947bdb81a0a"}, "hooks": {"const": ["bprm_check_security", "file_open", "file_permission", "mmap_file", "ptrace_access_check", "sb_mount", "socket_bind", "socket_connect", "task_kill"]}}}]}, "rust_prior_ret_indices": {"type": "object", "additionalProperties": false, "required": ["bprm_check_security", "file_open", "file_permission", "socket_connect", "socket_bind", "task_kill", "mmap_file"], "properties": {"bprm_check_security": {"const": 1}, "file_open": {"const": 1}, "file_permission": {"const": 2}, "socket_connect": {"const": 3}, "socket_bind": {"const": 3}, "task_kill": {"const": 4}, "mmap_file": {"const": 4}}}}},
+    "historical": {"type": "object", "additionalProperties": false, "required": ["fixture_path", "fixture_sha256", "rust_source_sha256", "c_source_sha256", "relation"], "properties": {"fixture_path": {"const": "tools/detection_validation/fixtures/anti_cheat_linux_ebpf_lsm_observe_only_source_degraded.json"}, "fixture_sha256": {"const": "bc85bdfb8be0eabe49db795d9afe36f3b55c4b245e4ae9295486577e7d07aa68"}, "rust_source_sha256": {"const": "2a387e9c66cf1e5c64c9304f655fa068a7339420a939d22f085e8b3df345b812"}, "c_source_sha256": {"const": "d60f1773f39961268eee325991885ca383e3793100fccaf09b2b376e9d9d3590"}, "relation": {"const": "supersedes_assessment_only"}}}
+  }
+}

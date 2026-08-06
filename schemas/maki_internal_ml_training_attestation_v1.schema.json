@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/maki_internal_ml_training_attestation_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "usage_status", "attestation_id", "attested_by", "attested_at", "evidence_uri", "attested_record_count", "bindings", "attestation_sha256", "downstream_bytes_sha256_revalidation_required", "internal_training_only", "legal_license_conclusion", "redistribution_approval", "promotion_approval", "enforcement_approval", "records", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-internal-ml-training-attestation/v1"},
+    "kind": {"const": "MakiInternalMlTrainingAttestation"},
+    "usage_status": {"const": "approved_for_internal_ml_training"},
+    "attestation_id": {"type": "string", "minLength": 1},
+    "attested_by": {"type": "string", "minLength": 1},
+    "attested_at": {"type": "string", "format": "date-time"},
+    "evidence_uri": {"type": "string", "minLength": 1},
+    "attested_record_count": {"const": 9608},
+    "bindings": {"type": "object", "required": ["research_authorization_sha256", "research_authorization_seal_sha256", "version_receipt_sha256", "canonical_membership_sha256"], "properties": {"research_authorization_sha256": {"$ref": "#/$defs/sha"}, "research_authorization_seal_sha256": {"$ref": "#/$defs/sha"}, "version_receipt_sha256": {"$ref": "#/$defs/sha"}, "canonical_membership_sha256": {"$ref": "#/$defs/sha"}}, "additionalProperties": false},
+    "attestation_sha256": {"$ref": "#/$defs/sha"},
+    "downstream_bytes_sha256_revalidation_required": {"const": true},
+    "internal_training_only": {"const": true},
+    "legal_license_conclusion": {"const": false},
+    "redistribution_approval": {"const": false},
+    "promotion_approval": {"const": false},
+    "enforcement_approval": {"const": false},
+    "records": {"type": "array", "minItems": 9608, "maxItems": 9608, "items": {"type": "object", "required": ["sha256", "size_bytes", "source_id", "source_object_key", "version_id", "usage_status", "dataset_use_review_id", "dataset_use_provenance_uri"], "properties": {"sha256": {"$ref": "#/$defs/sha"}, "size_bytes": {"type": "integer", "minimum": 1}, "source_id": {"const": "legacy-maki-import"}, "source_object_key": {"type": "string", "minLength": 1}, "version_id": {"type": "string", "minLength": 1}, "usage_status": {"const": "approved_for_internal_ml_training"}, "dataset_use_review_id": {"type": "string", "minLength": 1}, "dataset_use_provenance_uri": {"type": "string", "minLength": 1}}, "additionalProperties": false}},
+    "claim_boundary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {"sha": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "additionalProperties": false
+}

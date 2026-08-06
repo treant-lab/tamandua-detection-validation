@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ios_app_attest_physical_evidence_preregistration_v1.schema.json",
+  "title": "Tamandua iOS App Attest physical evidence preregistration v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "evidence_class", "decision", "repository_base_sha", "source_revision_scope", "request_digest", "campaign_digest", "source_bindings", "source_set_digest", "loop161_authority", "roles", "scenarios", "prerequisites", "ownership", "privacy", "retention", "operations", "observations", "outcomes", "claims", "plan_digest"],
+  "properties": {
+    "schema": {"const": "tamandua.ios_app_attest.physical_evidence_preregistration/v1"},
+    "evidence_class": {"const": "source_only_preregistration"},
+    "decision": {"const": "hold"},
+    "repository_base_sha": {"const": "6d604901ca22d9299a985c6fd666457814114f1f"},
+    "source_revision_scope": {"const": "worktree_snapshot_with_per_file_sha256"},
+    "request_digest": {"$ref": "#/$defs/sha256"},
+    "campaign_digest": {"const": "0b090ff47044c69cf12ed0df1a42df1ab09a29ac48477807dbca237c18ba0161"},
+    "source_set_digest": {"$ref": "#/$defs/sha256"},
+    "plan_digest": {"$ref": "#/$defs/sha256"},
+    "source_bindings": {
+      "type": "array", "minItems": 9, "maxItems": 9,
+      "prefixItems": [
+        {"$ref": "#/$defs/source_native_template"}, {"$ref": "#/$defs/source_native_integration"},
+        {"$ref": "#/$defs/source_app_proof"}, {"$ref": "#/$defs/source_continuity"},
+        {"$ref": "#/$defs/source_server_flow"}, {"$ref": "#/$defs/source_server_verifier"},
+        {"$ref": "#/$defs/source_server_context"}, {"$ref": "#/$defs/source_runtime_profile"},
+        {"$ref": "#/$defs/source_device_identity"}
+      ], "items": false
+    },
+    "loop161_authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["receipt_sha256", "state", "claims", "p2_blockers"],
+      "properties": {
+        "receipt_sha256": {"const": "e2ef0a5ae1dd86df0c0a4ac2fa0851dc1482bc6a515d4c149774b6d88ba72ca1"},
+        "state": {"const": "source_only_hold"},
+        "claims": {"$ref": "#/$defs/loop161_false_map"},
+        "p2_blockers": {"type": "array", "minItems": 3, "maxItems": 3, "prefixItems": [
+          {"const": "source_capability_gate_is_heuristic"}, {"const": "schema_requires_runtime_semantic_composition"},
+          {"const": "no_apple_native_device_server_replay_evidence"}], "items": false}
+      }
+    },
+    "roles": {
+      "type": "array", "minItems": 3, "maxItems": 3, "items": false,
+      "prefixItems": [
+        {"$ref": "#/$defs/primary_role"}, {"$ref": "#/$defs/peer_role"}, {"$ref": "#/$defs/control_role"}
+      ]
+    },
+    "scenarios": {
+      "type": "array", "minItems": 20, "maxItems": 20, "items": false,
+      "prefixItems": [
+        {"$ref":"#/$defs/scenario_01"},{"$ref":"#/$defs/scenario_02"},{"$ref":"#/$defs/scenario_03"},{"$ref":"#/$defs/scenario_04"},{"$ref":"#/$defs/scenario_05"},
+        {"$ref":"#/$defs/scenario_06"},{"$ref":"#/$defs/scenario_07"},{"$ref":"#/$defs/scenario_08"},{"$ref":"#/$defs/scenario_09"},{"$ref":"#/$defs/scenario_10"},
+        {"$ref":"#/$defs/scenario_11"},{"$ref":"#/$defs/scenario_12"},{"$ref":"#/$defs/scenario_13"},{"$ref":"#/$defs/scenario_14"},{"$ref":"#/$defs/scenario_15"},
+        {"$ref":"#/$defs/scenario_16"},{"$ref":"#/$defs/scenario_17"},{"$ref":"#/$defs/scenario_18"},{"$ref":"#/$defs/scenario_19"},{"$ref":"#/$defs/scenario_20"}
+      ]
+    },
+    "prerequisites": {"type": "array", "minItems": 18, "maxItems": 18, "items": {"$ref": "#/$defs/prerequisite"}},
+    "ownership": {"$ref":"#/$defs/ownership"},
+    "privacy": {"$ref": "#/$defs/privacy"},
+    "retention": {"type": "object", "additionalProperties": false, "required": ["ttl_seconds", "access_category", "deletion_category", "raw_artifact_retention"], "properties": {
+      "ttl_seconds": {"const": 604800}, "access_category": {"const": "least_privilege_reviewers_only"},
+      "deletion_category": {"const": "delete_on_ttl_expiry_or_authority_revocation"}, "raw_artifact_retention": {"const": false}
+    }},
+    "operations": {"$ref": "#/$defs/compiler_operations"}, "observations": {"$ref": "#/$defs/compiler_observations"},
+    "outcomes": {"$ref": "#/$defs/compiler_outcomes"}, "claims": {"$ref": "#/$defs/false_map"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "ownership":{"type":"object","additionalProperties":false,"required":["mobile","server"],"properties":{"mobile":{"const":"categorical_collection_only"},"server":{"const":"challenge_counter_replay_rebind_authority"}}},
+    "source": {"type": "object", "additionalProperties": false, "required": ["role", "path", "sha256"], "properties": {"role":{"type":"string"},"path":{"type":"string"},"sha256":{"$ref":"#/$defs/sha256"}}},
+    "source_native_template":{"allOf":[{"$ref":"#/$defs/source"},{"properties":{"role":{"const":"ios_native_template"},"path":{"const":"apps/tamandua_mobile/plugins/endpoint-agent-templates/TamanduaEndpointAgent.swift"},"sha256":{"const":"5f7f91981dd2be9f3cb6f74255b008f17791484f20e078fa5502005950a0e436"}}}]},
+    "source_native_integration":{"allOf":[{"$ref":"#/$defs/source"},{"properties":{"role":{"const":"ios_native_integration"},"path":{"const":"apps/tamandua_mobile/plugins/endpoint-agent-templates/TamanduaEndpointAgentBridge.m"},"sha256":{"const":"a85557efc958eb078a6ab38a48549de288e123a0102e26831929e4dd0d50d445"}}}]},
+    "source_app_proof":{"allOf":[{"$ref":"#/$defs/source"},{"properties":{"role":{"const":"mobile_app_attest_proof"},"path":{"const":"apps/tamandua_mobile/src/services/appAttestProof.js"},"sha256":{"const":"78824691c3feeec2ebd43db29b88fb89a5bdd92d1e4caa0f6f96b7fd1c8badce"}}}]},
+    "source_continuity":{"allOf":[{"$ref":"#/$defs/source"},{"properties":{"role":{"const":"mobile_loop161_continuity"},"path":{"const":"apps/tamandua_mobile/src/services/iosDeviceIdentityContinuity.js"},"sha256":{"const":"993adb278b20de4bf9e997ec8d1db99d6d4ed8cb96ef33e470a853b9a4e54645"}}}]},
+    "source_server_flow":{"allOf":[{"$ref":"#/$defs/source"},{"properties":{"role":{"const":"server_apple_flow"},"path":{"const":"apps/tamandua_server/lib/tamandua_server/mobile/mobile_device_identity_apple_flow.ex"},"sha256":{"const":"df7407a073984c04416888cb429215b19e6a81c2226d730d476fce5cd1dfa625"}}}]},
+    "source_server_verifier":{"allOf":[{"$ref":"#/$defs/source"},{"properties":{"role":{"const":"server_apple_verifier"},"path":{"const":"apps/tamandua_server/lib/tamandua_server/mobile/mobile_device_identity_apple_app_attest.ex"},"sha256":{"const":"845defc4738d088d0578adb965637bb17b48afce31fc1e84de0558ff744b5c3c"}}}]},
+    "source_server_context":{"allOf":[{"$ref":"#/$defs/source"},{"properties":{"role":{"const":"server_apple_context"},"path":{"const":"apps/tamandua_server/lib/tamandua_server/mobile/mobile_device_identity_apple_context.ex"},"sha256":{"const":"bb34dff121d3a94d2e0bc57e3af3b0b33f58b10c3c6badf8a712d6f34d3d2da6"}}}]},
+    "source_runtime_profile":{"allOf":[{"$ref":"#/$defs/source"},{"properties":{"role":{"const":"server_runtime_profile"},"path":{"const":"apps/tamandua_server/lib/tamandua_server/mobile/apple_app_attest_runtime_profile.ex"},"sha256":{"const":"01988847b75b07118652fd6299e754a65d699862a668029c145ab958add90298"}}}]},
+    "source_device_identity":{"allOf":[{"$ref":"#/$defs/source"},{"properties":{"role":{"const":"server_device_identity"},"path":{"const":"apps/tamandua_server/lib/tamandua_server/mobile/mobile_device_identity.ex"},"sha256":{"const":"04acd876f776d7e1a598de224a477052c441248a791cf73740c94a264fab58ea"}}}]},
+    "role":{"type":"object","additionalProperties":false,"required":["ordinal","role","alias","denominator"],"properties":{"ordinal":{"type":"integer"},"role":{"type":"string"},"alias":{"type":"string"},"denominator":{"enum":["supported","control_excluded"]}}},
+    "primary_role":{"allOf":[{"$ref":"#/$defs/role"},{"properties":{"ordinal":{"const":1},"role":{"const":"supported_primary"},"alias":{"const":"ios-supported-primary-01"},"denominator":{"const":"supported"}}}]},
+    "peer_role":{"allOf":[{"$ref":"#/$defs/role"},{"properties":{"ordinal":{"const":2},"role":{"const":"supported_peer"},"alias":{"const":"ios-supported-peer-02"},"denominator":{"const":"supported"}}}]},
+    "control_role":{"allOf":[{"$ref":"#/$defs/role"},{"properties":{"ordinal":{"const":3},"role":{"const":"unsupported_control"},"alias":{"const":"ios-unsupported-control-03"},"denominator":{"const":"control_excluded"}}}]},
+    "scenario":{"type":"object","additionalProperties":false,"required":["ordinal","id","type","role","references","lifecycle_event","expected_loop161_outcome","expected_server_category","mobile_collection_category","expected_campaign_decision"],"properties":{"ordinal":{"type":"integer"},"id":{"type":"string"},"type":{"type":"string"},"role":{"enum":["supported_primary","supported_peer","unsupported_control"]},"references":{"type":"array","items":{"type":"integer"},"uniqueItems":true},"lifecycle_event":{"enum":["normal_launch","app_update","os_update","reinstall_or_restore_unknown","invalid_key","explicit_rotation"]},"expected_loop161_outcome":{"enum":["hold","continue_requires_fresh_assertion","step_up_rebind_required","candidate_rebind_required","unsupported","not_applicable_requires_cross_tenant_observation"]},"expected_server_category":{"type":"string"},"mobile_collection_category":{"const":"categorical_digest_only"},"expected_campaign_decision":{"const":"hold"}}},
+    "scenario_01":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":1},"id":{"const":"first_bind"}}}]},
+    "scenario_02":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":2},"id":{"const":"normal_fresh_assertion"}}}]},
+    "scenario_03":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":3},"id":{"const":"app_update"}}}]},
+    "scenario_04":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":4},"id":{"const":"os_update"}}}]},
+    "scenario_05":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":5},"id":{"const":"missing_key"}}}]},
+    "scenario_06":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":6},"id":{"const":"inaccessible_key"}}}]},
+    "scenario_07":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":7},"id":{"const":"invalid_key"}}}]},
+    "scenario_08":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":8},"id":{"const":"authorized_candidate_rotation"}}}]},
+    "scenario_09":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":9},"id":{"const":"unauthorized_rebind_denial"}}}]},
+    "scenario_10":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":10},"id":{"const":"reinstall_ambiguity"}}}]},
+    "scenario_11":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":11},"id":{"const":"restore_ambiguity"}}}]},
+    "scenario_12":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":12},"id":{"const":"replayed_assertion"}}}]},
+    "scenario_13":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":13},"id":{"const":"regressed_counter"}}}]},
+    "scenario_14":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":14},"id":{"const":"unknown_counter"}}}]},
+    "scenario_15":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":15},"id":{"const":"same_key_reference_drift"}}}]},
+    "scenario_16":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":16},"id":{"const":"cross_device_clone_attempt"}}}]},
+    "scenario_17":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":17},"id":{"const":"cross_tenant_unlinkability"}}}]},
+    "scenario_18":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":18},"id":{"const":"cross_install_profile_environment_drift"}}}]},
+    "scenario_19":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":19},"id":{"const":"supported_peer_control"}}}]},
+    "scenario_20":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":20},"id":{"const":"unsupported_or_simulator_control"},"role":{"const":"unsupported_control"},"expected_loop161_outcome":{"const":"unsupported"}}}]},
+    "prerequisite":{"type":"object","additionalProperties":false,"required":["id","owner","status","evidence_sha256"],"properties":{"id":{"type":"string"},"owner":{"enum":["mobile_collector_owner","apple_credential_custodian","server_verifier_backend_owner","privacy_reviewer","independent_reviewer","target_lease_operator"]},"status":{"const":"pending"},"evidence_sha256":{"type":"null"}}},
+    "privacy":{"type":"object","additionalProperties":false,"required":["raw_provider_key_id_forbidden","attestation_blob_forbidden","assertion_blob_forbidden","challenge_or_nonce_forbidden","token_or_credential_forbidden","serial_or_idfv_forbidden","account_data_forbidden","private_key_material_forbidden","categories_and_sha256_digests_only"],"properties":{"raw_provider_key_id_forbidden":{"const":true},"attestation_blob_forbidden":{"const":true},"assertion_blob_forbidden":{"const":true},"challenge_or_nonce_forbidden":{"const":true},"token_or_credential_forbidden":{"const":true},"serial_or_idfv_forbidden":{"const":true},"account_data_forbidden":{"const":true},"private_key_material_forbidden":{"const":true},"categories_and_sha256_digests_only":{"const":true}}},
+    "compiler_operations":{"type":"object","additionalProperties":false,"required":["scope","compiler_owned_apple_service_calls","compiler_owned_device_operations","compiler_owned_native_calls","compiler_owned_network_calls","compiler_owned_server_calls","compiler_owned_backend_mutations","compiler_owned_identity_mutations"],"properties":{"scope":{"const":"compiler_owned_capabilities_only"},"compiler_owned_apple_service_calls":{"const":0},"compiler_owned_device_operations":{"const":0},"compiler_owned_native_calls":{"const":0},"compiler_owned_network_calls":{"const":0},"compiler_owned_server_calls":{"const":0},"compiler_owned_backend_mutations":{"const":0},"compiler_owned_identity_mutations":{"const":0}}},
+    "compiler_observations":{"type":"object","additionalProperties":false,"required":["compiler_owned_physical_observations","compiler_owned_assertion_observations","compiler_owned_counter_observations","compiler_owned_replay_observations","compiler_owned_clone_observations","compiler_owned_rebind_observations"],"properties":{"compiler_owned_physical_observations":{"const":0},"compiler_owned_assertion_observations":{"const":0},"compiler_owned_counter_observations":{"const":0},"compiler_owned_replay_observations":{"const":0},"compiler_owned_clone_observations":{"const":0},"compiler_owned_rebind_observations":{"const":0}}},
+    "compiler_outcomes":{"type":"object","additionalProperties":false,"required":["compiler_owned_verified","compiler_owned_rejected","compiler_owned_unsupported","compiler_owned_hold"],"properties":{"compiler_owned_verified":{"const":0},"compiler_owned_rejected":{"const":0},"compiler_owned_unsupported":{"const":0},"compiler_owned_hold":{"const":0}}},
+    "loop161_false_map":{"type":"object","additionalProperties":false,"required":["apple_native_observed","physical_device_observed","server_replay_observed","continuity_proven"],"properties":{"apple_native_observed":{"const":false},"physical_device_observed":{"const":false},"server_replay_observed":{"const":false},"continuity_proven":{"const":false}}},
+    "false_map":{"type":"object","additionalProperties":false,"required":["physical_device_validated","hardware_uniqueness_validated","continuity_validated","replay_resistance_validated","clone_resistance_validated","cross_tenant_unlinkability_validated","rebind_safety_validated","global_hardware_guid_validated","product_ready","production_ready","external_claim_allowed","verimatrix_parity"],"properties":{"physical_device_validated":{"const":false},"hardware_uniqueness_validated":{"const":false},"continuity_validated":{"const":false},"replay_resistance_validated":{"const":false},"clone_resistance_validated":{"const":false},"cross_tenant_unlinkability_validated":{"const":false},"rebind_safety_validated":{"const":false},"global_hardware_guid_validated":{"const":false},"product_ready":{"const":false},"production_ready":{"const":false},"external_claim_allowed":{"const":false},"verimatrix_parity":{"const":false}}}
+  }
+}

@@ -1,0 +1,179 @@
+{
+  "api_version": "tamandua.io/runtime-rx-page-content-live-probe-contract/v1",
+  "fixture_id": "runtime-rx-page-content-live-probe-v1",
+  "description": "Synthetic contract model for isolated disabled, degraded, and clean runtime page-content live-probe receipts.",
+  "evidence_class": "synthetic_smoke",
+  "execution_scope": "local_synthetic",
+  "execute": false,
+  "external_claim_allowed": false,
+  "fpr_claim_allowed": false,
+  "performance_claim_allowed": false,
+  "vendor_parity_claimed": false,
+  "claim_boundary": "Synthetic receipt-shape validation only. No probe, WSL2 namespace, strace, protected file, RSS measurement, live collector, benign workload, or cleanup was executed or observed.",
+  "privacy_mutation_fields": ["path", "pid", "inode", "device", "address", "raw_trace", "raw_config", "raw_bytes", "page_hash", "drift_offsets"],
+  "scenarios": [
+    {
+      "id": "disabled-control",
+      "receipt": {
+        "schema": "tamandua.runtime_integrity_live_probe_receipt/v1",
+        "evidence_class": "local_live_collector_smoke",
+        "execution_scope": "wsl2_network_isolated",
+        "execute": false,
+        "external_claim_allowed": false,
+        "fpr_claim_allowed": false,
+        "performance_claim_allowed": false,
+        "vendor_parity_claimed": false,
+        "run_id": "synthetic-disabled-control",
+        "executed_at_utc": "2000-01-01T00:00:00Z",
+        "receipt_provenance": "synthetic_fixture",
+        "scenario": "disabled_control",
+        "provenance": {
+          "source_sha": "1111111111111111111111111111111111111111",
+          "scoped_dirty": true,
+          "scoped_dirty_diff_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "cargo_lock_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "rustc_version": "rustc 1.88.0 (synthetic)",
+          "cargo_version": "cargo 1.88.0 (synthetic)",
+          "build_command": "cargo build --release --locked --manifest-path apps/tamandua_agent/Cargo.toml --bin tamandua-agent",
+          "build_command_sha256": "5ba428e09c200099de871ce382f2ea08568eb7d913b44bf2aab41bb68c1f5dae",
+          "artifact_sha256": "4444444444444444444444444444444444444444444444444444444444444444",
+          "artifact_size_bytes": 52428800,
+          "artifact_arch": "x86_64",
+          "artifact_profile": "release",
+          "config_sha256": "5555555555555555555555555555555555555555555555555555555555555555"
+        },
+        "custody": {
+          "artifact_sha256_before": "4444444444444444444444444444444444444444444444444444444444444444",
+          "artifact_sha256_after": "4444444444444444444444444444444444444444444444444444444444444444",
+          "artifact_unchanged": true,
+          "config_sha256_before": "5555555555555555555555555555555555555555555555555555555555555555",
+          "config_sha256_after": "5555555555555555555555555555555555555555555555555555555555555555",
+          "config_unchanged": true
+        },
+        "protection": {
+          "artifact_regular_file": true, "artifact_symlink": false, "artifact_owner_uid": 0, "artifact_mode": "0755",
+          "config_regular_file": true, "config_symlink": false, "config_owner_uid": 0, "config_mode": "0600",
+          "protected_ancestor_directories": true
+        },
+        "isolation": {
+          "wsl2": true, "network_namespace_isolated": true, "loopback_disabled": true,
+          "backend_constructed": false, "ipc_constructed": false,
+          "strace_network_syscalls": 0, "strace_filesystem_mutation_syscalls": 0
+        },
+        "measurements": {
+          "config_load_elapsed_us": 900, "collector_init_elapsed_us": 700,
+          "probe_wall_elapsed_us": 5000, "max_rss_kib": 42000, "max_rss_source": "usr_bin_time_v"
+        },
+        "probe_output": {
+          "schema": "tamandua.runtime_integrity/v3", "provenance": "platform_collector", "state": "supported",
+          "finding_kinds": [], "limitations": ["rx_page_content_disabled"],
+          "page_content": {
+            "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": false, "status": "disabled", "baseline_source": "none",
+            "eligible_pages": 0, "pages_compared_this_tick": 0, "sweep_pages_compared": 0, "excluded_relocation_pages": 0, "unstable_pages_this_tick": 0,
+            "memory_bytes_read_this_tick": 0, "elapsed_us_this_tick": 0, "budget_limit_us": 10000, "full_sweep_completed": false, "budget_state": "within_budget"
+          },
+          "ticks_executed": 1,
+          "summaries": [{
+            "state": "supported", "finding_kinds": [], "limitations": ["rx_page_content_disabled"],
+            "page_content": {
+              "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": false, "status": "disabled", "baseline_source": "none",
+              "eligible_pages": 0, "pages_compared_this_tick": 0, "sweep_pages_compared": 0, "excluded_relocation_pages": 0, "unstable_pages_this_tick": 0,
+              "memory_bytes_read_this_tick": 0, "elapsed_us_this_tick": 0, "budget_limit_us": 10000, "full_sweep_completed": false, "budget_state": "within_budget"
+            }
+          }],
+          "final_summary": {
+            "state": "supported", "finding_kinds": [], "limitations": ["rx_page_content_disabled"],
+            "page_content": {
+              "capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": false, "status": "disabled", "baseline_source": "none",
+              "eligible_pages": 0, "pages_compared_this_tick": 0, "sweep_pages_compared": 0, "excluded_relocation_pages": 0, "unstable_pages_this_tick": 0,
+              "memory_bytes_read_this_tick": 0, "elapsed_us_this_tick": 0, "budget_limit_us": 10000, "full_sweep_completed": false, "budget_state": "within_budget"
+            }
+          },
+          "config_load_elapsed_us": 900, "collector_init_elapsed_us": 700, "probe_wall_elapsed_us": 5000
+        },
+        "benign_matrix": {"input_class": "disabled_control", "expected_status": "disabled", "compromise_observed": false, "drift_observed": false},
+        "cleanup": {"completed": true, "temporary_artifacts_remaining": 0, "network_namespace_removed": true}
+      }
+    },
+    {
+      "id": "baseline-degraded-control",
+      "receipt": {
+        "schema": "tamandua.runtime_integrity_live_probe_receipt/v1",
+        "evidence_class": "local_live_collector_smoke", "execution_scope": "wsl2_network_isolated", "execute": false,
+        "external_claim_allowed": false, "fpr_claim_allowed": false, "performance_claim_allowed": false, "vendor_parity_claimed": false,
+        "run_id": "synthetic-baseline-degraded-control", "executed_at_utc": "2000-01-01T00:00:01Z", "receipt_provenance": "synthetic_fixture",
+        "scenario": "baseline_degraded_control",
+        "provenance": {
+          "source_sha": "1111111111111111111111111111111111111111", "scoped_dirty": true,
+          "scoped_dirty_diff_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "cargo_lock_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "rustc_version": "rustc 1.88.0 (synthetic)", "cargo_version": "cargo 1.88.0 (synthetic)",
+          "build_command": "cargo build --release --locked --manifest-path apps/tamandua_agent/Cargo.toml --bin tamandua-agent",
+          "build_command_sha256": "5ba428e09c200099de871ce382f2ea08568eb7d913b44bf2aab41bb68c1f5dae",
+          "artifact_sha256": "4444444444444444444444444444444444444444444444444444444444444444", "artifact_size_bytes": 52428800,
+          "artifact_arch": "x86_64", "artifact_profile": "release",
+          "config_sha256": "6666666666666666666666666666666666666666666666666666666666666666"
+        },
+        "custody": {
+          "artifact_sha256_before": "4444444444444444444444444444444444444444444444444444444444444444", "artifact_sha256_after": "4444444444444444444444444444444444444444444444444444444444444444", "artifact_unchanged": true,
+          "config_sha256_before": "6666666666666666666666666666666666666666666666666666666666666666", "config_sha256_after": "6666666666666666666666666666666666666666666666666666666666666666", "config_unchanged": true
+        },
+        "protection": {"artifact_regular_file": true, "artifact_symlink": false, "artifact_owner_uid": 0, "artifact_mode": "0755", "config_regular_file": true, "config_symlink": false, "config_owner_uid": 0, "config_mode": "0600", "protected_ancestor_directories": true},
+        "isolation": {"wsl2": true, "network_namespace_isolated": true, "loopback_disabled": true, "backend_constructed": false, "ipc_constructed": false, "strace_network_syscalls": 0, "strace_filesystem_mutation_syscalls": 0},
+        "measurements": {"config_load_elapsed_us": 950, "collector_init_elapsed_us": 12000, "probe_wall_elapsed_us": 18000, "max_rss_kib": 58000, "max_rss_source": "usr_bin_time_v"},
+        "probe_output": {
+          "schema": "tamandua.runtime_integrity/v3", "provenance": "platform_collector", "state": "degraded", "finding_kinds": [], "limitations": ["rx_page_content_baseline_mismatch"],
+          "page_content": {"capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": true, "status": "degraded", "baseline_source": "none", "eligible_pages": 0, "pages_compared_this_tick": 0, "sweep_pages_compared": 0, "excluded_relocation_pages": 0, "unstable_pages_this_tick": 0, "memory_bytes_read_this_tick": 0, "elapsed_us_this_tick": 0, "budget_limit_us": 10000, "full_sweep_completed": false, "budget_state": "within_budget"},
+          "ticks_executed": 1,
+          "summaries": [{"state": "degraded", "finding_kinds": [], "limitations": ["rx_page_content_baseline_mismatch"], "page_content": {"capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": true, "status": "degraded", "baseline_source": "none", "eligible_pages": 0, "pages_compared_this_tick": 0, "sweep_pages_compared": 0, "excluded_relocation_pages": 0, "unstable_pages_this_tick": 0, "memory_bytes_read_this_tick": 0, "elapsed_us_this_tick": 0, "budget_limit_us": 10000, "full_sweep_completed": false, "budget_state": "within_budget"}}],
+          "final_summary": {"state": "degraded", "finding_kinds": [], "limitations": ["rx_page_content_baseline_mismatch"], "page_content": {"capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": true, "status": "degraded", "baseline_source": "none", "eligible_pages": 0, "pages_compared_this_tick": 0, "sweep_pages_compared": 0, "excluded_relocation_pages": 0, "unstable_pages_this_tick": 0, "memory_bytes_read_this_tick": 0, "elapsed_us_this_tick": 0, "budget_limit_us": 10000, "full_sweep_completed": false, "budget_state": "within_budget"}},
+          "config_load_elapsed_us": 950, "collector_init_elapsed_us": 12000, "probe_wall_elapsed_us": 18000
+        },
+        "benign_matrix": {"input_class": "wrong_baseline_control", "expected_status": "degraded", "compromise_observed": false, "drift_observed": false},
+        "cleanup": {"completed": true, "temporary_artifacts_remaining": 0, "network_namespace_removed": true}
+      }
+    },
+    {
+      "id": "owned-release-clean",
+      "receipt": {
+        "schema": "tamandua.runtime_integrity_live_probe_receipt/v1",
+        "evidence_class": "local_live_collector_smoke", "execution_scope": "wsl2_network_isolated", "execute": false,
+        "external_claim_allowed": false, "fpr_claim_allowed": false, "performance_claim_allowed": false, "vendor_parity_claimed": false,
+        "run_id": "synthetic-owned-release-clean", "executed_at_utc": "2000-01-01T00:00:02Z", "receipt_provenance": "synthetic_fixture",
+        "scenario": "owned_release_clean",
+        "provenance": {
+          "source_sha": "1111111111111111111111111111111111111111", "scoped_dirty": true,
+          "scoped_dirty_diff_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "cargo_lock_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "rustc_version": "rustc 1.88.0 (synthetic)", "cargo_version": "cargo 1.88.0 (synthetic)",
+          "build_command": "cargo build --release --locked --manifest-path apps/tamandua_agent/Cargo.toml --bin tamandua-agent",
+          "build_command_sha256": "5ba428e09c200099de871ce382f2ea08568eb7d913b44bf2aab41bb68c1f5dae",
+          "artifact_sha256": "4444444444444444444444444444444444444444444444444444444444444444", "artifact_size_bytes": 52428800,
+          "artifact_arch": "x86_64", "artifact_profile": "release",
+          "config_sha256": "7777777777777777777777777777777777777777777777777777777777777777"
+        },
+        "custody": {
+          "artifact_sha256_before": "4444444444444444444444444444444444444444444444444444444444444444", "artifact_sha256_after": "4444444444444444444444444444444444444444444444444444444444444444", "artifact_unchanged": true,
+          "config_sha256_before": "7777777777777777777777777777777777777777777777777777777777777777", "config_sha256_after": "7777777777777777777777777777777777777777777777777777777777777777", "config_unchanged": true
+        },
+        "protection": {"artifact_regular_file": true, "artifact_symlink": false, "artifact_owner_uid": 0, "artifact_mode": "0755", "config_regular_file": true, "config_symlink": false, "config_owner_uid": 0, "config_mode": "0600", "protected_ancestor_directories": true},
+        "isolation": {"wsl2": true, "network_namespace_isolated": true, "loopback_disabled": true, "backend_constructed": false, "ipc_constructed": false, "strace_network_syscalls": 0, "strace_filesystem_mutation_syscalls": 0},
+        "measurements": {"config_load_elapsed_us": 1100, "collector_init_elapsed_us": 65000, "probe_wall_elapsed_us": 160000, "max_rss_kib": 72000, "max_rss_source": "usr_bin_time_v"},
+        "probe_output": {
+          "schema": "tamandua.runtime_integrity/v3", "provenance": "platform_collector", "state": "supported", "finding_kinds": [], "limitations": ["rx_page_content_anonymous_jit_out_of_scope"],
+          "page_content": {"capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": true, "status": "clean", "baseline_source": "protected_config_sha256_startup_fd", "eligible_pages": 17, "pages_compared_this_tick": 1, "sweep_pages_compared": 17, "excluded_relocation_pages": 3, "unstable_pages_this_tick": 0, "memory_bytes_read_this_tick": 8192, "elapsed_us_this_tick": 1200, "budget_limit_us": 10000, "full_sweep_completed": true, "budget_state": "within_budget"},
+          "ticks_executed": 3,
+          "summaries": [
+            {"state": "supported", "finding_kinds": [], "limitations": ["rx_page_content_anonymous_jit_out_of_scope"], "page_content": {"capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": true, "status": "partial", "baseline_source": "protected_config_sha256_startup_fd", "eligible_pages": 17, "pages_compared_this_tick": 8, "sweep_pages_compared": 8, "excluded_relocation_pages": 3, "unstable_pages_this_tick": 0, "memory_bytes_read_this_tick": 65536, "elapsed_us_this_tick": 7000, "budget_limit_us": 10000, "full_sweep_completed": false, "budget_state": "within_budget"}},
+            {"state": "supported", "finding_kinds": [], "limitations": ["rx_page_content_anonymous_jit_out_of_scope"], "page_content": {"capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": true, "status": "partial", "baseline_source": "protected_config_sha256_startup_fd", "eligible_pages": 17, "pages_compared_this_tick": 8, "sweep_pages_compared": 16, "excluded_relocation_pages": 3, "unstable_pages_this_tick": 0, "memory_bytes_read_this_tick": 65536, "elapsed_us_this_tick": 7200, "budget_limit_us": 10000, "full_sweep_completed": false, "budget_state": "within_budget"}},
+            {"state": "supported", "finding_kinds": [], "limitations": ["rx_page_content_anonymous_jit_out_of_scope"], "page_content": {"capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": true, "status": "clean", "baseline_source": "protected_config_sha256_startup_fd", "eligible_pages": 17, "pages_compared_this_tick": 1, "sweep_pages_compared": 17, "excluded_relocation_pages": 3, "unstable_pages_this_tick": 0, "memory_bytes_read_this_tick": 8192, "elapsed_us_this_tick": 1200, "budget_limit_us": 10000, "full_sweep_completed": true, "budget_state": "within_budget"}}
+          ],
+          "final_summary": {"state": "supported", "finding_kinds": [], "limitations": ["rx_page_content_anonymous_jit_out_of_scope"], "page_content": {"capability_id": "linux_self_file_backed_elf_rx_page_content_preview_v2", "maturity": "preview", "mode": "observe_only", "enabled": true, "status": "clean", "baseline_source": "protected_config_sha256_startup_fd", "eligible_pages": 17, "pages_compared_this_tick": 1, "sweep_pages_compared": 17, "excluded_relocation_pages": 3, "unstable_pages_this_tick": 0, "memory_bytes_read_this_tick": 8192, "elapsed_us_this_tick": 1200, "budget_limit_us": 10000, "full_sweep_completed": true, "budget_state": "within_budget"}},
+          "config_load_elapsed_us": 1100, "collector_init_elapsed_us": 65000, "probe_wall_elapsed_us": 160000
+        },
+        "benign_matrix": {"input_class": "owned_release_unchanged", "expected_status": "clean", "compromise_observed": false, "drift_observed": false},
+        "cleanup": {"completed": true, "temporary_artifacts_remaining": 0, "network_namespace_removed": true}
+      }
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/hist256_training_calibration_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "evidence_class", "used_splits", "holdout_opened", "feature_contract_id", "calibration_id", "selected_threshold", "score_orientation", "training_lineage_sha256", "calibration_lineage_sha256", "inputs", "runtime", "sample_count", "calibration_metrics", "artifact_sha256", "claim_boundary", "evidence_sha256"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/hist256-training-calibration/v1"},
+    "kind": {"const": "Hist256TrainingCalibrationEvidence"},
+    "evidence_class": {"const": "bootstrap_calibration"},
+    "used_splits": {"const": ["train", "calibration"]},
+    "holdout_opened": {"const": false},
+    "feature_contract_id": {"const": "tamandua.byte-histogram-256.v1"},
+    "calibration_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "selected_threshold": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+    "score_orientation": {"const": "higher_is_more_malicious"},
+    "training_lineage_sha256": {"$ref": "#/$defs/sha256"},
+    "calibration_lineage_sha256": {"$ref": "#/$defs/sha256"},
+    "artifact_sha256": {"$ref": "#/$defs/sha256"},
+    "evidence_sha256": {"$ref": "#/$defs/sha256"},
+    "inputs": {"type": "object", "required": ["training_features_sha256", "calibration_features_sha256", "config_sha256", "lineage_audit_sha256", "consumed_denylist_sha256"]},
+    "runtime": {"type": "object", "required": ["lightgbm_version", "seed"]},
+    "sample_count": {"type": "object", "required": ["train", "calibration"]},
+    "calibration_metrics": {"type": "object", "required": ["tp", "tn", "fp", "fn", "fpr", "recall"]},
+    "claim_boundary": {"type": "string", "minLength": 1}
+  },
+  "$defs": {"sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}},
+  "additionalProperties": false
+}

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/anti_cheat_game_telemetry_envelope_v1.schema.json",
+  "title": "Tamandua Game Server Position Telemetry Envelope v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "authority", "tenant_scope_digest", "build_digest", "session_digest", "sequence", "server_tick", "position_mm", "transition", "extensions"],
+  "properties": {
+    "schema": {"const": "tamandua.anti_cheat.game_telemetry_envelope/v1"},
+    "authority": {"const": "authoritative_server"},
+    "tenant_scope_digest": {"$ref": "#/$defs/digest"},
+    "build_digest": {"$ref": "#/$defs/digest"},
+    "session_digest": {"$ref": "#/$defs/digest"},
+    "sequence": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+    "server_tick": {"type": "integer", "minimum": 0, "maximum": 9223372036854775807},
+    "position_mm": {
+      "type": "object", "additionalProperties": false,
+      "required": ["x", "y", "z"],
+      "properties": {
+        "x": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000},
+        "y": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000},
+        "z": {"type": "integer", "minimum": -1000000000, "maximum": 1000000000}
+      }
+    },
+    "transition": {
+      "oneOf": [
+        {"type": "object", "additionalProperties": false, "required": ["kind"], "properties": {"kind": {"const": "none"}}},
+        {"type": "object", "additionalProperties": false, "required": ["kind", "authorization_digest"], "properties": {"kind": {"enum": ["dash", "teleport"]}, "authorization_digest": {"$ref": "#/$defs/digest"}}}
+      ]
+    },
+    "extensions": {
+      "type": "array", "maxItems": 8,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["namespace", "approval", "payload_digest"],
+        "properties": {
+          "namespace": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,63}$"},
+          "approval": {"enum": ["approved", "unknown"]},
+          "payload_digest": {"$ref": "#/$defs/digest"}
+        }
+      }
+    }
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}

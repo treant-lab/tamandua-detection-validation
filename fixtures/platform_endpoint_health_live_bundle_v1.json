@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "bundle_id": "platform-endpoint-health-live-bundle-v1",
+  "schema": "platform_endpoint_health_bundle.schema.json",
+  "evidence_class": "live_endpoint_health",
+  "claim_boundary": "Example live endpoint health bundle shape. This proves recent agent health for the listed endpoints only; it does not prove production detection efficacy, packet fidelity, prevention, or fleet-wide coverage.",
+  "endpoints": [
+    {
+      "endpoint_id": "lab-linux-endpoint-001",
+      "platform": "linux",
+      "collected_at": "2026-07-15T00:00:00Z",
+      "source": "agent_cli_health",
+      "health": {
+        "agent_running": true,
+        "telemetry_recent": true,
+        "clock_synchronized": true,
+        "telemetry_age_seconds": 12
+      }
+    },
+    {
+      "endpoint_id": "lab-windows-endpoint-001",
+      "platform": "windows",
+      "collected_at": "2026-07-15T00:00:00Z",
+      "source": "agent_health_api",
+      "health": {
+        "agent_running": true,
+        "telemetry_recent": true,
+        "clock_synchronized": true,
+        "telemetry_age_seconds": 18
+      }
+    }
+  ]
+}

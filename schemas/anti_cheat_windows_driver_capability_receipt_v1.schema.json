@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/anti_cheat_windows_driver_capability_receipt_v1.schema.json",
+  "title": "Tamandua Windows driver capability receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "observed_at", "platform", "probe", "state", "error_code", "capabilities", "execution", "binding", "authorization", "claims"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "evidence_class": {"enum": ["synthetic_contract", "local_probe_observation"]},
+    "observed_at": {"type": "string", "format": "date-time", "minLength": 20, "maxLength": 20, "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "platform": {"enum": ["windows", "non_windows"]},
+    "probe": {"const": "anti_cheat_windows_driver_capability_probe"},
+    "state": {"enum": ["observed_unbound", "not_loaded", "connection_failed", "invalid_protocol", "timed_out"]},
+    "error_code": {"type": ["string", "null"], "enum": [null, "port_absent", "connection_failed", "unsupported_runner", "invalid_protocol", "thread_spawn_failed", "supervisor_channel_disconnected", "timeout_process_exit_required"]},
+    "capabilities": {"anyOf": [{"type": "null"}, {"$ref": "#/$defs/capabilities"}]},
+    "execution": {"$ref": "#/$defs/execution"},
+    "binding": {"$ref": "#/$defs/binding"},
+    "authorization": {"$ref": "#/$defs/authorization"},
+    "claims": {"$ref": "#/$defs/claims"}
+  },
+  "$defs": {
+    "u32": {"type": "integer", "minimum": 0, "maximum": 4294967295},
+    "capabilities": {
+      "type": "object", "additionalProperties": false,
+      "required": ["protocol_version", "driver_version_major", "driver_version_minor", "driver_version_patch", "lab_level", "capability_flags", "active_flags", "health_flags", "compiled_control_flags", "active_control_flags", "invariant_flags", "command_policy_flags", "disabled_subsystem_flags", "read_only_command_flags"],
+      "properties": {
+        "protocol_version": {"const": 2}, "driver_version_major": {"$ref": "#/$defs/u32"}, "driver_version_minor": {"$ref": "#/$defs/u32"}, "driver_version_patch": {"$ref": "#/$defs/u32"}, "lab_level": {"$ref": "#/$defs/u32"},
+        "capability_flags": {"const": 0}, "active_flags": {"const": 0}, "health_flags": {"type": "integer", "minimum": 0, "maximum": 15}, "compiled_control_flags": {"const": 0}, "active_control_flags": {"const": 0},
+        "invariant_flags": {"const": 255}, "command_policy_flags": {"const": 3}, "disabled_subsystem_flags": {"const": 31}, "read_only_command_flags": {"const": 31}
+      }
+    },
+    "execution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["isolation", "timeout_ms", "deadline_outcome", "containment"],
+      "properties": {
+        "isolation": {"enum": ["in_process_thread", "not_started"]},
+        "timeout_ms": {"const": 2000},
+        "deadline_outcome": {"enum": ["completed_before_deadline", "timeout", "thread_spawn_failed", "channel_disconnected"]},
+        "containment": {"enum": ["not_required", "process_exit_required"]}
+      }
+    },
+    "binding": {"type": "object", "additionalProperties": false, "required": ["bound", "loaded_artifact_digest", "reason"], "properties": {"bound": {"const": false}, "loaded_artifact_digest": {"type": "null"}, "reason": {"const": "loaded_artifact_digest_unbound"}}},
+    "authorization": {"type": "object", "additionalProperties": false, "required": ["driver_lifecycle_mutation_requested", "driver_lifecycle_mutation_authorized"], "properties": {"driver_lifecycle_mutation_requested": {"const": false}, "driver_lifecycle_mutation_authorized": {"const": false}}},
+    "claims": {"type": "object", "additionalProperties": false, "required": ["runtime_validated", "efficacy_validated", "production_ready", "external_claim_allowed"], "properties": {"runtime_validated": {"const": false}, "efficacy_validated": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}}}
+  },
+  "allOf": [
+    {"if": {"properties": {"state": {"const": "observed_unbound"}}}, "then": {"properties": {"platform": {"const": "windows"}, "error_code": {"type": "null"}, "capabilities": {"$ref": "#/$defs/capabilities"}, "execution": {"properties": {"isolation": {"const": "in_process_thread"}, "deadline_outcome": {"const": "completed_before_deadline"}, "containment": {"const": "not_required"}}}}}},
+    {"if": {"properties": {"state": {"const": "not_loaded"}}}, "then": {"properties": {"platform": {"const": "windows"}, "error_code": {"const": "port_absent"}, "capabilities": {"type": "null"}, "execution": {"properties": {"isolation": {"const": "in_process_thread"}, "deadline_outcome": {"const": "completed_before_deadline"}, "containment": {"const": "not_required"}}}}}},
+    {"if": {"properties": {"error_code": {"const": "connection_failed"}}}, "then": {"properties": {"platform": {"const": "windows"}, "state": {"const": "connection_failed"}, "capabilities": {"type": "null"}, "execution": {"properties": {"isolation": {"const": "in_process_thread"}, "deadline_outcome": {"const": "completed_before_deadline"}, "containment": {"const": "not_required"}}}}}},
+    {"if": {"properties": {"error_code": {"const": "unsupported_runner"}}}, "then": {"properties": {"platform": {"const": "non_windows"}, "state": {"const": "connection_failed"}, "capabilities": {"type": "null"}, "execution": {"properties": {"isolation": {"const": "in_process_thread"}, "deadline_outcome": {"const": "completed_before_deadline"}, "containment": {"const": "not_required"}}}}}},
+    {"if": {"properties": {"error_code": {"const": "invalid_protocol"}}}, "then": {"properties": {"platform": {"const": "windows"}, "state": {"const": "invalid_protocol"}, "capabilities": {"type": "null"}, "execution": {"properties": {"isolation": {"const": "in_process_thread"}, "deadline_outcome": {"const": "completed_before_deadline"}, "containment": {"const": "not_required"}}}}}},
+    {"if": {"properties": {"error_code": {"const": "thread_spawn_failed"}}}, "then": {"properties": {"state": {"const": "connection_failed"}, "capabilities": {"type": "null"}, "execution": {"properties": {"isolation": {"const": "not_started"}, "deadline_outcome": {"const": "thread_spawn_failed"}, "containment": {"const": "not_required"}}}}}},
+    {"if": {"properties": {"error_code": {"const": "supervisor_channel_disconnected"}}}, "then": {"properties": {"state": {"const": "invalid_protocol"}, "capabilities": {"type": "null"}, "execution": {"properties": {"isolation": {"const": "in_process_thread"}, "deadline_outcome": {"const": "channel_disconnected"}, "containment": {"const": "not_required"}}}}}},
+    {"if": {"properties": {"state": {"const": "connection_failed"}}}, "then": {"properties": {"error_code": {"enum": ["connection_failed", "unsupported_runner", "thread_spawn_failed"]}, "capabilities": {"type": "null"}}}},
+    {"if": {"properties": {"state": {"const": "invalid_protocol"}}}, "then": {"properties": {"error_code": {"enum": ["invalid_protocol", "supervisor_channel_disconnected"]}, "capabilities": {"type": "null"}}}},
+    {"if": {"properties": {"state": {"const": "timed_out"}}}, "then": {"properties": {"error_code": {"const": "timeout_process_exit_required"}, "capabilities": {"type": "null"}, "execution": {"properties": {"isolation": {"const": "in_process_thread"}, "deadline_outcome": {"const": "timeout"}, "containment": {"const": "process_exit_required"}}}}}},
+    {"if": {"properties": {"platform": {"const": "non_windows"}}}, "then": {"anyOf": [
+      {"properties": {"state": {"const": "connection_failed"}, "error_code": {"const": "unsupported_runner"}}},
+      {"properties": {"state": {"const": "connection_failed"}, "error_code": {"const": "thread_spawn_failed"}}},
+      {"properties": {"state": {"const": "invalid_protocol"}, "error_code": {"const": "supervisor_channel_disconnected"}}},
+      {"properties": {"state": {"const": "timed_out"}, "error_code": {"const": "timeout_process_exit_required"}}}
+    ]}}
+  ]
+}

@@ -1,0 +1,205 @@
+{
+  "schema_version": "tamandua.anti_cheat_privileged_canary/v1",
+  "evidence_class": "synthetic_observe_shadow",
+  "mode": "observe_shadow",
+  "decision": "observe",
+  "durable_sanctions_allowed": false,
+  "privacy_mode": "metadata_only",
+  "identity": {
+    "source_sha": "0123456789abcdef0123456789abcdef01234567",
+    "artifact_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "build_id": "synthetic-game-build-132",
+    "session_id": "synthetic-session-132",
+    "protected_target_id": "synthetic-protected-game-132"
+  },
+  "platforms": [
+    {
+      "platform": "windows",
+      "capability_state": "degraded",
+      "reasons": [
+        "synthetic_ab_candidate"
+      ],
+      "limitations": [
+        "live_protected_session_not_executed"
+      ],
+      "baseline": {
+        "synthetic_identity": {
+          "source_id": "windows-user-mode-runtime-integrity-v1",
+          "artifact_digest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+          "component_version": "synthetic-baseline-v1",
+          "preregistration_id": "anti-cheat-canary-132-windows-ab-v1"
+        },
+        "clean_controls": {
+          "state": "passed",
+          "count": 4
+        }
+      },
+      "privileged": {
+        "backend": "windows_kernel_driver",
+        "evidence_state": "synthetic",
+        "synthetic_identity": {
+          "source_id": "windows-kernel-driver-canary-v1",
+          "artifact_digest": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+          "component_version": "synthetic-candidate-v1",
+          "preregistration_id": "anti-cheat-canary-132-windows-ab-v1"
+        },
+        "independent_of_baseline": true,
+        "detector_metrics": [
+          {
+            "detector_family": "cross_process_handle_access",
+            "attempts": 6,
+            "baseline_detected": 2,
+            "privileged_detected": 5,
+            "incremental_detected": 3
+          },
+          {
+            "detector_family": "protected_image_integrity",
+            "attempts": 5,
+            "baseline_detected": 3,
+            "privileged_detected": 4,
+            "incremental_detected": 1
+          }
+        ],
+        "clean_controls": {
+          "state": "passed",
+          "count": 4
+        },
+        "performance": {
+          "state": "synthetic_estimate",
+          "metrics": {
+            "frame_time_p95_delta_ms": 0.6,
+            "cpu_median_percent": 0.4,
+            "rss_delta_mib": 7.5,
+            "startup_p95_delta_ms": 18.0
+          }
+        },
+        "rollback": {
+          "available": true,
+          "state": "not_executed",
+          "procedure_id": "lab-windows-driver-policy-rollback-v1"
+        },
+        "uninstall": {
+          "available": true,
+          "state": "not_executed",
+          "procedure_id": "lab-windows-driver-uninstall-v1"
+        }
+      },
+      "server_authoritative_corroboration": {
+        "state": "not_executed",
+        "reason": "synthetic_fixture_no_server_run"
+      }
+    },
+    {
+      "platform": "linux",
+      "capability_state": "unsupported",
+      "reasons": [
+        "live_ebpf_lsm_evidence_absent"
+      ],
+      "limitations": [
+        "platform_matrix_unproven"
+      ],
+      "baseline": {
+        "synthetic_identity": {
+          "source_id": "linux-user-mode-runtime-integrity-v1",
+          "artifact_digest": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+          "component_version": "synthetic-baseline-v1",
+          "preregistration_id": "anti-cheat-canary-132-linux-ab-v1"
+        },
+        "clean_controls": {
+          "state": "passed",
+          "count": 3
+        }
+      },
+      "privileged": {
+        "backend": "ebpf_lsm",
+        "evidence_state": "not_executed",
+        "synthetic_identity": {
+          "source_id": "linux-ebpf-lsm-canary-v1",
+          "artifact_digest": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+          "component_version": "synthetic-placeholder-v1",
+          "preregistration_id": "anti-cheat-canary-132-linux-ab-v1"
+        },
+        "independent_of_baseline": true,
+        "detector_metrics": [],
+        "clean_controls": {
+          "state": "not_executed",
+          "count": 0
+        },
+        "performance": {
+          "state": "not_executed",
+          "metrics": {}
+        },
+        "rollback": {
+          "available": false,
+          "state": "not_executed",
+          "procedure_id": "not_applicable"
+        },
+        "uninstall": {
+          "available": false,
+          "state": "not_executed",
+          "procedure_id": "not_applicable"
+        }
+      },
+      "server_authoritative_corroboration": {
+        "state": "not_executed",
+        "reason": "linux_privileged_lane_not_executed"
+      }
+    },
+    {
+      "platform": "macos",
+      "capability_state": "unsupported",
+      "reasons": [
+        "live_endpoint_security_evidence_absent"
+      ],
+      "limitations": [
+        "entitlement_and_platform_matrix_unproven"
+      ],
+      "baseline": {
+        "synthetic_identity": {
+          "source_id": "macos-user-mode-runtime-integrity-v1",
+          "artifact_digest": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+          "component_version": "synthetic-baseline-v1",
+          "preregistration_id": "anti-cheat-canary-132-macos-ab-v1"
+        },
+        "clean_controls": {
+          "state": "passed",
+          "count": 3
+        }
+      },
+      "privileged": {
+        "backend": "endpoint_security_system_extension",
+        "evidence_state": "not_executed",
+        "synthetic_identity": {
+          "source_id": "macos-endpoint-security-canary-v1",
+          "artifact_digest": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+          "component_version": "synthetic-placeholder-v1",
+          "preregistration_id": "anti-cheat-canary-132-macos-ab-v1"
+        },
+        "independent_of_baseline": true,
+        "detector_metrics": [],
+        "clean_controls": {
+          "state": "not_executed",
+          "count": 0
+        },
+        "performance": {
+          "state": "not_executed",
+          "metrics": {}
+        },
+        "rollback": {
+          "available": false,
+          "state": "not_executed",
+          "procedure_id": "not_applicable"
+        },
+        "uninstall": {
+          "available": false,
+          "state": "not_executed",
+          "procedure_id": "not_applicable"
+        }
+      },
+      "server_authoritative_corroboration": {
+        "state": "not_executed",
+        "reason": "macos_privileged_lane_not_executed"
+      }
+    }
+  ]
+}

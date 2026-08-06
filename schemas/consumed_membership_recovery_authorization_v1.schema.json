@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/consumed_membership_recovery_authorization_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "decision", "authorized_by", "authorized_at", "ticket", "datasets"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/consumed-membership-recovery-authorization/v1"},
+    "decision": {"const": "authorize_source_pin_proposal"},
+    "authorized_by": {"type": "string", "minLength": 1},
+    "authorized_at": {"type": "string", "format": "date-time"},
+    "ticket": {"type": "string", "minLength": 1},
+    "datasets": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["dataset_id", "source_revision", "source_manifest_sha256"], "properties": {"dataset_id": {"type": "string"}, "source_revision": {"type": "string", "minLength": 1}, "source_manifest_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}}, "additionalProperties": false}}
+  },
+  "additionalProperties": false
+}

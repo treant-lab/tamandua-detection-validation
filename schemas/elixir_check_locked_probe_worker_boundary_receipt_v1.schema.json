@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/elixir_check_locked_probe_worker_boundary_receipt_v1.schema.json",
+  "title": "Elixir check-locked inert worker boundary receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["bindings", "claims", "evidence_boundary", "evidence_class", "invocation_id", "process", "result", "schema", "transport", "workspace_base_head"],
+  "properties": {
+    "schema": { "const": "tamandua.elixir_check_locked.worker_boundary_receipt/v1" },
+    "evidence_class": { "const": "local_offline_inert_worker_process_boundary_contract" },
+    "workspace_base_head": {
+      "const": "ce97ccd64a686e91fbf6f613e3face7cb17843d2",
+      "description": "Coordinator-pinned workspace base commit label; this is not file provenance or proof that scoped bytes derive from that commit."
+    },
+    "invocation_id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+    "bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["argv_template_sha256", "environment_policy_sha256", "interpreter_executable_sha256", "interpreter_version_sha256", "manifest_sha256", "parent_source_sha256", "protocol_schema_sha256", "receipt_schema_sha256", "worker_source_sha256"],
+      "properties": {
+        "argv_template_sha256": { "$ref": "#/$defs/sha256" },
+        "environment_policy_sha256": { "$ref": "#/$defs/sha256" },
+        "interpreter_executable_sha256": { "$ref": "#/$defs/sha256" },
+        "interpreter_version_sha256": { "$ref": "#/$defs/sha256" },
+        "manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "parent_source_sha256": { "$ref": "#/$defs/sha256" },
+        "protocol_schema_sha256": { "$ref": "#/$defs/sha256" },
+        "receipt_schema_sha256": { "$ref": "#/$defs/sha256" },
+        "worker_source_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "evidence_boundary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter_authenticity_verified", "manifest_canonical", "parent_is_sole_receipt_emitter", "process_separation_observed", "real_cleanup_verified", "same_user_replacement_resistance_proven", "worker_trust"],
+      "properties": {
+        "adapter_authenticity_verified": { "const": false },
+        "manifest_canonical": { "const": true },
+        "parent_is_sole_receipt_emitter": { "const": true },
+        "process_separation_observed": { "type": "boolean" },
+        "real_cleanup_verified": { "const": false },
+        "same_user_replacement_resistance_proven": { "const": false },
+        "worker_trust": { "const": "untrusted_categorical_producer" }
+      }
+    },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cleanup_reserve_ms", "lifecycle_state", "platform", "pre_post_drift_detected", "process_tree_containment_established", "process_tree_exit_independently_verified", "process_tree_termination_attempted", "total_timeout_ms", "worker_exit_confirmed", "worker_spawn_count"],
+      "properties": {
+        "platform": { "enum": ["posix", "windows"] },
+        "total_timeout_ms": { "const": 5000 },
+        "cleanup_reserve_ms": { "const": 1500 },
+        "lifecycle_state": { "enum": ["not_spawned", "spawned_contained_exited", "spawned_contained_exit_unconfirmed", "spawned_uncontained_exited", "spawned_uncontained_exit_unconfirmed"] },
+        "worker_spawn_count": { "type": "integer", "minimum": 0, "maximum": 1 },
+        "worker_exit_confirmed": { "type": "boolean" },
+        "process_tree_containment_established": { "type": "boolean" },
+        "process_tree_termination_attempted": { "type": "boolean" },
+        "process_tree_exit_independently_verified": { "const": false },
+        "pre_post_drift_detected": { "type": "boolean" }
+      },
+      "allOf": [
+        { "if": { "properties": { "lifecycle_state": { "const": "not_spawned" } }, "required": ["lifecycle_state"] }, "then": { "$ref": "#/$defs/notSpawnedProcess" } },
+        { "if": { "properties": { "lifecycle_state": { "const": "spawned_contained_exited" } }, "required": ["lifecycle_state"] }, "then": { "$ref": "#/$defs/spawnedContainedExitedProcess" } },
+        { "if": { "properties": { "lifecycle_state": { "const": "spawned_contained_exit_unconfirmed" } }, "required": ["lifecycle_state"] }, "then": { "$ref": "#/$defs/spawnedContainedUnconfirmedProcess" } },
+        { "if": { "properties": { "lifecycle_state": { "const": "spawned_uncontained_exited" } }, "required": ["lifecycle_state"] }, "then": { "$ref": "#/$defs/spawnedUncontainedExitedProcess" } },
+        { "if": { "properties": { "lifecycle_state": { "const": "spawned_uncontained_exit_unconfirmed" } }, "required": ["lifecycle_state"] }, "then": { "$ref": "#/$defs/spawnedUncontainedUnconfirmedProcess" } }
+      ]
+    },
+    "transport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["accepted_output_bytes", "accepted_output_max_bytes", "output_limit_exceeded", "request_sha256", "response_sha256", "stderr_empty", "stderr_observation_complete", "stderr_seen", "stdin_canonical", "stdout_canonical", "stdout_observation_complete", "stream_read_error_seen"],
+      "properties": {
+        "stdin_canonical": { "const": true },
+        "stdout_canonical": { "type": "boolean" },
+        "stdout_observation_complete": { "type": "boolean" },
+        "stderr_observation_complete": { "type": "boolean" },
+        "stderr_seen": { "type": "boolean" },
+        "stderr_empty": { "type": "boolean" },
+        "output_limit_exceeded": { "type": "boolean" },
+        "stream_read_error_seen": { "type": "boolean" },
+        "accepted_output_bytes": { "type": "integer", "minimum": 0, "maximum": 32768 },
+        "accepted_output_max_bytes": { "const": 32768 },
+        "request_sha256": { "$ref": "#/$defs/sha256" },
+        "response_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] }
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["error_class", "outcome", "status"],
+      "properties": {
+        "status": { "enum": ["blocked", "observed"] },
+        "outcome": { "enum": ["boundary_error", "inert_contract_observed"] },
+        "error_class": { "enum": [null, "input_invalid", "manifest_drift", "process_setup_error", "protocol_error", "stream_limit_exceeded", "worker_error", "worker_timeout"] }
+      }
+    },
+    "claims": { "$ref": "#/$defs/claims" }
+  },
+  "oneOf": [
+    { "$ref": "#/$defs/observedReceiptState" },
+    { "$ref": "#/$defs/blockedReceiptState" }
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "process": { "properties": { "lifecycle_state": { "const": "not_spawned" } }, "required": ["lifecycle_state"] } },
+        "required": ["process"]
+      },
+      "then": {
+        "properties": {
+          "transport": {
+            "properties": {
+              "accepted_output_bytes": { "const": 0 },
+              "stdout_observation_complete": { "const": false },
+              "stderr_observation_complete": { "const": false },
+              "stderr_seen": { "const": false },
+              "stderr_empty": { "const": false },
+              "output_limit_exceeded": { "const": false },
+              "stream_read_error_seen": { "const": false }
+            }
+          }
+        }
+      }
+    },
+    { "$ref": "#/$defs/stderrObservationState" },
+    {
+      "if": { "properties": { "transport": { "properties": { "stdout_canonical": { "const": true } }, "required": ["stdout_canonical"] } }, "required": ["transport"] },
+      "then": { "properties": { "transport": { "properties": { "stdout_observation_complete": { "const": true } } } } }
+    },
+    {
+      "if": { "properties": { "transport": { "properties": { "stream_read_error_seen": { "const": true } }, "required": ["stream_read_error_seen"] } }, "required": ["transport"] },
+      "then": {
+        "not": {
+          "properties": {
+            "transport": { "properties": { "stdout_observation_complete": { "const": true }, "stderr_observation_complete": { "const": true } } }
+          }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "transport": { "properties": { "output_limit_exceeded": { "const": true } }, "required": ["output_limit_exceeded"] } }, "required": ["transport"] },
+      "then": { "properties": { "result": { "properties": { "error_class": { "enum": ["manifest_drift", "stream_limit_exceeded"] } } } } }
+    }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["external_claim_allowed", "product_ready", "production_ready", "real_adapter_validated", "real_cleanup_verified", "release_ready", "verimatrix_parity"],
+      "properties": {
+        "external_claim_allowed": { "const": false },
+        "product_ready": { "const": false },
+        "production_ready": { "const": false },
+        "real_adapter_validated": { "const": false },
+        "real_cleanup_verified": { "const": false },
+        "release_ready": { "const": false },
+        "verimatrix_parity": { "const": false }
+      }
+    },
+    "stderrObservationState": {
+      "oneOf": [
+        {
+          "properties": {
+            "transport": { "properties": { "stderr_observation_complete": { "const": true }, "stderr_seen": { "const": false }, "stderr_empty": { "const": true } } }
+          }
+        },
+        {
+          "properties": {
+            "transport": { "properties": { "stderr_observation_complete": { "const": true }, "stderr_seen": { "const": true }, "stderr_empty": { "const": false } } }
+          }
+        },
+        {
+          "properties": {
+            "transport": { "properties": { "stderr_observation_complete": { "const": false }, "stderr_empty": { "const": false } } }
+          }
+        }
+      ]
+    },
+    "notSpawnedProcess": {
+      "properties": {
+        "worker_spawn_count": { "const": 0 },
+        "worker_exit_confirmed": { "const": false },
+        "process_tree_containment_established": { "const": false },
+        "process_tree_termination_attempted": { "const": false }
+      }
+    },
+    "spawnedContainedExitedProcess": {
+      "properties": {
+        "worker_spawn_count": { "const": 1 },
+        "worker_exit_confirmed": { "const": true },
+        "process_tree_containment_established": { "const": true },
+        "process_tree_termination_attempted": { "const": true }
+      }
+    },
+    "spawnedContainedUnconfirmedProcess": {
+      "properties": {
+        "worker_spawn_count": { "const": 1 },
+        "worker_exit_confirmed": { "const": false },
+        "process_tree_containment_established": { "const": true },
+        "process_tree_termination_attempted": { "const": true }
+      }
+    },
+    "spawnedUncontainedExitedProcess": {
+      "properties": {
+        "worker_spawn_count": { "const": 1 },
+        "worker_exit_confirmed": { "const": true },
+        "process_tree_containment_established": { "const": false },
+        "process_tree_termination_attempted": { "const": true }
+      }
+    },
+    "spawnedUncontainedUnconfirmedProcess": {
+      "properties": {
+        "worker_spawn_count": { "const": 1 },
+        "worker_exit_confirmed": { "const": false },
+        "process_tree_containment_established": { "const": false },
+        "process_tree_termination_attempted": { "const": true }
+      }
+    },
+    "observedReceiptState": {
+      "properties": {
+        "result": { "properties": { "status": { "const": "observed" }, "outcome": { "const": "inert_contract_observed" }, "error_class": { "const": null } } },
+        "evidence_boundary": { "properties": { "process_separation_observed": { "const": true } } },
+        "process": { "properties": { "lifecycle_state": { "const": "spawned_contained_exited" }, "pre_post_drift_detected": { "const": false } } },
+        "transport": {
+          "properties": {
+            "stdout_canonical": { "const": true },
+            "stdout_observation_complete": { "const": true },
+            "stderr_observation_complete": { "const": true },
+            "stderr_seen": { "const": false },
+            "stderr_empty": { "const": true },
+            "output_limit_exceeded": { "const": false },
+            "stream_read_error_seen": { "const": false },
+            "accepted_output_bytes": { "minimum": 1 },
+            "response_sha256": { "$ref": "#/$defs/sha256" }
+          }
+        }
+      }
+    },
+    "blockedReceiptState": {
+      "properties": {
+        "result": { "properties": { "status": { "const": "blocked" }, "outcome": { "const": "boundary_error" }, "error_class": { "type": "string" } } },
+        "evidence_boundary": { "properties": { "process_separation_observed": { "const": false } } },
+        "transport": { "properties": { "stdout_canonical": { "const": false }, "response_sha256": { "type": "null" } } }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "result": { "properties": { "error_class": { "const": "input_invalid" } }, "required": ["error_class"] } }, "required": ["result"] },
+          "then": {
+            "properties": {
+              "process": { "properties": { "lifecycle_state": { "const": "not_spawned" }, "pre_post_drift_detected": { "const": false } } },
+              "transport": {
+                "properties": {
+                  "accepted_output_bytes": { "const": 0 },
+                  "stdout_observation_complete": { "const": false },
+                  "stderr_observation_complete": { "const": false },
+                  "stderr_seen": { "const": false },
+                  "stderr_empty": { "const": false },
+                  "output_limit_exceeded": { "const": false },
+                  "stream_read_error_seen": { "const": false }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "result": { "properties": { "error_class": { "const": "stream_limit_exceeded" } }, "required": ["error_class"] } }, "required": ["result"] },
+          "then": { "properties": { "transport": { "properties": { "output_limit_exceeded": { "const": true } } } } }
+        },
+        {
+          "if": { "properties": { "result": { "properties": { "error_class": { "enum": ["protocol_error", "stream_limit_exceeded", "worker_error", "worker_timeout"] } }, "required": ["error_class"] } }, "required": ["result"] },
+          "then": {
+            "properties": {
+              "process": { "properties": { "lifecycle_state": { "enum": ["spawned_contained_exited", "spawned_contained_exit_unconfirmed"] }, "pre_post_drift_detected": { "const": false } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "result": { "properties": { "error_class": { "const": "process_setup_error" } }, "required": ["error_class"] } }, "required": ["result"] },
+          "then": {
+            "properties": {
+              "process": { "properties": { "lifecycle_state": { "enum": ["not_spawned", "spawned_contained_exited", "spawned_contained_exit_unconfirmed", "spawned_uncontained_exited", "spawned_uncontained_exit_unconfirmed"] }, "pre_post_drift_detected": { "const": false } } }
+            }
+          }
+        },
+        {
+          "if": { "properties": { "result": { "properties": { "error_class": { "const": "manifest_drift" } }, "required": ["error_class"] } }, "required": ["result"] },
+          "then": {
+            "properties": {
+              "process": { "properties": { "pre_post_drift_detected": { "const": true } } }
+            }
+          },
+          "else": {
+            "properties": {
+              "process": { "properties": { "pre_post_drift_detected": { "const": false } } }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

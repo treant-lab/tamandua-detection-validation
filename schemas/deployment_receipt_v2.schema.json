@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/deployment_receipt_v2.schema.json",
+  "title": "Tamandua database-scoped deployment receipt v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "deployment_id", "source_sha", "target", "surface", "artifact_digest", "database_scope_key", "outcome", "created_at", "artifact_verification", "history", "database_lease_history"],
+  "properties": {
+    "version": {"const": 2},
+    "deployment_id": {"type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$"},
+    "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "target": {"type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"},
+    "surface": {"type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"},
+    "artifact_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "database_scope_key": {"type": "string", "pattern": "^dbs1_[0-9a-f]{64}$"},
+    "outcome": {"enum": ["succeeded", "failed", "rolled_back", "superseded"]},
+    "created_at": {"type": "number"},
+    "artifact_verification": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["artifact_digest", "verified_at", "owner", "fencing_token"],
+          "properties": {
+            "artifact_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+            "verified_at": {"type": "number"},
+            "owner": {"type": "string", "minLength": 1},
+            "fencing_token": {"type": "integer", "minimum": 1}
+          }
+        }
+      ]
+    },
+    "history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from_phase", "to_phase", "owner", "fencing_token", "recorded_at", "detail"],
+        "properties": {
+          "from_phase": {"type": ["string", "null"]},
+          "to_phase": {"type": "string"},
+          "owner": {"type": ["string", "null"]},
+          "fencing_token": {"type": ["integer", "null"]},
+          "recorded_at": {"type": "number"},
+          "detail": {"type": ["string", "null"]}
+        }
+      }
+    },
+    "database_lease_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["database_scope_key", "event", "owner", "fencing_token", "phase", "heartbeat_at", "expires_at", "reconciliation_required", "recorded_at", "detail"],
+        "properties": {
+          "database_scope_key": {"type": "string", "pattern": "^dbs1_[0-9a-f]{64}$"},
+          "event": {"enum": ["acquired", "heartbeat", "transition", "recovered", "reconciled"]},
+          "owner": {"type": "string", "minLength": 1},
+          "fencing_token": {"type": "integer", "minimum": 1},
+          "phase": {"type": "string", "minLength": 1},
+          "heartbeat_at": {"type": "number"},
+          "expires_at": {"type": "number"},
+          "reconciliation_required": {"type": "boolean"},
+          "recorded_at": {"type": "number"},
+          "detail": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }
+}

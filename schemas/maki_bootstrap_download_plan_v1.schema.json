@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/maki_bootstrap_download_plan_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "status", "evidence_class", "source_missing_manifest", "source_membership_plan", "bucket_allowlist", "maximum_object_bytes", "maximum_total_bytes", "download_allowed", "object_count", "estimated_total_bytes", "objects", "execution", "blockers", "claim_boundary", "plan_sha256"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-bootstrap-download-plan/v1"},
+    "status": {"const": "dry_run_only"},
+    "evidence_class": {"const": "governed_missing_members_download_plan_not_executed"},
+    "source_missing_manifest": {"type": "object", "required": ["path", "sha256", "api_version", "manifest_sha256"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "api_version": {"type": "string", "minLength": 1}, "manifest_sha256": {"$ref": "#/$defs/sha256"}}, "additionalProperties": false},
+    "source_membership_plan": {"type": "object", "required": ["path", "sha256", "api_version", "membership_sha256_by_split"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "api_version": {"type": "string", "minLength": 1}, "membership_sha256_by_split": {"type": "object", "required": ["train", "calibration"], "properties": {"train": {"$ref": "#/$defs/sha256"}, "calibration": {"$ref": "#/$defs/sha256"}}, "additionalProperties": false}}, "additionalProperties": false},
+    "bucket_allowlist": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "maximum_object_bytes": {"const": 50000000},
+    "maximum_total_bytes": {"type": "integer", "minimum": 0},
+    "download_allowed": {"const": false},
+    "object_count": {"type": "integer", "minimum": 0},
+    "estimated_total_bytes": {"type": "integer", "minimum": 0},
+    "objects": {"type": "array", "items": {"type": "object", "required": ["sha256", "split", "expected_size_bytes", "bucket", "object_key", "version_id", "downstream_bytes_sha256_revalidation"], "properties": {"sha256": {"$ref": "#/$defs/sha256"}, "split": {"enum": ["train", "calibration"]}, "expected_size_bytes": {"type": "integer", "minimum": 0, "maximum": 50000000}, "bucket": {"type": "string", "minLength": 1}, "object_key": {"type": "string", "minLength": 1}, "version_id": {"type": "string", "minLength": 1}, "downstream_bytes_sha256_revalidation": {"const": true}}, "additionalProperties": false}},
+    "execution": {"const": {"downloads_performed": false, "uses_etag_as_sha256": false}},
+    "blockers": {"type": "array", "items": {"type": "string"}},
+    "claim_boundary": {"type": "string", "minLength": 1},
+    "plan_sha256": {"$ref": "#/$defs/sha256"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {"type": "object", "required": ["path", "sha256", "api_version"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}, "api_version": {"type": "string", "minLength": 1}}, "additionalProperties": false}
+  },
+  "additionalProperties": false
+}

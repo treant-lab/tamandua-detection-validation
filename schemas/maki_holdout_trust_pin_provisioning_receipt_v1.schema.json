@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/maki_holdout_trust_pin_provisioning_receipt_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "profile", "bundle_id", "pinset_epoch", "minimum_epoch", "minimum_epoch_authority", "hashes", "authorities", "validation", "outputs"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-holdout-trust-pin-provisioning-receipt/v1"},
+    "kind": {"const": "MakiHoldoutTrustPinProvisioningReceipt"},
+    "evidence_class": {"const": "local_offline_disabled_trust_pin_validation"},
+    "profile": {"const": "disabled"},
+    "bundle_id": {"$ref": "#/$defs/id"},
+    "pinset_epoch": {"type": "integer", "minimum": 1},
+    "minimum_epoch": {"type": "integer", "minimum": 1},
+    "minimum_epoch_authority": {"const": "caller_supplied_non_authoritative"},
+    "hashes": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pinset_sha256", "pinset_schema_sha256", "receipt_schema_sha256"],
+      "properties": {
+        "pinset_sha256": {"$ref": "#/$defs/sha256"},
+        "pinset_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "receipt_schema_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "authorities": {
+      "type": "array", "minItems": 2, "maxItems": 2,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["role", "domain", "key_id", "key_epoch", "status", "public_key_sha256", "trust_root_sha256"],
+        "properties": {
+          "role": {"enum": ["candidate_issuer", "executor_completion"]},
+          "domain": {"enum": ["tamandua.maki.holdout-live-execution-authorization-candidate.ed25519/v1", "tamandua.maki.holdout-operation-completion.ed25519/v1"]},
+          "key_id": {"$ref": "#/$defs/id"},
+          "key_epoch": {"type": "integer", "minimum": 1},
+          "status": {"const": "revoked"},
+          "public_key_sha256": {"$ref": "#/$defs/sha256"},
+          "trust_root_sha256": {"$ref": "#/$defs/sha256"}
+        },
+        "allOf": [
+          {"if": {"required": ["role"], "properties": {"role": {"const": "candidate_issuer"}}}, "then": {"properties": {"domain": {"const": "tamandua.maki.holdout-live-execution-authorization-candidate.ed25519/v1"}}}},
+          {"if": {"required": ["role"], "properties": {"role": {"const": "executor_completion"}}}, "then": {"properties": {"domain": {"const": "tamandua.maki.holdout-operation-completion.ed25519/v1"}}}}
+        ]
+      },
+      "allOf": [
+        {"contains": {"type": "object", "required": ["role"], "properties": {"role": {"const": "candidate_issuer"}}}, "minContains": 1, "maxContains": 1},
+        {"contains": {"type": "object", "required": ["role"], "properties": {"role": {"const": "executor_completion"}}}, "minContains": 1, "maxContains": 1}
+      ]
+    },
+    "validation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["canonical_input", "closed_public_key_fields_validated", "cross_role_separation_verified", "private_material_absence_proven", "trust_root_digests_recomputed"],
+      "properties": {
+        "canonical_input": {"const": true},
+        "closed_public_key_fields_validated": {"const": true},
+        "cross_role_separation_verified": {"const": true},
+        "private_material_absence_proven": {"const": false},
+        "trust_root_digests_recomputed": {"const": true}
+      }
+    },
+    "outputs": {"$ref": "#/$defs/falseOutputs"}
+  },
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "falseOutputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["trust_pins_compiled", "enabled_module_emitted", "coordinator_enabled", "live_execution_authorized", "aws_credentials_resolved", "aws_mutation_performed", "membership_granted", "evaluation_allowed", "training_allowed"],
+      "properties": {
+        "trust_pins_compiled": {"const": false},
+        "enabled_module_emitted": {"const": false},
+        "coordinator_enabled": {"const": false},
+        "live_execution_authorized": {"const": false},
+        "aws_credentials_resolved": {"const": false},
+        "aws_mutation_performed": {"const": false},
+        "membership_granted": {"const": false},
+        "evaluation_allowed": {"const": false},
+        "training_allowed": {"const": false}
+      }
+    }
+  }
+}

@@ -47,10 +47,43 @@ NON_REPLAY_FIXTURE_API_VERSIONS = {
     "tamandua.io/governed-fp-fn-corpus-gate/v1",
     "tamandua.io/benchmark-claim-maturity-matrix/v1",
     "tamandua.io/threat-benchmark-taxonomy-mapping/v1",
+    "tamandua.io/rx-restored-page-drift-contract/v1",
+    "tamandua.io/detector-observation-consensus/v1",
+    "tamandua.io/runtime-integrity-lifecycle-contract/v1",
+    "tamandua.io/runtime-rx-page-content-live-probe-contract/v1",
+    "tamandua.io/runtime-rx-page-content-preview-contract/v1",
+    "tamandua.io/runtime-rx-page-content-preview-contract/v2",
 }
 NON_REPLAY_FIXTURE_IDS = {
     "wazuh-posture-inventory-compliance-gap-v1",
+    "windows-kernel-visibility-readiness-v1",
+    "macos-platform-visibility-readiness-v1",
+    "mobile-network-visibility-readiness-v1",
+    "ndr-visibility-evidence-v1",
 }
+# Fixture families that live in the shared fixtures directory but are owned by
+# other contract validators (identified by their own schema keys, not by the
+# replay-fixture shape).
+NON_REPLAY_FIXTURE_SCHEMAS = {
+    "tamandua.runtime-rx-page-integrity-lab/v1",
+    "tamandua.agent-uninstall-breakglass.golden-vector/v1",
+    "tamandua.mobile.signed-posture.golden-vector/v1",
+    "tamandua.runtime-rx-filebacked-elf-linux-contract/v1",
+    "tamandua.runtime_integrity_live_probe_diagnostic_fixture/v1",
+    "platform_endpoint_health_bundle.schema.json",
+}
+# Fixture files owned by other validators that carry no stable in-band family
+# key (no schema/fixture_schema/api_version marker), registered by filename.
+NON_REPLAY_FIXTURE_FILENAMES = {
+    "competitive_source_registry_v1.json",
+    "local_model_service_contract_synthetic_parity_v1.json",
+    "platform_endpoint_health_api_export_v1.json",
+}
+# Whole fixture families owned by dedicated gate validators
+# (tools/detection_validation/scripts/anti_cheat_*_gate.py and related
+# contracts). Routed by filename prefix because several of these files carry
+# only a bare integer schema_version and no family key.
+NON_REPLAY_FIXTURE_FILENAME_PREFIXES = ("anti_cheat_",)
 BENCHMARK_CLAIM_MATURITY_API_VERSION = "tamandua.io/benchmark-claim-maturity-matrix/v1"
 BENCHMARK_CLAIM_MATURITY_GATES = {
     "goodware_fp",
@@ -101,6 +134,13 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def validate_fixture_file(path: Path) -> list[str]:
     errors: list[str] = []
+    if path.name in NON_REPLAY_FIXTURE_FILENAMES:
+        return []
+    if path.name.startswith(NON_REPLAY_FIXTURE_FILENAME_PREFIXES):
+        return []
+    if path.name.endswith(".schema.json"):
+        # JSON Schema documents co-located with the fixtures they describe.
+        return []
     data = load_json(path)
     fixtures = data.get("fixtures")
     lanes = data.get("lanes")
@@ -114,6 +154,9 @@ def validate_fixture_file(path: Path) -> list[str]:
     if data.get("api_version") in NON_REPLAY_FIXTURE_API_VERSIONS:
         return []
     if data.get("fixture_id") in NON_REPLAY_FIXTURE_IDS:
+        return []
+    if (data.get("schema") in NON_REPLAY_FIXTURE_SCHEMAS
+            or data.get("fixture_schema") in NON_REPLAY_FIXTURE_SCHEMAS):
         return []
 
     if data.get("schema_version") != 1:

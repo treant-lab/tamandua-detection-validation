@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/migration_identity_receipt_v1.schema.json",
+  "title": "Tamandua external migration identity receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_sha", "sql_sha256", "verified_at", "db_scope_key", "roles", "function_signature", "result"],
+  "properties": {
+    "schema_version": {"const": "tamandua.migration-identity-receipt.v1"},
+    "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "sql_sha256": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bootstrap", "verification", "deprovision"],
+      "properties": {
+        "bootstrap": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "verification": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "deprovision": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      }
+    },
+    "verified_at": {"type": "string", "format": "date-time"},
+    "db_scope_key": {"type": "string", "pattern": "^dbs1_[0-9a-f]{64}$"},
+    "roles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["owner", "migrator"],
+      "properties": {
+        "owner": {"const": "tamandua_migration_identity_v1_owner"},
+        "migrator": {"type": "string", "pattern": "^[a-z_][a-z0-9_]{0,62}$"}
+      }
+    },
+    "function_signature": {"const": "tamandua_deploy.migration_database_identity_v1()"},
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["verified", "database_identity_observed"],
+      "properties": {
+        "verified": {"type": "boolean"},
+        "database_identity_observed": {"type": "boolean"},
+        "server_version_num": {"type": "integer", "minimum": 160000},
+        "error": {"type": "string", "maxLength": 512}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"result": {"properties": {"verified": {"const": true}}}}},
+      "then": {"properties": {"result": {"required": ["verified", "database_identity_observed", "server_version_num"], "properties": {"database_identity_observed": {"const": true}}}}},
+      "else": {"properties": {"result": {"required": ["verified", "database_identity_observed", "error"], "properties": {"database_identity_observed": {"const": false}}}}}
+    }
+  ]
+}

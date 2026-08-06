@@ -27,6 +27,7 @@ except ImportError:
     is_standalone = lambda: False
 RUNS_DIR = ROOT / "docs" / "benchmarks" / "runs"
 GENERATED_DIR = ROOT / "docs" / "benchmarks" / "generated"
+SCRIPTS_DIR = Path(__file__).resolve().parent
 
 PACKAGE_EMIT_FLAGS = [
     "--emit-agent-prompts",
@@ -84,12 +85,14 @@ def command_plan(
     package_dir = package_output_dir or default_package_output_dir(preflight_ref)
     manifest_ref = manifest_path or package_dir / "dispatch_manifest.json"
     python = sys.executable
+    def script(name: str) -> str:
+        return str(SCRIPTS_DIR / name)
     return [
         (
             "scorecard-before-closure",
             [
                 python,
-                "tools/detection_validation/generate_validation_scorecard.py",
+                script("generate_validation_scorecard.py"),
                 "--runs-dir",
                 str(runs_dir),
                 "--output-dir",
@@ -101,7 +104,7 @@ def command_plan(
             "roadmap-closure-gate",
             [
                 python,
-                "tools/detection_validation/roadmap_closure_gate_probe.py",
+                script("roadmap_closure_gate_probe.py"),
                 "--scorecard-json",
                 str(generated_dir / "validation_roadmap_scorecard.json"),
                 "--output-dir",
@@ -113,7 +116,7 @@ def command_plan(
             "validation-execution-preflight",
             [
                 python,
-                "tools/detection_validation/validation_execution_preflight_probe.py",
+                script("validation_execution_preflight_probe.py"),
                 "--scorecard-json",
                 str(generated_dir / "validation_roadmap_scorecard.json"),
                 "--closure-gate-json",
@@ -127,7 +130,7 @@ def command_plan(
             "preflight-work-package",
             [
                 python,
-                "tools/detection_validation/run_preflight_work_package.py",
+                script("run_preflight_work_package.py"),
                 "--preflight-json",
                 str(preflight_ref),
                 "--all",
@@ -141,7 +144,7 @@ def command_plan(
             "dispatch-results",
             [
                 python,
-                "tools/detection_validation/run_preflight_work_package.py",
+                script("run_preflight_work_package.py"),
                 "--promote-dispatch-results",
                 str(manifest_ref),
                 "--runs-output-dir",
@@ -153,7 +156,7 @@ def command_plan(
             "scorecard-after-dispatch",
             [
                 python,
-                "tools/detection_validation/generate_validation_scorecard.py",
+                script("generate_validation_scorecard.py"),
                 "--runs-dir",
                 str(runs_dir),
                 "--output-dir",
@@ -165,7 +168,7 @@ def command_plan(
             "product-readiness-summary",
             [
                 python,
-                "tools/detection_validation/generate_product_readiness_summary.py",
+                script("generate_product_readiness_summary.py"),
                 "--scorecard-json",
                 str(generated_dir / "validation_roadmap_scorecard.json"),
                 "--output-dir",

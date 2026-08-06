@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/hist256_candidate_freeze_v1.schema.json",
+  "title": "Tamandua hist256 pre-holdout freeze v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "status", "frozen_at", "model_id", "artifact", "feature_contract", "decision", "lineage", "holdout_not_opened_attestation", "claim_boundary", "freeze_payload_sha256"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/hist256-candidate-freeze/v1"},
+    "kind": {"const": "Hist256CandidateFreezeManifest"},
+    "status": {"const": "frozen_for_governed_holdout"},
+    "frozen_at": {"type": "string", "format": "date-time"},
+    "model_id": {"type": "string", "minLength": 1},
+    "artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["format", "sha256", "size_bytes"],
+      "properties": {
+        "format": {"const": "lightgbm-text-v4"},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "size_bytes": {"type": "integer", "minimum": 1}
+      }
+    },
+    "feature_contract": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "sha256", "feature_count"],
+      "properties": {
+        "id": {"const": "tamandua.byte-histogram-256.v1"},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "feature_count": {"const": 256}
+      }
+    },
+    "decision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["threshold", "calibration_id", "score_orientation", "initial_lane", "may_enforce"],
+      "properties": {
+        "threshold": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1},
+        "calibration_id": {"type": "string", "minLength": 1},
+        "score_orientation": {"const": "higher_is_more_malicious"},
+        "initial_lane": {"const": "endpoint_shadow"},
+        "may_enforce": {"const": false}
+      }
+    },
+    "lineage": {
+      "type": "object", "additionalProperties": false,
+      "required": ["training_sha256", "calibration_sha256", "calibration_evidence_sha256", "forbidden_consumed_datasets"],
+      "properties": {
+        "training_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "calibration_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "calibration_evidence_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "forbidden_consumed_datasets": {"const": ["EMBER2018-test", "EMBER2024-test", "EMBER2024-challenge"]}
+      }
+    },
+    "holdout_not_opened_attestation": {"const": true},
+    "claim_boundary": {"type": "string", "minLength": 40},
+    "freeze_payload_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

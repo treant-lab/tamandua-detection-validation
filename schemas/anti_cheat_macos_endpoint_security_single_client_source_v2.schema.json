@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/anti_cheat_macos_endpoint_security_single_client_source_v2.schema.json",
+  "title": "macOS Endpoint Security single-client static source receipt v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "capability_state", "runtime_state", "sources", "inventory_digest", "gate_authority", "topology", "lifecycle", "claims", "blockers"],
+  "properties": {
+    "schema_version": {"const": 2},
+    "evidence_class": {"const": "static_source_single_client_inventory"},
+    "capability_state": {"const": "source_single_client_observe_only_unproven"},
+    "runtime_state": {"const": "not_executed"},
+    "sources": {
+      "type": "array", "minItems": 24, "maxItems": 24,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["path", "role", "sha256"],
+        "properties": {
+          "path": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+(?:/[A-Za-z0-9_.-]+)+$"},
+          "role": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+        }
+      }
+    },
+    "inventory_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "gate_authority": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256", "trust_model", "cli_autonomously_authenticates", "coordinated_change_requires_external_review"],
+      "properties": {
+        "path": {"const": "tools/detection_validation/scripts/anti_cheat_macos_endpoint_security_single_client_source_v2_gate.py"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "trust_model": {"const": "detached_fixture_test_vcs_review_external_root_cli_not_self_authenticating"},
+        "cli_autonomously_authenticates": {"const": false},
+        "coordinated_change_requires_external_review": {"const": true}
+      }
+    },
+    "topology": {
+      "type": "object", "additionalProperties": false,
+      "required": ["host_bundle_id", "sysext_bundle_id", "daemon_bundle_id", "sole_es_client", "daemon_transport"],
+      "properties": {
+        "host_bundle_id": {"const": "com.tamandua.edr"},
+        "sysext_bundle_id": {"const": "com.tamandua.agent.sysext.filemonitor"},
+        "daemon_bundle_id": {"const": "com.tamandua.agent"},
+        "sole_es_client": {"const": "system_extension"},
+        "daemon_transport": {"const": "transport_not_implemented"}
+      }
+    },
+    "lifecycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["build", "sign", "notarize", "package", "install", "activate", "connect", "subscribe", "fda", "runtime", "telemetry", "performance_efficacy", "update_rollback"],
+      "properties": {
+        "build": {"const": false}, "sign": {"const": false}, "notarize": {"const": false}, "package": {"const": false},
+        "install": {"const": false}, "activate": {"const": false}, "connect": {"const": false}, "subscribe": {"const": false},
+        "fda": {"const": false}, "runtime": {"const": false}, "telemetry": {"const": false},
+        "performance_efficacy": {"const": false}, "update_rollback": {"const": false}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["capability_proven", "observe_only_proven", "product_ready", "production_ready", "external_claim_allowed"],
+      "properties": {
+        "capability_proven": {"const": false}, "observe_only_proven": {"const": false}, "product_ready": {"const": false},
+        "production_ready": {"const": false}, "external_claim_allowed": {"const": false}
+      }
+    },
+    "blockers": {
+      "const": ["xcode_systemextension_target_absent", "host_embed_phase_absent", "host_activation_api_absent", "host_deactivation_api_absent", "host_macos_minimum_below_sysext_requirement", "swift_compile_not_validated", "xpc_api_availability_not_validated", "signed_peer_identifier_unobserved", "signed_entitlements_unobserved", "apple_es_grant_unobserved", "provisioning_unobserved", "fda_unobserved", "sign_not_validated", "notarization_gatekeeper_not_validated", "install_activate_not_validated", "xpc_runtime_not_validated", "es_runtime_not_validated", "telemetry_not_validated", "performance_efficacy_not_validated", "update_rollback_not_rehearsed", "release_decision_not_approved"]
+    }
+  }
+}

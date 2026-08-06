@@ -697,7 +697,12 @@ def refresh_authority_dry_run_plan_is_sequential(payload: dict[str, Any] | None)
         and "--emit-dispatch-manifest" in package_command
         and "--promote-dispatch-results" in dispatch_command
         and any("dispatch_manifest.json" in str(part) for part in dispatch_command)
-        and "tools/detection_validation/generate_product_readiness_summary.py" in product_summary_command
+        and any(
+            str(part).replace("\\", "/").endswith(
+                "tools/detection_validation/scripts/generate_product_readiness_summary.py"
+            )
+            for part in product_summary_command
+        )
         and "--scorecard-json" in product_summary_command
     )
 
@@ -12259,12 +12264,12 @@ def build_payload(
             RELEASE_WORKFLOW,
         )
     for marker in [
-        "if: matrix.os != 'macos-latest' && matrix.os != 'macos-14'",
-        "if: matrix.os != 'macos-latest'",
+        "if: matrix.os != 'windows-latest' && matrix.os != 'macos-latest' && matrix.os != 'macos-14'",
+        "if: matrix.os != 'windows-latest' && matrix.os != 'macos-latest'",
     ]:
         check_contains(
             checks,
-            f"{rel(RELEASE_WORKFLOW)} prevents generic macOS binary release asset marker {marker}",
+            f"{rel(RELEASE_WORKFLOW)} prevents generic macOS or raw Windows binary release asset marker {marker}",
             release_workflow_text,
             marker,
             RELEASE_WORKFLOW,
@@ -12278,21 +12283,30 @@ def build_payload(
         "Import Windows signing certificate",
         "${{ secrets.WINDOWS_CERT_BASE64 }}",
         "${{ secrets.WINDOWS_CERT_PASSWORD }}",
-        "makensis /DPRODUCT_VERSION=$packageVersion tamandua.nsi",
-        'Move-Item "tamandua-setup-$packageVersion.exe" "$env:GITHUB_WORKSPACE/tamandua-setup-$releaseTag.exe"',
-        'Move-Item "tamandua-$packageVersion.msi" "$env:GITHUB_WORKSPACE/tamandua-$releaseTag.msi"',
+        "Reverify extracted BrokerEnabled component-set before MSI",
+        "Install canonical WiX v4 toolchain",
+        "dotnet tool install --global wix",
+        "wix extension add WixToolset.UI.wixext",
+        "wix extension add WixToolset.Util.wixext",
+        "wix extension add WixToolset.Firewall.wixext",
+        "Build canonical BrokerEnabled MSI installer",
+        "& apps/tamandua_agent/installer/windows/build.ps1",
+        "-Sku BrokerEnabled",
+        "-Version $packageVersion",
+        'throw "Canonical BrokerEnabled MSI build failed"',
+        'Move-Item "$env:RUNNER_TEMP\\tamandua-installer\\tamandua-agent-$packageVersion.msi"',
+        '"$env:GITHUB_WORKSPACE\\tamandua-$releaseTag.msi"',
         'Write-Error "No Windows code signing certificate found for installer signing"',
-        '$nsis = "tamandua-setup-$releaseTag.exe"',
         '$msi = "tamandua-$releaseTag.msi"',
-        "Set-AuthenticodeSignature -FilePath $nsis",
+        'Write-Error "MSI installer not found: $msi"',
         'Get-ChildItem "${env:ProgramFiles(x86)}\\Windows Kits\\10\\bin" -Recurse -Filter signtool.exe',
         "& $signtool.FullName sign /sha1 $cert.Thumbprint",
         "Get-AuthenticodeSignature -FilePath $file",
         "Installer signature verification failed",
-        '"tamandua-setup-$releaseTag.exe"',
         '"tamandua-$releaseTag.msi"',
-        "asset_path: ./tamandua-setup-${{ needs.create-release.outputs.version }}.exe",
+        '"$($hash.Hash)  $file" | Out-File -FilePath "$file.sha256"',
         "asset_path: ./tamandua-${{ needs.create-release.outputs.version }}.msi",
+        "asset_name: tamandua-${{ needs.create-release.outputs.version }}.msi",
         "Cleanup Windows signing certificate",
     ]:
         check_contains(
@@ -12302,6 +12316,26 @@ def build_payload(
             marker,
             RELEASE_WORKFLOW,
         )
+    for marker in [
+        "makensis",
+        "tamandua.nsi",
+        "tamandua-setup-",
+        "Set-AuthenticodeSignature",
+    ]:
+        check(
+            checks,
+            f"{rel(RELEASE_WORKFLOW)} does not reference retired NSIS-era Windows installer marker {marker}",
+            marker in release_workflow_text,
+            False,
+            [rel(RELEASE_WORKFLOW)],
+        )
+    check(
+        checks,
+        f"{rel(RELEASE_WORKFLOW)} does not upload MSI .sha256 checksum as a release asset",
+        ".msi.sha256" in windows_release_block,
+        False,
+        [rel(RELEASE_WORKFLOW)],
+    )
     check(
         checks,
         f"{rel(RELEASE_WORKFLOW)} fails closed for Windows installer signing and upload",
@@ -12366,7 +12400,7 @@ def build_payload(
         'deploy/packages/yum/build-rpm.sh "${PACKAGE_VERSION}" "${{ matrix.arch }}"',
         "$PackageVersion = $VersionInput.TrimStart('v')",
         '$ReleaseTag = "v$PackageVersion"',
-        "releases/download/$ReleaseTag/tamandua-setup-$ReleaseTag.exe",
+        "releases/download/$ReleaseTag/tamandua-$ReleaseTag.msi",
         "deploy/packages/chocolatey/tools/chocolateyinstall.ps1",
         "Set-Content -Encoding utf8 deploy/packages/chocolatey/tamandua.nuspec",
         "$version = '[^']+'",
@@ -12457,7 +12491,12 @@ def build_payload(
         )
     for marker in [
         "$releaseTag = if ($version.StartsWith('v')) { $version } else { \"v$version\" }",
-        "releases/download/$releaseTag/tamandua-setup-$releaseTag.exe",
+        "releases/download/$releaseTag/tamandua-$releaseTag.msi",
+        "$installerType = 'msi'",
+        "$silentArgs = '/qn /norestart'",
+        "$validExitCodes = @(0, 3010, 1641)",
+        "$version = '0.1.0'",
+        "$checksum64 = 'PLACEHOLDER_SHA256'",
     ]:
         check_contains(
             checks,
@@ -12465,6 +12504,17 @@ def build_payload(
             chocolatey_install_script_text,
             marker,
             CHOCOLATEY_INSTALL_SCRIPT,
+        )
+    for path, text in [
+        (PUBLISH_PACKAGES_WORKFLOW, publish_packages_workflow_text),
+        (CHOCOLATEY_INSTALL_SCRIPT, chocolatey_install_script_text),
+    ]:
+        check(
+            checks,
+            f"{rel(path)} does not reference retired NSIS setup exe asset marker tamandua-setup-",
+            "tamandua-setup-" in text,
+            False,
+            [rel(path)],
         )
     for path, text in [
         (APT_BUILD_DEB, apt_build_deb_text),

@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/anti_cheat_unity_native_smoke_attempt_v1.schema.json",
+  "title": "Tamandua Unity hosted native smoke attempt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "state", "stage", "attempt", "hashes", "tests", "benchmark", "logs", "failure", "claims"],
+  "properties": {
+    "schema_version": {"const": "tamandua.anti_cheat.unity_native_smoke_attempt/v1"},
+    "evidence_class": {"const": "hosted_licensed_unity_native_smoke_attempt"},
+    "state": {"enum": ["attempt_started", "failed", "completed"]},
+    "stage": {"enum": ["registered", "input", "checkout", "native_build", "plugin_copy", "editmode", "playmode", "player_build", "benchmark", "complete", "workflow_terminal"]},
+    "attempt": {
+      "type": "object", "additionalProperties": false,
+      "required": ["run_id", "run_attempt", "source_sha", "workflow_sha", "unity_version", "runner_os", "runner_architecture", "run_root_id"],
+      "properties": {
+        "run_id": {"type": "string", "pattern": "^[1-9][0-9]*$"},
+        "run_attempt": {"type": "string", "pattern": "^[1-9][0-9]*$"},
+        "source_sha": {"$ref": "#/$defs/git_sha"},
+        "workflow_sha": {"$ref": "#/$defs/git_sha"},
+        "unity_version": {"const": "6000.3.16f1"},
+        "runner_os": {"const": "Windows"},
+        "runner_architecture": {"const": "x86_64"},
+        "run_root_id": {"type": "string", "pattern": "^unity-native-[1-9][0-9]*-[1-9][0-9]*-[0-9a-f]{40,64}$"}
+      }
+    },
+    "hashes": {
+      "type": "object", "additionalProperties": false,
+      "required": ["cargo_lock_sha256", "runtime_source_sha256", "c_header_sha256", "adapter_source_sha256", "benchmark_authority_source_sha256", "trace_writer_source_sha256", "native_plugin_sha256", "player_sha256", "player_manifest_sha256", "benchmark_sha256", "benchmark_trace_sha256"],
+      "properties": {
+        "cargo_lock_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "runtime_source_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "c_header_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "adapter_source_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "benchmark_authority_source_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "trace_writer_source_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "native_plugin_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "player_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "player_manifest_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "benchmark_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "benchmark_trace_sha256": {"$ref": "#/$defs/nullable_sha256"}
+      }
+    },
+    "tests": {
+      "type": "object", "additionalProperties": false,
+      "required": ["expected_total", "editmode", "playmode", "total"],
+      "properties": {
+        "expected_total": {"const": 18},
+        "editmode": {"type": ["integer", "null"], "minimum": 0, "maximum": 18},
+        "playmode": {"type": ["integer", "null"], "minimum": 0, "maximum": 18},
+        "total": {"type": ["integer", "null"], "minimum": 0, "maximum": 18}
+      }
+    },
+    "benchmark": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["warmup_frames", "sample_frames", "frame_delta_ms", "adapter_enqueue_us", "drops", "crashes", "peak_rss_bytes"],
+      "properties": {
+        "warmup_frames": {"type": "integer", "minimum": 2000},
+        "sample_frames": {"type": "integer", "minimum": 30000},
+        "frame_delta_ms": {"$ref": "#/$defs/percentiles"},
+        "adapter_enqueue_us": {"$ref": "#/$defs/percentiles"},
+        "drops": {"type": "integer", "minimum": 0},
+        "crashes": {"const": 0},
+        "peak_rss_bytes": {"type": "integer", "minimum": 1}
+      }
+    },
+    "logs": {
+      "type": "array", "maxItems": 12,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["name", "path", "bytes", "sha256", "truncated"],
+        "properties": {
+          "name": {"type": "string", "pattern": "^[a-z0-9_-]{1,40}$"},
+          "path": {"type": "string", "pattern": "^logs/[a-z0-9_.-]+\\.(stdout|stderr|log)$"},
+          "bytes": {"type": "integer", "minimum": 0, "maximum": 65536},
+          "sha256": {"$ref": "#/$defs/sha256"},
+          "truncated": {"type": "boolean"}
+        }
+      }
+    },
+    "failure": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["category", "exit_code"],
+          "properties": {
+            "category": {"enum": ["input", "checkout", "toolchain", "native_build", "plugin", "editmode", "playmode", "player_build", "benchmark", "benchmark_receipt_missing", "trace_missing", "trace_writer_missing", "contract_failed", "cancelled", "internal"]},
+            "exit_code": {"type": "integer", "minimum": 1, "maximum": 2147483647}
+          }
+        }
+      ]
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["runtime_claimable", "performance_claimable", "product_ready", "production_ready", "parity_claimable", "external_claim_allowed", "independently_validated"],
+      "properties": {
+        "runtime_claimable": {"const": false},
+        "performance_claimable": {"const": false},
+        "product_ready": {"const": false},
+        "production_ready": {"const": false},
+        "parity_claimable": {"const": false},
+        "external_claim_allowed": {"const": false},
+        "independently_validated": {"const": false}
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"state": {"const": "completed"}}},
+      "then": {
+        "properties": {
+          "stage": {"const": "complete"},
+          "failure": {"type": "null"},
+          "tests": {"properties": {"total": {"const": 18}}},
+          "benchmark": {"type": "object"},
+          "hashes": {
+            "properties": {
+              "cargo_lock_sha256": {"$ref": "#/$defs/sha256"},
+              "runtime_source_sha256": {"$ref": "#/$defs/sha256"},
+              "c_header_sha256": {"$ref": "#/$defs/sha256"},
+              "adapter_source_sha256": {"$ref": "#/$defs/sha256"},
+              "benchmark_authority_source_sha256": {"$ref": "#/$defs/sha256"},
+              "trace_writer_source_sha256": {"$ref": "#/$defs/sha256"},
+              "native_plugin_sha256": {"$ref": "#/$defs/sha256"},
+              "player_sha256": {"$ref": "#/$defs/sha256"},
+              "player_manifest_sha256": {"$ref": "#/$defs/sha256"},
+              "benchmark_sha256": {"$ref": "#/$defs/sha256"},
+              "benchmark_trace_sha256": {"$ref": "#/$defs/sha256"}
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {"properties": {"state": {"const": "failed"}}},
+      "then": {"properties": {"failure": {"type": "object"}}}
+    }
+  ],
+  "$defs": {
+    "git_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullable_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+    "percentiles": {
+      "type": "object", "additionalProperties": false,
+      "required": ["p50", "p95", "p99"],
+      "properties": {
+        "p50": {"type": "number", "minimum": 0},
+        "p95": {"type": "number", "minimum": 0},
+        "p99": {"type": "number", "minimum": 0}
+      }
+    }
+  }
+}

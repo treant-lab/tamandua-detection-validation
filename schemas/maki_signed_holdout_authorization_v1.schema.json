@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/maki_signed_holdout_authorization_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["payload", "signature"],
+  "properties": {
+    "payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema", "authorization_id", "purpose", "deployment_id", "source_sha", "promotion_manifest_sha256", "holdout_dry_run_sha256", "holdout_preflight_schema_sha256", "selection_digest", "selected_count", "destination", "publisher", "custodian", "issued_at", "expires_at"],
+      "properties": {
+        "schema": {"const": "tamandua.maki.signed-holdout-authorization/v1"},
+        "authorization_id": {"type": "string", "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._:-]{7,127}$"},
+        "purpose": {"const": "holdout-corpus-publisher-preflight"},
+        "deployment_id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+        "promotion_manifest_sha256": {"$ref": "#/$defs/sha256"},
+        "holdout_dry_run_sha256": {"$ref": "#/$defs/sha256"},
+        "holdout_preflight_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "selection_digest": {"$ref": "#/$defs/sha256"},
+        "selected_count": {"type": "integer", "minimum": 1, "maximum": 1000000},
+        "destination": {
+          "type": "object", "additionalProperties": false,
+          "required": ["bucket", "prefix"],
+          "properties": {"bucket": {"type": "string", "minLength": 3, "maxLength": 255}, "prefix": {"const": "holdout/"}}
+        },
+        "publisher": {"$ref": "#/$defs/principal"},
+        "custodian": {"$ref": "#/$defs/principal"},
+        "issued_at": {"type": "string", "format": "date-time"},
+        "expires_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "signature": {
+      "type": "object", "additionalProperties": false,
+      "required": ["algorithm", "key_id", "signature_b64"],
+      "properties": {
+        "algorithm": {"const": "Ed25519"},
+        "key_id": {"type": "string", "minLength": 1, "maxLength": 160},
+        "signature_b64": {"type": "string", "minLength": 88, "maxLength": 88}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "principal": {
+      "type": "object", "additionalProperties": false,
+      "required": ["owner", "key_id"],
+      "properties": {"owner": {"type": "string", "minLength": 1, "maxLength": 160}, "key_id": {"type": "string", "minLength": 1, "maxLength": 160}}
+    }
+  }
+}

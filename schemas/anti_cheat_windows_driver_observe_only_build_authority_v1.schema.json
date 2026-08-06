@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/anti_cheat_windows_driver_observe_only_build_authority_v1.schema.json",
+  "title": "Tamandua Windows observe-only driver detached build authority v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "created_at", "evidence_class", "roles", "roles_sha256", "python", "invocation", "claims"],
+  "properties": {
+    "schema_version": {"const": "tamandua.anti_cheat_windows_driver_observe_only_build_authority/v1"},
+    "created_at": {"type": "string", "format": "date-time"},
+    "evidence_class": {"const": "detached_canonical_freeze_authority"},
+    "roles": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        {"allOf": [{"$ref": "#/$defs/fileIdentity"}, {"properties": {"role": {"const": "gate_entrypoint"}}}]},
+        {"allOf": [{"$ref": "#/$defs/fileIdentity"}, {"properties": {"role": {"const": "receipt_schema_v2"}}}]},
+        {"allOf": [{"$ref": "#/$defs/fileIdentity"}, {"properties": {"role": {"const": "focused_tests"}}}]},
+        {"allOf": [{"$ref": "#/$defs/fileIdentity"}, {"properties": {"role": {"const": "python_executable"}}}]}
+      ],
+      "items": false
+    },
+    "roles_sha256": {"$ref": "#/$defs/sha256"},
+    "python": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["implementation", "version", "version_info"],
+      "properties": {
+        "implementation": {"type": "string", "minLength": 1, "maxLength": 64},
+        "version": {"type": "string", "minLength": 1, "maxLength": 256},
+        "version_info": {
+          "type": "array", "minItems": 3, "maxItems": 5,
+          "items": {"type": "integer", "minimum": 0, "maximum": 999}
+        }
+      }
+    },
+    "invocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_path_token", "configuration", "platform", "observe_only", "wdk_version", "timeout_seconds", "project", "msbuild", "output", "receipt", "argv_contract_sha256"],
+      "properties": {
+        "authority_path_token": {"$ref": "#/$defs/sha256"},
+        "configuration": {"const": "Release"},
+        "platform": {"const": "x64"},
+        "observe_only": {"const": "1"},
+        "wdk_version": {"const": "10.0.26100.0"},
+        "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 3600},
+        "project": {"allOf": [{"$ref": "#/$defs/fileIdentity"}, {"properties": {"role": {"const": "project"}, "basename": {"const": "tamandua_driver.vcxproj"}}}]},
+        "msbuild": {"allOf": [{"$ref": "#/$defs/fileIdentity"}, {"properties": {"role": {"const": "msbuild"}, "basename": {"const": "MSBuild.exe"}}}]},
+        "output": {"$ref": "#/$defs/futurePath"},
+        "receipt": {"$ref": "#/$defs/futurePath"},
+        "argv_contract_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "claims": {"$ref": "#/$defs/falseClaims"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "fileIdentity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "basename", "path_token", "size", "sha256"],
+      "properties": {
+        "role": {"type": "string", "minLength": 1},
+        "basename": {"type": "string", "minLength": 1},
+        "path_token": {"$ref": "#/$defs/sha256"},
+        "size": {"type": "integer", "minimum": 1, "maximum": 536870912},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "futurePath": {
+      "type": "object", "additionalProperties": false,
+      "required": ["basename", "path_token", "parent_token"],
+      "properties": {
+        "basename": {"type": "string", "minLength": 1, "maxLength": 255},
+        "path_token": {"$ref": "#/$defs/sha256"},
+        "parent_token": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "falseClaims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["build_executed", "build_validated", "link_validated", "signed", "installed", "loaded", "driver_communication_validated", "runtime_validated", "efficacy_validated", "production_ready", "external_claim_allowed"],
+      "properties": {
+        "build_executed": {"const": false}, "build_validated": {"const": false},
+        "link_validated": {"const": false}, "signed": {"const": false},
+        "installed": {"const": false}, "loaded": {"const": false},
+        "driver_communication_validated": {"const": false}, "runtime_validated": {"const": false},
+        "efficacy_validated": {"const": false}, "production_ready": {"const": false},
+        "external_claim_allowed": {"const": false}
+      }
+    }
+  }
+}

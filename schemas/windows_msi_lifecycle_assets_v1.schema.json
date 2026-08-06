@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.treantlab.org/schemas/windows_msi_lifecycle_assets_v1.schema.json",
+  "title": "Tamandua Windows MSI lifecycle assets v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "source_sha", "target", "profile", "assets"],
+  "properties": {
+    "schema_version": { "const": "tamandua.windows_lifecycle_assets/v1" },
+    "source_sha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "target": { "const": "x86_64-pc-windows-msvc" },
+    "profile": { "const": "release" },
+    "assets": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "prefixItems": [
+        { "$ref": "#/$defs/helper" },
+        { "$ref": "#/$defs/facade" },
+        { "$ref": "#/$defs/runner" },
+        { "$ref": "#/$defs/componentManifest" }
+      ],
+      "items": false
+    }
+  },
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "sha256", "size"],
+      "properties": {
+        "name": { "type": "string" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+        "size": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "helper": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        { "properties": {
+          "name": { "const": "tamandua-windows-lifecycle-helper.exe" },
+          "size": { "maximum": 33554432 }
+        } }
+      ]
+    },
+    "facade": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        { "properties": {
+          "name": { "const": "session-broker-lifecycle.ps1" },
+          "size": { "maximum": 1048576 }
+        } }
+      ]
+    },
+    "runner": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        { "properties": {
+          "name": { "const": "invoke-session-broker-lifecycle-phase.ps1" },
+          "size": { "maximum": 1048576 }
+        } }
+      ]
+    },
+    "componentManifest": {
+      "allOf": [
+        { "$ref": "#/$defs/asset" },
+        { "properties": {
+          "name": { "const": "tamandua-windows-component-set-v1.json" },
+          "size": { "maximum": 12288 }
+        } }
+      ]
+    }
+  }
+}

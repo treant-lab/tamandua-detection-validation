@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/deployment_intent_v1.schema.json",
+  "title": "Tamandua immutable deployment intent v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["deployment_id", "source_sha", "target", "surface", "artifact_digest"],
+  "properties": {
+    "deployment_id": {"type": "string", "minLength": 1, "maxLength": 160, "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,159}$"},
+    "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+    "target": {"type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"},
+    "surface": {"type": "string", "minLength": 1, "maxLength": 80, "pattern": "^[a-z0-9][a-z0-9._-]{0,79}$"},
+    "artifact_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "artifact_uri": {"type": "string", "minLength": 1, "maxLength": 2048},
+    "metadata": {"type": "object"}
+  }
+}

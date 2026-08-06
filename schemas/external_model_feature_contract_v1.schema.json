@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/external_model_feature_contract_v1.schema.json",
+  "title": "Tamandua External Model Feature Contract v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "contract_id", "extractor", "input", "features", "supported_formats", "missing_feature_policy", "output", "contract_sha256"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/external-model-feature-contract/v1"},
+    "contract_id": {"type": "string", "minLength": 5},
+    "extractor": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "version", "implementation_sha256"],
+      "properties": {
+        "name": {"type": "string", "minLength": 2},
+        "version": {"type": "string", "minLength": 1},
+        "implementation_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "input": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dtype", "shape", "byte_order"],
+      "properties": {
+        "dtype": {"enum": ["float32", "float64", "int32", "int64"]},
+        "shape": {"type": "array", "minItems": 2, "maxItems": 2, "prefixItems": [{"const": 1}, {"type": "integer", "minimum": 1}]},
+        "byte_order": {"enum": ["native", "little", "big", "not_applicable"]}
+      }
+    },
+    "features": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["index", "name", "normalization"],
+        "properties": {
+          "index": {"type": "integer", "minimum": 0},
+          "name": {"type": "string", "minLength": 1},
+          "normalization": {"type": "string", "minLength": 1},
+          "default": {"type": ["number", "null"]}
+        }
+      }
+    },
+    "supported_formats": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["pe", "elf", "macho", "apk", "pdf"]}},
+    "missing_feature_policy": {"enum": ["reject", "degraded", "impute_contract_default"]},
+    "output": {
+      "type": "object", "additionalProperties": false,
+      "required": ["dtype", "score_orientation", "threshold", "calibration"],
+      "properties": {
+        "dtype": {"enum": ["float32", "float64"]},
+        "score_orientation": {"enum": ["higher_is_more_malicious", "lower_is_more_malicious"]},
+        "threshold": {
+          "type": ["number", "null"],
+          "description": "Frozen decision threshold, or null when the contract is score-only and cannot emit a verdict."
+        },
+        "calibration": {"type": "string", "minLength": 1}
+      }
+    },
+    "contract_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

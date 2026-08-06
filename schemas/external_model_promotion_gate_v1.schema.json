@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/external_model_promotion_gate_v1.schema.json",
+  "title": "Tamandua External Model Promotion Gate v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "generated_at", "mode", "target", "decision", "may_execute_model", "may_publish_claim", "candidate", "benchmark_evidence", "static_scans", "promotion_blockers", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/external-model-promotion-gate/v1"},
+    "kind": {"const": "ExternalModelPromotionGateReport"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "mode": {"const": "offline_static_no_execution"},
+    "target": {"enum": ["offline_benchmark", "server_shadow", "endpoint_shadow"]},
+    "decision": {"enum": ["eligible_for_manual_review", "blocked"]},
+    "may_execute_model": {"const": false},
+    "may_publish_claim": {"const": false},
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["model_id", "status", "artifact_format", "artifact_sha256", "source_uri", "source_revision", "license_name", "license_usage"],
+      "properties": {
+        "model_id": {"type": "string", "minLength": 1}, "status": {"type": "string"},
+        "artifact_format": {"type": ["string", "null"]}, "artifact_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+        "source_uri": {"type": ["string", "null"]}, "source_revision": {"type": ["string", "null"]},
+        "license_name": {"type": ["string", "null"]}, "license_usage": {"type": ["string", "null"]}
+      }
+    },
+    "benchmark_evidence": {
+      "type": "object", "additionalProperties": false, "required": ["class", "path", "artifact_sha256"],
+      "properties": {"class": {"type": ["string", "null"]}, "path": {"type": "string"}, "artifact_sha256": {"type": ["string", "null"]}}
+    },
+    "static_scans": {
+      "type": "array", "minItems": 2,
+      "items": {"type": "object", "additionalProperties": false, "required": ["engine", "status", "findings"], "properties": {
+        "engine": {"type": "string", "minLength": 2}, "status": {"enum": ["clean", "threat", "error", "unsupported"]},
+        "findings": {"type": "array", "items": {"type": "string"}}
+      }}
+    },
+    "promotion_blockers": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "claim_boundary": {"type": "string", "minLength": 40}
+  }
+}

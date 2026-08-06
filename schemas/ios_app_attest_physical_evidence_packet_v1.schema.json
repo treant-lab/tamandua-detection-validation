@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ios_app_attest_physical_evidence_packet_v1.schema.json",
+  "title": "Tamandua iOS App Attest pending physical evidence packet v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "evidence_class", "decision", "plan_digest", "source_set_digest", "loop161_authority_digest", "role_categories", "scenario_categories", "prerequisite_categories", "ownership", "privacy", "retention", "operations", "observations", "outcomes", "claims", "packet_digest"],
+  "properties": {
+    "schema": {"const": "tamandua.ios_app_attest.physical_evidence_packet/v1"},
+    "evidence_class": {"const": "source_only_pending_evidence_packet"},
+    "decision": {"const": "hold"},
+    "plan_digest": {"$ref": "#/$defs/sha256"},
+    "source_set_digest": {"$ref": "#/$defs/sha256"},
+    "loop161_authority_digest": {"$ref": "#/$defs/sha256"},
+    "packet_digest": {"$ref": "#/$defs/sha256"},
+    "role_categories": {
+      "type": "array", "minItems": 3, "maxItems": 3, "items": false,
+      "prefixItems": [
+        {"$ref":"#/$defs/role_primary"}, {"$ref":"#/$defs/role_peer"}, {"$ref":"#/$defs/role_control"}
+      ]
+    },
+    "scenario_categories": {
+      "type": "array", "minItems": 20, "maxItems": 20, "items": false,
+      "prefixItems": [
+        {"$ref":"#/$defs/scenario_01"},{"$ref":"#/$defs/scenario_02"},{"$ref":"#/$defs/scenario_03"},{"$ref":"#/$defs/scenario_04"},{"$ref":"#/$defs/scenario_05"},
+        {"$ref":"#/$defs/scenario_06"},{"$ref":"#/$defs/scenario_07"},{"$ref":"#/$defs/scenario_08"},{"$ref":"#/$defs/scenario_09"},{"$ref":"#/$defs/scenario_10"},
+        {"$ref":"#/$defs/scenario_11"},{"$ref":"#/$defs/scenario_12"},{"$ref":"#/$defs/scenario_13"},{"$ref":"#/$defs/scenario_14"},{"$ref":"#/$defs/scenario_15"},
+        {"$ref":"#/$defs/scenario_16"},{"$ref":"#/$defs/scenario_17"},{"$ref":"#/$defs/scenario_18"},{"$ref":"#/$defs/scenario_19"},{"$ref":"#/$defs/scenario_20"}
+      ]
+    },
+    "prerequisite_categories": {"type":"array","minItems":18,"maxItems":18,"items":{"$ref":"#/$defs/prerequisite"}},
+    "ownership": {"$ref":"#/$defs/ownership"},
+    "privacy": {"$ref":"#/$defs/privacy"},
+    "retention": {"type":"object","additionalProperties":false,"required":["ttl_seconds","access_category","deletion_category","raw_artifact_retention"],"properties":{"ttl_seconds":{"const":604800},"access_category":{"const":"least_privilege_reviewers_only"},"deletion_category":{"const":"delete_on_ttl_expiry_or_authority_revocation"},"raw_artifact_retention":{"const":false}}},
+    "operations": {"$ref":"#/$defs/compiler_operations"},
+    "observations": {"$ref":"#/$defs/compiler_observations"},
+    "outcomes": {"$ref":"#/$defs/compiler_outcomes"},
+    "claims": {"$ref":"#/$defs/false_map"}
+  },
+  "$defs": {
+    "sha256":{"type":"string","pattern":"^[a-f0-9]{64}$"},
+    "ownership":{"type":"object","additionalProperties":false,"required":["mobile","server"],"properties":{"mobile":{"const":"categorical_collection_only"},"server":{"const":"challenge_counter_replay_rebind_authority"}}},
+    "role":{"type":"object","additionalProperties":false,"required":["role","denominator","role_binding_digest"],"properties":{"role":{"enum":["supported_primary","supported_peer","unsupported_control"]},"denominator":{"enum":["supported","control_excluded"]},"role_binding_digest":{"$ref":"#/$defs/sha256"}}},
+    "role_primary":{"allOf":[{"$ref":"#/$defs/role"},{"properties":{"role":{"const":"supported_primary"},"denominator":{"const":"supported"}}}]},
+    "role_peer":{"allOf":[{"$ref":"#/$defs/role"},{"properties":{"role":{"const":"supported_peer"},"denominator":{"const":"supported"}}}]},
+    "role_control":{"allOf":[{"$ref":"#/$defs/role"},{"properties":{"role":{"const":"unsupported_control"},"denominator":{"const":"control_excluded"}}}]},
+    "scenario":{"type":"object","additionalProperties":false,"required":["ordinal","id","type","role","reference_ordinals","expected_loop161_outcome","expected_server_category","expected_campaign_decision","state","scenario_digest","observation_digest"],"properties":{"ordinal":{"type":"integer"},"id":{"type":"string"},"type":{"type":"string"},"role":{"enum":["supported_primary","supported_peer","unsupported_control"]},"reference_ordinals":{"type":"array","items":{"type":"integer"},"uniqueItems":true},"expected_loop161_outcome":{"enum":["hold","continue_requires_fresh_assertion","step_up_rebind_required","candidate_rebind_required","unsupported","not_applicable_requires_cross_tenant_observation"]},"expected_server_category":{"type":"string"},"expected_campaign_decision":{"const":"hold"},"state":{"const":"pending"},"scenario_digest":{"$ref":"#/$defs/sha256"},"observation_digest":{"type":"null"}}},
+    "scenario_01":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":1},"id":{"const":"first_bind"}}}]},
+    "scenario_02":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":2},"id":{"const":"normal_fresh_assertion"}}}]},
+    "scenario_03":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":3},"id":{"const":"app_update"}}}]},
+    "scenario_04":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":4},"id":{"const":"os_update"}}}]},
+    "scenario_05":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":5},"id":{"const":"missing_key"}}}]},
+    "scenario_06":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":6},"id":{"const":"inaccessible_key"}}}]},
+    "scenario_07":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":7},"id":{"const":"invalid_key"}}}]},
+    "scenario_08":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":8},"id":{"const":"authorized_candidate_rotation"}}}]},
+    "scenario_09":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":9},"id":{"const":"unauthorized_rebind_denial"}}}]},
+    "scenario_10":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":10},"id":{"const":"reinstall_ambiguity"}}}]},
+    "scenario_11":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":11},"id":{"const":"restore_ambiguity"}}}]},
+    "scenario_12":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":12},"id":{"const":"replayed_assertion"}}}]},
+    "scenario_13":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":13},"id":{"const":"regressed_counter"}}}]},
+    "scenario_14":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":14},"id":{"const":"unknown_counter"}}}]},
+    "scenario_15":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":15},"id":{"const":"same_key_reference_drift"}}}]},
+    "scenario_16":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":16},"id":{"const":"cross_device_clone_attempt"}}}]},
+    "scenario_17":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":17},"id":{"const":"cross_tenant_unlinkability"}}}]},
+    "scenario_18":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":18},"id":{"const":"cross_install_profile_environment_drift"}}}]},
+    "scenario_19":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":19},"id":{"const":"supported_peer_control"}}}]},
+    "scenario_20":{"allOf":[{"$ref":"#/$defs/scenario"},{"properties":{"ordinal":{"const":20},"id":{"const":"unsupported_or_simulator_control"},"role":{"const":"unsupported_control"},"expected_loop161_outcome":{"const":"unsupported"}}}]},
+    "prerequisite":{"type":"object","additionalProperties":false,"required":["id","owner","status","evidence_digest","prerequisite_digest"],"properties":{"id":{"type":"string"},"owner":{"enum":["mobile_collector_owner","apple_credential_custodian","server_verifier_backend_owner","privacy_reviewer","independent_reviewer","target_lease_operator"]},"status":{"const":"pending"},"evidence_digest":{"type":"null"},"prerequisite_digest":{"$ref":"#/$defs/sha256"}}},
+    "privacy":{"type":"object","additionalProperties":false,"required":["raw_provider_key_id_forbidden","attestation_blob_forbidden","assertion_blob_forbidden","challenge_or_nonce_forbidden","token_or_credential_forbidden","serial_or_idfv_forbidden","account_data_forbidden","private_key_material_forbidden","categories_and_sha256_digests_only"],"properties":{"raw_provider_key_id_forbidden":{"const":true},"attestation_blob_forbidden":{"const":true},"assertion_blob_forbidden":{"const":true},"challenge_or_nonce_forbidden":{"const":true},"token_or_credential_forbidden":{"const":true},"serial_or_idfv_forbidden":{"const":true},"account_data_forbidden":{"const":true},"private_key_material_forbidden":{"const":true},"categories_and_sha256_digests_only":{"const":true}}},
+    "compiler_operations":{"type":"object","additionalProperties":false,"required":["scope","compiler_owned_apple_service_calls","compiler_owned_device_operations","compiler_owned_native_calls","compiler_owned_network_calls","compiler_owned_server_calls","compiler_owned_backend_mutations","compiler_owned_identity_mutations"],"properties":{"scope":{"const":"compiler_owned_capabilities_only"},"compiler_owned_apple_service_calls":{"const":0},"compiler_owned_device_operations":{"const":0},"compiler_owned_native_calls":{"const":0},"compiler_owned_network_calls":{"const":0},"compiler_owned_server_calls":{"const":0},"compiler_owned_backend_mutations":{"const":0},"compiler_owned_identity_mutations":{"const":0}}},
+    "compiler_observations":{"type":"object","additionalProperties":false,"required":["compiler_owned_physical_observations","compiler_owned_assertion_observations","compiler_owned_counter_observations","compiler_owned_replay_observations","compiler_owned_clone_observations","compiler_owned_rebind_observations"],"properties":{"compiler_owned_physical_observations":{"const":0},"compiler_owned_assertion_observations":{"const":0},"compiler_owned_counter_observations":{"const":0},"compiler_owned_replay_observations":{"const":0},"compiler_owned_clone_observations":{"const":0},"compiler_owned_rebind_observations":{"const":0}}},
+    "compiler_outcomes":{"type":"object","additionalProperties":false,"required":["compiler_owned_verified","compiler_owned_rejected","compiler_owned_unsupported","compiler_owned_hold"],"properties":{"compiler_owned_verified":{"const":0},"compiler_owned_rejected":{"const":0},"compiler_owned_unsupported":{"const":0},"compiler_owned_hold":{"const":0}}},
+    "false_map":{"type":"object","additionalProperties":false,"required":["physical_device_validated","hardware_uniqueness_validated","continuity_validated","replay_resistance_validated","clone_resistance_validated","cross_tenant_unlinkability_validated","rebind_safety_validated","global_hardware_guid_validated","product_ready","production_ready","external_claim_allowed","verimatrix_parity"],"properties":{"physical_device_validated":{"const":false},"hardware_uniqueness_validated":{"const":false},"continuity_validated":{"const":false},"replay_resistance_validated":{"const":false},"clone_resistance_validated":{"const":false},"cross_tenant_unlinkability_validated":{"const":false},"rebind_safety_validated":{"const":false},"global_hardware_guid_validated":{"const":false},"product_ready":{"const":false},"production_ready":{"const":false},"external_claim_allowed":{"const":false},"verimatrix_parity":{"const":false}}}
+  }
+}

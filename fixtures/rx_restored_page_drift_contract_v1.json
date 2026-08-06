@@ -1,0 +1,112 @@
+{
+  "api_version": "tamandua.io/rx-restored-page-drift-contract/v1",
+  "fixture_id": "rx-restored-page-drift-contract-v1",
+  "description": "Synthetic local replay for executable page-content drift after permissions are restored to RX.",
+  "evidence_class": "synthetic_lab_contract",
+  "execution_scope": "local",
+  "external_claim_allowed": false,
+  "claim_boundary": "Synthetic local contract replay only. It does not prove live-host collection, inline-hook detection efficacy, production readiness, false-positive rate, or parity with any vendor.",
+  "source_contract": "future runtime_integrity page-content extension; no production collector is changed by this fixture",
+  "privacy_contract": {
+    "evidence_shape": "metadata_only",
+    "forbid_paths": true,
+    "forbid_addresses": true,
+    "forbid_raw_bytes": true
+  },
+  "platform_contract": {
+    "supported_platforms": ["android", "linux"],
+    "required_states": ["supported", "degraded", "unsupported"],
+    "unsupported_behavior": "explicit_state_with_no_findings_and_non_empty_limitations"
+  },
+  "scenarios": [
+    {
+      "id": "unchanged-rx-page-is-suppressed",
+      "evidence": {
+        "platform": "linux",
+        "state": "supported",
+        "page_state": "rx_restored",
+        "baseline_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "observed_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "allowlist_context": "none",
+        "findings": [],
+        "limitations": ["synthetic page digest replay"]
+      },
+      "expected_result": {"decision": "suppress", "severity": "info"}
+    },
+    {
+      "id": "rx-restored-drift-alerts",
+      "evidence": {
+        "platform": "linux",
+        "state": "supported",
+        "page_state": "rx_restored",
+        "baseline_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "observed_digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "allowlist_context": "none",
+        "findings": [
+          {
+            "kind": "rx_restored_page_drift",
+            "evidence": "executable page digest changed after write permission was removed"
+          }
+        ],
+        "limitations": ["synthetic digest replay; relocation handling is modelled"]
+      },
+      "expected_result": {"decision": "alert", "severity": "high"}
+    },
+    {
+      "id": "benign-relocation-drift-is-suppressed",
+      "evidence": {
+        "platform": "linux",
+        "state": "supported",
+        "page_state": "rx_restored",
+        "baseline_digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "observed_digest": "sha256:eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "allowlist_context": "benign_relocation",
+        "findings": [],
+        "limitations": ["synthetic relocation allowlist replay"]
+      },
+      "expected_result": {"decision": "suppress", "severity": "info"}
+    },
+    {
+      "id": "managed-jit-drift-is-suppressed",
+      "evidence": {
+        "platform": "android",
+        "state": "supported",
+        "page_state": "rx_restored",
+        "baseline_digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+        "observed_digest": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+        "allowlist_context": "managed_jit",
+        "findings": [],
+        "limitations": ["synthetic JIT allowlist replay"]
+      },
+      "expected_result": {"decision": "suppress", "severity": "info"}
+    },
+    {
+      "id": "collector-degraded-is-explicit",
+      "evidence": {
+        "platform": "android",
+        "state": "degraded",
+        "page_state": "unavailable",
+        "baseline_digest": null,
+        "observed_digest": null,
+        "allowlist_context": "none",
+        "findings": [],
+        "limitations": ["page digest sampling unavailable"]
+      },
+      "expected_result": {"decision": "degraded", "severity": "low"}
+    },
+    {
+      "id": "unsupported-platform-is-explicit",
+      "evidence": {
+        "platform": "other",
+        "state": "unsupported",
+        "page_state": "unsupported",
+        "baseline_digest": null,
+        "observed_digest": null,
+        "allowlist_context": "none",
+        "findings": [],
+        "limitations": ["page-content drift sampling is unsupported on this platform"]
+      },
+      "expected_result": {"decision": "unsupported", "severity": "low"}
+    }
+  ]
+}

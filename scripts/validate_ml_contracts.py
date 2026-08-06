@@ -31,6 +31,7 @@ DEFAULT_DATASET_MANIFEST = ROOT / "docs/apps/tamandua_ml/examples/ml_dataset_man
 DEFAULT_BENCHMARK_REPORT = ROOT / "docs/apps/tamandua_ml/examples/ml_benchmark_report_smoke_v1.json"
 DEFAULT_MODEL_CONTRACT = ROOT / "docs/apps/tamandua_ml/examples/ml_model_contract_malware_smell_onnx_v1.json"
 DATASET_SCHEMA = ROOT / "schemas/ml_dataset_manifest_v1.schema.json"
+GOVERNED_DATASET_SCHEMA = ROOT / "schemas/ml_dataset_manifest_v2.schema.json"
 BENCHMARK_SCHEMA = ROOT / "schemas/ml_benchmark_report_v1.schema.json"
 MODEL_CONTRACT_SCHEMA = ROOT / "schemas/ml_model_contract_v1.schema.json"
 AGENT_PARITY_FIXTURE_SCHEMA = ROOT / "schemas/ml_agent_parity_fixture_v1.schema.json"
@@ -128,6 +129,7 @@ def normalize_iso_datetime(value: str) -> str:
     return re.sub(r"(\.\d{6})\d+(Z|[+-]\d{2}:\d{2})$", r"\1\2", value)
 
 DATASET_API_VERSION = "tamandua.io/ml-dataset-manifest/v1"
+GOVERNED_DATASET_API_VERSION = "tamandua.io/ml-dataset-manifest/v2"
 BENCHMARK_API_VERSION = "tamandua.io/ml-benchmark-report/v1"
 MODEL_CONTRACT_API_VERSION = "tamandua.io/ml-model-contract/v1"
 AGENT_PARITY_FIXTURE_API_VERSION = "tamandua.io/ml-agent-parity-fixture/v1"
@@ -909,6 +911,9 @@ def validate_quality_gate(obj: dict[str, Any], path: str) -> None:
 
 
 def validate_dataset_manifest(data: dict[str, Any], path: Path) -> None:
+    if data.get("api_version") == GOVERNED_DATASET_API_VERSION:
+        validate_governed_dataset_manifest_v2(data, path)
+        return
     require_keys(data, {"api_version", "kind", "metadata", "storage", "sources", "splits", "samples", "quality_gates"}, str(path))
     if data["api_version"] != DATASET_API_VERSION:
         raise ContractError(f"{path}: invalid api_version {data['api_version']!r}")
@@ -1003,6 +1008,117 @@ def validate_dataset_manifest(data: dict[str, Any], path: Path) -> None:
             raise ContractError(f"{path}.samples: training manifests must include train, validation, and test splits")
 
     validate_quality_gate(require_object(data["quality_gates"], f"{path}.quality_gates"), f"{path}.quality_gates")
+
+
+def validate_governed_dataset_manifest_v2(data: dict[str, Any], path: Path) -> None:
+    require_keys(data, {"api_version", "kind", "evidence_class", "ready_for_training", "blockers", "dataset_snapshot_sha256", "inputs", "policy", "counts", "claim_boundary", "samples", "rejections"}, str(path))
+    if data["kind"] != "MLDatasetManifest" or data["evidence_class"] != "governed_version_pinned_dataset_snapshot":
+        raise ContractError(f"{path}: invalid governed dataset identity")
+    policy = require_object(data["policy"], f"{path}.policy")
+    required_policy = {
+        "validation_assignment": "explicit_receipt_temporal_grouped",
+        "holdout_temporal_rule": "accepted_max_before_holdout_min_per_label",
+        "holdout_excluded_from_training": True,
+        "requires_post_copy_verification": True,
+        "requires_version_pinned_objects": True,
+        "requires_explicit_provenance": True,
+        "requires_group_disjoint_splits": True,
+        "requires_train_before_validation": True,
+        "requires_accepted_before_holdout": True,
+    }
+    for name, expected in required_policy.items():
+        if policy.get(name) != expected:
+            raise ContractError(f"{path}.policy.{name}: must be {expected!r}")
+    accepted_target = policy.get("accepted_target_per_class")
+    holdout_target = policy.get("holdout_target_per_class")
+    for name, value in (("accepted_target_per_class", accepted_target), ("holdout_target_per_class", holdout_target)):
+        if not isinstance(value, int) or isinstance(value, bool) or value < 1:
+            raise ContractError(f"{path}.policy.{name}: must be a positive integer")
+    samples = require_array(data["samples"], f"{path}.samples")
+    seen: set[str] = set()
+    recount: dict[tuple[str, str], int] = {(split, label): 0 for split in ("train", "validation", "holdout") for label in ("goodware", "malware")}
+    group_splits: dict[str, set[str]] = {}
+    observed: dict[tuple[str, str], list[datetime]] = {}
+    required_hashes = ("source_evidence_sha256", "curation_manifest_sha256", "promotion_manifest_sha256")
+    for index, value in enumerate(samples):
+        sample = require_object(value, f"{path}.samples[{index}]")
+        require_keys(sample, {"sample_id", "sha256", "size_bytes", "label", "split", "source_id", "source_evidence_sha256", "leakage_group_id", "observed_at", "storage_ref", "version_id", "checksum_sha256", "curation_manifest_sha256", "promotion_manifest_sha256", "post_copy_verified"}, f"{path}.samples[{index}]")
+        sha256 = str(sample["sha256"])
+        if not SHA256_RE.fullmatch(sha256) or sha256 in seen:
+            raise ContractError(f"{path}.samples[{index}].sha256: invalid or duplicate")
+        seen.add(sha256)
+        if sample["sample_id"] != sha256 or sample["checksum_sha256"] != sha256:
+            raise ContractError(f"{path}.samples[{index}]: sample/checksum identity mismatch")
+        if sample["label"] not in {"goodware", "malware"} or sample["split"] not in {"train", "validation", "holdout"}:
+            raise ContractError(f"{path}.samples[{index}]: invalid label or split")
+        if not str(sample["storage_ref"]).startswith("s3://") or not str(sample["version_id"]).strip():
+            raise ContractError(f"{path}.samples[{index}]: governed storage must be S3 version-pinned")
+        if sample["post_copy_verified"] is not True:
+            raise ContractError(f"{path}.samples[{index}].post_copy_verified: must be true")
+        for field in required_hashes:
+            if not SHA256_RE.fullmatch(str(sample[field])):
+                raise ContractError(f"{path}.samples[{index}].{field}: invalid SHA-256")
+        group = str(sample["leakage_group_id"])
+        if not group or not str(sample["source_id"]):
+            raise ContractError(f"{path}.samples[{index}]: source and leakage group are required")
+        try:
+            timestamp = datetime.fromisoformat(str(sample["observed_at"]).replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ContractError(f"{path}.samples[{index}].observed_at: invalid timestamp") from exc
+        if timestamp.tzinfo is None:
+            raise ContractError(f"{path}.samples[{index}].observed_at: timezone required")
+        split, label = str(sample["split"]), str(sample["label"])
+        group_splits.setdefault(group, set()).add(split)
+        observed.setdefault((label, split), []).append(timestamp)
+        recount[(split, label)] += 1
+    if any(len(splits) > 1 for splits in group_splits.values()):
+        raise ContractError(f"{path}.samples: leakage group crosses splits")
+    for label in ("goodware", "malware"):
+        train = observed.get((label, "train"), [])
+        validation = observed.get((label, "validation"), [])
+        if train and validation and max(train) >= min(validation):
+            raise ContractError(f"{path}.samples: {label} train/validation temporal leakage")
+        accepted_times = train + validation
+        holdout_times = observed.get((label, "holdout"), [])
+        if accepted_times and holdout_times and max(accepted_times) >= min(holdout_times):
+            raise ContractError(f"{path}.samples: {label} accepted/holdout temporal leakage")
+    expected_snapshot = hashlib.sha256((json.dumps(samples, sort_keys=True, separators=(",", ":"), ensure_ascii=False) + "\n").encode("utf-8")).hexdigest()
+    if data["dataset_snapshot_sha256"] != expected_snapshot:
+        raise ContractError(f"{path}.dataset_snapshot_sha256: does not match samples")
+    counts = require_object(data["counts"], f"{path}.counts")
+    accepted = require_object(counts.get("accepted"), f"{path}.counts.accepted")
+    holdout = require_object(counts.get("holdout"), f"{path}.counts.holdout")
+    split_counts = require_object(counts.get("splits"), f"{path}.counts.splits")
+    for label in ("goodware", "malware"):
+        if accepted.get(label) != recount[("train", label)] + recount[("validation", label)]:
+            raise ContractError(f"{path}.counts.accepted.{label}: recount mismatch")
+        if holdout.get(label) != recount[("holdout", label)]:
+            raise ContractError(f"{path}.counts.holdout.{label}: recount mismatch")
+        for split in ("train", "validation", "holdout"):
+            declared_split = require_object(split_counts.get(split), f"{path}.counts.splits.{split}")
+            if declared_split.get(label) != recount[(split, label)]:
+                raise ContractError(f"{path}.counts.splits.{split}.{label}: recount mismatch")
+    claim_boundary = require_object(data["claim_boundary"], f"{path}.claim_boundary")
+    if not require_array(claim_boundary.get("supports"), f"{path}.claim_boundary.supports") or not require_array(claim_boundary.get("does_not_support"), f"{path}.claim_boundary.does_not_support"):
+        raise ContractError(f"{path}.claim_boundary: both boundaries must be non-empty")
+    blockers = require_array(data["blockers"], f"{path}.blockers")
+    rejections = require_array(data["rejections"], f"{path}.rejections")
+    rejected_count = counts.get("rejected_receipts")
+    if rejected_count != len(rejections):
+        raise ContractError(f"{path}.counts.rejected_receipts: must equal rejections length")
+    if ("one_or_more_receipts_rejected" in blockers) is not bool(rejections):
+        raise ContractError(f"{path}.blockers: receipt rejection blocker must match rejections")
+    for label in ("goodware", "malware"):
+        accepted_below = accepted[label] < accepted_target
+        holdout_below = holdout[label] < holdout_target
+        accepted_blocker = f"accepted_{label}_below_target"
+        holdout_blocker = f"holdout_{label}_below_target"
+        if (accepted_blocker in blockers) is not accepted_below:
+            raise ContractError(f"{path}.blockers: {accepted_blocker} must match recounted target status")
+        if (holdout_blocker in blockers) is not holdout_below:
+            raise ContractError(f"{path}.blockers: {holdout_blocker} must match recounted target status")
+    if data["ready_for_training"] is not (len(blockers) == 0):
+        raise ContractError(f"{path}.ready_for_training: must match blockers")
 
 
 def validate_benchmark_report(data: dict[str, Any], path: Path) -> None:
@@ -1272,8 +1388,8 @@ def validate_model_contract(data: dict[str, Any], path: Path) -> None:
     require_keys(preprocessing, {"version", "normalization", "channel_policy"}, f"{path}.preprocessing")
     if preprocessing["version"] != "binary_to_image_64_rgb_v1":
         raise ContractError(f"{path}.preprocessing.version: invalid value {preprocessing['version']!r}")
-    if preprocessing["normalization"] != "byte_div_255":
-        raise ContractError(f"{path}.preprocessing.normalization: expected byte_div_255")
+    if preprocessing["normalization"] != "byte_div_255_then_mean_0_5_std_0_5":
+        raise ContractError(f"{path}.preprocessing.normalization: expected canonical [-1, 1] normalization")
     if preprocessing["channel_policy"] != "replicate_grayscale_to_rgb":
         raise ContractError(f"{path}.preprocessing.channel_policy: expected replicate_grayscale_to_rgb")
 
@@ -27212,6 +27328,13 @@ def validate_contract(instance_path: Path, schema_path: Path, fallback_validator
     return "jsonschema+built-in" if used_jsonschema else "built-in"
 
 
+def dataset_schema_for(instance_path: Path) -> Path:
+    data = load_json(instance_path)
+    if data.get("api_version") == GOVERNED_DATASET_API_VERSION:
+        return GOVERNED_DATASET_SCHEMA
+    return DATASET_SCHEMA
+
+
 def validate_ml_next_operator_packet(data: dict[str, Any], path: Path) -> None:
     require_keys(
         data,
@@ -27599,7 +27722,11 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        dataset_mode = validate_contract(args.dataset_manifest, DATASET_SCHEMA, validate_dataset_manifest)
+        dataset_mode = validate_contract(
+            args.dataset_manifest,
+            dataset_schema_for(args.dataset_manifest),
+            validate_dataset_manifest,
+        )
         report_mode = validate_contract(args.benchmark_report, BENCHMARK_SCHEMA, validate_benchmark_report)
         model_mode = validate_contract(args.model_contract, MODEL_CONTRACT_SCHEMA, validate_model_contract)
         fixture_mode = None

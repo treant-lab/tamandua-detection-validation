@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ai_agent_runtime_event_v1.schema.json",
+  "title": "Tamandua AI Agent Runtime Event v1",
+  "description": "Full-fidelity governed runtime evidence event with raw and normalized representations, sequencing and chunk integrity.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "event_id", "observed_at", "tenant", "endpoint", "source", "session", "event_type", "capture", "raw_evidence", "normalized", "runtime_context", "governance", "integrity", "claims"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ai-agent-runtime-event/v1"},
+    "kind": {"const": "AiAgentRuntimeEvent"},
+    "event_id": {"$ref": "#/$defs/id"}, "observed_at": {"type": "string", "format": "date-time"},
+    "tenant": {"$ref": "#/$defs/tenant"}, "endpoint": {"$ref": "#/$defs/endpoint"}, "source": {"$ref": "#/$defs/source"},
+    "session": {
+      "type": "object", "additionalProperties": false, "required": ["provider", "session_id"],
+      "properties": {"provider": {"enum": ["codex", "claude", "opencode"]}, "session_id": {"$ref": "#/$defs/id"}}
+    },
+    "event_type": {"enum": ["message", "summary", "command", "tool_input", "tool_result", "file_evidence", "process", "port", "mcp", "tokens", "context", "rate_limit", "session_lifecycle", "capture_degradation"]},
+    "capture": {
+      "type": "object", "additionalProperties": false, "required": ["status", "reason_codes", "parser", "source_offset"],
+      "properties": {
+        "status": {"enum": ["complete", "partial", "unavailable", "unsupported"]},
+        "reason_codes": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "parser": {"type": "string", "minLength": 1}, "source_offset": {"type": ["integer", "null"], "minimum": 0}
+      }
+    },
+    "raw_evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["format", "mime_type", "content", "byte_length", "content_sha256", "is_redacted", "is_truncated", "source_locator"],
+      "properties": {
+        "format": {"enum": ["utf8", "json", "jsonl", "base64"]}, "mime_type": {"type": "string", "minLength": 1},
+        "content": {"type": "string"}, "byte_length": {"type": "integer", "minimum": 0}, "content_sha256": {"$ref": "#/$defs/sha256"},
+        "is_redacted": {"type": "boolean"}, "is_truncated": {"type": "boolean"}, "source_locator": {"type": "string", "minLength": 1}
+      }
+    },
+    "normalized": {
+      "type": "object", "additionalProperties": false,
+      "required": ["category", "action", "role", "text", "attributes"],
+      "properties": {
+        "category": {"enum": ["content", "execution", "file", "process", "network", "mcp", "usage", "lifecycle", "capture"]},
+        "action": {"type": "string", "minLength": 1}, "role": {"type": ["string", "null"]}, "text": {"type": ["string", "null"]},
+        "attributes": {"type": "object", "additionalProperties": true}
+      }
+    },
+    "runtime_context": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pid", "parent_pid", "port", "mcp_server_id", "token_usage", "context_usage", "rate_limit"],
+      "properties": {
+        "pid": {"type": ["integer", "null"], "minimum": 1}, "parent_pid": {"type": ["integer", "null"], "minimum": 1},
+        "port": {"type": ["integer", "null"], "minimum": 1, "maximum": 65535}, "mcp_server_id": {"type": ["string", "null"]},
+        "token_usage": {"$ref": "#/$defs/token_usage"}, "context_usage": {"$ref": "#/$defs/context_usage"}, "rate_limit": {"$ref": "#/$defs/rate_limit"}
+      }
+    },
+    "governance": {"$ref": "#/$defs/governance"},
+    "integrity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["stream_id", "sequence", "previous_event_digest", "event_digest", "chunk"],
+      "properties": {
+        "stream_id": {"$ref": "#/$defs/id"}, "sequence": {"type": "integer", "minimum": 1},
+        "previous_event_digest": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}, "event_digest": {"$ref": "#/$defs/sha256"},
+        "chunk": {
+          "type": "object", "additionalProperties": false,
+          "required": ["chunk_id", "index", "count", "chunk_sha256", "full_content_sha256"],
+          "properties": {
+            "chunk_id": {"$ref": "#/$defs/id"}, "index": {"type": "integer", "minimum": 0}, "count": {"type": "integer", "minimum": 1},
+            "chunk_sha256": {"$ref": "#/$defs/sha256"}, "full_content_sha256": {"$ref": "#/$defs/sha256"}
+          }
+        }
+      }
+    },
+    "claims": {"$ref": "#/$defs/claims"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"capture": {"properties": {"status": {"const": "complete"}}}}},
+      "then": {"properties": {"capture": {"properties": {"reason_codes": {"maxItems": 0}}}, "raw_evidence": {"properties": {"is_redacted": {"const": false}, "is_truncated": {"const": false}}}}}
+    }
+  ],
+  "$defs": {
+    "id": {"type": "string", "minLength": 1, "maxLength": 256, "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:/@-]*$"},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "tenant": {"type": "object", "additionalProperties": false, "required": ["tenant_id", "organization_id"], "properties": {"tenant_id": {"$ref": "#/$defs/id"}, "organization_id": {"$ref": "#/$defs/id"}}},
+    "endpoint": {"type": "object", "additionalProperties": false, "required": ["agent_id", "device_id", "hostname", "platform"], "properties": {"agent_id": {"$ref": "#/$defs/id"}, "device_id": {"$ref": "#/$defs/id"}, "hostname": {"type": "string", "minLength": 1}, "platform": {"enum": ["windows", "linux", "macos"]}}},
+    "source": {"type": "object", "additionalProperties": false, "required": ["collector_id", "collector_version", "upstream_project", "upstream_commit", "upstream_license", "upstream_copyright"], "properties": {"collector_id": {"const": "tamandua.ai_agent_runtime"}, "collector_version": {"const": 1}, "upstream_project": {"const": "graykode/abtop"}, "upstream_commit": {"const": "a3328db20fe189887986e0147080954bc07178a1"}, "upstream_license": {"const": "MIT"}, "upstream_copyright": {"const": "Copyright (c) 2026 Tae Hwan Jung"}}},
+    "token_usage": {"type": "object", "additionalProperties": false, "required": ["input", "output", "cached_input", "reasoning"], "properties": {"input": {"type": ["integer", "null"], "minimum": 0}, "output": {"type": ["integer", "null"], "minimum": 0}, "cached_input": {"type": ["integer", "null"], "minimum": 0}, "reasoning": {"type": ["integer", "null"], "minimum": 0}}},
+    "context_usage": {"type": "object", "additionalProperties": false, "required": ["window", "used", "remaining"], "properties": {"window": {"type": ["integer", "null"], "minimum": 1}, "used": {"type": ["integer", "null"], "minimum": 0}, "remaining": {"type": ["integer", "null"], "minimum": 0}}},
+    "rate_limit": {"type": "object", "additionalProperties": false, "required": ["status", "remaining", "limit", "resets_at"], "properties": {"status": {"enum": ["available", "limited", "exhausted", "unknown"]}, "remaining": {"type": ["integer", "null"], "minimum": 0}, "limit": {"type": ["integer", "null"], "minimum": 1}, "resets_at": {"type": ["string", "null"], "format": "date-time"}}},
+    "governance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["classification", "collection_basis", "access_policy_id", "retention_policy_id", "retention_days", "legal_hold", "encryption", "audit_required", "export_policy_id"],
+      "properties": {
+        "classification": {"const": "restricted_ai_agent_content"}, "collection_basis": {"type": "string", "minLength": 1},
+        "access_policy_id": {"$ref": "#/$defs/id"}, "retention_policy_id": {"$ref": "#/$defs/id"}, "retention_days": {"type": "integer", "minimum": 1},
+        "legal_hold": {"type": "boolean"}, "encryption": {"type": "object", "additionalProperties": false, "required": ["at_rest", "in_transit", "key_id"], "properties": {"at_rest": {"const": "aes-256-gcm"}, "in_transit": {"const": "tls-1.3"}, "key_id": {"$ref": "#/$defs/id"}}},
+        "audit_required": {"const": true}, "export_policy_id": {"$ref": "#/$defs/id"}
+      }
+    },
+    "claims": {"type": "object", "additionalProperties": false, "required": ["maturity", "evidence_class", "product_ready", "release_ready", "production_ready", "external_claims_allowed"], "properties": {"maturity": {"const": "experimental"}, "evidence_class": {"enum": ["contract_smoke", "synthetic_parity", "source_local"]}, "product_ready": {"const": false}, "release_ready": {"const": false}, "production_ready": {"const": false}, "external_claims_allowed": {"const": false}}}
+  }
+}

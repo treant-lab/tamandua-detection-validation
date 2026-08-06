@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/competitive_source_registry_v1.schema.json",
+  "title": "Tamandua competitive source registry v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_id", "sources"],
+  "properties": {
+    "schema_version": {"const": "competitive_source_registry_v1"},
+    "registry_id": {"type": "string", "minLength": 1, "maxLength": 200},
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 256,
+      "items": {"$ref": "#/$defs/source"}
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id", "class", "canonical_url", "product", "scope",
+        "retrieved_at", "version", "revision", "snapshot", "license_review",
+        "permitted_use", "comparison_category", "protocol_id", "measurement_origin",
+        "covers_source_ids", "measurement_scope", "independent_measurement_source_ids",
+        "next_review_at"
+      ],
+      "properties": {
+        "source_id": {"type": "string", "pattern": "^SRC-(?:[A-Z0-9]+-)+[0-9]{3}$"},
+        "class": {"enum": ["normative", "vendor_declared", "measured"]},
+        "canonical_url": {"type": "string", "minLength": 10, "maxLength": 2048, "pattern": "^https://"},
+        "product": {"type": "string", "minLength": 1, "maxLength": 200},
+        "scope": {"type": "string", "minLength": 1, "maxLength": 2000},
+        "retrieved_at": {"type": "string", "format": "date"},
+        "version": {"type": ["string", "null"], "maxLength": 200},
+        "revision": {"type": ["string", "null"], "maxLength": 200},
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "required_before_governed_comparison", "immutable_uri", "sha256"],
+          "properties": {
+            "status": {"enum": ["live", "archived"]},
+            "required_before_governed_comparison": {"const": true},
+            "immutable_uri": {"type": ["string", "null"], "maxLength": 2048},
+            "sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}
+          }
+        },
+        "license_review": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reviewed_at", "notes"],
+          "properties": {
+            "state": {"enum": ["pending", "approved", "restricted", "prohibited"]},
+            "reviewed_at": {"type": ["string", "null"], "format": "date"},
+            "notes": {"type": ["string", "null"], "maxLength": 2000}
+          }
+        },
+        "permitted_use": {"enum": ["comparison_dimension", "normative_contract", "measurement"]},
+        "comparison_category": {
+          "enum": [
+            "mobile_app_shielding", "mobile_device_mtd", "siem_integration",
+            "security_schema", "cnapp", "endpoint_edr", "platform_instrumentation"
+          ]
+        },
+        "protocol_id": {
+          "type": "string",
+          "maxLength": 100,
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-v[1-9][0-9]*$"
+        },
+        "measurement_origin": {"enum": ["not_applicable", "internal", "independent"]},
+        "covers_source_ids": {
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^SRC-(?:[A-Z0-9]+-)+[0-9]{3}$"}
+        },
+        "measurement_scope": {
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "required": ["category", "protocol_id", "artifact_digests"],
+          "properties": {
+            "category": {
+              "enum": [
+                "mobile_app_shielding", "mobile_device_mtd", "siem_integration",
+                "security_schema", "cnapp", "endpoint_edr", "platform_instrumentation"
+              ]
+            },
+            "protocol_id": {
+              "type": "string",
+              "maxLength": 100,
+              "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*-v[1-9][0-9]*$"
+            },
+            "artifact_digests": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true,
+              "items": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+            }
+          }
+        },
+        "independent_measurement_source_ids": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^SRC-(?:[A-Z0-9]+-)+[0-9]{3}$"}
+        },
+        "next_review_at": {"type": "string", "format": "date"}
+      }
+    }
+  }
+}

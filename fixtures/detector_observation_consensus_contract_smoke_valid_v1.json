@@ -1,0 +1,98 @@
+{
+  "api_version": "tamandua.io/detector-observation-consensus/v1",
+  "artifact": {
+    "artifact_id": "fixture/pe/smoke-001",
+    "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+    "media_type": "application/vnd.microsoft.portable-executable",
+    "size_bytes": 4096
+  },
+  "input_contract": {
+    "contract_id": "tamandua/static-pe-features",
+    "contract_version": "1.0.0",
+    "schema_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+    "feature_set": "ember-compatible-static-v1"
+  },
+  "observations": [
+    {
+      "detector_id": "tamandua/malware-smell",
+      "detector_type": "model",
+      "detector_version": "1.2.0",
+      "score": 0.91,
+      "score_orientation": "higher_is_more_malicious",
+      "threshold": 0.8,
+      "decision": "malicious",
+      "confidence": 0.82,
+      "latency_ms": 12.4,
+      "status": "completed",
+      "degraded": false,
+      "error": null,
+      "runtime_lane": "backend",
+      "model_contract_id": "tamandua/malware-smell-contract-v1",
+      "decision_mode": "detect_only",
+      "ensemble_votes": [
+        {
+          "detector_id": "tamandua/malware-smell-byte",
+          "status": "completed",
+          "score": 0.91,
+          "decision": "malicious",
+          "confidence": 0.82
+        },
+        {
+          "detector_id": "tamandua/malware-smell-static",
+          "status": "unsupported",
+          "score": null,
+          "decision": "unknown",
+          "confidence": 0
+        }
+      ],
+      "provenance": {
+        "source": "tamandua-governed-model-zoo",
+        "revision": "sha256:3333333",
+        "artifact_sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+        "uri": "registry://tamandua/malware-smell/1.2.0"
+      },
+      "observed_at": "2026-07-14T22:00:00Z"
+    },
+    {
+      "detector_id": "tamandua/static-rule-pack",
+      "detector_type": "rule",
+      "detector_version": "2026.07.14",
+      "score": 4,
+      "score_orientation": "higher_is_more_malicious",
+      "threshold": 3,
+      "decision": "suspicious",
+      "confidence": 0.7,
+      "latency_ms": 2.1,
+      "status": "completed",
+      "degraded": false,
+      "error": null,
+      "provenance": {
+        "source": "tamandua-rule-registry",
+        "revision": "rules-2026.07.14",
+        "artifact_sha256": "4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "observed_at": "2026-07-14T22:00:00Z"
+    }
+  ],
+  "consensus": {
+    "strategy": "weighted_decision",
+    "strategy_version": "1.0.0",
+    "member_detector_ids": [
+      "tamandua/malware-smell",
+      "tamandua/static-rule-pack"
+    ],
+    "score": 0.85,
+    "score_orientation": "higher_is_more_malicious",
+    "threshold": 0.7,
+    "decision": "malicious",
+    "confidence": 0.78,
+    "degraded": false,
+    "error": null,
+    "generated_at": "2026-07-14T22:00:00Z"
+  },
+  "validation_context": {
+    "evidence_class": "contract_smoke",
+    "claim_scope": "contract_only",
+    "effectiveness_metrics": []
+  }
+}

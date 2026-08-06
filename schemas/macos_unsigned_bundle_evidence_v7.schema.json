@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/macos_unsigned_bundle_evidence_v7.schema.json",
+  "title": "Tamandua canonical unsigned macOS bundle evidence v7",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "state", "source", "topology", "inputs", "stability", "candidate", "checks", "lifecycle", "claims"],
+  "properties": {
+    "schema_version": {"const": "tamandua.macos_unsigned_bundle_evidence/v7"},
+    "evidence_class": {"const": "unsigned_offline_bundle_contract"},
+    "state": {"enum": ["unsigned_candidate_validated", "invalid_unsigned_candidate", "blocked_binary_evidence_unavailable", "invalid_binary_evidence"]},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sha", "development_team", "packager_path", "packager_sha256"],
+      "properties": {
+        "sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+        "development_team": {"type": "string", "pattern": "^[A-Z0-9]{10}$"},
+        "packager_path": {"const": "apps/tamandua_agent/scripts/package_macos_system_extension_candidate.sh"},
+        "packager_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "stability": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_app", "candidate_app", "files"],
+      "properties": {
+        "source_app": {"$ref": "#/$defs/tree_stability"},
+        "candidate_app": {"$ref": "#/$defs/tree_stability"},
+        "files": {
+          "type": "object", "additionalProperties": false,
+          "required": ["daemon", "system_extension", "host_entitlements", "daemon_entitlements", "system_extension_entitlements", "binary_evidence", "packager"],
+          "properties": {
+            "daemon": {"$ref": "#/$defs/file_stability"}, "system_extension": {"$ref": "#/$defs/file_stability"},
+            "host_entitlements": {"$ref": "#/$defs/file_stability"}, "daemon_entitlements": {"$ref": "#/$defs/file_stability"},
+            "system_extension_entitlements": {"$ref": "#/$defs/file_stability"}, "binary_evidence": {"$ref": "#/$defs/file_stability"},
+            "packager": {"$ref": "#/$defs/file_stability"}
+          }
+        }
+      }
+    },
+    "topology": {
+      "const": {
+        "host_bundle_id": "com.tamandua.edr",
+        "daemon_bundle_id": "com.tamandua.agent",
+        "daemon_path": "Contents/Resources/tamandua-agent",
+        "system_extension_bundle_id": "com.tamandua.agent.sysext.filemonitor",
+        "system_extension_path": "Contents/Library/SystemExtensions/com.tamandua.agent.sysext.filemonitor.systemextension",
+        "minimum_macos": "14.0",
+        "architectures": ["arm64", "x86_64"],
+        "sole_endpoint_security_client": "system_extension"
+      }
+    },
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_app_inventory_sha256", "daemon_sha256", "system_extension_sha256", "host_entitlements_sha256", "daemon_entitlements_sha256", "system_extension_entitlements_sha256", "binary_evidence_sha256"],
+      "properties": {
+        "source_app_inventory_sha256": {"$ref": "#/$defs/sha256"},
+        "daemon_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "system_extension_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "host_entitlements_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "daemon_entitlements_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "system_extension_entitlements_sha256": {"$ref": "#/$defs/nullable_sha256"},
+        "binary_evidence_sha256": {"$ref": "#/$defs/nullable_sha256"}
+      }
+    },
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["inventory_sha256", "regular_file_count", "inventory"],
+      "properties": {
+        "inventory_sha256": {"$ref": "#/$defs/sha256"},
+        "regular_file_count": {"type": "integer", "minimum": 0},
+        "inventory": {"type": "array", "items": {"$ref": "#/$defs/inventory_item"}}
+      }
+    },
+    "checks": {
+      "type": "object", "additionalProperties": false,
+      "required": ["input_tree_regular", "candidate_tree_regular", "scalar_inputs_regular", "plists_readable", "host_bundle_id_exact", "host_minimum_macos_14", "host_executable_inside_candidate", "single_system_extension", "system_extension_bundle_id_exact", "system_extension_executable_exact", "system_extension_minimum_macos_14", "daemon_bytes_match_input", "system_extension_bytes_match_input", "input_app_bytes_unchanged", "only_expected_executables_added", "entitlement_roles_separated", "peer_requirement_resolved", "placeholders_absent", "path_traversal_absent", "inputs_stable_during_validation", "binary_evidence_available", "host_binary_contract", "daemon_binary_contract", "system_extension_binary_contract"],
+      "properties": {
+        "input_tree_regular": {"type": "boolean"}, "candidate_tree_regular": {"type": "boolean"}, "scalar_inputs_regular": {"type": "boolean"}, "plists_readable": {"type": "boolean"},
+        "host_bundle_id_exact": {"type": "boolean"}, "host_minimum_macos_14": {"type": "boolean"}, "host_executable_inside_candidate": {"type": "boolean"}, "single_system_extension": {"type": "boolean"},
+        "system_extension_bundle_id_exact": {"type": "boolean"}, "system_extension_executable_exact": {"type": "boolean"}, "system_extension_minimum_macos_14": {"type": "boolean"},
+        "daemon_bytes_match_input": {"type": "boolean"}, "system_extension_bytes_match_input": {"type": "boolean"},
+        "input_app_bytes_unchanged": {"type": "boolean"}, "only_expected_executables_added": {"type": "boolean"}, "entitlement_roles_separated": {"type": "boolean"},
+        "peer_requirement_resolved": {"type": "boolean"}, "placeholders_absent": {"type": "boolean"}, "path_traversal_absent": {"type": "boolean"}, "inputs_stable_during_validation": {"type": "boolean"},
+        "binary_evidence_available": {"type": "boolean"}, "host_binary_contract": {"type": "boolean"}, "daemon_binary_contract": {"type": "boolean"}, "system_extension_binary_contract": {"type": "boolean"}
+      }
+    },
+    "lifecycle": {"$ref": "#/$defs/false_lifecycle"},
+    "claims": {"$ref": "#/$defs/false_claims"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"state": {"const": "unsigned_candidate_validated"}}, "required": ["state"]},
+      "then": {"properties": {"checks": {"properties": {
+        "input_tree_regular": {"const": true}, "candidate_tree_regular": {"const": true}, "scalar_inputs_regular": {"const": true}, "plists_readable": {"const": true},
+        "host_bundle_id_exact": {"const": true}, "host_minimum_macos_14": {"const": true}, "host_executable_inside_candidate": {"const": true}, "single_system_extension": {"const": true},
+        "system_extension_bundle_id_exact": {"const": true}, "system_extension_executable_exact": {"const": true}, "system_extension_minimum_macos_14": {"const": true},
+        "daemon_bytes_match_input": {"const": true}, "system_extension_bytes_match_input": {"const": true},
+        "input_app_bytes_unchanged": {"const": true}, "only_expected_executables_added": {"const": true}, "entitlement_roles_separated": {"const": true},
+        "peer_requirement_resolved": {"const": true}, "placeholders_absent": {"const": true}, "path_traversal_absent": {"const": true}, "inputs_stable_during_validation": {"const": true},
+        "binary_evidence_available": {"const": true}, "host_binary_contract": {"const": true}, "daemon_binary_contract": {"const": true}, "system_extension_binary_contract": {"const": true}
+      }}}}
+    },
+    {
+      "if": {"properties": {"state": {"const": "blocked_binary_evidence_unavailable"}}, "required": ["state"]},
+      "then": {"properties": {"checks": {"allOf": [{"$ref": "#/$defs/structure_true"}], "properties": {"binary_evidence_available": {"const": false}, "host_binary_contract": {"const": false}, "daemon_binary_contract": {"const": false}, "system_extension_binary_contract": {"const": false}}}}}
+    },
+    {
+      "if": {"properties": {"state": {"const": "invalid_binary_evidence"}}, "required": ["state"]},
+      "then": {"properties": {"checks": {"allOf": [{"$ref": "#/$defs/structure_true"}, {"anyOf": [{"properties": {"host_binary_contract": {"const": false}}}, {"properties": {"daemon_binary_contract": {"const": false}}}, {"properties": {"system_extension_binary_contract": {"const": false}}}]}], "properties": {"binary_evidence_available": {"const": true}}}}}
+    },
+    {
+      "if": {"properties": {"state": {"const": "invalid_unsigned_candidate"}}, "required": ["state"]},
+      "then": {"properties": {"checks": {"$ref": "#/$defs/structure_false"}}}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "nullable_sha256": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "metadata": {"type": "object", "additionalProperties": false, "required": ["device", "inode", "size", "mtime_ns", "mode"], "properties": {"device": {"type": "integer", "minimum": 0}, "inode": {"type": "integer", "minimum": 0}, "size": {"type": "integer", "minimum": 0}, "mtime_ns": {"type": "integer"}, "mode": {"type": "integer", "minimum": 0, "maximum": 4095}}},
+    "tree_root": {"type": ["object", "null"], "required": ["kind", "device", "inode", "size", "mtime_ns", "mode"], "properties": {"kind": {"const": "directory"}, "device": {"type": "integer", "minimum": 0}, "inode": {"type": "integer", "minimum": 0}, "size": {"type": "integer", "minimum": 0}, "mtime_ns": {"type": "integer"}, "mode": {"type": "integer", "minimum": 0, "maximum": 4095}}},
+    "tree_entry": {"type": "object", "additionalProperties": false, "required": ["path", "kind", "device", "inode", "size", "mtime_ns", "mode"], "properties": {"path": {"anyOf": [{"const": "."}, {"type": "string", "pattern": "^(?!/)(?!.*//)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\u0009\\u000A])[^/]+(?:/[^/]+)*$"}]}, "kind": {"enum": ["directory", "file"]}, "device": {"type": "integer", "minimum": 0}, "inode": {"type": "integer", "minimum": 0}, "size": {"type": "integer", "minimum": 0}, "mtime_ns": {"type": "integer"}, "mode": {"type": "integer", "minimum": 0, "maximum": 4095}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "tree_stability": {"type": "object", "additionalProperties": false, "required": ["pre_tree_sha256", "post_tree_sha256", "pre_root", "post_root", "pre_entries", "post_entries", "stable"], "properties": {"pre_tree_sha256": {"$ref": "#/$defs/sha256"}, "post_tree_sha256": {"$ref": "#/$defs/sha256"}, "pre_root": {"$ref": "#/$defs/tree_root"}, "post_root": {"$ref": "#/$defs/tree_root"}, "pre_entries": {"type": "array", "items": {"$ref": "#/$defs/tree_entry"}}, "post_entries": {"type": "array", "items": {"$ref": "#/$defs/tree_entry"}}, "stable": {"type": "boolean"}}},
+    "file_observation": {"type": ["object", "null"], "required": ["metadata", "sha256"], "properties": {"metadata": {"$ref": "#/$defs/metadata"}, "sha256": {"$ref": "#/$defs/sha256"}}},
+    "file_stability": {"type": "object", "additionalProperties": false, "required": ["pre", "post", "stable"], "properties": {"pre": {"$ref": "#/$defs/file_observation"}, "post": {"$ref": "#/$defs/file_observation"}, "stable": {"type": "boolean"}}},
+    "structure_true": {"type": "object", "properties": {"input_tree_regular": {"const": true}, "candidate_tree_regular": {"const": true}, "scalar_inputs_regular": {"const": true}, "plists_readable": {"const": true}, "host_bundle_id_exact": {"const": true}, "host_minimum_macos_14": {"const": true}, "host_executable_inside_candidate": {"const": true}, "single_system_extension": {"const": true}, "system_extension_bundle_id_exact": {"const": true}, "system_extension_executable_exact": {"const": true}, "system_extension_minimum_macos_14": {"const": true}, "daemon_bytes_match_input": {"const": true}, "system_extension_bytes_match_input": {"const": true}, "input_app_bytes_unchanged": {"const": true}, "only_expected_executables_added": {"const": true}, "entitlement_roles_separated": {"const": true}, "peer_requirement_resolved": {"const": true}, "placeholders_absent": {"const": true}, "path_traversal_absent": {"const": true}, "inputs_stable_during_validation": {"const": true}}},
+    "structure_false": {"type": "object", "anyOf": [{"properties": {"input_tree_regular": {"const": false}}}, {"properties": {"candidate_tree_regular": {"const": false}}}, {"properties": {"scalar_inputs_regular": {"const": false}}}, {"properties": {"plists_readable": {"const": false}}}, {"properties": {"host_bundle_id_exact": {"const": false}}}, {"properties": {"host_minimum_macos_14": {"const": false}}}, {"properties": {"host_executable_inside_candidate": {"const": false}}}, {"properties": {"single_system_extension": {"const": false}}}, {"properties": {"system_extension_bundle_id_exact": {"const": false}}}, {"properties": {"system_extension_executable_exact": {"const": false}}}, {"properties": {"system_extension_minimum_macos_14": {"const": false}}}, {"properties": {"daemon_bytes_match_input": {"const": false}}}, {"properties": {"system_extension_bytes_match_input": {"const": false}}}, {"properties": {"input_app_bytes_unchanged": {"const": false}}}, {"properties": {"only_expected_executables_added": {"const": false}}}, {"properties": {"entitlement_roles_separated": {"const": false}}}, {"properties": {"peer_requirement_resolved": {"const": false}}}, {"properties": {"placeholders_absent": {"const": false}}}, {"properties": {"path_traversal_absent": {"const": false}}}, {"properties": {"inputs_stable_during_validation": {"const": false}}}]},
+    "inventory_item": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "size", "mode", "executable", "sha256"],
+      "properties": {
+        "path": {"type": "string", "pattern": "^(?!/)(?!.*//)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*[\\u0009\\u000A])[^/]+(?:/[^/]+)*$"},
+        "size": {"type": "integer", "minimum": 0}, "mode": {"type": "integer", "minimum": 0, "maximum": 4095},
+        "executable": {"type": "boolean"}, "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "false_lifecycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["signed", "notarized", "installed", "activated", "connected", "subscribed", "full_disk_access", "runtime_observed", "telemetry_observed", "update_rollback_rehearsed"],
+      "properties": {"signed": {"const": false}, "notarized": {"const": false}, "installed": {"const": false}, "activated": {"const": false}, "connected": {"const": false}, "subscribed": {"const": false}, "full_disk_access": {"const": false}, "runtime_observed": {"const": false}, "telemetry_observed": {"const": false}, "update_rollback_rehearsed": {"const": false}}
+    },
+    "false_claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["identity_verified", "capability_proven", "observe_only_proven", "product_ready", "production_ready", "external_claim_allowed"],
+      "properties": {"identity_verified": {"const": false}, "capability_proven": {"const": false}, "observe_only_proven": {"const": false}, "product_ready": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}}
+    }
+  }
+}

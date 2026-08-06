@@ -1,0 +1,43 @@
+{
+  "model_contract_id": "synthetic/ember-like-v1",
+  "result": {
+    "safe": false,
+    "threats": [
+      {
+        "type": "synthetic_static_signal",
+        "description": "Synthetic protocol fixture; not a malware efficacy result",
+        "confidence": 0.75,
+        "technique_id": "",
+        "severity": "medium",
+        "location": "synthetic-fixture"
+      }
+    ],
+    "risk_score": 0.75,
+    "scan_time_ms": 12.5,
+    "file_name": "synthetic.bin",
+    "model_type": "binary",
+    "metadata": {
+      "evidence_class": "synthetic_parity",
+      "claim_scope": "parity_only"
+    },
+    "runtime_lane": "local_service",
+    "model_contract_id": "synthetic/ember-like-v1",
+    "decision_mode": "decision_only",
+    "ensemble_votes": [
+      {
+        "detector_id": "synthetic/static-model",
+        "status": "completed",
+        "score": 0.75,
+        "decision": "suspicious",
+        "confidence": 0.6
+      },
+      {
+        "detector_id": "synthetic/optional-engine",
+        "status": "degraded",
+        "score": null,
+        "decision": "unknown",
+        "confidence": 0
+      }
+    ]
+  }
+}

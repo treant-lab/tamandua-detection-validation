@@ -1,0 +1,41 @@
+{
+  "fixture_schema": "tamandua.agent-uninstall-breakglass.golden-vector/v1",
+  "validation_scope": {
+    "classification": "synthetic-test-only",
+    "test_only": true,
+    "production_authority": false,
+    "external_claim_allowed": false,
+    "vendor_parity_claimed": false
+  },
+  "domain_prefix_base64url": "dGFtYW5kdWEudW5pbnN0YWxsLWJyZWFrZ2xhc3MuZWQyNTUxOS92MQA",
+  "test_key": {
+    "warning": "TEST ONLY - NEVER USE FOR PRODUCTION AUTHORIZATION",
+    "algorithm": "Ed25519",
+    "key_id": "test-only-loop67-ed25519-v1",
+    "private_seed_base64url": "indcFSfIJ0V4xWnI-db3XVlYJtfbjRDJaqbnp-KjeO8",
+    "public_key_base64url": "CgTFieQ2oMlX41HBI-4nx3awq8H3DBnXcxewzy-221M"
+  },
+  "payload": {
+    "action": "agent_uninstall",
+    "agent_id": "11111111-1111-4111-8111-111111111111",
+    "authorization_mode": "offline_breakglass",
+    "consumer": "windows_msi",
+    "expires_at": "2030-01-02T04:04:05Z",
+    "intent_id": "22222222-2222-4222-8222-222222222222",
+    "issued_at": "2030-01-02T03:04:05Z",
+    "issued_by_user_id": "33333333-3333-4333-8333-333333333333",
+    "key_domain": "tamandua.uninstall-breakglass.ed25519/v1",
+    "key_id": "test-only-loop67-ed25519-v1",
+    "nonce": "cz2IuIRcPQKFRZ-Q4aCDeSP9dobnJDo7e5TjR8DDxq8",
+    "not_before": "2030-01-02T03:04:05Z",
+    "organization_id": "44444444-4444-4444-8444-444444444444",
+    "platform": "windows",
+    "reason": "Synthetic test-only isolated endpoint recovery authorization",
+    "schema_version": "tamandua.uninstall-breakglass/v1"
+  },
+  "canonical_payload_base64url": "eyJhY3Rpb24iOiJhZ2VudF91bmluc3RhbGwiLCJhZ2VudF9pZCI6IjExMTExMTExLTExMTEtNDExMS04MTExLTExMTExMTExMTExMSIsImF1dGhvcml6YXRpb25fbW9kZSI6Im9mZmxpbmVfYnJlYWtnbGFzcyIsImNvbnN1bWVyIjoid2luZG93c19tc2kiLCJleHBpcmVzX2F0IjoiMjAzMC0wMS0wMlQwNDowNDowNVoiLCJpbnRlbnRfaWQiOiIyMjIyMjIyMi0yMjIyLTQyMjItODIyMi0yMjIyMjIyMjIyMjIiLCJpc3N1ZWRfYXQiOiIyMDMwLTAxLTAyVDAzOjA0OjA1WiIsImlzc3VlZF9ieV91c2VyX2lkIjoiMzMzMzMzMzMtMzMzMy00MzMzLTgzMzMtMzMzMzMzMzMzMzMzIiwia2V5X2RvbWFpbiI6InRhbWFuZHVhLnVuaW5zdGFsbC1icmVha2dsYXNzLmVkMjU1MTkvdjEiLCJrZXlfaWQiOiJ0ZXN0LW9ubHktbG9vcDY3LWVkMjU1MTktdjEiLCJub25jZSI6ImN6Mkl1SVJjUFFLRlJaLVE0YUNEZVNQOWRvYm5KRG83ZTVUalI4RER4cTgiLCJub3RfYmVmb3JlIjoiMjAzMC0wMS0wMlQwMzowNDowNVoiLCJvcmdhbml6YXRpb25faWQiOiI0NDQ0NDQ0NC00NDQ0LTQ0NDQtODQ0NC00NDQ0NDQ0NDQ0NDQiLCJwbGF0Zm9ybSI6IndpbmRvd3MiLCJyZWFzb24iOiJTeW50aGV0aWMgdGVzdC1vbmx5IGlzb2xhdGVkIGVuZHBvaW50IHJlY292ZXJ5IGF1dGhvcml6YXRpb24iLCJzY2hlbWFfdmVyc2lvbiI6InRhbWFuZHVhLnVuaW5zdGFsbC1icmVha2dsYXNzL3YxIn0",
+  "envelope": {
+    "payload": "eyJhY3Rpb24iOiJhZ2VudF91bmluc3RhbGwiLCJhZ2VudF9pZCI6IjExMTExMTExLTExMTEtNDExMS04MTExLTExMTExMTExMTExMSIsImF1dGhvcml6YXRpb25fbW9kZSI6Im9mZmxpbmVfYnJlYWtnbGFzcyIsImNvbnN1bWVyIjoid2luZG93c19tc2kiLCJleHBpcmVzX2F0IjoiMjAzMC0wMS0wMlQwNDowNDowNVoiLCJpbnRlbnRfaWQiOiIyMjIyMjIyMi0yMjIyLTQyMjItODIyMi0yMjIyMjIyMjIyMjIiLCJpc3N1ZWRfYXQiOiIyMDMwLTAxLTAyVDAzOjA0OjA1WiIsImlzc3VlZF9ieV91c2VyX2lkIjoiMzMzMzMzMzMtMzMzMy00MzMzLTgzMzMtMzMzMzMzMzMzMzMzIiwia2V5X2RvbWFpbiI6InRhbWFuZHVhLnVuaW5zdGFsbC1icmVha2dsYXNzLmVkMjU1MTkvdjEiLCJrZXlfaWQiOiJ0ZXN0LW9ubHktbG9vcDY3LWVkMjU1MTktdjEiLCJub25jZSI6ImN6Mkl1SVJjUFFLRlJaLVE0YUNEZVNQOWRvYm5KRG83ZTVUalI4RER4cTgiLCJub3RfYmVmb3JlIjoiMjAzMC0wMS0wMlQwMzowNDowNVoiLCJvcmdhbml6YXRpb25faWQiOiI0NDQ0NDQ0NC00NDQ0LTQ0NDQtODQ0NC00NDQ0NDQ0NDQ0NDQiLCJwbGF0Zm9ybSI6IndpbmRvd3MiLCJyZWFzb24iOiJTeW50aGV0aWMgdGVzdC1vbmx5IGlzb2xhdGVkIGVuZHBvaW50IHJlY292ZXJ5IGF1dGhvcml6YXRpb24iLCJzY2hlbWFfdmVyc2lvbiI6InRhbWFuZHVhLnVuaW5zdGFsbC1icmVha2dsYXNzL3YxIn0",
+    "signature": "abLE_xjxSGLtEZsxMfZQ7ZwAkY8-6yJgKtTKmwq4Zd3Ew853q8H9QyJx63Pd4lenoOTnm0lsELUPc41naYp4AA"
+  }
+}

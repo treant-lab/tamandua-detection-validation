@@ -406,8 +406,13 @@ def test_linux_ebpf_execveat_raw_syscall_path_is_wired():
     assert "(flags & AT_EMPTY_PATH) == 0" in program
     assert "(*event).arg1 = flags as u64" in program
     assert "raw_tracepoint_arg_u64(ctx, 0)? as *const bindings::pt_regs" in program
-    assert 'raw_tp.attach("sys_enter")' in collector
-    assert 'bpf.program_mut("sys_enter_security")' in collector
+    # Loader-side raw_tp attach for `sys_enter_security` was removed in
+    # b06efa5a1: the canonical C object preflight enforces the exact
+    # 10-section inventory of bpf/lsm_hooks.bpf.c, so the soft-skip lookup
+    # was dead code that could never attach. Pin the documented removal
+    # rationale and the canonical execveat coverage path instead.
+    assert "Raw syscall security coverage: NON-CANONICAL (removed)" in collector
+    assert "lsm/bprm_check_security" in collector
     assert "BpfSyscallEvasionEvent" in collector
     assert "SyscallEvasionMemfdExec = 164" in collector
     assert "parse_syscall_evasion_event" in collector
@@ -529,8 +534,14 @@ def test_macos_release_does_not_publish_bare_binary_zip_as_product_artifact():
     assert "asset_name: tamandua-agent-macos-${{ matrix.arch }}-signed.zip" not in sign_macos_block
     assert "asset_name: tamandua-agent-macos-${{ matrix.arch }}-signed.zip.sha256" not in sign_macos_block
 
-    assert "if: matrix.os != 'macos-latest' && matrix.os != 'macos-14'" in release
-    assert "if: matrix.os != 'macos-latest'" in release
+    # Since eaa131c6f the bare-binary upload steps also exclude windows-latest
+    # (Windows ships the canonical MSI instead); the macOS exclusion invariant
+    # this test pins is preserved inside the strengthened conditions.
+    assert (
+        "if: matrix.os != 'windows-latest' && matrix.os != 'macos-latest' && matrix.os != 'macos-14'"
+        in release
+    )
+    assert "if: matrix.os != 'windows-latest' && matrix.os != 'macos-latest'" in release
     macos_dmg_block = release.split("  build-macos-dmg:", 1)[1].split("  # =====", 1)[0]
     assert "TamanduaFileMonitor.systemextension" in macos_dmg_block
     assert "macos_release_artifact_preflight.py" in macos_dmg_block
@@ -618,7 +629,10 @@ def test_publish_packages_normalizes_release_tag_and_package_version():
     assert 'deploy/packages/yum/build-rpm.sh "${PACKAGE_VERSION}" "${{ matrix.arch }}"' in publish_packages
     assert '$PackageVersion = $VersionInput.TrimStart(\'v\')' in publish_packages
     assert '$ReleaseTag = "v$PackageVersion"' in publish_packages
-    assert 'releases/download/$ReleaseTag/tamandua-setup-$ReleaseTag.exe' in publish_packages
+    # WiX MSI release contract (commits eaa131c6f + 204c17536): publishers
+    # download the release-tag-named MSI, not the retired NSIS setup exe.
+    assert 'releases/download/$ReleaseTag/tamandua-$ReleaseTag.msi' in publish_packages
+    assert 'tamandua-setup-' not in publish_packages
     assert 'deploy/packages/chocolatey/tools/chocolateyinstall.ps1' in publish_packages
     assert 'Set-Content -Encoding utf8 deploy/packages/chocolatey/tamandua.nuspec' in publish_packages
     assert '$version = \'[^\']+\'' in publish_packages
@@ -630,7 +644,11 @@ def test_publish_packages_normalizes_release_tag_and_package_version():
     assert "$env:ChocolateyPackageVersion" not in publish_packages
     assert 'choco push "tamandua.${env:PACKAGE_VERSION}.nupkg"' in publish_packages
     assert '$releaseTag = if ($version.StartsWith(\'v\')) { $version } else { "v$version" }' in chocolatey_install
-    assert 'releases/download/$releaseTag/tamandua-setup-$releaseTag.exe' in chocolatey_install
+    assert 'releases/download/$releaseTag/tamandua-$releaseTag.msi' in chocolatey_install
+    assert 'tamandua-setup-' not in chocolatey_install
+    # Assignment forms the publish workflow rewrites idempotently must survive.
+    assert "$version = '0.1.0'" in chocolatey_install
+    assert "$checksum64 = 'PLACEHOLDER_SHA256'" in chocolatey_install
 
 
 def test_publish_packages_installs_repository_publish_tools():
@@ -921,25 +939,49 @@ def test_windows_release_assets_use_release_tag_names_for_package_publishers():
     assert "Import Windows signing certificate" in windows_block
     assert "${{ secrets.WINDOWS_CERT_BASE64 }}" in windows_block
     assert "${{ secrets.WINDOWS_CERT_PASSWORD }}" in windows_block
-    assert "makensis /DPRODUCT_VERSION=$packageVersion tamandua.nsi" in windows_block
-    assert 'Move-Item "tamandua-setup-$packageVersion.exe" "$env:GITHUB_WORKSPACE/tamandua-setup-$releaseTag.exe"' in windows_block
-    assert 'Move-Item "tamandua-$packageVersion.msi" "$env:GITHUB_WORKSPACE/tamandua-$releaseTag.msi"' in windows_block
+    # WiX v4 MSI contract (commit eaa131c6f): the canonical Windows artifact
+    # is the BrokerEnabled MSI built by installer/windows/build.ps1 and
+    # renamed to the release-tag asset name. NSIS is fully retired.
+    assert "makensis" not in release
+    assert "tamandua.nsi" not in release
+    assert "tamandua-setup-" not in release
+    assert "Reverify extracted BrokerEnabled component-set before MSI" in windows_block
+    assert "Install canonical WiX v4 toolchain" in windows_block
+    assert "dotnet tool install --global wix" in windows_block
+    assert "wix extension add WixToolset.UI.wixext" in windows_block
+    assert "wix extension add WixToolset.Util.wixext" in windows_block
+    assert "wix extension add WixToolset.Firewall.wixext" in windows_block
+    assert "Build canonical BrokerEnabled MSI installer" in windows_block
+    assert "& apps/tamandua_agent/installer/windows/build.ps1" in windows_block
+    assert "-Sku BrokerEnabled" in windows_block
+    assert "-Version $packageVersion" in windows_block
+    assert 'throw "Canonical BrokerEnabled MSI build failed"' in windows_block
+    assert 'Move-Item "$env:RUNNER_TEMP\\tamandua-installer\\tamandua-agent-$packageVersion.msi"' in windows_block
+    assert '"$env:GITHUB_WORKSPACE\\tamandua-$releaseTag.msi"' in windows_block
     assert 'Write-Error "No Windows code signing certificate found for installer signing"' in windows_block
-    assert '$nsis = "tamandua-setup-$releaseTag.exe"' in windows_block
     assert '$msi = "tamandua-$releaseTag.msi"' in windows_block
-    assert "Set-AuthenticodeSignature -FilePath $nsis" in windows_block
+    assert 'Write-Error "MSI installer not found: $msi"' in windows_block
     assert "Get-ChildItem \"${env:ProgramFiles(x86)}\\Windows Kits\\10\\bin\" -Recurse -Filter signtool.exe" in windows_block
     assert "& $signtool.FullName sign /sha1 $cert.Thumbprint" in windows_block
     assert "Get-AuthenticodeSignature -FilePath $file" in windows_block
     assert "Installer signature verification failed" in windows_block
-    assert '"tamandua-setup-$releaseTag.exe"' in windows_block
+    assert "Set-AuthenticodeSignature" not in windows_block
     assert '"tamandua-$releaseTag.msi"' in windows_block
-    assert "asset_path: ./tamandua-setup-${{ needs.create-release.outputs.version }}.exe" in windows_block
+    assert '"$($hash.Hash)  $file" | Out-File -FilePath "$file.sha256"' in windows_block
     assert "asset_path: ./tamandua-${{ needs.create-release.outputs.version }}.msi" in windows_block
+    assert "asset_name: tamandua-${{ needs.create-release.outputs.version }}.msi" in windows_block
+    # .sha256 checksum is generated but intentionally NOT uploaded as a
+    # release asset in the current contract.
+    assert ".msi.sha256" not in windows_block
     assert "Cleanup Windows signing certificate" in windows_block
     assert "continue-on-error: true" not in windows_block
-    assert "tamandua-setup-$ReleaseTag.exe" in publish_packages
-    assert "tamandua-setup-$releaseTag.exe" in chocolatey_install
+    assert "releases/download/$ReleaseTag/tamandua-$ReleaseTag.msi" in publish_packages
+    assert "tamandua-setup-" not in publish_packages
+    assert "releases/download/$releaseTag/tamandua-$releaseTag.msi" in chocolatey_install
+    assert "tamandua-setup-" not in chocolatey_install
+    assert "$installerType = 'msi'" in chocolatey_install
+    assert "$silentArgs = '/qn /norestart'" in chocolatey_install
+    assert "$validExitCodes = @(0, 3010, 1641)" in chocolatey_install
 
 
 def test_macos_backend_readiness_live_response_diagnostics_are_opt_in():
@@ -1294,7 +1336,7 @@ def test_macos_release_workflows_enforce_endpointsecurity_verification():
     assert "com.apple.developer.endpoint-security.client" in notarize
     assert "Build System Extension (${{ matrix.arch }})" in notarize
     assert 'swift build --configuration release --arch "${{ matrix.swift_arch }}"' in notarize
-    assert "name: system-extension-${{ matrix.arch }}" in notarize
+    assert "name: canonical-swift-products-${{ matrix.arch }}" in notarize
     assert "lipo -archs" in notarize
     assert "Signing app executable" in notarize
     assert '"${APP_PATH}/Contents/MacOS/tamandua-agent"' in notarize
@@ -1317,7 +1359,7 @@ def test_macos_release_workflows_enforce_endpointsecurity_verification():
     notarize_preflight_upload = notarize.split("- name: Upload macOS release artifact preflight", 1)[1].split(
         "- name: Upload notarized DMG", 1
     )[0]
-    assert "if: always()" in notarize_preflight_upload
+    assert "if: ${{ success() }}" in notarize_preflight_upload
     notarize_preflight_to_dmg = notarize.split("- name: Verify deployable macOS release artifacts", 1)[1].split(
         "- name: Upload notarized DMG", 1
     )[0]
@@ -1383,8 +1425,9 @@ def test_macos_release_workflows_enforce_endpointsecurity_verification():
     notarize_script = (REPO_ROOT / "apps" / "tamandua_agent" / "scripts" / "notarize.sh").read_text(
         encoding="utf-8"
     )
-    assert "require_system_extension_install_entitlement" in notarize_script
-    assert 'require_system_extension_install_entitlement "${sysext_path}"' in notarize_script
+    assert "verify_signed_artifact_role_topology" in notarize_script
+    assert "validate_signing_role activation_host" in notarize_script
+    assert "validate_signing_role endpoint_security_extension" in notarize_script
     assert "com.apple.developer.system-extension.install" in notarize_script
 
     info_plist_template = (
@@ -1450,16 +1493,17 @@ def test_macos_notarize_script_enforces_endpointsecurity_entitlement():
         encoding="utf-8"
     )
 
-    assert 'REQUIRE_ENDPOINT_SECURITY="${NOTARIZE_REQUIRE_ENDPOINT_SECURITY:-true}"' in script
-    assert 'REQUIRE_SYSTEM_EXTENSION="${NOTARIZE_REQUIRE_SYSTEM_EXTENSION:-true}"' in script
+    assert 'ZIP_PATH=""' in script
     assert "com.apple.developer.endpoint-security.client" in script
-    assert "app_executable_path()" in script
-    assert "CFBundleExecutable" in script
-    assert "require_endpointsecurity_entitlement()" in script
-    assert "verify_endpointsecurity_entitlements" in script
-    assert "A notarized macOS EDR bundle without this entitlement" in script
-    assert "No .systemextension bundle found under" in script
-    assert "cannot satisfy sensor health" in script
+    assert "entitlement_state()" in script
+    assert "/usr/bin/plutil -extract" in script
+    assert "validate_signing_role()" in script
+    assert "verify_signed_artifact_role_topology" in script
+    assert "activation_host" in script
+    assert "rust_helper" in script
+    assert "endpoint_security_extension" in script
+    assert 'if [[ "${VALIDATE_ONLY}" == "true" ]]; then' in script
+    assert script.index("verify_signed_artifact_role_topology") < script.rindex("validate_notarization_credentials")
     assert "Stapled notarization ticket validation failed" in script
     assert 'if ! xcrun stapler validate "${APP_PATH}"; then' in script
     assert 'log_warning "Stapler validation warning' not in script
@@ -2407,6 +2451,20 @@ def test_refresh_validation_authority_command_plan_binds_preflight_to_closure(tm
         "scorecard-after-dispatch",
         "product-readiness-summary",
     ]
+    expected_scripts = {
+        "scorecard-before-closure": "generate_validation_scorecard.py",
+        "roadmap-closure-gate": "roadmap_closure_gate_probe.py",
+        "validation-execution-preflight": "validation_execution_preflight_probe.py",
+        "preflight-work-package": "run_preflight_work_package.py",
+        "dispatch-results": "run_preflight_work_package.py",
+        "scorecard-after-dispatch": "generate_validation_scorecard.py",
+        "product-readiness-summary": "generate_product_readiness_summary.py",
+    }
+    for label, command, _allowed in plan:
+        child_script = Path(command[1])
+        assert child_script == REFRESH_AUTHORITY_MODULE_PATH.parent / expected_scripts[label]
+        assert child_script.is_absolute()
+        assert child_script.is_file()
     preflight_command = dict((label, command) for label, command, _allowed in plan)[
         "validation-execution-preflight"
     ]
@@ -2425,7 +2483,10 @@ def test_refresh_validation_authority_command_plan_binds_preflight_to_closure(tm
     product_summary_command = dict((label, command) for label, command, _allowed in plan)[
         "product-readiness-summary"
     ]
-    assert "tools/detection_validation/generate_product_readiness_summary.py" in product_summary_command
+    # Path.as_posix() so the suffix check is separator-agnostic on Windows.
+    assert Path(product_summary_command[1]).as_posix().endswith(
+        "tools/detection_validation/scripts/generate_product_readiness_summary.py"
+    )
     assert str(generated_dir / "validation_roadmap_scorecard.json") in product_summary_command
 
 
@@ -2490,7 +2551,7 @@ def test_status_consistency_accepts_refresh_authority_dry_run_plan():
                 "label": "product-readiness-summary",
                 "command": [
                     "python",
-                    "tools/detection_validation/generate_product_readiness_summary.py",
+                    "tools/detection_validation/scripts/generate_product_readiness_summary.py",
                     "--scorecard-json",
                     "docs/benchmarks/generated/validation_roadmap_scorecard.json",
                 ],
@@ -2526,7 +2587,7 @@ def test_status_consistency_rejects_refresh_authority_plan_without_closure_bindi
                 "label": "product-readiness-summary",
                 "command": [
                     "python",
-                    "tools/detection_validation/generate_product_readiness_summary.py",
+                    "tools/detection_validation/scripts/generate_product_readiness_summary.py",
                     "--scorecard-json",
                     "docs/benchmarks/generated/validation_roadmap_scorecard.json",
                 ],

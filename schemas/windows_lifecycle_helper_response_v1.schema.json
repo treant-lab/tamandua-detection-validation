@@ -1,0 +1,820 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/windows_lifecycle_helper_response_v1.schema.json",
+  "title": "Tamandua Windows lifecycle helper response v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_nonce",
+    "transition_id",
+    "phase",
+    "operation",
+    "ok",
+    "payload",
+    "error"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "tamandua.windows_lifecycle_helper/v1"
+    },
+    "request_nonce": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "transition_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    },
+    "phase": {
+      "enum": [
+        "prepare",
+        "verify_desired",
+        "rollback",
+        "commit",
+        "recover",
+        "status"
+      ]
+    },
+    "operation": {
+      "enum": [
+        "inventory",
+        "verify_process",
+        "wait_exact",
+        "stop_exact",
+        "launch_session",
+        "invoke_probe",
+        "apply_component_set",
+        "restore_component_set"
+      ]
+    },
+    "ok": {
+      "type": "boolean"
+    },
+    "payload": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object"
+        }
+      ]
+    },
+    "error": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/error"
+        }
+      ]
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "ok": {
+          "const": true
+        },
+        "payload": {
+          "type": "object"
+        },
+        "error": {
+          "type": "null"
+        }
+      }
+    },
+    {
+      "properties": {
+        "ok": {
+          "const": false
+        },
+        "payload": {
+          "type": "null"
+        },
+        "error": {
+          "$ref": "#/$defs/error"
+        }
+      }
+    }
+  ],
+  "allOf": [
+    {
+      "if": {
+        "required": ["ok", "operation"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "operation": {
+            "const": "inventory"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/inventory"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["ok", "operation"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "operation": {
+            "const": "verify_process"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/processState"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["ok", "operation"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "operation": {
+            "const": "wait_exact"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/waited"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["ok", "operation"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "operation": {
+            "const": "stop_exact"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/stopped"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["ok", "operation"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "operation": {
+            "const": "launch_session"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/process"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["ok", "operation"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "operation": {
+            "const": "invoke_probe"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/probe"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["ok", "operation"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "operation": {
+            "const": "apply_component_set"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/componentSetApplied"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": ["ok", "operation"],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "operation": {
+            "const": "restore_component_set"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "#/$defs/componentSetApplied"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["code"],
+      "properties": {
+        "code": {
+          "const": "operation_failed"
+        }
+      }
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "fileId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{24}$"
+    },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 32767
+    },
+    "u32": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 4294967295
+    },
+    "positiveU32": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 4294967295
+    },
+    "positiveU64": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 18446744073709551615
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pid",
+        "creation_time_100ns",
+        "session_id",
+        "path",
+        "file_id",
+        "size",
+        "sha256",
+        "mapped_file_object_identity_proven"
+      ],
+      "properties": {
+        "pid": {
+          "$ref": "#/$defs/positiveU32"
+        },
+        "creation_time_100ns": {
+          "$ref": "#/$defs/positiveU64"
+        },
+        "session_id": {
+          "$ref": "#/$defs/u32"
+        },
+        "path": {
+          "$ref": "#/$defs/path"
+        },
+        "file_id": {
+          "$ref": "#/$defs/fileId"
+        },
+        "size": {
+          "$ref": "#/$defs/positiveU64"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "mapped_file_object_identity_proven": {
+          "const": false
+        }
+      }
+    },
+    "fileFacts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "file_id", "size", "sha256"],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/path"
+        },
+        "file_id": {
+          "$ref": "#/$defs/fileId"
+        },
+        "size": {
+          "$ref": "#/$defs/positiveU64"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "brokerFile": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state"],
+          "properties": {
+            "state": {
+              "const": "absent"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "facts"],
+          "properties": {
+            "state": {
+              "const": "complete"
+            },
+            "facts": {
+              "$ref": "#/$defs/fileFacts"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["state", "reason"],
+          "properties": {
+            "state": {
+              "const": "identity_unavailable"
+            },
+            "reason": {
+              "enum": [
+                "access_denied",
+                "sharing_violation",
+                "query_failed",
+                "file_facts_unavailable",
+                "path_mismatch"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "observation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["observation", "identity"],
+          "properties": {
+            "observation": {
+              "const": "complete"
+            },
+            "identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "observation",
+            "pid",
+            "session_id",
+            "reported_path",
+            "expected_path",
+            "reason",
+            "file_facts",
+            "mapped_file_object_identity_proven"
+          ],
+          "properties": {
+            "observation": {
+              "const": "identity_unavailable"
+            },
+            "pid": {
+              "$ref": "#/$defs/positiveU32"
+            },
+            "session_id": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/u32"
+                }
+              ]
+            },
+            "reported_path": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/path"
+                }
+              ]
+            },
+            "expected_path": {
+              "$ref": "#/$defs/path"
+            },
+            "reason": {
+              "enum": [
+                "session_unavailable",
+                "access_denied",
+                "file_missing",
+                "sharing_violation",
+                "process_gone",
+                "query_failed",
+                "file_facts_unavailable",
+                "path_mismatch",
+                "creation_time_unavailable"
+              ]
+            },
+            "file_facts": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/fileFacts"
+                }
+              ]
+            },
+            "mapped_file_object_identity_proven": {
+              "const": false
+            }
+          }
+        }
+      ]
+    },
+    "runAbsent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present", "command"],
+      "properties": {
+        "present": {
+          "const": false
+        },
+        "command": {
+          "type": "null"
+        }
+      }
+    },
+    "runPresent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["present", "command"],
+      "properties": {
+        "present": {
+          "const": true
+        },
+        "command": {
+          "type": "string",
+          "maxLength": 32767
+        }
+      }
+    },
+    "service": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["present", "status"],
+          "properties": {
+            "present": {
+              "const": false
+            },
+            "status": {
+              "const": "absent"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["present", "status"],
+          "properties": {
+            "present": {
+              "const": true
+            },
+            "status": {
+              "const": "present"
+            }
+          }
+        }
+      ]
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["session_id", "transport", "eligible"],
+      "properties": {
+        "session_id": {
+          "$ref": "#/$defs/u32"
+        },
+        "transport": {
+          "enum": ["console", "rdp", "other"]
+        },
+        "eligible": {
+          "type": "boolean"
+        }
+      }
+    },
+    "inventory": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result",
+        "run",
+        "service",
+        "broker_file",
+        "sessions",
+        "process_observations"
+      ],
+      "properties": {
+        "result": {
+          "const": "inventory"
+        },
+        "run": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/runAbsent"
+            },
+            {
+              "$ref": "#/$defs/runPresent"
+            }
+          ]
+        },
+        "service": {
+          "$ref": "#/$defs/service"
+        },
+        "broker_file": {
+          "$ref": "#/$defs/brokerFile"
+        },
+        "sessions": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/session"
+          }
+        },
+        "process_observations": {
+          "type": "array",
+          "maxItems": 128,
+          "items": {
+            "$ref": "#/$defs/observation"
+          }
+        }
+      }
+    },
+    "processState": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["result", "state", "identity"],
+          "properties": {
+            "result": {
+              "const": "process_state"
+            },
+            "state": {
+              "const": "absent"
+            },
+            "identity": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["result", "state", "identity"],
+          "properties": {
+            "result": {
+              "const": "process_state"
+            },
+            "state": {
+              "enum": ["same", "pid_reused"]
+            },
+            "identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        }
+      ]
+    },
+    "waited": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["result", "state", "identity"],
+          "properties": {
+            "result": {
+              "const": "waited"
+            },
+            "state": {
+              "const": "exited"
+            },
+            "identity": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["result", "state", "identity"],
+          "properties": {
+            "result": {
+              "const": "waited"
+            },
+            "state": {
+              "enum": ["still_running", "pid_reused"]
+            },
+            "identity": {
+              "$ref": "#/$defs/identity"
+            }
+          }
+        }
+      ]
+    },
+    "stopped": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "pid", "pid_reused"],
+      "properties": {
+        "result": {
+          "const": "stopped"
+        },
+        "pid": {
+          "$ref": "#/$defs/positiveU32"
+        },
+        "pid_reused": {
+          "const": false
+        }
+      }
+    },
+    "process": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "identity"],
+      "properties": {
+        "result": {
+          "const": "process"
+        },
+        "identity": {
+          "$ref": "#/$defs/identity"
+        }
+      }
+    },
+    "probeOutcome": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "surface",
+        "status",
+        "authenticated",
+        "operation",
+        "session_id",
+        "broker_pid",
+        "component_set_sha256",
+        "protocol_version"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "tamandua.installer_session_broker_probe/v1"
+        },
+        "surface": {
+          "const": "installer_only"
+        },
+        "status": {
+          "const": "verified"
+        },
+        "authenticated": {
+          "const": true
+        },
+        "operation": {
+          "const": "SessionStatus"
+        },
+        "session_id": {
+          "$ref": "#/$defs/positiveU32"
+        },
+        "broker_pid": {
+          "$ref": "#/$defs/positiveU32"
+        },
+        "component_set_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "protocol_version": {
+          "const": "tamandua.session_broker/v2"
+        }
+      }
+    },
+    "probe": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["result", "outcome"],
+      "properties": {
+        "result": {
+          "const": "probe"
+        },
+        "outcome": {
+          "$ref": "#/$defs/probeOutcome"
+        }
+      }
+    },
+    "componentSetApplied": {
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["result", "sku", "run_present", "run_command"],
+          "properties": {
+            "result": {
+              "const": "component_set_applied"
+            },
+            "sku": {
+              "const": "AgentOnly"
+            },
+            "run_present": {
+              "const": false
+            },
+            "run_command": {
+              "type": "null"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["result", "sku", "run_present", "run_command"],
+          "properties": {
+            "result": {
+              "const": "component_set_applied"
+            },
+            "sku": {
+              "const": "BrokerEnabled"
+            },
+            "run_present": {
+              "const": true
+            },
+            "run_command": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 32767
+            }
+          }
+        }
+      ]
+    }
+  }
+}

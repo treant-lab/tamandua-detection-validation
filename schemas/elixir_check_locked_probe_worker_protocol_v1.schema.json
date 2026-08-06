@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/elixir_check_locked_probe_worker_protocol_v1.schema.json",
+  "title": "Elixir check-locked inert worker protocol v1",
+  "oneOf": [
+    { "$ref": "#/$defs/manifest" },
+    { "$ref": "#/$defs/request" },
+    { "$ref": "#/$defs/response" }
+  ],
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "workspaceBaseHead": {
+      "const": "ce97ccd64a686e91fbf6f613e3face7cb17843d2",
+      "description": "Coordinator-pinned workspace base commit label; this is not proof that any file derives from that commit."
+    },
+    "claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["external_claim_allowed", "product_ready", "production_ready", "real_adapter_validated", "real_cleanup_verified", "release_ready", "verimatrix_parity"],
+      "properties": {
+        "external_claim_allowed": { "const": false },
+        "product_ready": { "const": false },
+        "production_ready": { "const": false },
+        "real_adapter_validated": { "const": false },
+        "real_cleanup_verified": { "const": false },
+        "release_ready": { "const": false },
+        "verimatrix_parity": { "const": false }
+      }
+    },
+    "limits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cleanup_reserve_ms", "combined_output_max_bytes", "request_max_bytes", "response_max_bytes", "total_timeout_ms"],
+      "properties": {
+        "cleanup_reserve_ms": { "const": 1500 },
+        "combined_output_max_bytes": { "const": 32768 },
+        "request_max_bytes": { "const": 65536 },
+        "response_max_bytes": { "const": 16384 },
+        "total_timeout_ms": { "const": 5000 }
+      }
+    },
+    "manifest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter_profile", "argv_template_sha256", "claims", "environment_policy_sha256", "interpreter_executable_sha256", "interpreter_version_sha256", "limits", "operation", "parent_source_sha256", "protocol_schema_sha256", "receipt_schema_sha256", "schema", "worker_source_sha256", "workspace_base_head"],
+      "properties": {
+        "schema": { "const": "tamandua.elixir_check_locked.worker_manifest/v1" },
+        "adapter_profile": { "const": "inert_contract_v1" },
+        "operation": { "const": "inert_boundary_self_test" },
+        "workspace_base_head": { "$ref": "#/$defs/workspaceBaseHead" },
+        "protocol_schema_sha256": { "$ref": "#/$defs/sha256" },
+        "receipt_schema_sha256": { "$ref": "#/$defs/sha256" },
+        "parent_source_sha256": { "$ref": "#/$defs/sha256" },
+        "worker_source_sha256": { "$ref": "#/$defs/sha256" },
+        "interpreter_executable_sha256": { "$ref": "#/$defs/sha256" },
+        "interpreter_version_sha256": { "$ref": "#/$defs/sha256" },
+        "argv_template_sha256": { "$ref": "#/$defs/sha256" },
+        "environment_policy_sha256": { "$ref": "#/$defs/sha256" },
+        "limits": { "$ref": "#/$defs/limits" },
+        "claims": { "$ref": "#/$defs/claims" }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["invocation_id", "manifest", "manifest_sha256", "operation", "schema"],
+      "properties": {
+        "schema": { "const": "tamandua.elixir_check_locked.worker_request/v1" },
+        "invocation_id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "operation": { "const": "inert_boundary_self_test" },
+        "manifest": { "$ref": "#/$defs/manifest" },
+        "manifest_sha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter_profile", "claims", "finalization", "invocation_id", "manifest_sha256", "operation_counts", "outcome", "request_sha256", "schema", "worker_source_sha256"],
+      "properties": {
+        "schema": { "const": "tamandua.elixir_check_locked.worker_response/v1" },
+        "invocation_id": { "type": "string", "pattern": "^[a-f0-9]{32}$" },
+        "manifest_sha256": { "$ref": "#/$defs/sha256" },
+        "request_sha256": { "$ref": "#/$defs/sha256" },
+        "worker_source_sha256": { "$ref": "#/$defs/sha256" },
+        "adapter_profile": { "const": "inert_contract_v1" },
+        "outcome": { "const": "inert_contract_observed" },
+        "operation_counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["adapter_runs", "inert_checks", "network_requests"],
+          "properties": {
+            "adapter_runs": { "const": 0 },
+            "inert_checks": { "const": 1 },
+            "network_requests": { "const": 0 }
+          }
+        },
+        "finalization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["adapter_cleanup_attempted", "real_cleanup_verified"],
+          "properties": {
+            "adapter_cleanup_attempted": { "const": false },
+            "real_cleanup_verified": { "const": false }
+          }
+        },
+        "claims": { "$ref": "#/$defs/claims" }
+      }
+    }
+  }
+}

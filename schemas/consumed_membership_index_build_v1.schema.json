@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/consumed_membership_index_build_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "status", "blockers", "policy_sha256", "required_dataset_count", "completed_dataset_count", "datasets", "execution", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/consumed-membership-index-build/v1"},
+    "kind": {"const": "ConsumedMembershipIndexBuildReport"},
+    "status": {"enum": ["complete", "blocked"]},
+    "blockers": {"type": "array", "items": {"type": "string"}},
+    "policy_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "required_dataset_count": {"const": 3},
+    "completed_dataset_count": {"type": "integer", "minimum": 0, "maximum": 3},
+    "datasets": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "object"}},
+    "execution": {"const": {"network_used": false, "sample_bodies_read": false, "policy_mutated": false}},
+    "claim_boundary": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

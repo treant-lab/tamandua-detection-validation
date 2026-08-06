@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/macos_unsigned_smoke_attempt_v1.schema.json",
+  "title": "Tamandua macOS unsigned smoke append-only attempt record v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "record_type", "ordinal", "run_id", "run_attempt", "lifecycle", "claims"],
+  "properties": {
+    "schema_version": {"const": "tamandua.macos_unsigned_smoke_attempt/v1"},
+    "record_type": {"enum": ["attempt_started", "phase", "terminal"]},
+    "ordinal": {"type": "integer", "minimum": 0, "maximum": 100},
+    "run_id": {"type": "string", "pattern": "^[0-9]+$"},
+    "run_attempt": {"type": "string", "pattern": "^[0-9]+$"},
+    "source_input_sha256": {"$ref": "#/$defs/sha256"},
+    "development_team_input_sha256": {"$ref": "#/$defs/sha256"},
+    "workflow_sha_input_sha256": {"$ref": "#/$defs/sha256"},
+    "phase": {"enum": ["harness_entered", "bootstrap_prepared", "builds_completed", "evidence_completed", "native_receipt_validated"]},
+    "native_receipt_sha256": {"$ref": "#/$defs/sha256"},
+    "pre_upload_status": {"enum": ["success", "failure", "cancelled"]},
+    "smoke_status": {"enum": ["input", "checkout", "setup", "harness", "cancel", "internal", "success"]},
+    "artifact_delivery": {"const": "unknown"},
+    "step_outcomes": {"$ref": "#/$defs/ordered_step_outcomes"},
+    "lifecycle": {"$ref": "#/$defs/lifecycle"},
+    "claims": {"$ref": "#/$defs/claims"}
+  },
+  "oneOf": [
+    {
+      "properties": {"record_type": {"const": "attempt_started"}, "ordinal": {"const": 0}},
+      "required": ["source_input_sha256", "development_team_input_sha256", "workflow_sha_input_sha256"],
+      "not": {"anyOf": [{"required": ["phase"]}, {"required": ["native_receipt_sha256"]}, {"required": ["pre_upload_status"]}, {"required": ["smoke_status"]}, {"required": ["artifact_delivery"]}, {"required": ["step_outcomes"]}]}
+    },
+    {
+      "properties": {"record_type": {"const": "phase"}, "ordinal": {"enum": [10, 20, 30, 40]}, "phase": {"enum": ["harness_entered", "bootstrap_prepared", "builds_completed", "evidence_completed"]}},
+      "required": ["phase"],
+      "not": {"anyOf": [{"required": ["source_input_sha256"]}, {"required": ["development_team_input_sha256"]}, {"required": ["workflow_sha_input_sha256"]}, {"required": ["native_receipt_sha256"]}, {"required": ["pre_upload_status"]}, {"required": ["smoke_status"]}, {"required": ["artifact_delivery"]}, {"required": ["step_outcomes"]}]}
+    },
+    {
+      "properties": {"record_type": {"const": "phase"}, "ordinal": {"const": 50}, "phase": {"const": "native_receipt_validated"}},
+      "required": ["phase", "native_receipt_sha256"],
+      "not": {"anyOf": [{"required": ["source_input_sha256"]}, {"required": ["development_team_input_sha256"]}, {"required": ["workflow_sha_input_sha256"]}, {"required": ["pre_upload_status"]}, {"required": ["smoke_status"]}, {"required": ["artifact_delivery"]}, {"required": ["step_outcomes"]}]}
+    },
+    {
+      "properties": {"record_type": {"const": "terminal"}, "ordinal": {"const": 100}, "smoke_status": {"enum": ["input", "checkout", "setup", "harness", "cancel", "internal"]}},
+      "required": ["pre_upload_status", "smoke_status", "artifact_delivery", "step_outcomes"],
+      "not": {"anyOf": [{"required": ["source_input_sha256"]}, {"required": ["development_team_input_sha256"]}, {"required": ["workflow_sha_input_sha256"]}, {"required": ["phase"]}, {"required": ["native_receipt_sha256"]}]}
+    },
+    {
+      "properties": {"record_type": {"const": "terminal"}, "ordinal": {"const": 100}, "pre_upload_status": {"const": "success"}, "smoke_status": {"const": "success"}},
+      "required": ["pre_upload_status", "smoke_status", "artifact_delivery", "step_outcomes", "native_receipt_sha256"],
+      "not": {"anyOf": [{"required": ["source_input_sha256"]}, {"required": ["development_team_input_sha256"]}, {"required": ["workflow_sha_input_sha256"]}, {"required": ["phase"]}]}
+    }
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "step_outcome": {"enum": ["success", "failure", "skipped", "cancelled"]},
+    "ordered_step_outcomes": {
+      "type": "array",
+      "prefixItems": [
+        {"type": "object", "additionalProperties": false, "required": ["step", "outcome"], "properties": {"step": {"const": "input"}, "outcome": {"$ref": "#/$defs/step_outcome"}}},
+        {"type": "object", "additionalProperties": false, "required": ["step", "outcome"], "properties": {"step": {"const": "checkout"}, "outcome": {"$ref": "#/$defs/step_outcome"}}},
+        {"type": "object", "additionalProperties": false, "required": ["step", "outcome"], "properties": {"step": {"const": "setup_python"}, "outcome": {"$ref": "#/$defs/step_outcome"}}},
+        {"type": "object", "additionalProperties": false, "required": ["step", "outcome"], "properties": {"step": {"const": "setup_node"}, "outcome": {"$ref": "#/$defs/step_outcome"}}},
+        {"type": "object", "additionalProperties": false, "required": ["step", "outcome"], "properties": {"step": {"const": "harness"}, "outcome": {"$ref": "#/$defs/step_outcome"}}}
+      ],
+      "items": false,
+      "minItems": 5,
+      "maxItems": 5
+    },
+    "lifecycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["signed", "notarized", "installed", "activated", "runtime_observed", "released"],
+      "properties": {"signed": {"const": false}, "notarized": {"const": false}, "installed": {"const": false}, "activated": {"const": false}, "runtime_observed": {"const": false}, "released": {"const": false}}
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["identity_verified", "capability_proven", "product_ready", "production_ready", "external_claim_allowed"],
+      "properties": {"identity_verified": {"const": false}, "capability_proven": {"const": false}, "product_ready": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}}
+    }
+  }
+}

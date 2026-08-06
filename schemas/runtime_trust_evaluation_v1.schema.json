@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/runtime_trust_evaluation_v1.schema.json",
+  "title": "Tamandua Runtime Trust Evaluation v1",
+  "type": "object",
+  "required": [
+    "score",
+    "decision",
+    "reasons",
+    "decision_source",
+    "evidence_class",
+    "external_claim_allowed",
+    "limitations"
+  ],
+  "properties": {
+    "score": {"type": "integer", "minimum": 0, "maximum": 100},
+    "decision": {"enum": ["allow", "observe", "warn", "step_up", "block", "kill_session", "abstain"]},
+    "reasons": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,95}$"}
+    },
+    "policy_id": {"type": "string", "minLength": 1, "maxLength": 256},
+    "policy_version": {"type": "string", "minLength": 1, "maxLength": 128},
+    "policy_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "workflow": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,95}$"},
+    "evaluated_at": {"type": "string", "format": "date-time"},
+    "detector_bundle_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$"},
+    "detector_bundle_version": {"type": "string", "minLength": 1, "maxLength": 64},
+    "decision_source": {
+      "enum": ["sdk_local", "server_policy", "customer_policy", "fallback_default", "legacy_adapter"]
+    },
+    "capability_state": {"enum": ["supported", "degraded", "unsupported"]},
+    "signal_completeness": {"enum": ["complete", "missing_required", "unknown"]},
+    "missing_signal_ids": {
+      "type": "array",
+      "maxItems": 64,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,95}$"}
+    },
+    "abstained": {"type": "boolean"},
+    "abstention_reasons": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,95}$"}
+    },
+    "evidence_class": {
+      "enum": ["legacy_unclassified", "synthetic_contract", "physical_lab", "governed_pilot", "production_telemetry"]
+    },
+    "external_claim_allowed": {"type": "boolean"},
+    "limitations": {
+      "type": "array",
+      "maxItems": 32,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "maxLength": 256}
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"abstained": {"const": true}}, "required": ["abstained"]},
+      "then": {
+        "required": ["abstention_reasons"],
+        "properties": {
+          "decision": {"enum": ["observe", "step_up", "block", "abstain"]},
+          "abstention_reasons": {"minItems": 1}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"decision_source": {"enum": ["server_policy", "customer_policy"]}},
+        "required": ["decision_source"]
+      },
+      "then": {"required": ["policy_id", "policy_version", "policy_digest"]}
+    },
+    {
+      "if": {
+        "properties": {"decision_source": {"enum": ["server_policy", "customer_policy"]}},
+        "required": ["decision_source"]
+      },
+      "then": {
+        "required": ["workflow", "evaluated_at", "capability_state", "signal_completeness", "missing_signal_ids"]
+      }
+    },
+    {
+      "if": {"properties": {"decision": {"const": "abstain"}}, "required": ["decision"]},
+      "then": {
+        "required": ["abstained", "abstention_reasons"],
+        "properties": {
+          "abstained": {"const": true},
+          "abstention_reasons": {"minItems": 1}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"abstained": {"const": false}}, "required": ["abstained"]},
+      "then": {
+        "properties": {
+          "decision": {"not": {"const": "abstain"}},
+          "abstention_reasons": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"signal_completeness": {"const": "missing_required"}},
+        "required": ["signal_completeness"]
+      },
+      "then": {"properties": {"missing_signal_ids": {"minItems": 1}}}
+    },
+    {
+      "if": {
+        "properties": {"signal_completeness": {"const": "complete"}},
+        "required": ["signal_completeness"]
+      },
+      "then": {"properties": {"missing_signal_ids": {"maxItems": 0}}}
+    }
+  ],
+  "additionalProperties": false
+}

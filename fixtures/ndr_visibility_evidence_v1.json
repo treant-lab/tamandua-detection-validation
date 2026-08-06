@@ -1,0 +1,258 @@
+{
+  "schema_version": 1,
+  "fixture_id": "ndr-visibility-evidence-v1",
+  "description": "Synthetic NDR visibility evidence scenarios for measuring whether a network event is investigable, partial, or weak.",
+  "evidence_class": "synthetic_parity",
+  "claim_boundary": "Fixture-only gate for evidence completeness. It does not prove live packet capture, endpoint attribution accuracy, TLS decryption, payload inspection, production NDR efficacy, or detection-rate performance.",
+  "minimum_fields": [
+    "process",
+    "remote_endpoint",
+    "domain_source",
+    "bytes_source",
+    "tls_source",
+    "dns_correlation"
+  ],
+  "scenarios": [
+    {
+      "id": "dns-normal-browser-example-com",
+      "category": "dns_normal",
+      "description": "Browser flow with direct process attribution, observed remote endpoint, DNS query correlation, non-zero bytes, and TLS SNI metadata.",
+      "event": {
+        "process": {
+          "pid": 4242,
+          "name": "browser.exe",
+          "source": "endpoint_socket"
+        },
+        "remote_endpoint": {
+          "ip": "93.184.216.34",
+          "port": 443,
+          "protocol": "tcp",
+          "source": "flow_observed"
+        },
+        "domain": "example.com",
+        "domain_source": "dns_query",
+        "bytes": {
+          "sent": 1500,
+          "received": 32000,
+          "source": "flow_counter"
+        },
+        "tls": {
+          "sni": "example.com",
+          "ja3": "synthetic-ja3-browser",
+          "source": "handshake_metadata"
+        },
+        "dns_correlation": {
+          "status": "direct",
+          "query": "example.com",
+          "source": "dns_cache"
+        }
+      },
+      "expected_classification": "investigable"
+    },
+    {
+      "id": "doh-google-dns-443",
+      "category": "doh_8_8_8_8_443",
+      "description": "Connection to 8.8.8.8:443 with process and bytes, but no inner DNS domain visibility.",
+      "event": {
+        "process": {
+          "pid": 5110,
+          "name": "browser.exe",
+          "source": "endpoint_socket"
+        },
+        "remote_endpoint": {
+          "ip": "8.8.8.8",
+          "port": 443,
+          "protocol": "tcp",
+          "source": "flow_observed"
+        },
+        "domain": "dns.google",
+        "domain_source": "tls_sni",
+        "bytes": {
+          "sent": 1900,
+          "received": 24000,
+          "source": "flow_counter"
+        },
+        "tls": {
+          "sni": "dns.google",
+          "source": "handshake_metadata"
+        },
+        "dns_correlation": {
+          "status": "absent",
+          "source": "doh_payload_not_visible"
+        }
+      },
+      "expected_classification": "partial"
+    },
+    {
+      "id": "connection-without-domain",
+      "category": "connection_no_domain",
+      "description": "Raw IP connection with process, endpoint, and bytes, but no DNS, SNI, or reverse-domain evidence.",
+      "event": {
+        "process": {
+          "pid": 6220,
+          "name": "curl.exe",
+          "source": "endpoint_socket"
+        },
+        "remote_endpoint": {
+          "ip": "203.0.113.20",
+          "port": 8080,
+          "protocol": "tcp",
+          "source": "flow_observed"
+        },
+        "domain": null,
+        "domain_source": "missing",
+        "bytes": {
+          "sent": 900,
+          "received": 1200,
+          "source": "flow_counter"
+        },
+        "tls": {
+          "source": "not_applicable"
+        },
+        "dns_correlation": {
+          "status": "absent",
+          "source": "no_dns_event"
+        }
+      },
+      "expected_classification": "partial"
+    },
+    {
+      "id": "process-without-attribution",
+      "category": "process_no_attribution",
+      "description": "Network flow has domain, endpoint, and bytes, but the owning process is unavailable.",
+      "event": {
+        "process": {
+          "pid": null,
+          "name": null,
+          "source": "missing"
+        },
+        "remote_endpoint": {
+          "ip": "198.51.100.15",
+          "port": 443,
+          "protocol": "tcp",
+          "source": "flow_observed"
+        },
+        "domain": "api.example.test",
+        "domain_source": "dns_query",
+        "bytes": {
+          "sent": 3100,
+          "received": 8700,
+          "source": "flow_counter"
+        },
+        "tls": {
+          "sni": "api.example.test",
+          "source": "handshake_metadata"
+        },
+        "dns_correlation": {
+          "status": "direct",
+          "query": "api.example.test",
+          "source": "dns_cache"
+        }
+      },
+      "expected_classification": "partial"
+    },
+    {
+      "id": "zero-byte-flow",
+      "category": "bytes_zero",
+      "description": "Endpoint and process are present, but byte counters show no transferred data.",
+      "event": {
+        "process": {
+          "pid": 7004,
+          "name": "scanner.exe",
+          "source": "endpoint_socket"
+        },
+        "remote_endpoint": {
+          "ip": "203.0.113.77",
+          "port": 443,
+          "protocol": "tcp",
+          "source": "flow_observed"
+        },
+        "domain": "zero.example.test",
+        "domain_source": "dns_query",
+        "bytes": {
+          "sent": 0,
+          "received": 0,
+          "source": "flow_counter"
+        },
+        "tls": {
+          "source": "missing"
+        },
+        "dns_correlation": {
+          "status": "direct",
+          "query": "zero.example.test",
+          "source": "dns_cache"
+        }
+      },
+      "expected_classification": "weak"
+    },
+    {
+      "id": "tls-metadata-absent",
+      "category": "tls_metadata_absent",
+      "description": "TLS port 443 flow has process, endpoint, domain, and bytes, but no TLS metadata source.",
+      "event": {
+        "process": {
+          "pid": 8100,
+          "name": "updater.exe",
+          "source": "endpoint_socket"
+        },
+        "remote_endpoint": {
+          "ip": "192.0.2.44",
+          "port": 443,
+          "protocol": "tcp",
+          "source": "flow_observed"
+        },
+        "domain": "updates.example.test",
+        "domain_source": "dns_query",
+        "bytes": {
+          "sent": 4200,
+          "received": 65535,
+          "source": "flow_counter"
+        },
+        "tls": {
+          "source": "missing"
+        },
+        "dns_correlation": {
+          "status": "direct",
+          "query": "updates.example.test",
+          "source": "dns_cache"
+        }
+      },
+      "expected_classification": "partial"
+    },
+    {
+      "id": "lateral-smb-rdp-internal",
+      "category": "lateral_movement_smb_rdp",
+      "description": "Internal SMB/RDP fan-out with process attribution, remote endpoint, non-zero bytes, and protocol-port evidence but no DNS dependency.",
+      "event": {
+        "process": {
+          "pid": 9188,
+          "name": "powershell.exe",
+          "source": "endpoint_socket"
+        },
+        "remote_endpoint": {
+          "ip": "10.20.30.40",
+          "port": 445,
+          "protocol": "tcp",
+          "source": "flow_observed",
+          "service": "smb",
+          "network_scope": "internal"
+        },
+        "domain": null,
+        "domain_source": "not_applicable_internal_service",
+        "bytes": {
+          "sent": 16384,
+          "received": 32768,
+          "source": "flow_counter"
+        },
+        "tls": {
+          "source": "not_applicable"
+        },
+        "dns_correlation": {
+          "status": "not_applicable",
+          "source": "internal_lateral_service"
+        }
+      },
+      "expected_classification": "investigable"
+    }
+  ]
+}

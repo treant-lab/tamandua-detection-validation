@@ -1,0 +1,190 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/phase93_full_coverage_matrix_v1.schema.json",
+  "title": "Tamandua Phase 93 full coverage matrix v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "evidence_class",
+    "status",
+    "generated_at",
+    "phase92_handoff",
+    "meas05",
+    "meas06",
+    "combined",
+    "claim_boundary",
+    "external_claim_allowed",
+    "blockers"
+  ],
+  "properties": {
+    "schema_version": {"const": "phase93_full_coverage_matrix_v1"},
+    "evidence_class": {"enum": ["deferred", "live_endpoint"]},
+    "status": {"enum": ["deferred", "pass", "fail"]},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "phase92_handoff": {
+      "type": ["string", "null"],
+      "pattern": "^docs/benchmarks/runs/[A-Za-z0-9_.-]+\\.json$"
+    },
+    "meas05": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["windows", "macos"],
+      "properties": {
+        "windows": {"$ref": "#/$defs/coverageRow"},
+        "macos": {"$ref": "#/$defs/coverageRow"}
+      }
+    },
+    "meas06": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["linux", "windows", "macos"],
+      "properties": {
+        "linux": {"$ref": "#/$defs/responseRow"},
+        "windows": {"$ref": "#/$defs/responseRow"},
+        "macos": {"$ref": "#/$defs/responseRow"}
+      }
+    },
+    "combined": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["required_cells", "evaluated_cells", "passed_cells", "partial_cells", "failed_cells"],
+      "properties": {
+        "required_cells": {"const": 45},
+        "evaluated_cells": {"type": "integer", "minimum": 0, "maximum": 45},
+        "passed_cells": {"type": "integer", "minimum": 0, "maximum": 45},
+        "partial_cells": {"type": "integer", "minimum": 0, "maximum": 45},
+        "failed_cells": {"type": "integer", "minimum": 0, "maximum": 45}
+      }
+    },
+    "claim_boundary": {"type": "string", "minLength": 40},
+    "external_claim_allowed": {"const": false},
+    "blockers": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": ["string", "null"],
+      "pattern": "^docs/benchmarks/runs/[A-Za-z0-9_.-]+\\.json$"
+    },
+    "coverageRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "attempted", "detected", "detection_rate_percent", "artifact"],
+      "properties": {
+        "state": {"enum": ["deferred", "pass", "fail"]},
+        "attempted": {"type": "integer", "minimum": 0},
+        "detected": {"type": "integer", "minimum": 0},
+        "detection_rate_percent": {"type": ["number", "null"], "minimum": 0, "maximum": 100},
+        "artifact": {"$ref": "#/$defs/artifact"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"state": {"const": "deferred"}}},
+          "then": {
+            "properties": {
+              "attempted": {"const": 0},
+              "detected": {"const": 0},
+              "detection_rate_percent": {"const": null},
+              "artifact": {"const": null}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"state": {"const": "pass"}}},
+          "then": {
+            "properties": {
+              "attempted": {"minimum": 1},
+              "detection_rate_percent": {"type": "number", "minimum": 80},
+              "artifact": {"type": "string"}
+            }
+          }
+        }
+      ]
+    },
+    "responseRow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "evaluated_cells", "passed_cells", "partial_cells", "failed_cells", "artifact"],
+      "properties": {
+        "state": {"enum": ["deferred", "pass", "fail", "partial"]},
+        "evaluated_cells": {"type": "integer", "minimum": 0, "maximum": 15},
+        "passed_cells": {"type": "integer", "minimum": 0, "maximum": 15},
+        "partial_cells": {"type": "integer", "minimum": 0, "maximum": 15},
+        "failed_cells": {"type": "integer", "minimum": 0, "maximum": 15},
+        "artifact": {"$ref": "#/$defs/artifact"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"state": {"const": "deferred"}}},
+          "then": {
+            "properties": {
+              "evaluated_cells": {"const": 0},
+              "passed_cells": {"const": 0},
+              "partial_cells": {"const": 0},
+              "failed_cells": {"const": 0},
+              "artifact": {"const": null}
+            }
+          }
+        },
+        {
+          "if": {"properties": {"state": {"const": "pass"}}},
+          "then": {
+            "properties": {
+              "evaluated_cells": {"const": 15},
+              "passed_cells": {"const": 15},
+              "partial_cells": {"const": 0},
+              "failed_cells": {"const": 0},
+              "artifact": {"type": "string"}
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "deferred"}}},
+      "then": {
+        "properties": {
+          "evidence_class": {"const": "deferred"},
+          "combined": {"properties": {"evaluated_cells": {"const": 0}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"status": {"const": "pass"}}},
+      "then": {
+        "properties": {
+          "evidence_class": {"const": "live_endpoint"},
+          "phase92_handoff": {"type": "string"},
+          "meas05": {
+            "properties": {
+              "windows": {"properties": {"state": {"const": "pass"}}},
+              "macos": {"properties": {"state": {"const": "pass"}}}
+            }
+          },
+          "meas06": {
+            "properties": {
+              "linux": {"properties": {"state": {"const": "pass"}}},
+              "windows": {"properties": {"state": {"const": "pass"}}},
+              "macos": {"properties": {"state": {"const": "pass"}}}
+            }
+          },
+          "combined": {
+            "properties": {
+              "evaluated_cells": {"const": 45},
+              "passed_cells": {"const": 45},
+              "partial_cells": {"const": 0},
+              "failed_cells": {"const": 0}
+            }
+          },
+          "blockers": {"maxItems": 0}
+        }
+      }
+    }
+  ]
+}

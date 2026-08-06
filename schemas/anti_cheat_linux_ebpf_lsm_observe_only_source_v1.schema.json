@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/anti_cheat_linux_ebpf_lsm_observe_only_source_v1.schema.json",
+  "title": "Tamandua Linux eBPF LSM immutable degraded source receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "evidence_class", "observed_at", "capability_state", "sources", "assessment", "lifecycle", "claims", "blockers"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "evidence_class": {"const": "static_source_inventory"},
+    "observed_at": {"type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"},
+    "capability_state": {"const": "degraded_unproven"},
+    "sources": {
+      "type": "object", "additionalProperties": false,
+      "required": ["rust", "c"],
+      "properties": {
+        "rust": {
+          "allOf": [
+            {"$ref": "#/$defs/source"},
+            {"properties": {
+              "path": {"const": "apps/tamandua_agent/ebpf-programs/src/main.rs"},
+              "sha256": {"const": "2a387e9c66cf1e5c64c9304f655fa068a7339420a939d22f085e8b3df345b812"},
+              "hooks": {"const": ["bprm_check_security", "file_open", "file_permission", "mmap_file", "socket_bind", "socket_connect", "task_kill"]}
+            }}
+          ]
+        },
+        "c": {
+          "allOf": [
+            {"$ref": "#/$defs/source"},
+            {"properties": {
+              "path": {"const": "apps/tamandua_agent/bpf/lsm_hooks.bpf.c"},
+              "sha256": {"const": "d60f1773f39961268eee325991885ca383e3793100fccaf09b2b376e9d9d3590"},
+              "hooks": {"const": ["bprm_check_security", "file_open", "file_permission", "mmap_file", "ptrace_access_check", "sb_mount", "socket_bind", "socket_connect", "task_kill"]}
+            }}
+          ]
+        }
+      }
+    },
+    "assessment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["prior_lsm_decision_preserved", "decisive_behavior_assessment"],
+      "properties": {
+        "prior_lsm_decision_preserved": {"const": false},
+        "decisive_behavior_assessment": {"const": "not_formally_proven"}
+      }
+    },
+    "lifecycle": {
+      "type": "object", "additionalProperties": false,
+      "required": ["runtime_state", "load_requested", "load_authorized", "attach_requested", "attach_authorized", "enforcement_requested", "enforcement_authorized"],
+      "properties": {
+        "runtime_state": {"const": "not_executed"},
+        "load_requested": {"const": false}, "load_authorized": {"const": false},
+        "attach_requested": {"const": false}, "attach_authorized": {"const": false},
+        "enforcement_requested": {"const": false}, "enforcement_authorized": {"const": false}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["build_validated", "load_validated", "kernel_compatibility_validated", "efficacy_validated", "production_ready", "external_claim_allowed"],
+      "properties": {
+        "build_validated": {"const": false}, "load_validated": {"const": false},
+        "kernel_compatibility_validated": {"const": false}, "efficacy_validated": {"const": false},
+        "production_ready": {"const": false}, "external_claim_allowed": {"const": false}
+      }
+    },
+    "blockers": {"const": ["prior_lsm_decision_not_preserved", "decisive_behavior_not_formally_proven"]}
+  },
+  "$defs": {
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256", "hooks"],
+      "properties": {
+        "path": {"type": "string"},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "hooks": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}
+      }
+    }
+  }
+}

@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.io/schemas/model_package_scanner_gate_v1.schema.json",
+  "title": "Tamandua Model Package Scanner Gate Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "api_version",
+    "kind",
+    "generated_at",
+    "gate_status",
+    "external_claim_allowed",
+    "local_gate_runnable",
+    "claim_boundary",
+    "evidence",
+    "scanner",
+    "sample_accounting",
+    "fixture_coverage",
+    "outcomes",
+    "sample_outcomes",
+    "reproducibility",
+    "promotion_blockers",
+    "claimable_status"
+  ],
+  "properties": {
+    "api_version": {
+      "const": "tamandua.io/model-package-scanner-gate/v1"
+    },
+    "kind": {
+      "const": "ModelPackageScannerGateReport"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "gate_status": {
+      "enum": [
+        "blocked_for_production_claim",
+        "production_claim_ready"
+      ]
+    },
+    "external_claim_allowed": {
+      "type": "boolean"
+    },
+    "local_gate_runnable": {
+      "const": true
+    },
+    "claim_boundary": {
+      "type": "string",
+      "minLength": 20
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "class",
+        "class_reason",
+        "source_artifacts",
+        "input_kind"
+      ],
+      "properties": {
+        "class": {
+          "enum": [
+            "smoke",
+            "synthetic_parity",
+            "bootstrap_calibration",
+            "governed_holdout",
+            "production_telemetry"
+          ]
+        },
+        "class_reason": {
+          "type": "string",
+          "minLength": 20
+        },
+        "source_artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "input_kind": {
+          "const": "offline_model_package_scanner_results"
+        }
+      }
+    },
+    "scanner": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "mode",
+        "enforcement"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mode": {
+          "type": "string",
+          "minLength": 1
+        },
+        "enforcement": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "sample_accounting": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_samples",
+        "malicious",
+        "benign",
+        "formats"
+      ],
+      "properties": {
+        "total_samples": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "malicious": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "benign": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "formats": {
+          "type": "object"
+        }
+      }
+    },
+    "fixture_coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "required",
+        "present",
+        "missing",
+        "counts"
+      ],
+      "properties": {
+        "required": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "string"
+          }
+        },
+        "present": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "missing": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "counts": {
+          "type": "object"
+        }
+      }
+    },
+    "outcomes": {
+      "$ref": "#/$defs/outcomes"
+    },
+    "sample_outcomes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sample_id",
+          "fixture_class",
+          "label",
+          "verdict",
+          "outcome",
+          "evidence_classes"
+        ],
+        "properties": {
+          "sample_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fixture_class": {
+            "type": "string",
+            "minLength": 1
+          },
+          "label": {
+            "enum": [
+              "malicious",
+              "benign"
+            ]
+          },
+          "verdict": {
+            "enum": [
+              "malicious",
+              "benign"
+            ]
+          },
+          "outcome": {
+            "enum": [
+              "tp",
+              "tn",
+              "fp",
+              "fn"
+            ]
+          },
+          "evidence_classes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "reproducibility": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commands",
+        "schema"
+      ],
+      "properties": {
+        "commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "schema": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "promotion_blockers": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "claimable_status": {
+      "type": "string",
+      "minLength": 20
+    }
+  },
+  "$defs": {
+    "outcomes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tp",
+        "tn",
+        "fp",
+        "fn",
+        "malicious_total",
+        "benign_total",
+        "fpr",
+        "fnr"
+      ],
+      "properties": {
+        "tp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tn": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fp": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fn": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "malicious_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "benign_total": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "fpr": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "fnr": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

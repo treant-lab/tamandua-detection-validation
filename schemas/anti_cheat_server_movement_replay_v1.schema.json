@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/anti_cheat_server_movement_replay_v1.schema.json",
+  "title": "Tamandua Server Movement Replay v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "replay_id", "tenant_scope_digest", "build_digest", "session_digest", "policy_digest", "classification", "disposition", "observation", "extensions_influenced_suspicion", "evidence_class", "external_claim_allowed"],
+  "properties": {
+    "schema": {"const": "tamandua.anti_cheat.server_movement_replay/v1"},
+    "replay_id": {"$ref": "#/$defs/digest"},
+    "tenant_scope_digest": {"$ref": "#/$defs/digest"},
+    "build_digest": {"$ref": "#/$defs/digest"},
+    "session_digest": {"$ref": "#/$defs/digest"},
+    "policy_digest": {"$ref": "#/$defs/digest"},
+    "classification": {"enum": ["within_constraints", "constraint_violation", "inconclusive_gap", "inconclusive_transition"]},
+    "disposition": {"enum": ["observe", "emit_observation", "abstain"]},
+    "observation": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["observation_id_digest", "detector_family", "outcome", "reason_code", "evidence_digest", "start_tick", "end_tick", "feature_schema"],
+          "properties": {
+            "observation_id_digest": {"$ref": "#/$defs/digest"},
+            "detector_family": {"const": "movement"},
+            "outcome": {"enum": ["corroborated", "not_corroborated"]},
+            "reason_code": {"enum": ["server_movement_within_constraints", "server_movement_constraint_violation"]},
+            "evidence_digest": {"$ref": "#/$defs/digest"},
+            "start_tick": {"type": "integer", "minimum": 0},
+            "end_tick": {"type": "integer", "minimum": 0},
+            "feature_schema": {"const": "tamandua.game.movement_features/v1"}
+          }
+        }
+      ]
+    },
+    "extensions_influenced_suspicion": {"const": false},
+    "evidence_class": {"const": "synthetic_contract"},
+    "external_claim_allowed": {"const": false}
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/security_interop_registry_mapping_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["mapping_version", "registry_entry_id", "lifecycle", "direction", "rules", "unmapped_policy"],
+  "properties": {
+    "mapping_version": {"const": "1.0.0"},
+    "registry_entry_id": {"type": "string", "minLength": 1},
+    "lifecycle": {"enum": ["planned", "draft", "mapped", "validated", "deprecated"]},
+    "direction": {"enum": ["identity", "tamandua_to_external", "external_to_tamandua", "bidirectional"]},
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["source", "target", "transform", "lossy"],
+        "properties": {
+          "source": {"type": "string", "minLength": 1},
+          "target": {"type": "string", "minLength": 1},
+          "transform": {"type": "string", "minLength": 1},
+          "lossy": {"type": "boolean"}
+        }
+      }
+    },
+    "unmapped_policy": {"enum": ["reject", "preserve_vendor_extension", "record_in_loss_ledger"]}
+  }
+}

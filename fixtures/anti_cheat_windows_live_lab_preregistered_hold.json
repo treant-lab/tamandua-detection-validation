@@ -1,0 +1,31 @@
+{
+  "schema_version": "tamandua.anti_cheat_windows_live_lab_preflight/v1",
+  "packet_state": "preregistered_hold",
+  "execution_requested": false,
+  "evidence_class": "preregistration_only",
+  "claims": {
+    "effectiveness": false,
+    "fpr": false,
+    "external": false
+  },
+  "current_driver": {
+    "status": "ineligible_active",
+    "neutralization_receipt_digest": null,
+    "observe_only": false,
+    "active_controls": [
+      "process_control",
+      "file_control",
+      "lsass_protection",
+      "self_protection"
+    ],
+    "process_control": true,
+    "file_control": true,
+    "lsass_protection": true,
+    "self_protection": true,
+    "agent_auto_load": true,
+    "scan_port": true,
+    "digest_evidence_state": "not_collected",
+    "local_digests": {}
+  },
+  "sealed_candidate": null
+}

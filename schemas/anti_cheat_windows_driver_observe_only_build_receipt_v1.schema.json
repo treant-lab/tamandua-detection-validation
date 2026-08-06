@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/anti_cheat_windows_driver_observe_only_build_receipt_v1.schema.json",
+  "title": "Tamandua Windows observe-only driver build receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "observed_at", "evidence_class", "status", "source", "toolchain", "policy", "execution", "process", "artifact", "artifact_check", "claims", "blockers"],
+  "properties": {
+    "schema_version": {"const": "tamandua.anti_cheat_windows_driver_observe_only_build_receipt/v1"},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "evidence_class": {"const": "local_unsigned_build"},
+    "status": {"enum": ["artifact_observed_unbound", "toolchain_unavailable", "project_preflight_failed", "timed_out", "build_failed", "artifact_missing", "artifact_invalid", "input_drift", "internal_error"]},
+    "source": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/source"}]},
+    "toolchain": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/toolchain"}]},
+    "policy": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/policy"}]},
+    "execution": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/execution"}]},
+    "process": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/process"}]},
+    "artifact": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact"}]},
+    "artifact_check": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifactCheck"}]},
+    "claims": {"$ref": "#/$defs/claims"},
+    "blockers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["msbuild_not_found", "msbuild_preprocess_failed", "source_or_toolchain_changed_during_build", "msbuild_deadline_exceeded", "spectre_mitigated_libraries_unavailable", "wdk_platform_toolset_unavailable", "requested_wdk_version_unavailable", "msbuild_nonzero_exit", "expected_exactly_one_sys_artifact", "invalid_pe_artifact", "unexpected_signed_artifact", "build_execution_authenticity_unbound", "link_execution_authenticity_unbound", "signature_not_validated", "install_not_validated", "load_not_validated", "driver_communication_not_validated", "runtime_not_validated", "efficacy_not_validated", "internal_gate_error", "unsafe_output_topology", "invalid_project_contract", "toolchain_inventory_unavailable", "receipt_validation_failed"]}}
+  },
+  "allOf": [
+    {"if": {"properties": {"status": {"const": "artifact_observed_unbound"}}}, "then": {
+      "properties": {
+        "source": {"$ref": "#/$defs/sourceSuccess"},
+        "toolchain": {"$ref": "#/$defs/toolchainSuccess"},
+        "policy": {"$ref": "#/$defs/policy"},
+        "execution": {"$ref": "#/$defs/executionSuccess"},
+        "artifact": {"$ref": "#/$defs/artifact"},
+        "artifact_check": {"$ref": "#/$defs/artifactCheckValid"},
+        "process": {"$ref": "#/$defs/processSuccess"},
+        "claims": {"properties": {"build_validated": {"const": false}, "link_validated": {"const": false}}},
+        "blockers": {"type": "array", "prefixItems": [{"const": "build_execution_authenticity_unbound"}, {"const": "link_execution_authenticity_unbound"}, {"const": "signature_not_validated"}, {"const": "install_not_validated"}, {"const": "load_not_validated"}, {"const": "driver_communication_not_validated"}, {"const": "runtime_not_validated"}, {"const": "efficacy_not_validated"}], "items": false, "minItems": 8, "maxItems": 8}
+      }
+    }},
+    {"if": {"properties": {"status": {"const": "build_failed"}}}, "then": {
+      "properties": {
+        "source": {"$ref": "#/$defs/sourceSuccess"}, "toolchain": {"$ref": "#/$defs/toolchainSuccess"},
+        "policy": {"$ref": "#/$defs/policy"}, "execution": {"$ref": "#/$defs/executionSuccess"},
+        "process": {"$ref": "#/$defs/processBuildFailed"}, "artifact": {"type": "null"},
+        "artifact_check": {"$ref": "#/$defs/artifactCheckNotEvaluated"},
+        "blockers": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"enum": ["spectre_mitigated_libraries_unavailable", "wdk_platform_toolset_unavailable", "requested_wdk_version_unavailable", "msbuild_nonzero_exit"]}}
+      }
+    }},
+    {"if": {"properties": {"status": {"const": "internal_error"}}}, "then": {
+      "properties": {
+        "source": {"type": "null"}, "toolchain": {"type": "null"}, "policy": {"type": "null"},
+        "execution": {"type": "null"}, "process": {"type": "null"}, "artifact": {"type": "null"},
+        "artifact_check": {"type": "null"},
+        "blockers": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"enum": ["internal_gate_error", "unsafe_output_topology", "invalid_project_contract", "toolchain_inventory_unavailable", "receipt_validation_failed"]}}
+      }
+    }},
+    {"properties": {"claims": {"properties": {"build_validated": {"const": false}, "link_validated": {"const": false}}}}}
+  ],
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "source": {
+      "type": "object", "additionalProperties": false,
+      "required": ["project_basename", "project_path_token", "inventory", "inventory_sha256", "post_inventory", "post_inventory_sha256", "original_unchanged", "stage_input_inventory", "stage_input_sha256", "stage_post_inventory", "stage_post_sha256", "isolated_post_inventory", "isolated_post_sha256", "project_contract"],
+      "properties": {
+        "project_basename": {"const": "tamandua_driver.vcxproj"},
+        "project_path_token": {"$ref": "#/$defs/sha256"},
+        "inventory_sha256": {"$ref": "#/$defs/sha256"},
+        "post_inventory": {"type": "array", "items": {"$ref": "#/$defs/inventoryFile"}},
+        "post_inventory_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+        "original_unchanged": {"type": "boolean"},
+        "stage_input_inventory": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/inventoryFile"}},
+        "stage_input_sha256": {"$ref": "#/$defs/sha256"},
+        "stage_post_inventory": {"type": "array", "items": {"$ref": "#/$defs/inventoryFile"}},
+        "stage_post_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+        "isolated_post_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+        "isolated_post_inventory": {"type": "array", "items": {"$ref": "#/$defs/inventoryFile"}},
+        "project_contract": {"type": "object"},
+        "inventory": {"type": "array", "minItems": 2, "items": {"$ref": "#/$defs/inventoryFile"}}
+      }
+    },
+    "sourceSuccess": {"allOf": [{"$ref": "#/$defs/source"}, {"properties": {"post_inventory": {"type": "array", "minItems": 2}, "post_inventory_sha256": {"$ref": "#/$defs/sha256"}, "original_unchanged": {"const": true}, "stage_post_inventory": {"type": "array", "minItems": 1}, "stage_post_sha256": {"$ref": "#/$defs/sha256"}, "isolated_post_sha256": {"$ref": "#/$defs/sha256"}, "isolated_post_inventory": {"type": "array", "minItems": 1}}}]},
+    "inventoryFile": {
+      "type": "object", "additionalProperties": false, "required": ["path", "size", "sha256"],
+      "properties": {"path": {"type": "string", "minLength": 1}, "size": {"type": "integer", "minimum": 0}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "toolchain": {
+      "type": "object", "additionalProperties": false,
+      "required": ["wdk_version_requested", "files", "post_files", "post_sha256", "unchanged", "imports", "post_imports", "imports_post_sha256", "imports_unchanged"],
+      "properties": {
+        "wdk_version_requested": {"type": "string", "pattern": "^[0-9.]+$"},
+        "files": {"type": "array", "items": {"$ref": "#/$defs/toolFile"}},
+        "post_files": {"type": "array", "items": {"$ref": "#/$defs/toolFile"}},
+        "post_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+        "unchanged": {"type": "boolean"},
+        "imports": {"type": "array", "items": {"$ref": "#/$defs/toolFile"}},
+        "post_imports": {"type": "array", "items": {"$ref": "#/$defs/toolFile"}},
+        "imports_post_sha256": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/sha256"}]},
+        "imports_unchanged": {"type": "boolean"}
+      }
+    },
+    "toolchainSuccess": {"allOf": [{"$ref": "#/$defs/toolchain"}, {"properties": {"files": {"type": "array", "minItems": 7}, "post_files": {"type": "array", "minItems": 7}, "post_sha256": {"$ref": "#/$defs/sha256"}, "unchanged": {"const": true}, "imports": {"type": "array", "minItems": 1}, "post_imports": {"type": "array", "minItems": 1}, "imports_post_sha256": {"$ref": "#/$defs/sha256"}, "imports_unchanged": {"const": true}}}]},
+    "toolFile": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "basename", "path_token", "size", "sha256"],
+      "properties": {"role": {"type": "string", "minLength": 1}, "basename": {"type": "string", "minLength": 1}, "path_token": {"$ref": "#/$defs/sha256"}, "size": {"type": "integer", "minimum": 1}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["observe_only", "driver_sign", "sign_mode", "inf2cat", "packaging", "post_build", "vcpkg_enabled", "custom_build_stage_only", "user_props_loaded"],
+      "properties": {"observe_only": {"const": "1"}, "driver_sign": {"const": "Off"}, "sign_mode": {"const": "Off"}, "inf2cat": {"const": "false"}, "packaging": {"const": "false"}, "post_build": {"const": "false"}, "vcpkg_enabled": {"const": "false"}, "custom_build_stage_only": {"const": true}, "user_props_loaded": {"const": false}}
+    },
+    "execution": {
+      "type": "object", "additionalProperties": false, "required": ["argv", "cwd_token", "timeout_seconds", "environment_keys", "preprocess", "effective_properties"],
+      "properties": {"argv": {"type": "array", "minItems": 15, "items": {"type": "string", "minLength": 1}}, "cwd_token": {"$ref": "#/$defs/sha256"}, "timeout_seconds": {"type": "integer", "minimum": 1, "maximum": 3600}, "environment_keys": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}, "preprocess": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/process"}]}, "effective_properties": {"type": "object", "additionalProperties": {"type": "string"}}}
+    },
+    "executionSuccess": {"allOf": [{"$ref": "#/$defs/execution"}, {"properties": {"preprocess": {"$ref": "#/$defs/processSuccess"}, "effective_properties": {"type": "object", "additionalProperties": false, "required": ["TamanduaDriverObserveOnly", "DriverSign", "SignMode", "EnableInf2cat", "SupportsPackaging", "PostBuildEventUseInBuild", "VcpkgEnabled"], "properties": {"TamanduaDriverObserveOnly": {"const": "1"}, "DriverSign": {"const": "Off"}, "SignMode": {"const": "Off"}, "EnableInf2cat": {"const": "false"}, "SupportsPackaging": {"const": "false"}, "PostBuildEventUseInBuild": {"const": "false"}, "VcpkgEnabled": {"const": "false"}}}}}]},
+    "process": {
+      "type": "object", "additionalProperties": false,
+      "required": ["exit_code", "timed_out", "duration_ms", "output_sha256", "output_bytes", "retained_output", "retained_output_sha256", "retained_raw_sha256", "retained_raw_bytes", "redaction_applied", "retained_truncated", "job_containment"],
+      "properties": {
+        "exit_code": {"type": ["integer", "null"]}, "timed_out": {"type": "boolean"}, "duration_ms": {"type": "integer", "minimum": 0},
+        "output_sha256": {"$ref": "#/$defs/sha256"}, "output_bytes": {"type": "integer", "minimum": 0}, "retained_output": {"type": "string", "maxLength": 262144},
+        "retained_output_sha256": {"$ref": "#/$defs/sha256"},
+        "retained_raw_sha256": {"$ref": "#/$defs/sha256"},
+        "retained_raw_bytes": {"type": "integer", "minimum": 0, "maximum": 262144},
+        "redaction_applied": {"type": "boolean"},
+        "retained_truncated": {"type": "boolean"}, "job_containment": {"enum": ["windows_job_kill_on_close", "process_only"]}
+      }
+    },
+    "processSuccess": {"allOf": [{"$ref": "#/$defs/process"}, {"properties": {"exit_code": {"const": 0}, "timed_out": {"const": false}}}]},
+    "processBuildFailed": {"allOf": [{"$ref": "#/$defs/process"}, {"properties": {"exit_code": {"type": "integer", "not": {"const": 0}}, "timed_out": {"const": false}}}]},
+    "artifactCheck": {
+      "type": "object", "additionalProperties": false, "required": ["candidate_count", "state", "failure"],
+      "properties": {"candidate_count": {"type": "integer", "minimum": 0, "maximum": 16}, "state": {"enum": ["not_evaluated", "missing_or_ambiguous", "invalid", "valid"]}, "failure": {"type": ["string", "null"], "enum": [null, "expected_exactly_one_sys_artifact", "invalid_pe_artifact", "unexpected_signed_artifact"]}}
+    },
+    "artifactCheckValid": {"allOf": [{"$ref": "#/$defs/artifactCheck"}, {"properties": {"candidate_count": {"const": 1}, "state": {"const": "valid"}, "failure": {"type": "null"}}}]},
+    "artifactCheckNotEvaluated": {"allOf": [{"$ref": "#/$defs/artifactCheck"}, {"properties": {"candidate_count": {"const": 0}, "state": {"const": "not_evaluated"}, "failure": {"type": "null"}}}]},
+    "artifact": {
+      "type": "object", "additionalProperties": false, "required": ["path", "size", "sha256", "machine", "characteristics", "imports", "certificate_table_present"],
+      "properties": {
+        "path": {"type": "string", "pattern": "(?i)\\.sys$"}, "size": {"type": "integer", "minimum": 256, "maximum": 134217728}, "sha256": {"$ref": "#/$defs/sha256"},
+        "machine": {"const": "amd64"}, "characteristics": {"type": "integer", "minimum": 0, "maximum": 65535},
+        "imports": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9_.-]+$"}}, "certificate_table_present": {"const": false}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["build_validated", "link_validated", "signed", "installed", "loaded", "driver_communication_validated", "runtime_validated", "efficacy_validated", "production_ready", "external_claim_allowed"],
+      "properties": {
+        "build_validated": {"const": false}, "link_validated": {"const": false}, "signed": {"const": false}, "installed": {"const": false}, "loaded": {"const": false},
+        "driver_communication_validated": {"const": false}, "runtime_validated": {"const": false}, "efficacy_validated": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}
+      }
+    }
+  }
+}

@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/local_model_service_contract_v1.schema.json",
+  "title": "Tamandua local model service protocol v1",
+  "oneOf": [
+    { "$ref": "#/$defs/health_response" },
+    { "$ref": "#/$defs/scan_request" },
+    { "$ref": "#/$defs/scan_response" },
+    { "$ref": "#/$defs/observation_scan_response" }
+  ],
+  "$defs": {
+    "contract_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "health_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "protocol_version", "model_contract_ids"],
+      "dependentRequired": {
+        "capabilities": ["model_contract_modes"],
+        "model_contract_modes": ["capabilities"]
+      },
+      "properties": {
+        "status": { "const": "ready" },
+        "protocol_version": { "const": "1" },
+        "model_contract_ids": {
+          "type": "array",
+          "maxItems": 128,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/contract_id" }
+        },
+        "capabilities": {
+          "type": "array",
+          "maxItems": 2,
+          "uniqueItems": true,
+          "items": { "enum": ["decision_only", "endpoint_shadow"] }
+        },
+        "model_contract_modes": {
+          "type": "object",
+          "maxProperties": 128,
+          "propertyNames": { "$ref": "#/$defs/contract_id" },
+          "additionalProperties": { "enum": ["decision_only", "endpoint_shadow"] }
+        }
+      }
+    },
+    "scan_request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["file_sha256", "local_path", "model_contract_id"],
+      "properties": {
+        "file_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "local_path": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 32768
+        },
+        "model_contract_id": { "$ref": "#/$defs/contract_id" }
+      }
+    },
+    "vote": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["detector_id", "status", "decision", "confidence"],
+      "properties": {
+        "detector_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "status": {
+          "enum": ["completed", "cached", "degraded", "timeout", "failed", "unsupported"]
+        },
+        "decision": { "enum": ["malicious", "suspicious", "benign", "unknown"] },
+        "score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "status": { "enum": ["completed", "cached"] } } },
+          "then": {
+            "properties": {
+              "score": { "type": "number" },
+              "decision": { "enum": ["malicious", "suspicious", "benign"] }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": { "enum": ["degraded", "timeout", "failed", "unsupported"] }
+            }
+          },
+          "then": {
+            "properties": {
+              "score": { "type": "null" },
+              "decision": { "const": "unknown" },
+              "confidence": { "const": 0 }
+            }
+          }
+        }
+      ]
+    },
+    "threat": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "description", "confidence"],
+      "properties": {
+        "type": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "description": { "type": "string", "minLength": 1, "maxLength": 4096 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "technique_id": { "type": "string", "maxLength": 64 },
+        "severity": { "type": ["string", "null"], "maxLength": 32 },
+        "location": { "type": ["string", "null"], "maxLength": 4096 }
+      }
+    },
+    "model_metadata": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "artifact_sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "threshold": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+        "feature_contract_id": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+        "calibration_id": { "type": ["string", "null"], "minLength": 1, "maxLength": 128 },
+        "score_orientation": {
+          "type": ["string", "null"],
+          "enum": ["higher_is_more_malicious", "lower_is_more_malicious", null]
+        }
+      }
+    },
+    "scan_result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["safe", "threats", "risk_score", "scan_time_ms"],
+      "properties": {
+        "safe": { "type": "boolean" },
+        "threats": {
+          "type": "array",
+          "maxItems": 4096,
+          "items": { "$ref": "#/$defs/threat" }
+        },
+        "risk_score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "scan_time_ms": { "type": "number", "minimum": 0, "maximum": 60000 },
+        "file_name": { "type": "string", "maxLength": 4096 },
+        "model_type": { "type": ["string", "null"], "maxLength": 128 },
+        "metadata": {
+          "oneOf": [{ "$ref": "#/$defs/model_metadata" }, { "type": "null" }]
+        },
+        "runtime_lane": { "type": ["string", "null"], "enum": ["local_service", null] },
+        "model_contract_id": {
+          "oneOf": [{ "$ref": "#/$defs/contract_id" }, { "type": "null" }]
+        },
+        "decision_mode": { "type": ["string", "null"], "enum": ["decision_only", null] },
+        "ensemble_votes": {
+          "type": "array",
+          "maxItems": 32,
+          "items": { "$ref": "#/$defs/vote" }
+        }
+      }
+    },
+    "scan_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_contract_id", "result"],
+      "properties": {
+        "model_contract_id": { "$ref": "#/$defs/contract_id" },
+        "result": { "$ref": "#/$defs/scan_result" }
+      }
+    },
+    "shadow_model_metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "evidence_class",
+        "claim_boundary",
+        "feature_contract_id",
+        "calibration_id",
+        "score_orientation",
+        "artifact_sha256",
+        "threshold"
+      ],
+      "properties": {
+        "evidence_class": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "claim_boundary": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "feature_contract_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "calibration_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "score_orientation": {
+          "enum": ["higher_is_more_malicious", "lower_is_more_malicious"]
+        },
+        "artifact_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "threshold": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "shadow_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "detector_id",
+        "status",
+        "score",
+        "score_orientation",
+        "threshold",
+        "threshold_met",
+        "confidence",
+        "metadata",
+        "runtime_lane",
+        "model_contract_id"
+      ],
+      "properties": {
+        "detector_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "status": { "const": "completed" },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "score_orientation": {
+          "enum": ["higher_is_more_malicious", "lower_is_more_malicious"]
+        },
+        "threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "threshold_met": { "type": "boolean" },
+        "confidence": { "type": "null" },
+        "metadata": { "$ref": "#/$defs/shadow_model_metadata" },
+        "runtime_lane": { "const": "local_service" },
+        "model_contract_id": { "$ref": "#/$defs/contract_id" }
+      }
+    },
+    "observation_scan_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["model_contract_id", "mode", "observation"],
+      "properties": {
+        "model_contract_id": { "$ref": "#/$defs/contract_id" },
+        "mode": { "const": "endpoint_shadow" },
+        "observation": { "$ref": "#/$defs/shadow_observation" }
+      }
+    }
+  }
+}

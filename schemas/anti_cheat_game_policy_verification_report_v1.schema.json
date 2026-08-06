@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/anti_cheat_game_policy_verification_report_v1.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["report_digest", "schema", "evidence_class", "verification_state", "authority_verified", "signature_verified", "pin_provenance", "trusted_time_unix", "scope", "policy_id", "policy_version", "policy_digest", "key_id", "trust_root_digest", "signature_algorithm", "envelope_digest", "prior_checkpoint_digest", "next_checkpoint", "claims"],
+  "properties": {
+    "report_digest": {"$ref": "#/$defs/digest"}, "schema": {"const": "tamandua.anti_cheat.game_policy_verification_report/v1"},
+    "evidence_class": {"const": "synthetic_offline_contract"}, "verification_state": {"const": "caller_parameterized_consistency"}, "authority_verified": {"const": false}, "signature_verified": {"const": true}, "pin_provenance": {"const": "caller_parameters_unauthenticated"}, "trusted_time_unix": {"type": "integer", "minimum": 0},
+    "scope": {"$ref": "#/$defs/scope"}, "policy_id": {"type": "string"}, "policy_version": {"type": "string"},
+    "policy_digest": {"$ref": "#/$defs/digest"}, "key_id": {"type": "string"}, "trust_root_digest": {"$ref": "#/$defs/digest"}, "signature_algorithm": {"const": "Ed25519"}, "envelope_digest": {"$ref": "#/$defs/digest"},
+    "prior_checkpoint_digest": {"$ref": "#/$defs/digest"}, "next_checkpoint": {"$ref": "#/$defs/checkpoint"},
+    "claims": {"$ref": "#/$defs/falseClaims"}
+  },
+  "$defs": {
+    "digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "scope": {"type": "object", "additionalProperties": false, "required": ["tenant_scope_digest", "game_id", "build_digest"], "properties": {"tenant_scope_digest": {"$ref": "#/$defs/digest"}, "game_id": {"type": "string"}, "build_digest": {"$ref": "#/$defs/digest"}}},
+    "checkpoint": {"type": "object", "additionalProperties": false, "required": ["authority_epoch", "revision", "revocation_version", "revocation_set_digest", "revoked_key_ids", "policy_digest", "envelope_digest", "checkpoint_digest"], "properties": {"authority_epoch": {"type": "integer", "minimum": 1}, "revision": {"type": "integer", "minimum": 1}, "revocation_version": {"type": "integer", "minimum": 0}, "revocation_set_digest": {"$ref": "#/$defs/digest"}, "revoked_key_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}, "policy_digest": {"$ref": "#/$defs/digest"}, "envelope_digest": {"$ref": "#/$defs/digest"}, "checkpoint_digest": {"$ref": "#/$defs/digest"}}},
+    "falseClaims": {"type": "object", "additionalProperties": false, "required": ["runtime_authorized", "enforcement_authorized", "external_latest_state_validated", "rollback_durability_validated", "production_ready", "external_claim_allowed"], "properties": {"runtime_authorized": {"const": false}, "enforcement_authorized": {"const": false}, "external_latest_state_validated": {"const": false}, "rollback_durability_validated": {"const": false}, "production_ready": {"const": false}, "external_claim_allowed": {"const": false}}}
+  }
+}

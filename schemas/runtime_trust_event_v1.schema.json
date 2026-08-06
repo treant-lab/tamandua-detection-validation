@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/runtime_trust_event_v1.schema.json",
+  "title": "Tamandua Runtime Trust Event v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "event_id",
+    "observed_at",
+    "profile",
+    "platform",
+    "event_type",
+    "scope",
+    "protected_target",
+    "session",
+    "evaluation",
+    "capability_report",
+    "signals",
+    "evidence_boundary",
+    "compatibility"
+  ],
+  "properties": {
+    "schema": {"const": "tamandua.runtime_trust.event/v1"},
+    "event_id": {"type": "string", "minLength": 1, "maxLength": 160},
+    "observed_at": {"type": "string", "format": "date-time"},
+    "profile": {
+      "enum": ["mobile_app_guard", "desktop_app_guard", "web_guard", "anti_cheat"]
+    },
+    "platform": {"enum": ["android", "ios", "windows", "linux", "macos", "web"]},
+    "event_type": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,95}$"},
+    "scope": {
+      "type": "object",
+      "required": ["tenant_resolution"],
+      "properties": {
+        "tenant_resolution": {"enum": ["resolved", "unresolved_legacy_adapter"]},
+        "tenant_id": {"type": "string", "minLength": 1, "maxLength": 160}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"tenant_resolution": {"const": "resolved"}}},
+          "then": {"required": ["tenant_id"]},
+          "else": {"not": {"required": ["tenant_id"]}}
+        }
+      ],
+      "additionalProperties": false
+    },
+    "protected_target": {
+      "type": "object",
+      "required": ["kind", "target_id", "build_id", "version"],
+      "properties": {
+        "kind": {"enum": ["mobile_app", "desktop_process", "web_app", "game_client"]},
+        "target_id": {"type": "string", "minLength": 1, "maxLength": 512},
+        "build_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "version": {"type": "string", "minLength": 1, "maxLength": 128},
+        "signer_digest": {"type": "string", "minLength": 1, "maxLength": 256},
+        "manifest_digest": {"type": "string", "minLength": 1, "maxLength": 256}
+      },
+      "additionalProperties": false
+    },
+    "session": {
+      "type": "object",
+      "required": ["session_id", "workflow"],
+      "properties": {
+        "session_id": {"type": "string", "minLength": 1, "maxLength": 256},
+        "workflow": {"type": "string", "minLength": 1, "maxLength": 160},
+        "user_id_hash": {"type": "string", "minLength": 1, "maxLength": 256},
+        "transaction_id_hash": {"type": "string", "minLength": 1, "maxLength": 256},
+        "match_id": {"type": "string", "minLength": 1, "maxLength": 256}
+      },
+      "additionalProperties": false
+    },
+    "evaluation": {
+      "$ref": "https://schemas.tamandua.local/runtime_trust_evaluation_v1.schema.json"
+    },
+    "capability_report": {
+      "$ref": "https://schemas.tamandua.local/runtime_trust_capability_report_v1.schema.json"
+    },
+    "signals": {
+      "type": "array",
+      "maxItems": 64,
+      "items": {"$ref": "https://schemas.tamandua.local/runtime_trust_signal_v1.schema.json"}
+    },
+    "evidence_boundary": {
+      "type": "object",
+      "required": ["metadata_only", "contains_raw_content", "excluded_fields"],
+      "properties": {
+        "metadata_only": {"const": true},
+        "contains_raw_content": {"const": false},
+        "excluded_fields": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 32,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 128}
+        }
+      },
+      "additionalProperties": false
+    },
+    "compatibility": {
+      "type": "object",
+      "required": ["source_schema", "mapping_version", "source_payload_sha256", "source_payload", "core_fields_lossless", "unmapped_fields"],
+      "properties": {
+        "source_schema": {"enum": ["tamandua.app_guard.event/v1", "tamandua.runtime_trust.event/v1"]},
+        "mapping_version": {"enum": ["app_guard_v1_to_runtime_trust_v1", "runtime_trust_v1_direct"]},
+        "source_payload_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "source_payload": {"type": "object"},
+        "core_fields_lossless": {"const": true},
+        "unmapped_fields": {
+          "type": "array",
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "maxLength": 256}
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"source_schema": {"const": "tamandua.runtime_trust.event/v1"}}},
+          "then": {
+            "properties": {
+              "source_payload": {
+                "type": "object",
+                "minProperties": 1,
+                "properties": {
+                  "platform_case": {"enum": ["android", "ios", "windows", "linux", "macos", "web"]},
+                  "profile_case": {"enum": ["anti_cheat_windows"]},
+                  "producer_id": {"type": "string", "pattern": "^[a-z][a-z0-9_.-]{1,127}$"},
+                  "producer_version": {"type": "string", "minLength": 1, "maxLength": 64},
+                  "source_event_id": {"type": "string", "minLength": 1, "maxLength": 160},
+                  "metadata_digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"profile": {"const": "mobile_app_guard"}}},
+      "then": {
+        "properties": {
+          "platform": {"enum": ["android", "ios"]},
+          "protected_target": {"properties": {"kind": {"const": "mobile_app"}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"profile": {"const": "desktop_app_guard"}}},
+      "then": {
+        "properties": {
+          "platform": {"enum": ["windows", "linux", "macos"]},
+          "protected_target": {"properties": {"kind": {"const": "desktop_process"}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"profile": {"const": "web_guard"}}},
+      "then": {
+        "properties": {
+          "platform": {"const": "web"},
+          "protected_target": {"properties": {"kind": {"const": "web_app"}}}
+        }
+      }
+    },
+    {
+      "if": {"properties": {"profile": {"const": "anti_cheat"}}},
+      "then": {
+        "properties": {
+          "platform": {"enum": ["android", "ios", "windows", "linux", "macos"]},
+          "protected_target": {"properties": {"kind": {"const": "game_client"}}}
+        }
+      }
+    }
+  ],
+  "additionalProperties": false
+}

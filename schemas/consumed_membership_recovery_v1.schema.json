@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.dev/schemas/consumed_membership_recovery_v1.schema.json",
+  "type": "object",
+  "required": ["api_version", "kind", "status", "confidence", "workspace", "scan_roots", "scanned_file_count", "skipped", "datasets", "execution", "authorization_required", "verification_command", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/consumed-membership-recovery/v1"},
+    "kind": {"const": "ConsumedMembershipRecoveryReport"},
+    "status": {"const": "blocked_unverified"},
+    "confidence": {"const": "unverified"},
+    "workspace": {"const": "."},
+    "scan_roots": {"type": "array", "items": {"type": "string"}},
+    "scanned_file_count": {"type": "integer", "minimum": 0},
+    "skipped": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1}},
+    "datasets": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "object", "required": ["dataset_id", "status", "confidence", "candidate_count", "candidates"]}},
+    "execution": {"const": {"network_used": false, "sample_bodies_read": false, "policy_mutated": false}},
+    "authorization_required": {"const": true},
+    "verification_command": {"type": "string", "minLength": 1},
+    "claim_boundary": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

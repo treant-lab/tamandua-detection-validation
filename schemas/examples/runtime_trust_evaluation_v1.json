@@ -1,0 +1,27 @@
+{
+  "score": 37,
+  "decision": "observe",
+  "reasons": [
+    "capability_degraded",
+    "synthetic_contract_only"
+  ],
+  "policy_id": "tamandua.mobile.high_risk_workflow",
+  "policy_version": "1.0.0-synthetic",
+  "policy_digest": "b62256b08f83c21987a25dce101f52d31e2dad8df436b68512a7f12f23c1936d",
+  "workflow": "withdrawal",
+  "evaluated_at": "2026-07-17T12:05:00Z",
+  "detector_bundle_id": "tamandua.mobile.app_guard.default",
+  "detector_bundle_version": "1",
+  "decision_source": "server_policy",
+  "capability_state": "degraded",
+  "signal_completeness": "complete",
+  "missing_signal_ids": [],
+  "abstained": false,
+  "abstention_reasons": [],
+  "evidence_class": "synthetic_contract",
+  "external_claim_allowed": false,
+  "limitations": [
+    "no_runtime_writer",
+    "no_physical_efficacy_evidence"
+  ]
+}

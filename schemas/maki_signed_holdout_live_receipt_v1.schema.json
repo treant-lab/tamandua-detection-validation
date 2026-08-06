@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/maki_signed_holdout_live_receipt_v1.schema.json",
+  "type": "object", "additionalProperties": false,
+  "required": ["schema", "payload", "signature"],
+  "properties": {
+    "schema": {"const": "tamandua.maki.signed-holdout-live-receipt/v1"},
+    "payload": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema", "receipt_id", "operation_id", "authorization_id", "terminal_coordinator_receipt_sha256", "live_receipt_schema_sha256", "offline_copy_authorization_sha256", "offline_copy_authorization_schema_sha256", "holdout_preflight_sha256", "holdout_preflight_schema_sha256", "live_post_copy_evidence_sha256", "live_post_copy_evidence_schema_sha256", "deployment", "selection_digest", "publisher", "custodian", "executor", "attestor", "signer", "source", "destination", "issued_at", "expires_at"],
+      "properties": {
+        "schema": {"const": "tamandua.maki.holdout-live-receipt-payload/v1"},
+        "receipt_id": {"type": "string", "pattern": "^[A-Za-z0-9._:-]{8,160}$"},
+        "terminal_coordinator_receipt_sha256": {"$ref": "#/$defs/sha256"},
+        "live_receipt_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "operation_id": {"$ref": "#/$defs/sha256"},
+        "authorization_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"},
+        "offline_copy_authorization_sha256": {"$ref": "#/$defs/sha256"}, "offline_copy_authorization_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "holdout_preflight_sha256": {"$ref": "#/$defs/sha256"}, "holdout_preflight_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "live_post_copy_evidence_sha256": {"$ref": "#/$defs/sha256"}, "live_post_copy_evidence_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "deployment": {"$ref": "#/$defs/deployment"},
+        "selection_digest": {"$ref": "#/$defs/sha256"},
+        "publisher": {"$ref": "#/$defs/fencedPrincipal"},
+        "custodian": {"$ref": "#/$defs/principal"}, "executor": {"$ref": "#/$defs/principal"}, "attestor": {"$ref": "#/$defs/principal"}, "signer": {"$ref": "#/$defs/principal"},
+        "source": {"$ref": "#/$defs/sourceIdentity"}, "destination": {"$ref": "#/$defs/destinationIdentity"},
+        "issued_at": {"type": "string", "format": "date-time"}, "expires_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "signature": {
+      "type": "object", "additionalProperties": false, "required": ["domain", "algorithm", "key_id", "signature_b64"],
+      "properties": {"domain": {"const": "tamandua.maki.holdout-live-copy-receipt.ed25519/v1"}, "algorithm": {"const": "Ed25519"}, "key_id": {"type": "string", "minLength": 8, "maxLength": 160}, "signature_b64": {"type": "string", "pattern": "^[A-Za-z0-9+/]{86}==$"}}
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "principal": {"type": "object", "additionalProperties": false, "required": ["owner", "key_id", "public_key_sha256"], "properties": {"owner": {"type": "string", "pattern": "^[A-Za-z0-9._:@/-]{1,256}$"}, "key_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{7,159}$"}, "public_key_sha256": {"$ref": "#/$defs/sha256"}}},
+    "fencedPrincipal": {"type": "object", "additionalProperties": false, "required": ["owner", "fencing_token"], "properties": {"owner": {"type": "string", "minLength": 1, "maxLength": 256}, "fencing_token": {"type": "integer", "minimum": 1}}},
+    "deployment": {"type": "object", "additionalProperties": false, "required": ["deployment_id", "source_sha", "target", "surface", "coordinator_outcome", "approval_id", "manifest_fingerprint"], "properties": {"deployment_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"}, "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"}, "target": {"const": "staging"}, "surface": {"const": "ml-corpus-holdout"}, "coordinator_outcome": {"const": "succeeded"}, "approval_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"}, "manifest_fingerprint": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}}},
+    "sourceIdentity": {"type": "object", "additionalProperties": false, "required": ["bucket", "key", "version_id", "checksum_sha256", "size_bytes", "expected_bucket_owner"], "properties": {"bucket": {"type": "string", "pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"}, "key": {"type": "string", "minLength": 1, "maxLength": 1024}, "version_id": {"type": "string", "minLength": 1, "maxLength": 1024}, "checksum_sha256": {"$ref": "#/$defs/sha256"}, "size_bytes": {"type": "integer", "minimum": 1, "maximum": 5497558138880}, "expected_bucket_owner": {"type": "string", "pattern": "^[0-9]{12}$"}}},
+    "destinationIdentity": {"type": "object", "additionalProperties": false, "required": ["bucket", "key", "version_id", "checksum_sha256", "size_bytes", "expected_bucket_owner", "server_side_encryption", "kms_key_arn", "bucket_key_enabled"], "properties": {"bucket": {"type": "string", "pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"}, "key": {"type": "string", "pattern": "^holdout/(goodware|malware)/.+\\.bin$", "maxLength": 1024}, "version_id": {"type": "string", "minLength": 1, "maxLength": 1024}, "checksum_sha256": {"$ref": "#/$defs/sha256"}, "size_bytes": {"type": "integer", "minimum": 1, "maximum": 5497558138880}, "expected_bucket_owner": {"type": "string", "pattern": "^[0-9]{12}$"}, "server_side_encryption": {"const": "aws:kms"}, "kms_key_arn": {"type": "string", "pattern": "^arn:aws:kms:[a-z0-9-]{1,63}:[0-9]{12}:key/[A-Za-z0-9-]{1,256}$", "maxLength": 512}, "bucket_key_enabled": {"const": false}}}
+  }
+}

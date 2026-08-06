@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/ml_dataset_manifest_v2_pilot_transition_audit_v1.schema.json",
+  "title": "Tamandua Manifest v2 pilot transition audit",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "evidence_class", "ready_for_manifest_v2", "blockers", "inputs", "execution", "pilot_integrity", "required_v2_sample_fields", "transition_summary", "candidates", "claim_boundary"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/ml-dataset-manifest-v2-pilot-transition-audit/v1"},
+    "kind": {"const": "MLDatasetManifestV2PilotTransitionAudit"},
+    "evidence_class": {"const": "offline_semantic_transition_gap_audit"},
+    "ready_for_manifest_v2": {"const": false},
+    "blockers": {"type": "array", "minItems": 5, "uniqueItems": true, "contains": {"const": "promotion_receipts_not_provided"}, "items": {"type": "string", "minLength": 1}},
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["pilot_plan_sha256", "pilot_schema_sha256", "manifest_v2_schema_sha256"],
+      "properties": {
+        "pilot_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "pilot_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "manifest_v2_schema_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "execution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["network_used", "reads_sample_bodies", "mutates_s3", "opens_holdout", "trains_model"],
+      "properties": {
+        "network_used": {"const": false}, "reads_sample_bodies": {"const": false},
+        "mutates_s3": {"const": false}, "opens_holdout": {"const": false}, "trains_model": {"const": false}
+      }
+    },
+    "pilot_integrity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["semantic_valid", "errors", "declared_candidate_plan_sha256", "actual_candidate_plan_sha256", "candidate_digest_matches", "declared_selected_counts", "actual_selected_counts", "selected_counts_match", "duplicate_sha256s", "source_cap_violations", "group_cap_violations", "groups_crossing_splits", "temporal_violation_labels"],
+      "properties": {
+        "semantic_valid": {"type": "boolean"},
+        "errors": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "declared_candidate_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "actual_candidate_plan_sha256": {"$ref": "#/$defs/sha256"},
+        "candidate_digest_matches": {"type": "boolean"},
+        "declared_selected_counts": {"$ref": "#/$defs/splitCounts"},
+        "actual_selected_counts": {"$ref": "#/$defs/splitCounts"},
+        "selected_counts_match": {"type": "boolean"},
+        "duplicate_sha256s": {"type": "array", "uniqueItems": true, "items": {"$ref": "#/$defs/sha256"}},
+        "source_cap_violations": {"type": "array", "items": {"$ref": "#/$defs/sourceViolation"}},
+        "group_cap_violations": {"type": "array", "items": {"$ref": "#/$defs/groupViolation"}},
+        "groups_crossing_splits": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+        "temporal_violation_labels": {"type": "array", "uniqueItems": true, "items": {"enum": ["goodware", "malware"]}}
+      }
+    },
+    "required_v2_sample_fields": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "transition_summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["candidate_count", "blocked_missing_transition_evidence", "invalid_pilot_candidates", "ready_candidates", "missing_required_v2_field_counts"],
+      "properties": {
+        "candidate_count": {"type": "integer", "minimum": 0},
+        "blocked_missing_transition_evidence": {"type": "integer", "minimum": 0},
+        "invalid_pilot_candidates": {"type": "integer", "minimum": 0},
+        "ready_candidates": {"const": 0},
+        "missing_required_v2_field_counts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
+      }
+    },
+    "candidates": {"type": "array", "maxItems": 200, "items": {"$ref": "#/$defs/candidate"}},
+    "claim_boundary": {
+      "type": "object", "additionalProperties": false, "required": ["supports", "does_not_support"],
+      "properties": {
+        "supports": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "does_not_support": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "classCounts": {"type": "object", "additionalProperties": false, "required": ["goodware", "malware"], "properties": {"goodware": {"type": "integer", "minimum": 0}, "malware": {"type": "integer", "minimum": 0}}},
+    "splitCounts": {"type": "object", "additionalProperties": false, "required": ["train", "validation"], "properties": {"train": {"$ref": "#/$defs/classCounts"}, "validation": {"$ref": "#/$defs/classCounts"}}},
+    "sourceViolation": {"type": "object", "additionalProperties": false, "required": ["split", "source_id", "count", "cap"], "properties": {"split": {"enum": ["train", "validation"]}, "source_id": {"type": "string", "minLength": 1}, "count": {"type": "integer", "minimum": 1}, "cap": {"type": "integer", "minimum": 1}}},
+    "groupViolation": {"type": "object", "additionalProperties": false, "required": ["split", "leakage_group_id", "count", "cap"], "properties": {"split": {"enum": ["train", "validation"]}, "leakage_group_id": {"type": "string", "minLength": 1}, "count": {"type": "integer", "minimum": 1}, "cap": {"type": "integer", "minimum": 1}}},
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sha256", "label", "intended_split", "classification", "missing_required_v2_fields"],
+      "properties": {
+        "sha256": {"$ref": "#/$defs/sha256"}, "label": {"enum": ["goodware", "malware"]},
+        "intended_split": {"enum": ["train", "validation"]},
+        "classification": {"enum": ["blocked_missing_transition_evidence", "invalid_pilot_candidate"]},
+        "missing_required_v2_fields": {"type": "array", "minItems": 1, "uniqueItems": true, "contains": {"const": "size_bytes"}, "items": {"type": "string", "minLength": 1}}
+      }
+    }
+  }
+}

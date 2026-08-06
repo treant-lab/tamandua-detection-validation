@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/anti_cheat_match_assessment_report_v1.schema.json",
+  "title": "Tamandua Anti-Cheat Match Assessment Gate Report v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "report_id", "fixture_sha256", "assessment_schema_sha256", "report_schema_sha256", "gate_source_sha256", "tenant_scope_digest", "policy_manifest_digest", "evidence_class", "counts", "scenario_coverage", "payload_size", "tooling_performance", "fpr", "gates", "claims"],
+  "properties": {
+    "schema": {"const": "tamandua.anti_cheat.match_assessment_report/v1"},
+    "report_id": {"$ref": "#/$defs/digest"},
+    "fixture_sha256": {"$ref": "#/$defs/digest"},
+    "assessment_schema_sha256": {"$ref": "#/$defs/digest"},
+    "report_schema_sha256": {"$ref": "#/$defs/digest"},
+    "gate_source_sha256": {"$ref": "#/$defs/digest"},
+    "tenant_scope_digest": {"$ref": "#/$defs/digest"},
+    "policy_manifest_digest": {"$ref": "#/$defs/digest"},
+    "evidence_class": {"const": "synthetic_contract"},
+    "counts": {
+      "type": "object", "additionalProperties": false,
+      "required": ["total", "observe", "queue_review", "abstain"],
+      "properties": {
+        "total": {"type": "integer", "minimum": 4},
+        "observe": {"type": "integer", "minimum": 2},
+        "queue_review": {"type": "integer", "minimum": 1},
+        "abstain": {"type": "integer", "minimum": 1}
+      }
+    },
+    "scenario_coverage": {
+      "type": "array", "minItems": 4, "uniqueItems": true,
+      "items": {"enum": ["clean", "local_only", "server_corroborated", "conflicting"]}
+    },
+    "payload_size": {
+      "type": "object", "additionalProperties": false,
+      "required": ["median_bytes", "max_bytes", "median_budget_bytes", "max_budget_bytes", "within_budget"],
+      "properties": {
+        "median_bytes": {"type": "integer", "minimum": 1, "maximum": 4096},
+        "max_bytes": {"type": "integer", "minimum": 1, "maximum": 16384},
+        "median_budget_bytes": {"const": 4096},
+        "max_budget_bytes": {"const": 16384},
+        "within_budget": {"const": true}
+      }
+    },
+    "tooling_performance": {
+      "type": "object", "additionalProperties": false,
+      "required": ["measurement_class", "iterations", "p95_budget_ms", "p95_bucket", "within_budget", "product_or_engine_performance_claim"],
+      "properties": {
+        "measurement_class": {"const": "local_semantic_evaluator_tooling_smoke"},
+        "iterations": {"const": 10000},
+        "p95_budget_ms": {"const": 10.0},
+        "p95_bucket": {"const": "le_10ms"},
+        "within_budget": {"const": true},
+        "product_or_engine_performance_claim": {"const": false}
+      }
+    },
+    "fpr": {
+      "type": "object", "additionalProperties": false,
+      "required": ["claimable", "observed_rate", "reason", "future_governed_method", "future_one_sided_confidence", "future_upper_bound_max", "zero_failure_minimum_per_stratum"],
+      "properties": {
+        "claimable": {"const": false},
+        "observed_rate": {"type": "null"},
+        "reason": {"const": "synthetic_fixture_cannot_estimate_false_positive_rate"},
+        "future_governed_method": {"const": "clopper_pearson"},
+        "future_one_sided_confidence": {"const": 0.95},
+        "future_upper_bound_max": {"const": 0.005},
+        "zero_failure_minimum_per_stratum": {"const": 598}
+      }
+    },
+    "gates": {
+      "type": "object", "additionalProperties": false,
+      "required": ["schema_valid", "score_recomputable", "reasons_recomputable", "server_required_for_review", "conflict_abstains", "privacy_closed", "no_destructive_output", "synthetic_no_fpr_claim", "deterministic"],
+      "properties": {
+        "schema_valid": {"const": true}, "score_recomputable": {"const": true},
+        "reasons_recomputable": {"const": true}, "server_required_for_review": {"const": true},
+        "conflict_abstains": {"const": true}, "privacy_closed": {"const": true},
+        "no_destructive_output": {"const": true}, "synthetic_no_fpr_claim": {"const": true},
+        "deterministic": {"const": true}
+      }
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["enforcement_authorized", "durable_sanction", "engine_adapter_validated", "server_authority_authenticated", "live_server_validated", "production_fpr_validated", "external_claim_allowed"],
+      "properties": {
+        "enforcement_authorized": {"const": false}, "durable_sanction": {"const": false},
+        "engine_adapter_validated": {"const": false}, "server_authority_authenticated": {"const": false}, "live_server_validated": {"const": false},
+        "production_fpr_validated": {"const": false}, "external_claim_allowed": {"const": false}
+      }
+    }
+  },
+  "$defs": {"digest": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}

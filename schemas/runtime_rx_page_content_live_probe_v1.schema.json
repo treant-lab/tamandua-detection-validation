@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/runtime_rx_page_content_live_probe_v1.schema.json",
+  "title": "Tamandua runtime RX page-content isolated live-probe receipt v1",
+  "$comment": "Closed receipt shape for a local_live_collector_smoke executed inside a wsl2_network_isolated lane. A receipt is not performance, FPR, efficacy, production-readiness, or vendor-parity evidence. Fixtures may model this shape only with execute=false.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema", "evidence_class", "execution_scope", "execute",
+    "external_claim_allowed", "fpr_claim_allowed", "performance_claim_allowed",
+    "vendor_parity_claimed", "run_id", "executed_at_utc", "receipt_provenance",
+    "scenario", "provenance", "custody",
+    "protection", "isolation", "measurements", "probe_output", "benign_matrix",
+    "cleanup"
+  ],
+  "properties": {
+    "schema": {"const": "tamandua.runtime_integrity_live_probe_receipt/v1"},
+    "evidence_class": {"const": "local_live_collector_smoke"},
+    "execution_scope": {"const": "wsl2_network_isolated"},
+    "execute": {"type": "boolean"},
+    "external_claim_allowed": {"const": false},
+    "fpr_claim_allowed": {"const": false},
+    "performance_claim_allowed": {"const": false},
+    "vendor_parity_claimed": {"const": false},
+    "run_id": {"type": "string", "minLength": 8, "maxLength": 128, "pattern": "^[A-Za-z0-9._:-]+$"},
+    "executed_at_utc": {"type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]{1,6})?Z$"},
+    "receipt_provenance": {"enum": ["synthetic_fixture", "live_probe_runner"]},
+    "scenario": {"enum": ["disabled_control", "baseline_degraded_control", "owned_release_clean"]},
+    "provenance": {"$ref": "#/$defs/provenance"},
+    "custody": {"$ref": "#/$defs/custody"},
+    "protection": {"$ref": "#/$defs/protection"},
+    "isolation": {"$ref": "#/$defs/isolation"},
+    "measurements": {"$ref": "#/$defs/measurements"},
+    "probe_output": {"$ref": "#/$defs/probeOutput"},
+    "benign_matrix": {"$ref": "#/$defs/benignMatrix"},
+    "cleanup": {"$ref": "#/$defs/cleanup"}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "provenance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_sha", "scoped_dirty", "scoped_dirty_diff_sha256",
+        "cargo_lock_sha256", "rustc_version", "cargo_version", "build_command",
+        "build_command_sha256", "artifact_sha256", "artifact_size_bytes",
+        "artifact_arch", "artifact_profile", "config_sha256"
+      ],
+      "properties": {
+        "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "scoped_dirty": {"type": "boolean"},
+        "scoped_dirty_diff_sha256": {"$ref": "#/$defs/sha256"},
+        "cargo_lock_sha256": {"$ref": "#/$defs/sha256"},
+        "rustc_version": {"type": "string", "minLength": 10, "maxLength": 128, "pattern": "^rustc [0-9]+\\.[0-9]+\\.[0-9]+(?:[-+ ][A-Za-z0-9 ()._-]+)?$"},
+        "cargo_version": {"type": "string", "minLength": 10, "maxLength": 128, "pattern": "^cargo [0-9]+\\.[0-9]+\\.[0-9]+(?:[-+ ][A-Za-z0-9 ()._-]+)?$"},
+        "build_command": {"const": "cargo build --release --locked --manifest-path apps/tamandua_agent/Cargo.toml --bin tamandua-agent"},
+        "build_command_sha256": {"const": "5ba428e09c200099de871ce382f2ea08568eb7d913b44bf2aab41bb68c1f5dae"},
+        "artifact_sha256": {"$ref": "#/$defs/sha256"},
+        "artifact_size_bytes": {"type": "integer", "minimum": 1, "maximum": 268435456},
+        "artifact_arch": {"const": "x86_64"},
+        "artifact_profile": {"const": "release"},
+        "config_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "custody": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_sha256_before", "artifact_sha256_after", "artifact_unchanged",
+        "config_sha256_before", "config_sha256_after", "config_unchanged"
+      ],
+      "properties": {
+        "artifact_sha256_before": {"$ref": "#/$defs/sha256"},
+        "artifact_sha256_after": {"$ref": "#/$defs/sha256"},
+        "artifact_unchanged": {"const": true},
+        "config_sha256_before": {"$ref": "#/$defs/sha256"},
+        "config_sha256_after": {"$ref": "#/$defs/sha256"},
+        "config_unchanged": {"const": true}
+      }
+    },
+    "protection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact_regular_file", "artifact_symlink", "artifact_owner_uid", "artifact_mode",
+        "config_regular_file", "config_symlink", "config_owner_uid", "config_mode",
+        "protected_ancestor_directories"
+      ],
+      "properties": {
+        "artifact_regular_file": {"const": true},
+        "artifact_symlink": {"const": false},
+        "artifact_owner_uid": {"const": 0},
+        "artifact_mode": {"enum": ["0555", "0755"]},
+        "config_regular_file": {"const": true},
+        "config_symlink": {"const": false},
+        "config_owner_uid": {"const": 0},
+        "config_mode": {"const": "0600"},
+        "protected_ancestor_directories": {"const": true}
+      }
+    },
+    "isolation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "wsl2", "network_namespace_isolated", "loopback_disabled",
+        "backend_constructed", "ipc_constructed", "strace_network_syscalls",
+        "strace_filesystem_mutation_syscalls"
+      ],
+      "properties": {
+        "wsl2": {"const": true},
+        "network_namespace_isolated": {"const": true},
+        "loopback_disabled": {"const": true},
+        "backend_constructed": {"const": false},
+        "ipc_constructed": {"const": false},
+        "strace_network_syscalls": {"const": 0},
+        "strace_filesystem_mutation_syscalls": {"const": 0}
+      }
+    },
+    "measurements": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config_load_elapsed_us", "collector_init_elapsed_us", "probe_wall_elapsed_us",
+        "max_rss_kib", "max_rss_source"
+      ],
+      "properties": {
+        "config_load_elapsed_us": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "collector_init_elapsed_us": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "probe_wall_elapsed_us": {"type": "integer", "minimum": 1, "maximum": 60000000},
+        "max_rss_kib": {"type": "integer", "minimum": 1, "maximum": 262144},
+        "max_rss_source": {"const": "usr_bin_time_v"}
+      }
+    },
+    "probeOutput": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema", "provenance", "state", "finding_kinds", "limitations",
+        "page_content", "ticks_executed", "summaries", "final_summary",
+        "config_load_elapsed_us", "collector_init_elapsed_us", "probe_wall_elapsed_us"
+      ],
+      "properties": {
+        "schema": {"const": "tamandua.runtime_integrity/v3"},
+        "provenance": {"const": "platform_collector"},
+        "state": {"enum": ["supported", "degraded", "unsupported"]},
+        "finding_kinds": {"$ref": "#/$defs/findingKinds"},
+        "limitations": {"$ref": "#/$defs/limitations"},
+        "page_content": {"$ref": "#/$defs/pageContent"},
+        "ticks_executed": {"type": "integer", "minimum": 1, "maximum": 1024},
+        "summaries": {"type": "array", "minItems": 1, "maxItems": 1024, "items": {"$ref": "#/$defs/tickSummary"}},
+        "final_summary": {"$ref": "#/$defs/tickSummary"},
+        "config_load_elapsed_us": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "collector_init_elapsed_us": {"type": "integer", "minimum": 0, "maximum": 100000},
+        "probe_wall_elapsed_us": {"type": "integer", "minimum": 1, "maximum": 60000000}
+      }
+    },
+    "tickSummary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["state", "finding_kinds", "limitations", "page_content"],
+      "properties": {
+        "state": {"enum": ["supported", "degraded", "unsupported"]},
+        "finding_kinds": {"$ref": "#/$defs/findingKinds"},
+        "limitations": {"$ref": "#/$defs/limitations"},
+        "page_content": {"$ref": "#/$defs/pageContent"}
+      }
+    },
+    "findingKinds": {
+      "type": "array", "maxItems": 4, "uniqueItems": true,
+      "items": {"enum": ["writable_executable_mapping", "debugger_or_tracer_attached", "instrumentation_library_loaded", "file_backed_executable_page_drift"]}
+    },
+    "limitations": {
+      "type": "array", "minItems": 1, "maxItems": 15, "uniqueItems": true,
+      "items": {"enum": [
+        "rx_page_content_anonymous_jit_out_of_scope", "rx_page_content_backing_deleted",
+        "rx_page_content_backing_replaced", "rx_page_content_baseline_mismatch",
+        "rx_page_content_baseline_unavailable", "rx_page_content_bootstrap_budget_exceeded",
+        "rx_page_content_budget_exceeded", "rx_page_content_coverage_limit_exceeded",
+        "rx_page_content_disabled", "rx_page_content_elf_unsupported",
+        "rx_page_content_execute_only", "rx_page_content_identity_race",
+        "rx_page_content_memory_read_unavailable", "rx_page_content_no_eligible_pages",
+        "rx_page_content_relocation_unsupported"
+      ]}
+    },
+    "pageContent": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "capability_id", "maturity", "mode", "enabled", "status", "baseline_source",
+        "eligible_pages", "pages_compared_this_tick", "sweep_pages_compared",
+        "excluded_relocation_pages", "unstable_pages_this_tick",
+        "memory_bytes_read_this_tick", "elapsed_us_this_tick", "budget_limit_us",
+        "full_sweep_completed", "budget_state"
+      ],
+      "properties": {
+        "capability_id": {"const": "linux_self_file_backed_elf_rx_page_content_preview_v2"},
+        "maturity": {"const": "preview"},
+        "mode": {"const": "observe_only"},
+        "enabled": {"type": "boolean"},
+        "status": {"enum": ["disabled", "partial", "clean", "mismatch", "degraded", "unsupported"]},
+        "baseline_source": {"enum": ["none", "protected_config_sha256_startup_fd"]},
+        "eligible_pages": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "pages_compared_this_tick": {"type": "integer", "minimum": 0, "maximum": 8},
+        "sweep_pages_compared": {"type": "integer", "minimum": 0, "maximum": 8192},
+        "excluded_relocation_pages": {"type": "integer", "minimum": 0, "maximum": 16384},
+        "unstable_pages_this_tick": {"type": "integer", "minimum": 0, "maximum": 8},
+        "memory_bytes_read_this_tick": {"type": "integer", "minimum": 0, "maximum": 65536, "multipleOf": 4096},
+        "elapsed_us_this_tick": {"type": "integer", "minimum": 0, "maximum": 10000},
+        "budget_limit_us": {"const": 10000},
+        "full_sweep_completed": {"type": "boolean"},
+        "budget_state": {"const": "within_budget"}
+      }
+    },
+    "benignMatrix": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["input_class", "expected_status", "compromise_observed", "drift_observed"],
+      "properties": {
+        "input_class": {"enum": ["disabled_control", "wrong_baseline_control", "owned_release_unchanged"]},
+        "expected_status": {"enum": ["disabled", "degraded", "clean"]},
+        "compromise_observed": {"const": false},
+        "drift_observed": {"const": false}
+      }
+    },
+    "cleanup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["completed", "temporary_artifacts_remaining", "network_namespace_removed"],
+      "properties": {
+        "completed": {"const": true},
+        "temporary_artifacts_remaining": {"const": 0},
+        "network_namespace_removed": {"const": true}
+      }
+    }
+  }
+}

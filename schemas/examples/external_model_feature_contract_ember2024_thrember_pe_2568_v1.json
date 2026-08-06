@@ -1,0 +1,90 @@
+{
+  "api_version": "tamandua.io/external-model-feature-contract/v1",
+  "contract_id": "ember2024-thrember-v3-pe-2568-score-only-v1",
+  "extractor": {
+    "name": "thrember.PEFeatureExtractor",
+    "version": "ember2024-git-0ef753e81d98bf209f71b03cd331dfc190b5b54d",
+    "implementation_sha256": "aa9b29e2267a037ebec0b234234edfc2f8d2316e579ab1a0fba6878e70288eca"
+  },
+  "input": {
+    "dtype": "float32",
+    "shape": [
+      1,
+      2568
+    ],
+    "byte_order": "native"
+  },
+  "features": [
+    {
+      "index": 0,
+      "name": "GeneralFileInfo[0:7)",
+      "normalization": "thrember v3 process_raw_features; 7 positions"
+    },
+    {
+      "index": 7,
+      "name": "ByteHistogram[7:263)",
+      "normalization": "thrember v3 process_raw_features; 256 positions"
+    },
+    {
+      "index": 263,
+      "name": "ByteEntropyHistogram[263:519)",
+      "normalization": "thrember v3 process_raw_features; 256 positions"
+    },
+    {
+      "index": 519,
+      "name": "StringExtractor[519:696)",
+      "normalization": "thrember v3 process_raw_features; 177 positions"
+    },
+    {
+      "index": 696,
+      "name": "HeaderFileInfo[696:770)",
+      "normalization": "thrember v3 process_raw_features; 74 positions"
+    },
+    {
+      "index": 770,
+      "name": "SectionInfo[770:994)",
+      "normalization": "thrember v3 process_raw_features; 224 positions"
+    },
+    {
+      "index": 994,
+      "name": "ImportsInfo[994:2276)",
+      "normalization": "thrember v3 process_raw_features; 1282 positions"
+    },
+    {
+      "index": 2276,
+      "name": "ExportsInfo[2276:2405)",
+      "normalization": "thrember v3 process_raw_features; 129 positions"
+    },
+    {
+      "index": 2405,
+      "name": "DataDirectories[2405:2439)",
+      "normalization": "thrember v3 process_raw_features; 34 positions"
+    },
+    {
+      "index": 2439,
+      "name": "RichHeader[2439:2472)",
+      "normalization": "thrember v3 process_raw_features; 33 positions"
+    },
+    {
+      "index": 2472,
+      "name": "AuthenticodeSignature[2472:2480)",
+      "normalization": "thrember v3 process_raw_features; 8 positions"
+    },
+    {
+      "index": 2480,
+      "name": "PEFormatWarnings[2480:2568)",
+      "normalization": "thrember v3 process_raw_features; 88 positions; warning vocabulary file SHA-256 d27a9769f734f302354e1424c38133c143cbe1dfa1a1c8d48030d19bf58fe7cc"
+    }
+  ],
+  "supported_formats": [
+    "pe"
+  ],
+  "missing_feature_policy": "reject",
+  "output": {
+    "dtype": "float64",
+    "score_orientation": "higher_is_more_malicious",
+    "threshold": null,
+    "calibration": "none; upstream LightGBM predict score retained for shadow comparison only"
+  },
+  "contract_sha256": "d545ff260ca5c6e199ffb642ce1c707b06dd9eb40a592e1ee4ab62680d55e566"
+}

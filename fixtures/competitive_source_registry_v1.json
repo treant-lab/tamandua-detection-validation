@@ -1,0 +1,1021 @@
+{
+  "schema_version": "competitive_source_registry_v1",
+  "registry_id": "tamandua-competitive-official-sources-2026-07-16",
+  "sources": [
+    {
+      "source_id": "SRC-GSQ-DEX-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.guardsquare.com/dexguard",
+      "product": "Guardsquare DexGuard",
+      "scope": "DexGuard obfuscation, encryption, virtualization and RASP dimensions",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_app_shielding",
+      "protocol_id": "mobile-app-shielding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-GSQ-IXG-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.guardsquare.com/ixguard",
+      "product": "Guardsquare iXGuard",
+      "scope": "iOS code-hardening and RASP dimensions",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_app_shielding",
+      "protocol_id": "mobile-app-shielding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-GSQ-VIRT-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.guardsquare.com/blog/dexguard-introduces-code-virtualization-android",
+      "product": "Guardsquare code virtualization",
+      "scope": "Virtualization mechanism and stated performance trade-offs",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_app_shielding",
+      "protocol_id": "mobile-app-shielding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-GSQ-RASP-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.guardsquare.com/blog/protecting-runtime-integrity-with-rasp-threat-monitoring",
+      "product": "Guardsquare RASP",
+      "scope": "Runtime-integrity comparison layers",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_app_shielding",
+      "protocol_id": "mobile-app-shielding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-ZIM-ZDEF-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://lp.zimperium.com/hubfs/MAPS_zDefend/SB/GEN/zDefend_Solution_Brief24.pdf?hsLang=en",
+      "product": "Zimperium zDefend",
+      "scope": "In-app RASP category",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_app_shielding",
+      "protocol_id": "mobile-app-shielding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-ZIM-MTD-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://lp.zimperium.com/hubfs/MTD/WP/GEN/Zimperium_Mobile_Threat_Defense.pdf?hsLang=en",
+      "product": "Zimperium MTD",
+      "scope": "Device MTD category, distinct from shielding",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_device_mtd",
+      "protocol_id": "mobile-device-mtd-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-LOOK-MES-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.lookout.com/platform/mobile-endpoint-security",
+      "product": "Lookout Mobile Endpoint Security",
+      "scope": "Mobile endpoint app, device, network and phishing posture",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_device_mtd",
+      "protocol_id": "mobile-device-mtd-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-GOOG-ING-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://docs.cloud.google.com/chronicle/docs/reference/ingestion-methods",
+      "product": "Google SecOps ingestion methods",
+      "scope": "Current UDM ingestion methods, regional endpoints and API constraints",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": "documentation-updated-2026-07-13",
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "siem_integration",
+      "protocol_id": "siem-connector-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-GOOG-LEG-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://docs.cloud.google.com/chronicle/docs/reference/ingestion-api",
+      "product": "Google SecOps previous-generation Ingestion API",
+      "scope": "Legacy UDM/raw ingestion, batch deduplication and migration fallback constraints",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": "documentation-updated-2026-07-13",
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "siem_integration",
+      "protocol_id": "siem-connector-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-GOOG-LIFE-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://docs.cloud.google.com/chronicle/docs/reference/google-secops-api-libraries-overview",
+      "product": "Google SecOps APIs",
+      "scope": "Modern and previous-generation API and ingestion lifecycle",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "siem_integration",
+      "protocol_id": "siem-connector-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-MS-LOG-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/logs-ingestion-api-overview",
+      "product": "Azure Monitor Logs Ingestion API",
+      "scope": "Modern Logs Ingestion API and DCR target",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "siem_integration",
+      "protocol_id": "siem-connector-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-MS-MIG-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/custom-logs-migrate",
+      "product": "Microsoft Sentinel ingestion migration",
+      "scope": "Legacy HTTP Data Collector migration requirements",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "siem_integration",
+      "protocol_id": "siem-connector-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-MS-ASIM-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://learn.microsoft.com/en-us/azure/sentinel/normalization-about-schemas",
+      "product": "Microsoft Sentinel ASIM",
+      "scope": "ASIM schema, version and field semantics",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "siem_integration",
+      "protocol_id": "siem-connector-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-EL-ECS-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.elastic.co/docs/reference/ecs/ecs-guidelines",
+      "product": "Elastic Common Schema",
+      "scope": "ECS core and extended mapping semantics",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "siem_integration",
+      "protocol_id": "siem-connector-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-EL-INT-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.elastic.co/docs/extend/integrations",
+      "product": "Elastic Integrations",
+      "scope": "Integration build, test and package lifecycle",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "siem_integration",
+      "protocol_id": "siem-connector-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-OCSF-001",
+      "class": "normative",
+      "canonical_url": "https://ocsf.io/",
+      "product": "OCSF",
+      "scope": "Vendor-neutral schema framework and extensions",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "normative_contract",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "security_schema",
+      "protocol_id": "security-schema-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-WIZ-CLOUD-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.wiz.io/platform/wiz-cloud",
+      "product": "Wiz Cloud",
+      "scope": "CSPM, CIEM, DSPM and Security Graph dimensions",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "cnapp",
+      "protocol_id": "cnapp-finding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-WIZ-DSPM-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.wiz.io/solutions/dspm",
+      "product": "Wiz DSPM",
+      "scope": "DSPM and cloud graph dimensions",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "cnapp",
+      "protocol_id": "cnapp-finding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-PRIS-CSPM-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.paloaltonetworks.com/prisma/cloud/cloud-security-posture-management",
+      "product": "Prisma Cloud CSPM",
+      "scope": "CSPM and graph/attack-path dimensions",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "cnapp",
+      "protocol_id": "cnapp-finding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-PRIS-CNAPP-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.paloaltonetworks.com/resources/guides/cloud-native-application-protection-platform-design-guide",
+      "product": "Prisma Cloud CNAPP",
+      "scope": "Declared CSPM, CIEM and DSPM CNAPP scope",
+      "retrieved_at": "2026-07-16",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-14",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "cnapp",
+      "protocol_id": "cnapp-finding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-CS-FALCON-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.crowdstrike.com/en-us/platform/",
+      "product": "CrowdStrike Falcon Platform",
+      "scope": "Declared cross-domain endpoint, identity, cloud, SaaS and security operations dimensions",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "endpoint_edr",
+      "protocol_id": "endpoint-edr-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-CS-ENDPOINT-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.crowdstrike.com/en-us/platform/endpoint-security/",
+      "product": "CrowdStrike Endpoint Security",
+      "scope": "Declared endpoint prevention, detection, investigation and response dimensions",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "endpoint_edr",
+      "protocol_id": "endpoint-edr-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-S1-XDR-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.sentinelone.com/platform/singularity-xdr-protection/",
+      "product": "SentinelOne Singularity XDR",
+      "scope": "Declared endpoint, identity, cloud and third-party XDR correlation dimensions",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "endpoint_edr",
+      "protocol_id": "endpoint-edr-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-S1-ENDPOINT-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.sentinelone.com/platform/endpoint-protection-platform/",
+      "product": "SentinelOne Singularity Endpoint",
+      "scope": "Declared endpoint prevention, Storyline, automated response and rollback dimensions; platform-specific scope requires separate qualification",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "endpoint_edr",
+      "protocol_id": "endpoint-edr-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-MS-MDE-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://learn.microsoft.com/en-us/defender-endpoint/microsoft-defender-endpoint",
+      "product": "Microsoft Defender for Endpoint",
+      "scope": "Declared endpoint prevention, detection, investigation and response dimensions",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "endpoint_edr",
+      "protocol_id": "endpoint-edr-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-MS-XDR-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://learn.microsoft.com/en-us/defender-xdr/microsoft-365-defender",
+      "product": "Microsoft Defender XDR",
+      "scope": "Declared cross-product endpoint, identity, email and application correlation dimensions",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "endpoint_edr",
+      "protocol_id": "endpoint-edr-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-PAN-XDR-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://docs-cortex.paloaltonetworks.com/p/XDR",
+      "product": "Palo Alto Networks Cortex XDR",
+      "scope": "Declared endpoint, network and cloud XDR dimensions",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "endpoint_edr",
+      "protocol_id": "endpoint-edr-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-PAN-XQL-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://docs-cortex.paloaltonetworks.com/r/Cortex-XDR/Cortex-XDR-3.x-Documentation/XQL-language-features",
+      "product": "Cortex XQL",
+      "scope": "Declared raw endpoint, network, cloud and third-party query dimensions",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "endpoint_edr",
+      "protocol_id": "endpoint-edr-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-APPDOME-SUITE-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.appdome.com/mobile-app-security/mobile-rasp-and-app-shielding/",
+      "product": "Appdome Mobile RASP and App Shielding",
+      "scope": "Declared Android/iOS RASP, runtime anti-tampering, hooking and app-shielding dimensions",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_app_shielding",
+      "protocol_id": "mobile-app-shielding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-APPDOME-OBF-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.appdome.com/how-to/mobile-app-security/mobile-code-obfuscation/binary-code-obfuscation-anti-reversing-for-android-ios-apps/",
+      "product": "Appdome Binary Code Obfuscation",
+      "scope": "Declared Android and iOS binary obfuscation and anti-reversing dimensions",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_app_shielding",
+      "protocol_id": "mobile-app-shielding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-VMX-XTD-001",
+      "class": "vendor_declared",
+      "canonical_url": "https://www.guardsquare.com/xtd",
+      "product": "Guardsquare XTD",
+      "scope": "Current owner page for XTD technology acquired from Verimatrix; declared mobile app protection and threat-monitoring dimensions. The source ID is retained as a historical compatibility alias",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "comparison_dimension",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "mobile_app_shielding",
+      "protocol_id": "mobile-app-shielding-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-ANDROID-PROF-001",
+      "class": "normative",
+      "canonical_url": "https://developer.android.com/studio/profile/",
+      "product": "Android Studio Profiler",
+      "scope": "Android CPU, memory, graphics and battery profiling instrumentation contract",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "normative_contract",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "platform_instrumentation",
+      "protocol_id": "physical-benchmark-instrumentation-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-ANDROID-POWER-001",
+      "class": "normative",
+      "canonical_url": "https://developer.android.com/studio/profile/power-profiler",
+      "product": "Android Power Profiler",
+      "scope": "Android ODPM, power rail, coulomb counter and battery gauge instrumentation constraints",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "normative_contract",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "platform_instrumentation",
+      "protocol_id": "physical-benchmark-instrumentation-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-APPLE-XCT-001",
+      "class": "normative",
+      "canonical_url": "https://developer.apple.com/documentation/xctest/performance-tests",
+      "product": "Apple XCTest Performance Tests",
+      "scope": "Apple repeatable CPU, clock, memory, storage and launch measurement contract",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "normative_contract",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "platform_instrumentation",
+      "protocol_id": "physical-benchmark-instrumentation-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    },
+    {
+      "source_id": "SRC-APPLE-METRICKIT-001",
+      "class": "normative",
+      "canonical_url": "https://developer.apple.com/documentation/metrickit",
+      "product": "Apple MetricKit",
+      "scope": "Apple on-device aggregate power, performance and diagnostic reporting contract",
+      "retrieved_at": "2026-07-17",
+      "version": null,
+      "revision": null,
+      "snapshot": {
+        "status": "live",
+        "immutable_uri": null,
+        "sha256": null,
+        "required_before_governed_comparison": true
+      },
+      "license_review": {
+        "state": "pending",
+        "reviewed_at": null,
+        "notes": "Official public source; EULA/license review required before comparative artifact use."
+      },
+      "permitted_use": "normative_contract",
+      "next_review_at": "2026-10-15",
+      "independent_measurement_source_ids": [],
+      "measurement_origin": "not_applicable",
+      "comparison_category": "platform_instrumentation",
+      "protocol_id": "physical-benchmark-instrumentation-v1",
+      "covers_source_ids": [],
+      "measurement_scope": null
+    }
+  ]
+}

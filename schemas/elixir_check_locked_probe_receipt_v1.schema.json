@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/elixir_check_locked_probe_receipt_v1.schema.json",
+  "title": "Tamandua auditable Elixir check-locked probe receipt v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "profile", "evidence_class", "evidence_boundary", "parent", "invocation", "container", "inputs", "toolchain", "inventory", "result", "execution", "cleanup", "metrics", "limitations", "claims"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "profile": {"const": "elixir-check-locked-auditable-probe-v1"},
+    "evidence_class": {"const": "local_offline_trusted_fake_unit_test_contract"},
+    "evidence_boundary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["adapter_trust", "validation_scope", "same_interpreter_adversarial_resistance_proven", "schema_provenance_verified", "invocation_entropy_verified", "real_cleanup_verified", "real_adapter_allowed", "required_before_real_adapter"],
+      "properties": {
+        "adapter_trust": {"const": "trusted_injected_fake"},
+        "validation_scope": {"const": "unit_test_and_accidental_drift_only"},
+        "same_interpreter_adversarial_resistance_proven": {"const": false},
+        "schema_provenance_verified": {"const": false},
+        "invocation_entropy_verified": {"const": false},
+        "real_cleanup_verified": {"const": false},
+        "real_adapter_allowed": {"const": false},
+        "required_before_real_adapter": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "prefixItems": [
+            {"const": "separate_process_boundary"},
+            {"const": "serialized_immutable_manifest"}
+          ],
+          "items": false
+        }
+      }
+    },
+    "parent": {
+      "type": "object", "additionalProperties": false,
+      "required": ["loop", "artifact_sha256"],
+      "properties": {
+        "loop": {"const": 137},
+        "artifact_sha256": {"const": "47af4ad004451a6a506e022911a5b8042ebc23f50217c5b7c74c42a731cc3a4e"}
+      }
+    },
+    "invocation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "argv", "argv_sha256"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^loop144-[a-f0-9]{16}$"},
+        "argv": {
+          "type": "array", "minItems": 14, "maxItems": 14,
+          "prefixItems": [
+            {"const": "container-adapter"}, {"const": "run-once"},
+            {"type": "string", "pattern": "^name=tamandua-check-locked-loop144-[a-f0-9]{16}$"},
+            {"const": "pull=never"}, {"const": "network=none"}, {"const": "root=read-only"},
+            {"const": "workspace=tmpfs"}, {"const": "mounts=read-only"},
+            {"const": "image=sha256:f31484716c92e442efbe163ff5df3456ac6dd3e0c96a2c3d1cc4fd295661e5a0"},
+            {"const": "entrypoint=mix"}, {"const": "task=deps.get"}, {"const": "arg=--only"},
+            {"const": "arg=test"}, {"const": "arg=--check-locked"}
+          ],
+          "items": false
+        },
+        "argv_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "container": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "id"],
+      "properties": {
+        "name": {"type": "string", "pattern": "^tamandua-check-locked-loop144-[a-f0-9]{16}$"},
+        "id": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_head", "mix_exs_sha256", "mix_lock_sha256", "config_sha256", "config_file_count", "hydrator_image_id"],
+      "properties": {
+        "source_head": {"const": "ce97ccd64a686e91fbf6f613e3face7cb17843d2"},
+        "mix_exs_sha256": {"const": "68f782f5006682113827741fe3b8b16dcb1bb9f7deb99ed96fad6cbae180440b"},
+        "mix_lock_sha256": {"const": "c2f55bbe72c17420ae1410a027ee97a7111c52427977db5e16cc3d2fc96d3f98"},
+        "config_sha256": {"const": "e5350e1ea1eb81007eeca2837adeef16e93731c9943637ada14afbf1889ac2da"},
+        "config_file_count": {"const": 6},
+        "hydrator_image_id": {"const": "sha256:f31484716c92e442efbe163ff5df3456ac6dd3e0c96a2c3d1cc4fd295661e5a0"}
+      }
+    },
+    "toolchain": {
+      "type": "object", "additionalProperties": false,
+      "required": ["elixir", "erlang", "otp", "hex", "rebar", "profile"],
+      "properties": {
+        "elixir": {"const": "1.18.4"}, "erlang": {"const": "28.5.0.2"},
+        "otp": {"const": "28"}, "hex": {"const": "2.5.1"},
+        "rebar": {"const": "3.26.0"}, "profile": {"const": "f314-hydrator-b825-final-v1"}
+      }
+    },
+    "inventory": {
+      "type": "object", "additionalProperties": false,
+      "required": ["before", "after", "unchanged"],
+      "properties": {
+        "before": {"$ref": "#/$defs/inventory"}, "after": {"$ref": "#/$defs/inventory"},
+        "unchanged": {"type": "boolean"}
+      }
+    },
+    "result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "outcome", "exit_code", "failure_line_sha256", "failure_class", "error_class", "finalization_errors", "raw_output_persisted"],
+      "properties": {
+        "status": {"enum": ["observed", "blocked"]},
+        "outcome": {"enum": ["fail", "unknown"]},
+        "exit_code": {"type": ["integer", "null"], "minimum": 1, "maximum": 125},
+        "failure_line_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]},
+        "failure_class": {"enum": ["locked_state_precondition_rejected", "unclassified", "not_observed"]},
+        "error_class": {"enum": [null, "inventory_before_error", "run_adapter_error", "observation_invalid", "container_id_invalid", "exit_code_invalid", "failure_line_invalid"]},
+        "finalization_errors": {
+          "type": "array", "maxItems": 3, "uniqueItems": true,
+          "items": {"enum": ["remove_result_invalid", "remove_adapter_error", "absence_result_invalid", "absence_adapter_error", "inventory_after_error", "remove_incomplete", "container_still_present", "inventory_changed"]}
+        },
+        "raw_output_persisted": {"const": false}
+      }
+    },
+    "execution": {
+      "type": "object", "additionalProperties": false,
+      "required": ["run_attempted", "retried", "build_started", "network_requested", "pull_requested", "source_mounts_read_only", "container_root_read_only", "probe_workspace_tmpfs"],
+      "properties": {
+        "run_attempted": {"type": "boolean"},
+        "retried": {"const": false}, "build_started": {"const": false},
+        "network_requested": {"const": false}, "pull_requested": {"const": false},
+        "source_mounts_read_only": {"const": true}, "container_root_read_only": {"const": true},
+        "probe_workspace_tmpfs": {"const": true}
+      }
+    },
+    "cleanup": {
+      "type": "object", "additionalProperties": false,
+      "required": ["remove_attempted", "remove_succeeded", "absence_check_attempted", "container_absent_after", "image_inventory_unchanged", "complete"],
+      "properties": {
+        "remove_attempted": {"type": "boolean"}, "remove_succeeded": {"type": ["boolean", "null"]},
+        "absence_check_attempted": {"type": "boolean"},
+        "container_absent_after": {"type": ["boolean", "null"]}, "image_inventory_unchanged": {"type": "boolean"},
+        "complete": {"type": "boolean"}
+      }
+    },
+    "metrics": {
+      "type": "object", "additionalProperties": false,
+      "required": ["adapter_contract", "interface_calls"],
+      "properties": {
+        "adapter_contract": {"const": "trusted_injected_fake_v1"},
+        "interface_calls": {
+          "type": "object", "additionalProperties": false,
+          "required": ["image_inventory", "run_once", "remove_container_by_name", "container_absent_by_name"],
+          "properties": {
+            "image_inventory": {"const": 2},
+            "run_once": {"type": "integer", "minimum": 0, "maximum": 1},
+            "remove_container_by_name": {"type": "integer", "minimum": 0, "maximum": 1},
+            "container_absent_by_name": {"type": "integer", "minimum": 0, "maximum": 1}
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array", "minItems": 13, "maxItems": 13, "uniqueItems": true,
+      "prefixItems": [
+        {"const": "trusted_injected_fake_only"},
+        {"const": "unit_test_and_accidental_drift_only"},
+        {"const": "single_run_contract"},
+        {"const": "same_interpreter_not_adversarial_boundary"},
+        {"const": "schema_provenance_unverified"},
+        {"const": "invocation_entropy_unverified"},
+        {"const": "real_cleanup_unverified"},
+        {"const": "real_adapter_requires_separate_process_and_serialized_manifest"},
+        {"const": "raw_output_discarded"}, {"const": "no_real_probe"}, {"const": "no_artifact"},
+        {"const": "no_runtime_validation"}, {"const": "no_database_validation"}
+      ], "items": false
+    },
+    "claims": {
+      "type": "object", "additionalProperties": false,
+      "required": ["probe_executed_on_real_adapter", "artifact_verified", "runtime_validation_executed", "rls_validated", "product_ready", "production_validated", "external_claim_allowed", "vendor_parity"],
+      "properties": {
+        "probe_executed_on_real_adapter": {"const": false}, "artifact_verified": {"const": false},
+        "runtime_validation_executed": {"const": false}, "rls_validated": {"const": false},
+        "product_ready": {"const": false}, "production_validated": {"const": false},
+        "external_claim_allowed": {"const": false}, "vendor_parity": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "image_id": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"},
+    "version": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$"},
+    "inventory": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "manifest", "manifest_sha256"],
+      "properties": {
+        "status": {"enum": ["observed", "adapter_error"]},
+        "manifest": {"type": "array", "maxItems": 256, "uniqueItems": true, "items": {"$ref": "#/$defs/image_id"}},
+        "manifest_sha256": {"oneOf": [{"$ref": "#/$defs/sha256"}, {"type": "null"}]}
+      }
+    }
+  }
+}

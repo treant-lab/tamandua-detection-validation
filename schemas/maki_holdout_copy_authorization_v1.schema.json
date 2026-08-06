@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tamandua.local/schemas/maki_holdout_copy_authorization_v1.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["api_version", "kind", "authorization_id", "operation_id", "operation", "coordinator", "preflight", "source", "destination", "policy"],
+  "properties": {
+    "api_version": {"const": "tamandua.io/maki-holdout-copy-authorization/v1"},
+    "kind": {"const": "MakiHoldoutCopyAuthorization"},
+    "authorization_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"},
+    "operation_id": {"$ref": "#/$defs/sha256"},
+    "operation": {"const": "copy-one-object-to-isolated-holdout"},
+    "coordinator": {
+      "type": "object", "additionalProperties": false,
+      "required": ["deployment_id", "source_sha", "target", "surface", "publisher_owner", "fencing_token", "approval_id", "manifest_fingerprint"],
+      "properties": {
+        "deployment_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"},
+        "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}([0-9a-f]{24})?$"},
+        "target": {"const": "staging"},
+        "surface": {"const": "ml-corpus-holdout"},
+        "publisher_owner": {"type": "string", "pattern": "^[A-Za-z0-9._:@/-]{1,256}$"},
+        "fencing_token": {"type": "integer", "minimum": 1},
+        "approval_id": {"type": "string", "pattern": "^[A-Za-z0-9._-]{1,160}$"},
+        "manifest_fingerprint": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+      }
+    },
+    "preflight": {
+      "type": "object", "additionalProperties": false,
+      "required": ["packet_sha256", "packet_schema_sha256", "selection_digest"],
+      "properties": {
+        "packet_sha256": {"$ref": "#/$defs/sha256"},
+        "packet_schema_sha256": {"$ref": "#/$defs/sha256"},
+        "selection_digest": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "source": {"$ref": "#/$defs/objectIdentity"},
+    "destination": {"$ref": "#/$defs/destinationIdentity"},
+    "policy": {
+      "type": "object", "additionalProperties": false,
+      "required": ["adapter", "allowed_calls", "body_read", "list", "delete", "aws_network"],
+      "properties": {
+        "adapter": {"const": "offline_synthetic"},
+        "allowed_calls": {"const": ["head_source", "copy_object", "head_destination"]},
+        "body_read": {"const": false}, "list": {"const": false}, "delete": {"const": false}, "aws_network": {"const": false}
+      }
+    }
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "objectIdentity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bucket", "key", "version_id", "checksum_sha256", "size_bytes"],
+      "properties": {
+        "bucket": {"type": "string", "pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"},
+        "key": {"type": "string", "minLength": 1, "maxLength": 1024},
+        "version_id": {"type": ["string", "null"], "minLength": 1, "maxLength": 1024},
+        "checksum_sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 5497558138880}
+      }
+    },
+    "destinationIdentity": {
+      "type": "object", "additionalProperties": false,
+      "required": ["bucket", "key", "version_id", "checksum_sha256", "size_bytes", "kms_key_arn", "expected_bucket_owner", "expected_source_bucket_owner", "bucket_key_enabled"],
+      "properties": {
+        "bucket": {"type": "string", "pattern": "^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$"},
+        "key": {"type": "string", "pattern": "^holdout/(goodware|malware)/.+\\.bin$", "maxLength": 1024},
+        "version_id": {"type": "null"},
+        "checksum_sha256": {"$ref": "#/$defs/sha256"},
+        "size_bytes": {"type": "integer", "minimum": 1, "maximum": 5497558138880},
+        "kms_key_arn": {"type": "string", "pattern": "^arn:aws:kms:[a-z0-9-]{1,63}:[0-9]{12}:key/[A-Za-z0-9-]{1,256}$", "maxLength": 512},
+        "expected_bucket_owner": {"type": "string", "pattern": "^[0-9]{12}$"},
+        "expected_source_bucket_owner": {"type": "string", "pattern": "^[0-9]{12}$"},
+        "bucket_key_enabled": {"const": false}
+      }
+    }
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://schemas.tamandua.local/runtime_trust_signal_v1.schema.json",
+  "title": "Tamandua Runtime Trust Signal v1",
+  "type": "object",
+  "required": [
+    "signal_id",
+    "detector_family",
+    "state",
+    "evidence_strength",
+    "source",
+    "observed_at",
+    "evidence_ref"
+  ],
+  "properties": {
+    "signal_id": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,95}$"},
+    "detector_family": {"type": "string", "pattern": "^[a-z][a-z0-9_]{1,95}$"},
+    "state": {"enum": ["observed", "not_observed", "unknown"]},
+    "evidence_strength": {"enum": ["weak", "moderate", "strong", "unknown"]},
+    "source": {
+      "enum": ["native", "sdk", "policy_controlled", "server", "external_reference", "legacy_adapter"]
+    },
+    "observed_at": {"type": "string", "format": "date-time"},
+    "evidence_ref": {
+      "type": "object",
+      "required": ["kind", "source_path", "privacy_mode"],
+      "properties": {
+        "kind": {"enum": ["legacy_inline_metadata", "metadata_digest", "external_reference"]},
+        "source_path": {"type": "string", "minLength": 1, "maxLength": 256},
+        "privacy_mode": {"enum": ["metadata_only", "aggregate_only", "external_reference_only"]}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -96,12 +96,16 @@ def test_readiness_report_blocks_strong_claims_without_live_ios_and_lab_evidence
 
     assert report["release_ready"] is False
     assert report["evidence_boundary"]["strong_claims_allowed"] is False
+    # df12c5991 strengthened the release evidence boundary with
+    # android_attack_lab_setup and clean_goodware_negative_controls.
     assert report["evidence_boundary"]["release_claim_requires"] == [
         "live_signed_ingestion",
         "live_anti_replay_duplicate_rejection",
         "ios_native_build",
         "ios_xcframework",
+        "android_attack_lab_setup",
         "physical_attack_lab",
+        "clean_goodware_negative_controls",
         "release_protection_packet",
         "mirror_publication",
     ]

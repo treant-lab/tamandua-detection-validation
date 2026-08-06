@@ -1,0 +1,317 @@
+{
+    "$id": "https://tamandua.dev/schemas/android_device_identity_fleet_continuity_preregistration_v1.schema.json",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$comment": "Offline aggregate-only preregistration evidence. It never authorizes or executes physical collection. The validator's two-handle path checks are a bounded local best-effort snapshot, not filesystem atomicity.",
+    "oneOf": [
+        {
+            "$ref": "#/$defs/valid"
+        },
+        {
+            "$ref": "#/$defs/error"
+        }
+    ],
+    "$defs": {
+        "sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+        },
+        "claims": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+                "clone_detection_validated",
+                "external_claim_allowed",
+                "hardware_attestation_validated",
+                "physical_device_validated",
+                "product_ready",
+                "production_ready",
+                "real_fleet_uniqueness_validated",
+                "vendor_parity"
+            ],
+            "properties": {
+                "clone_detection_validated": {
+                    "const": false
+                },
+                "external_claim_allowed": {
+                    "const": false
+                },
+                "hardware_attestation_validated": {
+                    "const": false
+                },
+                "physical_device_validated": {
+                    "const": false
+                },
+                "product_ready": {
+                    "const": false
+                },
+                "production_ready": {
+                    "const": false
+                },
+                "real_fleet_uniqueness_validated": {
+                    "const": false
+                },
+                "vendor_parity": {
+                    "const": false
+                }
+            }
+        },
+        "common": {
+            "type": "object",
+            "properties": {
+                "schema": {
+                    "const": "tamandua.android.device_identity.fleet_preregistration_report/v1"
+                },
+                "evidence_class": {
+                    "const": "offline_physical_fleet_preregistration_candidate"
+                },
+                "profile": {
+                    "const": "tamandua.android.device_identity.fleet_preregistration_offline/v1"
+                },
+                "decision": {
+                    "const": "hold"
+                },
+                "aggregate_only": {
+                    "const": true
+                },
+                "physical_matrix_ready": {
+                    "const": false
+                },
+                "execution_authorized": {
+                    "const": false
+                },
+                "claims": {
+                    "$ref": "#/$defs/claims"
+                }
+            }
+        },
+        "valid": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/common"
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "schema",
+                        "evidence_class",
+                        "profile",
+                        "outcome",
+                        "decision",
+                        "hold_reason",
+                        "preregistration_sha256",
+                        "pins_sha256",
+                        "matrix_sha256",
+                        "role_bindings_sha256",
+                        "metrics",
+                        "gates",
+                        "aggregate_only",
+                        "physical_matrix_ready",
+                        "execution_authorized",
+                        "claims"
+                    ],
+                    "properties": {
+                        "schema": true,
+                        "evidence_class": true,
+                        "profile": true,
+                        "outcome": {
+                            "const": "validated_hold"
+                        },
+                        "decision": true,
+                        "hold_reason": {
+                            "enum": [
+                                "operational_root_unpinned",
+                                "separate_operator_authorization_required"
+                            ]
+                        },
+                        "preregistration_sha256": {
+                            "$ref": "#/$defs/sha"
+                        },
+                        "pins_sha256": {
+                            "$ref": "#/$defs/sha"
+                        },
+                        "matrix_sha256": {
+                            "$ref": "#/$defs/sha"
+                        },
+                        "role_bindings_sha256": {
+                            "$ref": "#/$defs/sha"
+                        },
+                        "metrics": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "slot_count",
+                                "tenant_count",
+                                "cell_count",
+                                "required_category_count",
+                                "required_event_count"
+                            ],
+                            "properties": {
+                                "slot_count": {
+                                    "type": "integer",
+                                    "minimum": 3,
+                                    "maximum": 64
+                                },
+                                "tenant_count": {
+                                    "type": "integer",
+                                    "minimum": 2,
+                                    "maximum": 32
+                                },
+                                "cell_count": {
+                                    "const": 13
+                                },
+                                "required_category_count": {
+                                    "const": 12
+                                },
+                                "required_event_count": {
+                                    "const": 9
+                                }
+                            }
+                        },
+                        "gates": {
+                            "type": "object",
+                            "additionalProperties": false,
+                            "required": [
+                                "canonical_inputs",
+                                "separate_pins_match",
+                                "matrix_complete",
+                                "privacy_context_bound",
+                                "authority_chain_bound",
+                                "collector_disabled",
+                                "executor_disabled",
+                                "adapter_disabled",
+                                "target_disabled",
+                                "backend_disabled",
+                                "network_disabled"
+                            ],
+                            "properties": {
+                                "canonical_inputs": {
+                                    "const": true
+                                },
+                                "separate_pins_match": {
+                                    "const": true
+                                },
+                                "matrix_complete": {
+                                    "const": true
+                                },
+                                "privacy_context_bound": {
+                                    "const": true
+                                },
+                                "authority_chain_bound": {
+                                    "const": true
+                                },
+                                "collector_disabled": {
+                                    "const": true
+                                },
+                                "executor_disabled": {
+                                    "const": true
+                                },
+                                "adapter_disabled": {
+                                    "const": true
+                                },
+                                "target_disabled": {
+                                    "const": true
+                                },
+                                "backend_disabled": {
+                                    "const": true
+                                },
+                                "network_disabled": {
+                                    "const": true
+                                }
+                            }
+                        },
+                        "aggregate_only": true,
+                        "physical_matrix_ready": true,
+                        "execution_authorized": true,
+                        "claims": true
+                    }
+                }
+            ]
+        },
+        "error": {
+            "allOf": [
+                {
+                    "$ref": "#/$defs/common"
+                },
+                {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                        "schema",
+                        "evidence_class",
+                        "profile",
+                        "outcome",
+                        "decision",
+                        "reason",
+                        "aggregate_only",
+                        "physical_matrix_ready",
+                        "execution_authorized",
+                        "claims"
+                    ],
+                    "properties": {
+                        "schema": true,
+                        "evidence_class": true,
+                        "profile": true,
+                        "outcome": {
+                            "const": "invalid"
+                        },
+                        "decision": true,
+                "reason": {
+                    "type": "string",
+                    "enum": [
+                        "arguments_invalid",
+                        "authority_digest_invalid",
+                        "authority_fields_invalid",
+                        "case_id_invalid",
+                        "claim_enabled",
+                        "claims_fields_invalid",
+                        "controls_fields_invalid",
+                        "coordinator_fence_invalid",
+                        "digest_reuse",
+                        "duplicate_json_key",
+                        "execution_control_enabled",
+                        "experiment_sha256_invalid",
+                        "head_sha256_invalid",
+                        "input_changed",
+                        "input_depth_exceeded",
+                        "input_identity_invalid",
+                        "input_json_invalid",
+                        "input_not_canonical",
+                        "input_path_unsafe",
+                        "input_size_invalid",
+                        "inputs_not_independent",
+                        "matrix_cell_fields_invalid",
+                        "matrix_count_invalid",
+                        "matrix_coverage_invalid",
+                        "matrix_digest_mismatch",
+                        "matrix_order_invalid",
+                        "matrix_reference_invalid",
+                        "matrix_semantics_invalid",
+                        "matrix_sha256_invalid",
+                        "pins_fields_invalid",
+                        "pins_mismatch",
+                        "preregistration_fields_invalid",
+                        "privacy_digest_invalid",
+                        "privacy_fields_invalid",
+                        "privacy_policy_invalid",
+                        "role_bindings_invalid",
+                        "role_digest_invalid",
+                        "sensitive_field_rejected",
+                        "sensitive_value_rejected",
+                        "slot_set_invalid",
+                        "source_sha256_invalid",
+                        "string_bound_exceeded",
+                        "tenant_set_invalid",
+                        "workspace_sha256_invalid"
+                    ]
+                },
+                        "aggregate_only": true,
+                        "physical_matrix_ready": true,
+                        "execution_authorized": true,
+                        "claims": true
+                    }
+                }
+            ]
+        }
+    }
+}

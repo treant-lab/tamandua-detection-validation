@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -9,7 +10,7 @@ from pathlib import Path
 from inprocess_gate_cli import run_cli_in_process
 
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(os.environ.get("TAMANDUA_ROOT", Path(__file__).resolve().parents[3]))
 SCRIPT = ROOT / "sdk" / "mobile" / "scripts" / "physical_attack_lab_evidence.py"
 FIXTURE = ROOT / "sdk" / "mobile" / "examples" / "physical-attack-lab-evidence.sanitized.json"
 
@@ -51,6 +52,7 @@ def test_sanitized_physical_attack_lab_fixture_passes_strict_gate() -> None:
     assert status["event_ids"] == [
         "evt-physical-root-001",
         "evt-physical-frida-001",
+        "evt-physical-debugger-ptrace-001",
         "evt-physical-overlay-fraud-001",
         "evt-physical-accessibility-001",
         "evt-physical-mitm-pinning-001",
@@ -62,6 +64,7 @@ def test_sanitized_physical_attack_lab_fixture_passes_strict_gate() -> None:
     assert status["server_request_ids"] == [
         "req-physical-root-001",
         "req-physical-frida-001",
+        "req-physical-debugger-ptrace-001",
         "req-physical-overlay-fraud-001",
         "req-physical-accessibility-001",
         "req-physical-mitm-pinning-001",
@@ -80,6 +83,7 @@ def test_sanitized_physical_attack_lab_fixture_passes_strict_gate() -> None:
     assert status["controls"]["positive"] == [
         "physical-root-zygisk-block",
         "physical-frida-session-kill",
+        "physical-debugger-ptrace-kill-session",
         "physical-overlay-fraud-step-up",
         "physical-accessibility-abuse-kill-session",
         "physical-mitm-pinning-step-up",
@@ -98,6 +102,7 @@ def test_sanitized_physical_attack_lab_fixture_passes_strict_gate() -> None:
     assert all(item["observed_at"].startswith("2026-07-07T12:") for item in status["scenarios"])
     assert status["competitive_coverage_tags"] == [
         "accessibility",
+        "debugger",
         "fraud",
         "goodware_negative",
         "malware",
@@ -113,6 +118,7 @@ def test_sanitized_physical_attack_lab_fixture_passes_strict_gate() -> None:
     assert status["evidence_bucket_ids"]["physical_device_lab_required"] == [
         "physical-root-zygisk-block",
         "physical-frida-session-kill",
+        "physical-debugger-ptrace-kill-session",
         "physical-overlay-fraud-step-up",
         "physical-accessibility-abuse-kill-session",
         "physical-mitm-pinning-step-up",
